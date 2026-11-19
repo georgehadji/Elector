@@ -349,6 +349,128 @@ PARTY_ARTIFACTS = [  # published static map pages, one per party (June share + M
 ]
 
 
+ELECTION_NAMES = {"2019": "2019", "2023/may": "Μάιος 2023", "2023/june": "Ιούνιος 2023", "2024/euro": "Ευρωεκλογές 2024"}
+# A ballpoint cross, the mark a voter puts next to a candidate: the one decorative element of the site.
+CROSS_SVG = ('<svg class="x" viewBox="0 0 40 40" aria-hidden="true"><path d="M7 8 C15 15 24 25 33 33"/>'
+             '<path d="M32 7 C25 14 15 24 8 34"/></svg>')
+INDEX_CSS = """
+:root{color-scheme:light;--paper:#f6f7f9;--ink:#13233d;--ink-2:#55627a;--line:#dde2ea;--pen:#256abf;--wash:#eaf1fb}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--paper:#171c24;--ink:#e8edf5;--ink-2:#9aa6b8;--line:#2b3442;--pen:#6da7ec;--wash:#1f2a3a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "Fira Sans",system-ui,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
+a{color:var(--pen)}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+h1{font:400 clamp(44px,9vw,84px)/1 "GFS Didot",Georgia,serif;letter-spacing:-.01em;margin:0;display:flex;align-items:center;gap:.18em}
+h1 .x{width:.72em;height:.72em;flex:none}
+h1 .x path{stroke-width:4.4}
+.x path{fill:none;stroke:var(--pen);stroke-width:3.2;stroke-linecap:round}
+h1 .x path{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s ease-out forwards}
+h1 .x path+path{animation-delay:.3s}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){h1 .x path{animation:none;stroke-dashoffset:0}}
+.lede{max-width:34em;margin:16px 0 28px;color:var(--ink-2);font-size:18px}
+#f{width:100%;max-width:560px;font:inherit;font-size:19px;color:var(--ink);background:transparent;border:0;
+   border-bottom:2px solid var(--ink);padding:10px 2px;border-radius:0}
+#f::placeholder{color:var(--ink-2)}
+#f:focus-visible{outline:none;border-bottom-color:var(--pen)}
+#n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:14px}
+.eps{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));column-gap:36px}
+.eps li{border-top:1px solid var(--line);padding:14px 0 16px}
+.eps h2{font:400 23px/1.2 "GFS Didot",Georgia,serif;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.eps h2 .x{width:16px;height:16px;flex:none;opacity:0;transition:opacity .15s}
+.eps li:hover h2 .x,.eps li:focus-within h2 .x{opacity:1}
+.el{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.el a{display:inline-flex;align-items:center;min-height:32px;padding:0 11px;border:1px solid var(--line);border-radius:16px;
+      color:var(--ink);text-decoration:none;font-size:14px;white-space:nowrap}
+.el a:hover{border-color:var(--pen);color:var(--pen);background:var(--wash)}
+.el a.tm{border-style:dashed}
+.empty{border-top:1px solid var(--line);padding:16px 0;color:var(--ink-2)}
+.more{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 36px}
+.more section{border-top:2px solid var(--ink);padding-top:12px}
+.more h2{font:400 24px/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
+.more p{color:var(--ink-2);margin:0 0 10px;font-size:15px}
+.more ul{margin:0;padding:0;list-style:none}
+.more li{padding:3px 0}
+.more li span{color:var(--ink-2);font-size:14px}
+footer{margin-top:48px;color:var(--ink-2);font-size:14px;max-width:40em}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:16px}#f{font-size:17px}.eps{margin-top:16px}}
+@media (pointer:coarse){.el a{min-height:44px;padding:0 14px}.more li a{display:inline-block;padding:10px 0}}
+@media (prefers-reduced-motion:reduce){.eps h2 .x{transition:none}}
+"""
+INDEX_JS = """
+const fold = s => s.normalize("NFD").replace(/\\p{M}/gu, "").toUpperCase();
+const f = document.getElementById("f"), n = document.getElementById("n"), items = [...document.querySelectorAll(".eps li")];
+const empty = document.querySelector(".empty");
+f.addEventListener("input", () => {
+  // Stem the query so the nominative "Αργολίδα" finds the genitive "Αργολίδος".
+  let q = fold(f.value.trim()); if (q.length > 4) q = q.slice(0, -2);
+  let shown = 0;
+  for (const li of items) { const hit = !q || li.dataset.k.includes(q); li.hidden = !hit; shown += hit; }
+  empty.hidden = shown > 0;
+  empty.textContent = `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του νομού ή της πόλης-έδρας.`;
+  n.textContent = !q || !shown ? "" : (shown === 1 ? "1 περιφέρεια" : `${shown} περιφέρειες`);
+});
+"""
+
+
+def write_index(order, nikh, elected):
+    """out/index.html: a searchable list of constituencies, each with one link per election."""
+    def fold(s):
+        return "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn").upper()
+
+    eps = {}
+    for f, m in order:
+        if "_tm_131-" not in f:
+            eps.setdefault(m["ep_name"], []).append((f, m))
+    rank = list(ELECTION_NAMES)
+    rows = []
+    for name in sorted(eps, key=fold):
+        links = sorted(eps[name], key=lambda fm: (rank.index(fm[1]["election"]) if fm[1]["election"] in rank else 99,
+                                                  "_tm_" in fm[0]))
+        chips = "".join(
+            f'<a class="tm" href="{urllib.parse.quote(f)}" title="{html.escape(m["label"])}">'
+            f'{ELECTION_NAMES.get(m["election"], m["election"])} · ανά τμήμα</a>' if "_tm_" in f else
+            f'<a href="{urllib.parse.quote(f)}" title="{html.escape(m["label"])}">{ELECTION_NAMES.get(m["election"], m["election"])}</a>'
+            for f, m in links)
+        rows.append(f'<li data-k="{html.escape(fold(name))}"><h2>{CROSS_SVG}{html.escape(name)}</h2><p class="el">{chips}</p></li>')
+    nikh_rows = "".join(
+        f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>'
+        f'{ELECTION_NAMES.get(m["election"], m["election"])}'
+        f'{" · " + html.escape(elected[m["ep"]]) if m["election"] == "2023/june" and m["ep"] in elected else ""}</span></li>'
+        for f, m in nikh)
+    coverage = "".join(
+        f'<li><a href="{q.name}">{ {"june": "Ιούνιος", "may": "Μάιος", "euro": "Ευρωεκλογές", "": "Βουλευτικές"}[q.stem[11:]]} {q.stem[6:10]}</a></li>'
+        for q in sorted((HERE / "out").glob("index_*.html")))
+    artifacts = "".join(f'<li><a href="{u}">{html.escape(n)}</a></li>' for n, u in PARTY_ARTIFACTS)
+    (HERE / "out" / "index.html").write_text(f"""<!doctype html>
+<html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Χάρτες σταυρών</title>
+<meta name="description" content="Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
+<style>{INDEX_CSS}</style></head><body><main>
+<header>
+<h1>{CROSS_SVG}Χάρτες σταυρών</h1>
+<p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και ανά εκλογικό τμήμα, σε όλες τις εκλογικές περιφέρειες.</p>
+<label class="sr" for="f">Αναζήτηση περιφέρειας</label>
+<input id="f" type="search" placeholder="Βρες την περιφέρειά σου, π.χ. Αργολίδα" autocomplete="off">
+<p id="n" aria-live="polite"></p>
+</header>
+<ul class="eps">{"".join(rows)}</ul>
+<p class="empty" hidden></p>
+<div class="more">
+<section><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
+<section><h2>ΝΙΚΗ ανά εκλογικό κατάστημα</h2><p>Οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
+<a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a>, <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a>.</p><ul>{nikh_rows}</ul></section>
+<section><h2>Χάρτες ανά κόμμα</h2><p>Στατικοί χάρτες στο claude.ai, ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><ul>{artifacts}</ul></section>
+</div>
+<footer>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.
+Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.</footer>
+</main><script>{INDEX_JS}</script></body></html>""", encoding="utf-8")
+
+
 def register(file, election, ep, ep_name, label):
     """Record a map in out/maps.json, rewrite out/index.html, and return links to the
     constituency's other maps (area map first) for the page's view switcher."""
@@ -360,38 +482,7 @@ def register(file, election, ep, ep_name, label):
     sys.path.insert(0, str(HERE))  # python -I drops the script dir
     from nikh_report import ELECTED  # lazy: nikh_report imports this module
     nikh = sorted((kv for kv in order if "_tm_131-" in kv[0]), key=lambda kv: (kv[1]["election"] != "2023/june", kv[1]["ep_name"]))
-    items = ['</ul><h2>Στατικοί χάρτες ανά κόμμα: βουλευτικές 2019 και 2023, ευρωεκλογές 2024</h2>'
-             '<p>Ιδιωτικά artifacts στο claude.ai: ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><ul>']
-    items += [f'<li><a href="{u}">{html.escape(n)}</a></li>' for n, u in PARTY_ARTIFACTS]
-    items += ['</ul><h2>ΝΙΚΗ: οι 9 περιφέρειες με εκλεγμένο βουλευτή (Ιούνιος 2023)</h2>'
-             '<p>Ποσοστό ΝΙΚΗ ανά εκλογικό κατάστημα. <a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a> · '
-             '<a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></p><ul>']
-    for f, m in nikh:
-        mp = f' · {ELECTED[m["ep"]]}' if m["election"] == "2023/june" and m["ep"] in ELECTED else ""
-        items.append(f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}{html.escape(mp)}</a>'
-                     f' <span style="color:var(--ink-2)">{"Ιούνιος" if m["election"] == "2023/june" else "Μάιος"} 2023 · {html.escape(m["label"])}</span></li>')
-    last = None
-    for f, m in (kv for kv in order if "_tm_131-" not in kv[0]):
-        if (m["election"], m["ep_name"]) != last:
-            last = (m["election"], m["ep_name"])
-            items.append(f'</ul><h2>{html.escape(m["ep_name"])} · {m["election"]}</h2><ul>')
-        items.append(f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["label"])}</a></li>')
-    (HERE / "out" / "index.html").write_text(f"""<!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Χάρτες σταυρών</title><style>
-:root{{color-scheme:light;--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--link:#256abf}}
-@media (prefers-color-scheme: dark){{:root{{color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--link:#6da7ec}}}}
-body{{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
-main{{max-width:760px;margin:0 auto;padding:16px}} h1{{font-size:21px}} h2{{font-size:16px;margin:20px 0 4px}}
-p{{color:var(--ink-2)}} a{{color:var(--link)}} ul{{margin:0;padding-left:20px}} li{{padding:6px 0}}
-@media (pointer: coarse){{li{{padding:0}} li>a,p>a{{display:inline-block;padding:11px 0}}}}</style></head><body><main>
-<h1>Χάρτες σταυρών</h1>
-<p>Ανά περιοχή: όλοι οι υποψήφιοι ανά κοινότητα. Ανά τμήμα: ένας υποψήφιος ή κόμμα ανά εκλογικό κατάστημα
-(πιο λεπτομερές στις πόλεις).</p>
-<p>Κάλυψη ανά νομό (πόσοι σταυροί φαίνονται στον χάρτη): {" · ".join(
-    f'<a href="{q.name}">{ {"june": "Ιούνιος", "may": "Μάιος", "euro": "Ευρωεκλογές", "": "Βουλευτικές"}[q.stem[11:]]} {q.stem[6:10]}</a>'
-    for q in sorted((HERE / "out").glob("index_*.html")))}</p>
-<ul>{"".join(items)}</ul></main></body></html>""", encoding="utf-8")
+    write_index(order, nikh, ELECTED)
     return [{"href": f, "label": m["label"]} for f, m in order if m["ep"] == ep and m["election"] == election and f != file]
 
 
