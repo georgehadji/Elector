@@ -1,28 +1,39 @@
-"""Bayesian R x C ecological inference 2019 -> 2023 with PyEI, by municipal unit.
+"""Bayesian R x C ecological inference between two elections with PyEI, by municipal unit.
 
-Rows: 2019 parties (+ others, abstention/invalid) as shares of 2019 registered.
-Columns: 2023 parties (+ others, abstention/invalid) as shares of 2023 registered.
+Rows: base-election parties (+ others, abstention/invalid) as shares of base registered.
+Columns: target-election parties (+ others, abstention/invalid) as shares of target registered.
 Unit: (constituency, municipal unit) present in both elections, ordinary stations only.
 
 Needs pyei (pymc). Run:
-  python -I -X utf8 analysis/pyei_2019_2023.py data/stavroi.sqlite 2023/may [max_units]
+  python -I -X utf8 analysis/pyei_2019_2023.py data/stavroi.sqlite <target> [base] [max_units]
+  target: 2023/may | 2023/june | 2024/euro; base: 2019 (default) | 2023/may | 2023/june
 """
+import os
 import sqlite3
 import sys
+
+os.environ.setdefault("XLA_FLAGS", "--xla_force_host_platform_device_count=4")  # 4 CPU devices -> parallel chains
 
 import numpy as np
 from pyei.r_by_c import RowByColumnEI
 
 DB, ELECTION = sys.argv[1], sys.argv[2]
-MAX_UNITS = int(sys.argv[3]) if len(sys.argv) > 3 else None
+BASE = sys.argv[3] if len(sys.argv) > 3 else "2019"
+MAX_UNITS = int(sys.argv[4]) if len(sys.argv) > 4 else None
 c = sqlite3.connect(DB)
 
-ROWS = {"ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΚΙΝΑΛ": 106, "ΚΚΕ": 3, "Ελλ. Λύση": 108, "Χρυσή Αυγή": 41,
-        "ΜέΡΑ25": 122, "Ένωση Κεντρ.": 15, "Πλεύση": 123}
-COLS = {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΠΑΣΟΚ": 106, "ΚΚΕ": 3, "Ελλ. Λύση": 108,
-        "Πλεύση": 123, "ΜέΡΑ25": 122}
-if ELECTION == "2023/june":
-    COLS["Σπαρτιάτες"] = 157
+ROWS = {
+    "2019": {"ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΚΙΝΑΛ": 106, "ΚΚΕ": 3, "Ελλ. Λύση": 108, "Χρυσή Αυγή": 41,
+             "ΜέΡΑ25": 122, "Ένωση Κεντρ.": 15, "Πλεύση": 123},
+    "2023/may": {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΠΑΣΟΚ": 106, "ΚΚΕ": 3, "Ελλ. Λύση": 108,
+                 "Πλεύση": 123, "ΜέΡΑ25": 122},  # no Spartiates in May
+    "2023/june": {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΠΑΣΟΚ": 106, "ΚΚΕ": 3, "Ελλ. Λύση": 108,
+                  "Σπαρτιάτες": 157, "Πλεύση": 123, "ΜέΡΑ25": 122},
+}[BASE]
+# few columns keeps the R x C model tractable (rows carry the detail we care about)
+COLS = {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΠΑΣΟΚ": 106, "Ελλ. Λύση": 108}
+if ELECTION == "2024/euro":
+    COLS["Φωνή Λογικής"] = 158
 
 
 def load(e):
@@ -55,27 +66,33 @@ def fractions(tot, votes, keys, parties):
     return out
 
 
-t19, v19 = load("2019")
-t23, v23 = load(ELECTION)
-keys = sorted(k for k in t23 if k in t19 and t19[k][0] >= 100 and t23[k][0] >= 100)
+tb, vb = load(BASE)
+tt, vt = load(ELECTION)
+keys = sorted(k for k in tt if k in tb and tb[k][0] >= 100 and tt[k][0] >= 100)
 if MAX_UNITS:  # quick runtime test on a random subset
     pick = np.random.default_rng(0).choice(len(keys), MAX_UNITS, replace=False)
     keys = [keys[i] for i in sorted(pick)]
-print(f"{ELECTION}: {len(keys)} δημοτικές ενότητες σε {len({k[0] for k in keys})} περιφέρειες")
+print(f"{BASE} → {ELECTION}: {len(keys)} δημοτικές ενότητες σε {len({k[0] for k in keys})} περιφέρειες")
 
 row_names = list(ROWS) + ["Λοιπά", "Αποχή/άκυρα"]
 col_names = list(COLS) + ["Λοιπά", "Αποχή/άκυρα"]
-X = fractions(t19, v19, keys, ROWS)
-Y = fractions(t23, v23, keys, COLS)
-pops = np.array([t23[k][0] for k in keys])
+X = fractions(tb, vb, keys, ROWS)
+Y = fractions(tt, vt, keys, COLS)
+pops = np.array([tt[k][0] for k in keys])
 assert np.allclose(X.sum(0), 1) and np.allclose(Y.sum(0), 1)
 
 ei = RowByColumnEI(model_name="multinomial-dirichlet-modified", pareto_shape=100, pareto_scale=100)
 ei.fit(X, Y, pops, demographic_group_names=row_names, candidate_names=col_names,
-       draws=1000, tune=1000, chains=4, target_accept=0.9, random_seed=0)  # PyEI samples with numpyro
+       draws=1000, tune=1500, chains=4, target_accept=0.9, random_seed=0,  # PyEI samples with numpyro
+       nuts_sampler_kwargs={"chain_method": "parallel"})
+
+import arviz as az
+
+rhat = az.rhat(ei.sim_trace, var_names=["b"]) if "b" in ei.sim_trace.posterior else az.rhat(ei.sim_trace)
+print("max rhat:", float(max(rhat[v].max() for v in rhat.data_vars)))
 
 prefs = ei.sampled_voting_prefs  # (samples, rows, cols), group-population weighted
-grp_pop = (X * pops).sum(1)  # people in each 2019 group (on 2023 registered base)
+grp_pop = (X * pops).sum(1)  # people in each base group (on target registered base)
 col_pop = (Y * pops).sum(1)
 
 
@@ -84,7 +101,7 @@ def table(target):
     b = prefs[:, :, j]
     comp = b * grp_pop / col_pop[j]
     print(f"\n=== {target} {ELECTION}  (πραγματικό {100 * col_pop[j] / pops.sum():.2f}% εγγεγρ.)")
-    print(f"{'ομάδα 2019':<14}{'% ομάδας → ' + target:>22}{'90% CrI':>14}{'% ψήφων ' + target:>20}{'90% CrI':>14}")
+    print(f"{'ομάδα ' + BASE:<14}{'% ομάδας → ' + target:>22}{'90% CrI':>14}{'% ψήφων ' + target:>20}{'90% CrI':>14}")
     for r, name in enumerate(row_names):
         lo, hi = np.percentile(b[:, r], [5, 95])
         clo, chi = np.percentile(comp[:, r], [5, 95])
@@ -95,3 +112,10 @@ def table(target):
 
 for t in ("ΝΙΚΗ", "ΝΔ", "Ελλ. Λύση"):
     table(t)
+
+if "ΝΙΚΗ" in ROWS:  # where the base election's NIKH voters went
+    r = row_names.index("ΝΙΚΗ")
+    print(f"\n=== Ψηφοφόροι ΝΙΚΗΣ {BASE} → {ELECTION}")
+    for j, name in enumerate(col_names):
+        lo, hi = np.percentile(prefs[:, r, j], [5, 95])
+        print(f"{name:<14}{100 * prefs[:, r, j].mean():>8.1f}%  ({100 * lo:.1f}–{100 * hi:.1f})")
