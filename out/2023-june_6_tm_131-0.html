@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτης ανά τμήμα</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -20,9 +22,10 @@
           --shadow: rgba(0,0,0,.5); --d0: #5a5955; }
 }
 * { box-sizing: border-box; }
-body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
+body { margin: 0; font: 15px/1.5 "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
 main { max-width: 1200px; margin: 0 auto; padding: 16px; }
-h1 { font-size: 21px; line-height: 1.25; margin: 0 0 4px; }
+h1 { font: 400 28px/1.15 "GFS Didot", Georgia, serif; margin: 0 0 4px; }
+.views a[href="index.html"] { font-weight: 600; }
 h2 { font-size: 16px; margin: 0 0 8px; }
 a { color: var(--s4); }
 .sub { color: var(--ink-2); margin: 0 0 8px; }
@@ -84,13 +87,22 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
 }
 /* Phones: full-width controls so the map starts higher; the table drops its least useful column. */
 @media (max-width: 599px) {
-  main { padding: 12px; }
-  .controls > label { flex-basis: 100%; margin-bottom: -6px; }
+  /* The whole map fits the first screen: stats go below it, labels are for screen readers only. */
+  main { padding: 12px; display: flex; flex-direction: column; }
+  main > .stats { order: 1; margin-top: 4px; }
+  main > h2, main > .tablewrap, main > .note, main > #detail { order: 2; }
+  h1 { font-size: 23px; }
+  .sub { font-size: 13px; margin-bottom: 4px; }
+  .views { margin-bottom: 4px; }
+  .controls > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .controls > select, .controls > input { flex: 1 1 100%; width: auto; }
+  .controls > #q { flex: 1 1 38%; min-width: 0; }  /* else its 14em width forces a wrap */
+  .controls > #cand { flex: 1 1 58%; }
+  .legend { margin: 8px 0 12px; }
   .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
   .seg button { padding: 6px 4px; font-size: 14px; line-height: 1.2; }
   .pdf { display: none; }  /* print-to-PDF is a desktop task */
-  #map { height: 58vh; min-height: 320px; }
+  .mapwrap #map { height: 55vh; height: 55svh; min-height: 300px; }  /* beats the station page's own #map height */
   #tbl th:nth-child(2), #tbl td:nth-child(2) { display: none; }  /* Δημ. ενότητα */
   #tbl th:first-child, #tbl td:first-child { position: sticky; left: 0; background: var(--surface); }
   #tbl th:first-child { z-index: 2; }
@@ -338,7 +350,7 @@ $("stats").innerHTML =
     : `<div><b>${fmt(first)}</b><span>τμήματα όπου βγήκε 1ος στο κόμμα</span></div>`) +
   `<div><b>${D.venues.length} / ${all.length}</b><span>καταστήματα στον χάρτη</span></div>`;
 
-const map = L.map("map", {scrollWheelZoom: false});
+const map = L.map("map", {scrollWheelZoom: false, zoomSnap: 0.25});  // fractional fit: whole zoom levels leave a small constituency at ~half the map
 const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '&copy; OpenStreetMap · Καταστήματα & αποτελέσματα: ΥΠΕΣ (ανεπίσημα)', maxZoom: 19, opacity: 0.6
 }).addTo(map);

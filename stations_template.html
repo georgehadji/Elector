@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτης ανά τμήμα</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -87,7 +89,7 @@ $("stats").innerHTML =
     : `<div><b>${fmt(first)}</b><span>τμήματα όπου βγήκε 1ος στο κόμμα</span></div>`) +
   `<div><b>${D.venues.length} / ${all.length}</b><span>καταστήματα στον χάρτη</span></div>`;
 
-const map = L.map("map", {scrollWheelZoom: false});
+const map = L.map("map", {scrollWheelZoom: false, zoomSnap: 0.25});  // fractional fit: whole zoom levels leave a small constituency at ~half the map
 const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '&copy; OpenStreetMap · Καταστήματα & αποτελέσματα: ΥΠΕΣ (ανεπίσημα)', maxZoom: 19, opacity: 0.6
 }).addTo(map);
