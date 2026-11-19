@@ -21,6 +21,15 @@ from collections import defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).parent
+# Constituency names as the ministry site spells them, missing accents. Display only; matching uses norm().
+EP_NAME_FIX = {"Αρτας": "Άρτας", "Ευβοιας": "Εύβοιας", "Βόρειου Τομέα": "Βορείου Τομέα", "Νότιου Τομέα": "Νοτίου Τομέα"}
+
+
+def ep_label(name):
+    for a, b in EP_NAME_FIX.items():
+        name = name.replace(a, b)
+    return name
+
 DB = HERE / "data" / "stavroi.sqlite"
 # Stripped in this order; "ΙΕΡΑΣ ΠΟΛΗΣ" is Missolonghi's honorific, absent from ELSTAT's community name.
 PREFIXES = ("ΨΕΥΔΟΔΗΜΟΤΙΚΗ ΚΟΙΝΟΤΗΤΑ", "ΔΗΜΟΤΙΚΗ ΚΟΙΝΟΤΗΤΑ", "ΤΟΠΙΚΗ ΚΟΙΝΟΤΗΤΑ", "ΔΗΜΟΤΙΚΗ ΕΝΟΤΗΤΑ", "ΕΔ",
@@ -312,7 +321,7 @@ def main(election, ep):
     if unmatched:
         print("unmatched:", ", ".join(f'{u["name"]} ({u["unit"]})' for u in unmatched))
 
-    ep_name = (q("SELECT name FROM ep WHERE election=? AND ep_id=?", ep) or [[str(ep)]])[0][0]
+    ep_name = ep_label((q("SELECT name FROM ep WHERE election=? AND ep_id=?", ep) or [[str(ep)]])[0][0])
     data = {
         "election": election, "ep": ep, "ep_name": ep_name, "mode": "party" if party_mode else "cand",
         "parties": {pid: {"name": parties[pid][0], "color": parties[pid][1]} for pid in {c["party"] for c in cand_list}},
@@ -349,6 +358,8 @@ PARTY_ARTIFACTS = [  # published static map pages, one per party (June share + M
 ]
 
 
+PARTY_SHORT = {"ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ": "ΝΔ", "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ": "ΣΥΡΙΖΑ", "ΠΑΣΟΚ-Κίνημα Αλλαγής": "ΠΑΣΟΚ",
+               "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ": "ΚΚΕ", "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ": "Ελληνική Λύση"}
 ELECTION_NAMES = {"2019": "2019", "2023/may": "Μάιος 2023", "2023/june": "Ιούνιος 2023", "2024/euro": "Ευρωεκλογές 2024"}
 # A ballpoint cross, the mark a voter puts next to a candidate: the one decorative element of the site.
 CROSS_SVG = ('<svg class="x" viewBox="0 0 40 40" aria-hidden="true"><path d="M7 8 C15 15 24 25 33 33"/>'
@@ -378,9 +389,14 @@ h1 .x path+path{animation-delay:.3s}
 #n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:14px}
 .eps{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));column-gap:36px}
 .eps li{border-top:1px solid var(--line);padding:14px 0 16px}
-.eps h2{font:400 23px/1.2 "GFS Didot",Georgia,serif;margin:0 0 8px;display:flex;align-items:center;gap:8px}
-.eps h2 .x{width:16px;height:16px;flex:none;opacity:0;transition:opacity .15s}
-.eps li:hover h2 .x,.eps li:focus-within h2 .x{opacity:1}
+.eps h2{font:400 23px/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
+.eps h2 a{color:inherit;text-decoration:none}
+.eps h2 a:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.top{display:flex;gap:8px;align-items:baseline;margin:0 0 10px;font-size:14px;color:var(--ink-2);line-height:1.4}
+.top .x{width:14px;height:14px;flex:none;align-self:center}
+.top b{color:var(--ink);font-weight:600}
+.jump{display:flex;flex-wrap:wrap;gap:4px 20px;margin:6px 0 0;font-size:14px}
+.jump a{color:var(--ink-2);text-underline-offset:3px}
 .el{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0}
 .el a{display:inline-flex;align-items:center;min-height:32px;color:var(--ink-2);font-size:14px;white-space:nowrap;
       text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
@@ -398,10 +414,10 @@ h1 .x path+path{animation-delay:.3s}
 .more li span{color:var(--ink-2);font-size:14px}
 footer{margin-top:48px;color:var(--ink-2);font-size:14px;max-width:40em}
 @media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:16px}#f{font-size:17px}.eps{margin-top:16px}}
-@media (pointer:coarse){.el a{min-height:44px}.el a.now{padding:0 16px}.more li a{display:inline-block;padding:10px 0}}
-@media (prefers-reduced-motion:reduce){.eps h2 .x{transition:none}}
+@media (pointer:coarse){.jump a{display:inline-block;padding:12px 0}.eps h2 a{display:inline-block;padding:9px 0}.el a{min-height:44px}.el a.now{padding:0 16px}.more li a{display:inline-block;padding:10px 0}}
 """
 INDEX_JS = """
+document.getElementById("s").hidden = false;
 const fold = s => s.normalize("NFD").replace(/\\p{M}/gu, "").toUpperCase();
 const LATIN = [["TH","Θ"],["CH","Χ"],["PS","Ψ"],["KS","Ξ"],["OU","ΟΥ"],["A","Α"],["B","Β"],["V","Β"],["G","Γ"],["D","Δ"],["E","Ε"],
   ["Z","Ζ"],["H","Η"],["I","Ι"],["K","Κ"],["C","Κ"],["L","Λ"],["M","Μ"],["N","Ν"],["X","Ξ"],["O","Ο"],["P","Π"],["R","Ρ"],
@@ -446,6 +462,14 @@ def write_index(order, nikh, elected):
             for e, ep, d, u in con.execute("SELECT DISTINCT election, ep_id, dhm_descr, den_descr FROM station WHERE kind = 'Κ'"):
                 dhm[e, ep][d] = None
                 den[e, ep].add(u)
+    top = {}
+    if DB.exists():
+        with sqlite3.connect(DB) as con:
+            for ep, cand, party, votes in con.execute(
+                    "SELECT e.name, c.name, p.name, MAX(t.votes) FROM ep_total t JOIN ep e USING(election, ep_id) "
+                    "JOIN candidate c USING(election, ep_id, party_id, cand_id) JOIN party p USING(election, party_id) "
+                    "WHERE t.election = '2023/may' AND t.cand_id > 0 GROUP BY t.ep_id"):
+                top[ep_label(ep)] = (cand, PARTY_SHORT.get(party, party), votes)
     eps, tm = {}, []
     for f, m in order:
         if "_tm_" in f:
@@ -470,8 +494,12 @@ def write_index(order, nikh, elected):
         # Attica's sectors are not places people know by name: list their municipalities.
         note = (f'<p class="dhm">Δήμοι {html.escape(", ".join(towns))}</p>'
                 if re.search(r"Αθηνών|Πειραιώς|Αττικής", name) and len(towns) > 1 else "")
-        rows.append(f'<li id="ep-{latest["ep"]}" data-k="{html.escape(k)}" data-n="{len(own)}"><h2>{CROSS_SVG}{html.escape(name)}</h2>{note}'
-                    f'<p class="el">{chips}</p></li>')
+        t = top.get(name)
+        # The cross marks the candidate with the most crosses: the one mark on the page that carries data.
+        lead = (f'<p class="top">{CROSS_SVG}<span>Πρώτος σε σταυρούς τον Μάιο 2023: <b>{html.escape(t[0])}</b> '
+                f'({html.escape(t[1])}), {f"{t[2]:,}".replace(",", ".")} σταυροί</span></p>' if t else "")
+        rows.append(f'<li id="ep-{latest["ep"]}" data-k="{html.escape(k)}" data-n="{len(own)}">'
+                    f'<h2><a href="#ep-{latest["ep"]}">{html.escape(name)}</a></h2>{lead}{note}<p class="el">{chips}</p></li>')
     nikh_rows = "".join(
         f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>'
         f'{ELECTION_NAMES.get(m["election"], m["election"])}'
@@ -493,16 +521,17 @@ def write_index(order, nikh, elected):
 <header>
 <h1>{CROSS_SVG}Χάρτες σταυρών</h1>
 <p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και ανά εκλογικό τμήμα, σε όλες τις εκλογικές περιφέρειες.</p>
-<label class="sr" for="f">Αναζήτηση περιφέρειας</label>
+<div id="s" hidden><label class="sr" for="f">Αναζήτηση περιφέρειας</label>
 <input id="f" type="search" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off">
-<p id="n" aria-live="polite"></p>
+<p id="n" aria-live="polite"></p></div>
+<nav class="jump" aria-label="Άλλες ενότητες"><a href="#cov">Κάλυψη ανά νομό</a><a href="#tm">Ανά εκλογικό κατάστημα</a><a href="#party">Χάρτες ανά κόμμα</a></nav>
 </header>
 <ul class="eps">{"".join(rows)}</ul>
 <div class="more">
-<section><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
-<section><h2>Ανά εκλογικό κατάστημα</h2><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
+<section id="cov"><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
+<section id="tm"><h2>Ανά εκλογικό κατάστημα</h2><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
 <a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a>, <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a>.</p><ul>{nikh_rows}</ul></section>
-<section><h2>Χάρτες ανά κόμμα</h2><p>Στατικοί χάρτες στο claude.ai, ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><ul>{artifacts}</ul></section>
+<section id="party"><h2>Χάρτες ανά κόμμα</h2><p>Στατικοί χάρτες στο claude.ai, ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><ul>{artifacts}</ul></section>
 </div>
 <footer>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.
 Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.</footer>
@@ -514,7 +543,9 @@ def register(file, election, ep, ep_name, label):
     constituency's other maps (area map first) for the page's view switcher."""
     path = HERE / "out" / "maps.json"
     maps = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    maps[file] = {"election": election, "ep": ep, "ep_name": ep_name, "label": label}
+    maps[file] = {"election": election, "ep": ep, "ep_name": ep_label(ep_name), "label": label}
+    for m in maps.values():  # entries written before a name fix
+        m["ep_name"] = ep_label(m["ep_name"])
     path.write_text(json.dumps(maps, ensure_ascii=False, indent=1), encoding="utf-8")
     order = sorted(maps.items(), key=lambda kv: (kv[1]["election"], kv[1]["ep_name"], "_tm_" in kv[0], kv[1]["label"]))
     sys.path.insert(0, str(HERE))  # python -I drops the script dir
