@@ -381,11 +381,14 @@ h1 .x path+path{animation-delay:.3s}
 .eps h2{font:400 23px/1.2 "GFS Didot",Georgia,serif;margin:0 0 8px;display:flex;align-items:center;gap:8px}
 .eps h2 .x{width:16px;height:16px;flex:none;opacity:0;transition:opacity .15s}
 .eps li:hover h2 .x,.eps li:focus-within h2 .x{opacity:1}
-.el{display:flex;flex-wrap:wrap;gap:6px;margin:0}
-.el a{display:inline-flex;align-items:center;min-height:32px;padding:0 11px;border:1px solid var(--line);border-radius:16px;
-      color:var(--ink);text-decoration:none;font-size:14px;white-space:nowrap}
-.el a:hover{border-color:var(--pen);color:var(--pen);background:var(--wash)}
-.el a.tm{border-style:dashed}
+.el{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0}
+.el a{display:inline-flex;align-items:center;min-height:32px;color:var(--ink-2);font-size:14px;white-space:nowrap;
+      text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.el a:hover{color:var(--pen);text-decoration-color:var(--pen)}
+.el a.now{padding:0 12px;border:1px solid var(--pen);border-radius:16px;color:var(--pen);background:var(--wash);
+          text-decoration:none;font-weight:600}
+.el a.now:hover{background:var(--pen);color:var(--paper)}
+.dhm{margin:0 0 8px;color:var(--ink-2);font-size:13px;line-height:1.45}
 .more{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 36px}
 .more section{border-top:2px solid var(--ink);padding-top:12px}
 .more h2{font:400 24px/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
@@ -395,18 +398,38 @@ h1 .x path+path{animation-delay:.3s}
 .more li span{color:var(--ink-2);font-size:14px}
 footer{margin-top:48px;color:var(--ink-2);font-size:14px;max-width:40em}
 @media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:16px}#f{font-size:17px}.eps{margin-top:16px}}
-@media (pointer:coarse){.el a{min-height:44px;padding:0 14px}.more li a{display:inline-block;padding:10px 0}}
+@media (pointer:coarse){.el a{min-height:44px}.el a.now{padding:0 16px}.more li a{display:inline-block;padding:10px 0}}
 @media (prefers-reduced-motion:reduce){.eps h2 .x{transition:none}}
 """
 INDEX_JS = """
 const fold = s => s.normalize("NFD").replace(/\\p{M}/gu, "").toUpperCase();
+const LATIN = [["TH","Θ"],["CH","Χ"],["PS","Ψ"],["KS","Ξ"],["OU","ΟΥ"],["A","Α"],["B","Β"],["V","Β"],["G","Γ"],["D","Δ"],["E","Ε"],
+  ["Z","Ζ"],["H","Η"],["I","Ι"],["K","Κ"],["C","Κ"],["L","Λ"],["M","Μ"],["N","Ν"],["X","Ξ"],["O","Ο"],["P","Π"],["R","Ρ"],
+  ["S","Σ"],["T","Τ"],["Y","Υ"],["F","Φ"],["W","Ω"],["U","ΟΥ"]];
+const greek = s => LATIN.reduce((t, [a, b]) => t.replaceAll(a, b), s);  // Greeklish: "patra" finds Πάτρα
+// Case endings off (ministry names are genitive: Πατρέων, Ρόδου), then vowels that sound alike merged.
+const stem = w => { const m = w.match(/^(.{2,}?)(ΕΩΝ|ΙΩΝ|ΕΩΣ|ΟΥΣ|ΟΥ|ΩΝ|ΟΣ|ΗΣ|ΑΣ|ΕΣ|ΩΣ|ΑΙ|ΟΙ|ΕΙ|Α|Η|Ο|Ι|Ε|Σ|Υ|Ω)$/); return m ? m[1] : w; };
+const phon = w => w.replace(/ΕΙ|ΟΙ|Η|Υ/g, "Ι").replace(/ΑΙ/g, "Ε").replace(/Ω/g, "Ο");
+const key = w => phon(stem(w));
 const f = document.getElementById("f"), n = document.getElementById("n"), items = [...document.querySelectorAll(".eps li")];
+const words = new Map(items.map(li => [li, li.dataset.k.split(" ").map(w => [w, key(w)])]));
+const own = li => words.get(li).slice(0, +li.dataset.n);  // the constituency's own name, ahead of its towns
+// A query word hits a place word that starts with it as typed, or shares its stem. Short stems must match
+// whole, so "Ρόδος" (ΡΟΔ) finds Ρόδου but not Ροδόπης.
+const hits = (ws, q) => { const k = key(q); return ws.some(([w, wk]) => w.startsWith(q) || wk === k || (k.length >= 4 && wk.startsWith(k))); };
 f.addEventListener("input", () => {
-  // Stem the query so the nominative "Αργολίδα" finds the genitive "Αργολίδος".
-  let q = fold(f.value.trim()); if (q.length > 4) q = q.slice(0, -2);
+  const qs = greek(fold(f.value.trim())).split(/[^\\p{L}\\d]+/u).filter(Boolean);
   let shown = 0;
-  for (const li of items) { const hit = !q || li.dataset.k.includes(q); li.hidden = !hit; shown += hit; }
-  n.textContent = !q ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του νομού ή της πόλης-έδρας.` : (shown === 1 ? "1 περιφέρεια" : `${shown} περιφέρειες`);
+  for (const li of items) {
+    const hit = qs.every(q => hits(words.get(li), q)); li.hidden = !hit; shown += hit;
+    li.style.order = hit && qs.length && !qs.every(q => hits(own(li), q)) ? 1 : "";  // name matches first
+  }
+  n.textContent = !qs.length ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του δήμου ή του νομού.`
+    : shown === 1 ? "1 περιφέρεια. Enter για τον πιο πρόσφατο χάρτη." : `${shown} περιφέρειες`;
+});
+f.addEventListener("keydown", e => {
+  const shown = items.filter(li => !li.hidden).sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
+  if (e.key === "Enter" && f.value.trim() && (shown.length === 1 || +shown[1].style.order > +shown[0].style.order)) location.href = shown[0].querySelector("a.now").href;
 });
 """
 
@@ -416,26 +439,46 @@ def write_index(order, nikh, elected):
     def fold(s):
         return "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn").upper()
 
-    eps = {}
+    # Municipalities (δήμοι) and municipal units of each constituency: search aliases, so a voter can type a town.
+    dhm, den = defaultdict(dict), defaultdict(set)
+    if DB.exists():
+        with sqlite3.connect(DB) as con:
+            for e, ep, d, u in con.execute("SELECT DISTINCT election, ep_id, dhm_descr, den_descr FROM station WHERE kind = 'Κ'"):
+                dhm[e, ep][d] = None
+                den[e, ep].add(u)
+    eps, tm = {}, []
     for f, m in order:
-        if "_tm_131-" not in f:
+        if "_tm_" in f:
+            tm.append((f, m))  # station maps exist for a few constituencies only: listed apart, not on the cards
+        else:
             eps.setdefault(m["ep_name"], []).append((f, m))
     rank = list(ELECTION_NAMES)
     rows = []
     for name in sorted(eps, key=fold):
-        links = sorted(eps[name], key=lambda fm: (rank.index(fm[1]["election"]) if fm[1]["election"] in rank else 99,
-                                                  "_tm_" in fm[0]))
+        links = sorted(eps[name], key=lambda fm: rank.index(fm[1]["election"]) if fm[1]["election"] in rank else -1)
+        latest = links[-1][1]
+        # The newest election is the default map; the others are quieter. The name in each link is for screen readers.
         chips = "".join(
-            f'<a class="tm" href="{urllib.parse.quote(f)}" title="{html.escape(m["label"])}">'
-            f'{ELECTION_NAMES.get(m["election"], m["election"])} · ανά τμήμα</a>' if "_tm_" in f else
-            f'<a href="{urllib.parse.quote(f)}" title="{html.escape(m["label"])}">{ELECTION_NAMES.get(m["election"], m["election"])}</a>'
-            for f, m in links)
-        rows.append(f'<li data-k="{html.escape(fold(name))}"><h2>{CROSS_SVG}{html.escape(name)}</h2><p class="el">{chips}</p></li>')
+            f'<a{" class=now" if i == 0 else ""} href="{urllib.parse.quote(f)}">'
+            f'{ELECTION_NAMES.get(m["election"], m["election"])}<span class="sr">, {html.escape(name)}</span></a>'
+            for i, (f, m) in enumerate(reversed(links)))
+        towns = list(dhm[latest["election"], latest["ep"]])
+        places = {w for _, m in links for p in (*dhm[m["election"], m["ep"]], *den[m["election"], m["ep"]])
+                  for w in re.split(r"\W+", fold(p or ""))}
+        own = [w for w in dict.fromkeys(re.split(r"\W+", fold(name))) if len(w) > 1]
+        k = " ".join(dict.fromkeys((*own, *sorted(places))))
+        # Attica's sectors are not places people know by name: list their municipalities.
+        note = (f'<p class="dhm">Δήμοι {html.escape(", ".join(towns))}</p>'
+                if re.search(r"Αθηνών|Πειραιώς|Αττικής", name) and len(towns) > 1 else "")
+        rows.append(f'<li id="ep-{latest["ep"]}" data-k="{html.escape(k)}" data-n="{len(own)}"><h2>{CROSS_SVG}{html.escape(name)}</h2>{note}'
+                    f'<p class="el">{chips}</p></li>')
     nikh_rows = "".join(
         f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>'
         f'{ELECTION_NAMES.get(m["election"], m["election"])}'
         f'{" · " + html.escape(elected[m["ep"]]) if m["election"] == "2023/june" and m["ep"] in elected else ""}</span></li>'
         for f, m in nikh)
+    nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
+                         for f, m in tm if "_tm_131-" not in f)
     coverage = "".join(
         f'<li><a href="{q.name}">{ {"june": "Ιούνιος", "may": "Μάιος", "euro": "Ευρωεκλογές", "": "Βουλευτικές"}[q.stem[11:]]} {q.stem[6:10]}</a></li>'
         for q in sorted((HERE / "out").glob("index_*.html")))
@@ -451,13 +494,13 @@ def write_index(order, nikh, elected):
 <h1>{CROSS_SVG}Χάρτες σταυρών</h1>
 <p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και ανά εκλογικό τμήμα, σε όλες τις εκλογικές περιφέρειες.</p>
 <label class="sr" for="f">Αναζήτηση περιφέρειας</label>
-<input id="f" type="search" placeholder="Βρες την περιφέρειά σου, π.χ. Αργολίδα" autocomplete="off">
+<input id="f" type="search" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off">
 <p id="n" aria-live="polite"></p>
 </header>
 <ul class="eps">{"".join(rows)}</ul>
 <div class="more">
 <section><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
-<section><h2>ΝΙΚΗ ανά εκλογικό κατάστημα</h2><p>Οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
+<section><h2>Ανά εκλογικό κατάστημα</h2><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
 <a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a>, <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a>.</p><ul>{nikh_rows}</ul></section>
 <section><h2>Χάρτες ανά κόμμα</h2><p>Στατικοί χάρτες στο claude.ai, ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><ul>{artifacts}</ul></section>
 </div>
