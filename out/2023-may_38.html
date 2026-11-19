@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Χάρτης σταυρών</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+/* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
+:root {
+  color-scheme: light;
+  --surface: #fcfcfb; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --shadow: rgba(0,0,0,.18);
+  --s0: #eef4fc; --s1: #cde2fb; --s2: #9ec5f4; --s3: #6da7ec; --s4: #3987e5; --s5: #256abf; --s6: #104281;
+  /* diverging: below the average (red), near it (gray), above it (blue) */
+  --d-3: #a8302e; --d-2: #e0736b; --d-1: #f6c4c0; --d0: #e4e3df; --d1: #9ec5f4; --d2: #3987e5; --d3: #104281;
+}
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; --surface: #1a1a19; --ink: #ecebe7; --ink-2: #a8a7a2; --line: #383835; --chip: #262624;
+          --shadow: rgba(0,0,0,.5); --d0: #5a5955; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
+main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 21px; line-height: 1.25; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+a { color: var(--s4); }
+.sub { color: var(--ink-2); margin: 0 0 8px; }
+.views { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; font-size: 14px; }
+.views:empty { display: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.controls label { color: var(--ink-2); font-size: 13px; }
+select, button, input { font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+select { min-width: 0; max-width: 100%; }
+input[type="search"] { width: 14em; max-width: 100%; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.pdf { margin-left: auto; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 24px; margin: 4px 0 12px; }
+.stats b { display: block; font-size: 20px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--ink-2); font-size: 12px; }
+.mapwrap { position: relative; }
+#map { height: 62vh; min-height: 360px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); }
+.hint { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; z-index: 1000;
+        background: rgba(0,0,0,.5); color: #fff; font-weight: 600; border-radius: 8px; pointer-events: none;
+        opacity: 0; transition: opacity .2s; }
+.hint.on { opacity: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 8px 0 20px; font-size: 12px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; }
+.legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+th button { all: unset; cursor: pointer; }
+th button:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+th[aria-sort="ascending"] button::after { content: " ▲"; font-size: 9px; }
+th[aria-sort="descending"] button::after { content: " ▼"; font-size: 9px; }
+td.n, th.n { text-align: right; }
+tbody tr:hover { background: var(--chip); }
+tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
+.rowlink { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
+.rowlink:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.m { color: var(--ink-2); }
+.tablewrap { max-height: 520px; overflow: auto; }
+.note { color: var(--ink-2); font-size: 12px; margin-top: 16px; }
+/* Tooltip (mouse hover) and details panel (tap, click, table row) */
+.leaflet-container .leaflet-tooltip { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: 0 2px 8px var(--shadow); }
+.leaflet-tooltip-left::before { border-left-color: var(--surface); }
+.leaflet-tooltip-right::before { border-right-color: var(--surface); }
+.tip { font-variant-numeric: tabular-nums; }
+.tip b { display: block; }
+.tip table { width: auto; }
+.tip table td { padding: 1px 6px 1px 0; border: 0; }
+#panel { position: fixed; z-index: 2000; left: 0; right: 0; bottom: 0; max-height: 55vh; overflow: auto;
+         background: var(--surface); color: var(--ink); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px var(--shadow);
+         padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 12px 12px 0 0; }
+#panel[hidden] { display: none; }
+#panel .close { float: right; margin: -6px -8px 4px 8px; min-width: 44px; min-height: 44px; font-size: 22px; line-height: 1; }
+#panel .tip table td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--line); }
+@media (min-width: 720px) {
+  #panel { left: auto; right: 16px; bottom: 16px; width: 420px; max-height: 70vh; border: 1px solid var(--line); border-radius: 10px; }
+}
+/* Touch: 44px targets */
+@media (pointer: coarse) {
+  select, button, input { min-height: 44px; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+  .rowlink { display: inline-block; min-height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
+/* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
+@page { size: A4; margin: 12mm; }
+@media print {
+  :root { color-scheme: light; --surface: #fff; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --d0: #e4e3df; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  main { max-width: none; padding: 0; }
+  .seg, .pdf, .views, .leaflet-control-zoom, #panel, .hint, input, .controls label { display: none !important; }
+  select { border: 0; padding: 0; appearance: none; background: none; font-weight: 600; font-size: 16px; min-height: 0; }
+  #map { break-inside: avoid; }
+  .tablewrap { max-height: none; overflow: visible; }
+  th { position: static; }
+  tr { break-inside: avoid; }
+  tr.sel { box-shadow: none; background: none; }
+  .rowlink { text-decoration: none; }
+  th[aria-sort] button::after { content: none; }
+}
+
+  body.printing #map { width: 186mm; height: 120mm; min-height: 0; }
+  @media print { #map { width: 186mm; height: 120mm; min-height: 0; } }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <p class="sub" id="sub"></p>
+  <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
+  <div class="controls">
+    <label for="party">Κόμμα</label>
+    <select id="party"></select>
+    <label for="q">Υποψήφιος</label>
+    <input id="q" type="search" placeholder="Αναζήτηση ονόματος" autocomplete="off">
+    <select id="cand" aria-label="Επιλογή υποψηφίου"></select>
+    <div class="seg" role="group" aria-label="Μέτρο">
+      <button type="button" data-m="share" aria-pressed="true">% ψήφων κόμματος</button>
+      <button type="button" data-m="dev" aria-pressed="false">Απόκλιση από μέσο όρο</button>
+      <button type="button" data-m="votes" aria-pressed="false">Σταυροί</button>
+    </div>
+    <button class="pdf" type="button" onclick="exportPdf()">Εξαγωγή PDF</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="mapwrap">
+    <div id="map" role="region" aria-label="Χάρτης σταυρών ανά περιοχή"></div>
+    <div class="hint" id="hint" aria-hidden="true">Χρησιμοποιήστε δύο δάχτυλα για να μετακινήσετε τον χάρτη</div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <h2>Ανά περιοχή</h2>
+  <div class="tablewrap"><table id="tbl"></table></div>
+  <p class="note" id="note"></p>
+</main>
+<script>
+const D = {"election": "2023/may", "ep": 38, "ep_name": "Α' Αθηνών", "mode": "cand", "parties": {"128": {"name": "ΕΝΩΝΩ ΣΥΜΜΑΧΙΑ ΕΛΕΥΘΕΡΙΑΣ", "color": "#F16022"}, "129": {"name": "Κίνημα 21", "color": "#551225"}, "2": {"name": "ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ", "color": "#0C99FF"}, "3": {"name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "color": "#D80000"}, "4": {"name": "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ", "color": "#FF8080"}, "130": {"name": "ΚΙΝΗΜΑ ΦΤΩΧΩΝ ΕΛΛΑΔΟΣ", "color": "#FF6600"}, "131": {"name": "ΝΙΚΗ", "color": "#DD6C6D"}, "133": {"name": "ΒΟΡΕΙΑ ΛΕΓΚΑ - ΚΡΑΜΑ", "color": "#D2BFA3"}, "134": {"name": "ΤΩΡΑ ΟΛΟΙ ΜΑΖΙ (Τ.ΟΛ.ΜΑ)", "color": "#023F7E"}, "135": {"name": "ΣΥΜΜΑΧΙΑ ΑΝΑΤΡΟΠΗΣ", "color": "#274A98"}, "10": {"name": "ΜΑΡΞΙΣΤΙΚΟ-ΛΕΝΙΝΙΣΤΙΚΟ ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "color": "#D71920"}, "11": {"name": "Ο.Α.Κ.Κ.Ε. Οργάνωση για την Ανασυγκρότηση του ΚΚΕ", "color": "#CA0904"}, "137": {"name": "ΠΟΛΙΤΙΚΗ ΠΡΩΤΟΒΟΥΛΙΑ ", "color": "#000000"}, "138": {"name": "ΕΛΕΥΘΕΡΟΙ ΞΑΝΑ", "color": "#0299D3"}, "140": {"name": "ΠΝΟΗ ΔΗΜΟΚΡΑΤΙΑΣ-Δημήτριος Κούβελας", "color": "#8DAE5F"}, "15": {"name": "ΕΝΩΣΗ ΚΕΝΤΡΩΩΝ", "color": "#F2D400"}, "141": {"name": "ΠΡΑΣΙΝΟ ΚΙΝΗΜΑ", "color": "#049445"}, "142": {"name": "ΕΑΝ...", "color": "#EB7A69"}, "143": {"name": "ΕΝΟΤΗΤΑ - ΑΛΗΘΕΙΑ ΕΝ.Α", "color": "#0177BB"}, "20": {"name": "Δημοσθένης Βεργής ΕΛΛΗΝΕΣ ΟΙΚΟΛΟΓΟΙ", "color": "#533631"}, "28": {"name": "ΟΙΚΟΛΟΓΟΙ ΠΡΑΣΙΝΟΙ", "color": "#FFCF00"}, "44": {"name": "ΑΝΤ.ΑΡ.ΣΥ.Α-ΑΝΤΙΚΑΠΙΤΑΛΙΣΤΙΚΗ ΑΡΙΣΤΕΡΗ ΣΥΝΕΡΓΑΣΙΑ για την ΑΝΑΤΡΟΠΗ", "color": "#E00B1D"}, "54": {"name": "Κ.Ο.Τ.Ε.Σ. Καπνιστικές Ομάδες για την Τέχνη και την Εικαστική Συγκρότηση", "color": "#F99825"}, "60": {"name": "ΕΘΝΙΚΗ ΔΗΜΙΟΥΡΓΙΑ Θάνος Τζήμερος-Φαήλος Κρανιδιώτης", "color": "#EF8C19"}, "66": {"name": "ΟΡΓΑΝΩΣΗ ΚΟΜΜΟΥΝΙΣΤΩΝ ΔΙΕΘΝΙΣΤΩΝ ΕΛΛΑΔΑΣ (Ο.Κ.Δ.Ε.)", "color": "#E31E24"}, "85": {"name": "κοινωνία αξιών", "color": "#652B90"}, "106": {"name": "ΠΑΣΟΚ-Κίνημα Αλλαγής", "color": "#00CC0C"}, "108": {"name": "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ", "color": "#0A5FAE"}, "113": {"name": "ΕΛΛΗΝΩΝ ΣΥΝΕΛΕΥΣΙΣ", "color": "#1F4FA4"}, "122": {"name": "ΜέΡΑ25-ΣΥΜΜΑΧΙΑ ΓΙΑ ΤΗ ΡΗΞΗ", "color": "#F04E23"}, "123": {"name": "ΠΛΕΥΣΗ ΕΛΕΥΘΕΡΙΑΣ - ΖΩΗ ΚΩΝΣΤΑΝΤΟΠΟΥΛΟΥ", "color": "#9F1897"}, "125": {"name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ (μαρξιστικό-λενινιστικό)", "color": "#89001C"}}, "cands": [{"k": "2:8", "party": 2, "name": "Πιερρακάκης Κυριάκος", "total": 56620, "mapped": 56432, "partial": false}, {"k": "2:6", "party": 2, "name": "Κικίλιας Βασίλειος", "total": 45696, "mapped": 45554, "partial": false}, {"k": "2:5", "party": 2, "name": "Κεφαλογιάννη Όλγα", "total": 38928, "mapped": 38796, "partial": false}, {"k": "2:10", "party": 2, "name": "Πλεύρης Αθανάσιος (Θάνος)", "total": 33774, "mapped": 33683, "partial": false}, {"k": "2:4", "party": 2, "name": "Κακλαμάνης Νικήτας", "total": 30429, "mapped": 30322, "partial": false}, {"k": "2:13", "party": 2, "name": "Συρίγος Ευάγγελος (Άγγελος)", "total": 29866, "mapped": 29778, "partial": false}, {"k": "2:9", "party": 2, "name": "Πιπιλή Φωτεινή", "total": 19920, "mapped": 19843, "partial": false}, {"k": "2:11", "party": 2, "name": "Ροκοφύλλου Άννα", "total": 10695, "mapped": 10677, "partial": false}, {"k": "2:1", "party": 2, "name": "Βαρελά Ευαγγελία (Εβίτα)", "total": 10075, "mapped": 10052, "partial": false}, {"k": "2:15", "party": 2, "name": "Τσάπαλος Όμηρος", "total": 9769, "mapped": 9759, "partial": false}, {"k": "2:3", "party": 2, "name": "Δαμιανού Καλλιόπη-Λάουρα (Πώλα)", "total": 4894, "mapped": 4892, "partial": false}, {"k": "2:12", "party": 2, "name": "Σακίμπ Μάριαμ (Μαρία)", "total": 4388, "mapped": 4375, "partial": false}, {"k": "2:14", "party": 2, "name": "Τσαλαχούρη Φαίδρα", "total": 4254, "mapped": 4244, "partial": false}, {"k": "2:7", "party": 2, "name": "Παρασκευούδη Θέκλα-Ευαγγελία", "total": 2690, "mapped": 2680, "partial": false}, {"k": "2:2", "party": 2, "name": "Δαγρές Χρήστος", "total": 2543, "mapped": 2534, "partial": false}, {"k": "2:17", "party": 2, "name": "Φωτόπουλος Ιωάννης", "total": 2519, "mapped": 2515, "partial": false}, {"k": "2:16", "party": 2, "name": "Φυρίγου-Κόνσολο Γεωργία (Γωγώ)", "total": 1738, "mapped": 1736, "partial": false}, {"k": "3:5", "party": 3, "name": "Κανέλλη Γαρυφαλλιά (Λιάνα)", "total": 11584, "mapped": 11534, "partial": false}, {"k": "3:6", "party": 3, "name": "Κούνεβα Κοσταντίνκα", "total": 6102, "mapped": 6072, "partial": false}, {"k": "3:1", "party": 3, "name": "Βουρδουμπάς Χαράλαμπος", "total": 3967, "mapped": 3956, "partial": false}, {"k": "3:2", "party": 3, "name": "Γεράκη Αικατερίνη", "total": 3407, "mapped": 3394, "partial": false}, {"k": "3:14", "party": 3, "name": "Σιώρας Ηλίας", "total": 3119, "mapped": 3107, "partial": false}, {"k": "3:16", "party": 3, "name": "Ταβουλάρη Παναγιώτα", "total": 2510, "mapped": 2504, "partial": false}, {"k": "3:8", "party": 3, "name": "Μαργαρίτη Αικατερίνη", "total": 2267, "mapped": 2259, "partial": false}, {"k": "3:7", "party": 3, "name": "Μανιάτη Παρασκευή (Βίκυ)", "total": 2188, "mapped": 2186, "partial": false}, {"k": "3:3", "party": 3, "name": "Γκογκάκη Κωνσταντίνα (Ντίνα)", "total": 1997, "mapped": 1987, "partial": false}, {"k": "3:13", "party": 3, "name": "Παπακωνσταντίνου Γεώργιος", "total": 1708, "mapped": 1700, "partial": false}, {"k": "3:4", "party": 3, "name": "Ζάχαρης Παναγιώτης", "total": 1654, "mapped": 1643, "partial": false}, {"k": "3:17", "party": 3, "name": "Χουρδάκης Χαράλαμπος", "total": 1639, "mapped": 1633, "partial": false}, {"k": "3:10", "party": 3, "name": "Νέζα Έντρι", "total": 1578, "mapped": 1566, "partial": false}, {"k": "3:11", "party": 3, "name": "Πάνου Θεμιστοκλής (Θέμης)", "total": 1548, "mapped": 1545, "partial": false}, {"k": "3:12", "party": 3, "name": "Πανουτσάκου Ελισάβετ (Βέτα)", "total": 1468, "mapped": 1462, "partial": false}, {"k": "3:15", "party": 3, "name": "Σκαλούμπακα Χριστίνα", "total": 1446, "mapped": 1439, "partial": false}, {"k": "3:9", "party": 3, "name": "Μπιργάλιας Δημήτριος", "total": 861, "mapped": 861, "partial": false}, {"k": "4:6", "party": 4, "name": "Ηλιόπουλος Αθανάσιος (Νάσος)", "total": 19988, "mapped": 19910, "partial": false}, {"k": "4:13", "party": 4, "name": "Τζανακόπουλος Δημήτριος", "total": 16902, "mapped": 16830, "partial": false}, {"k": "4:4", "party": 4, "name": "Βούτσης Νικόλαος", "total": 12421, "mapped": 12366, "partial": false}, {"k": "4:1", "party": 4, "name": "Αρσένη Ευγενία (Τζένη)", "total": 11910, "mapped": 11871, "partial": false}, {"k": "4:14", "party": 4, "name": "Φίλης Νικόλαος", "total": 11845, "mapped": 11783, "partial": false}, {"k": "4:9", "party": 4, "name": "Κουβέλη Μαρία", "total": 9209, "mapped": 9180, "partial": false}, {"k": "4:7", "party": 4, "name": "Κανελλοπούλου Μαρία", "total": 9166, "mapped": 9131, "partial": false}, {"k": "4:3", "party": 4, "name": "Βιδάλη Σοφία", "total": 8901, "mapped": 8879, "partial": false}, {"k": "4:2", "party": 4, "name": "Βερναρδάκης Χριστόφορος", "total": 6973, "mapped": 6939, "partial": false}, {"k": "4:15", "party": 4, "name": "Φιλίνη Άννα", "total": 6754, "mapped": 6730, "partial": false}, {"k": "4:16", "party": 4, "name": "Χατζηνικόλας Δημήτριος", "total": 6644, "mapped": 6609, "partial": false}, {"k": "4:11", "party": 4, "name": "Ματσούκα Χάρις (Χαρά)", "total": 6074, "mapped": 6050, "partial": false}, {"k": "4:5", "party": 4, "name": "Ελεφάντη Άννα", "total": 5566, "mapped": 5544, "partial": false}, {"k": "4:10", "party": 4, "name": "Μανιός Νικόλαος", "total": 4803, "mapped": 4778, "partial": false}, {"k": "4:8", "party": 4, "name": "Κινύουα Νικόδημος- Μάινα", "total": 4298, "mapped": 4279, "partial": false}, {"k": "4:17", "party": 4, "name": "Χριστοδουλοπούλου Αναστασία ( Τασία)", "total": 4116, "mapped": 4102, "partial": false}, {"k": "4:12", "party": 4, "name": "Ρόμπος Αντώνιος", "total": 3059, "mapped": 3041, "partial": false}, {"k": "10:1", "party": 10, "name": "Αδαμόπουλος Γρηγόριος", "total": 36, "mapped": 36, "partial": false}, {"k": "10:2", "party": 10, "name": "Μανδελενάκη Θεοφανώ", "total": 35, "mapped": 35, "partial": false}, {"k": "11:1", "party": 11, "name": "Γουρνάς Διονύσιος", "total": 15, "mapped": 15, "partial": false}, {"k": "15:4", "party": 15, "name": "Εξαρχουλάκου Μαρία", "total": 225, "mapped": 225, "partial": false}, {"k": "15:1", "party": 15, "name": "Αλυσανδράκης Παναγιώτης", "total": 193, "mapped": 193, "partial": false}, {"k": "15:9", "party": 15, "name": "Μάρα Άννα", "total": 181, "mapped": 181, "partial": false}, {"k": "15:5", "party": 15, "name": "Ζουρέλλη Αγγελική", "total": 177, "mapped": 177, "partial": false}, {"k": "15:12", "party": 15, "name": "Συρίγος Άγγελος", "total": 161, "mapped": 161, "partial": false}, {"k": "15:2", "party": 15, "name": "Αργύρης Σταύρος", "total": 137, "mapped": 137, "partial": false}, {"k": "15:8", "party": 15, "name": "Κουτουλάκης Γεώργιος", "total": 119, "mapped": 119, "partial": false}, {"k": "15:7", "party": 15, "name": "Κονιτόπουλος Απόστολος", "total": 116, "mapped": 116, "partial": false}, {"k": "15:10", "party": 15, "name": "Μητσοπούλου Ζωή", "total": 112, "mapped": 112, "partial": false}, {"k": "15:11", "party": 15, "name": "Σαββοπούλου Βασιλική", "total": 110, "mapped": 110, "partial": false}, {"k": "15:3", "party": 15, "name": "Γιαούρης Νικόλαος", "total": 107, "mapped": 107, "partial": false}, {"k": "15:6", "party": 15, "name": "Ήμελλος Στέφανος", "total": 93, "mapped": 93, "partial": false}, {"k": "15:13", "party": 15, "name": "Ταμπάρης Ιωάννης", "total": 69, "mapped": 69, "partial": false}, {"k": "20:1", "party": 20, "name": "Βεργής Δημοσθένης", "total": 0, "mapped": 0, "partial": false}, {"k": "20:2", "party": 20, "name": "Λισαγκόρ Βεργή Σβετλάνα", "total": 0, "mapped": 0, "partial": false}, {"k": "28:2", "party": 28, "name": "Καμπούρη Μάγδα - Μαρία", "total": 840, "mapped": 840, "partial": false}, {"k": "28:3", "party": 28, "name": "Λαμπρούση Παναγιώτα", "total": 773, "mapped": 773, "partial": false}, {"k": "28:1", "party": 28, "name": "Βαμβούκης Παναγιώτης", "total": 712, "mapped": 712, "partial": false}, {"k": "28:4", "party": 28, "name": "Παπουτσάκης Νικόλαος", "total": 638, "mapped": 638, "partial": false}, {"k": "44:2", "party": 44, "name": "Αργύρη Νίκη", "total": 526, "mapped": 524, "partial": false}, {"k": "44:1", "party": 44, "name": "Αδαμόπουλος Νικόλαος", "total": 421, "mapped": 419, "partial": false}, {"k": "44:10", "party": 44, "name": "Μένου Κυριακή (Κική)", "total": 386, "mapped": 385, "partial": false}, {"k": "44:7", "party": 44, "name": "Λυσικάτου Ζαννέτα", "total": 364, "mapped": 363, "partial": false}, {"k": "44:17", "party": 44, "name": "Φωτεινού Μαρία", "total": 307, "mapped": 305, "partial": false}, {"k": "44:5", "party": 44, "name": "Κωνσταντίνου Πέτρος", "total": 287, "mapped": 287, "partial": false}, {"k": "44:12", "party": 44, "name": "Πάλλιου Χριστίνα", "total": 260, "mapped": 258, "partial": false}, {"k": "44:6", "party": 44, "name": "Λιναρδάτος Φοίβος", "total": 256, "mapped": 256, "partial": false}, {"k": "44:4", "party": 44, "name": "Ζώτος Δημήτριος", "total": 232, "mapped": 232, "partial": false}, {"k": "44:15", "party": 44, "name": "Τριανταφυλλοπούλου Ελένη", "total": 225, "mapped": 224, "partial": false}, {"k": "44:3", "party": 44, "name": "Ζιόβας Γεώργιος", "total": 203, "mapped": 202, "partial": false}, {"k": "44:14", "party": 44, "name": "Σηφακάκης Ιωάννης", "total": 185, "mapped": 184, "partial": false}, {"k": "44:13", "party": 44, "name": "Παπαχριστούδη Σταματούλα", "total": 182, "mapped": 181, "partial": false}, {"k": "44:9", "party": 44, "name": "Μεγαλοοικονόμου Θεόδωρος", "total": 165, "mapped": 165, "partial": false}, {"k": "44:11", "party": 44, "name": "Μηνακάκης Βασίλειος", "total": 114, "mapped": 112, "partial": false}, {"k": "44:16", "party": 44, "name": "Τσώλης Δημήτριος", "total": 107, "mapped": 107, "partial": false}, {"k": "44:8", "party": 44, "name": "Μαρτζούκος Αλέξανδρος", "total": 93, "mapped": 93, "partial": false}, {"k": "54:1", "party": 54, "name": "Λούβρος Νικόλαος", "total": 888, "mapped": 195, "partial": true}, {"k": "54:2", "party": 54, "name": "Κωστοπούλου Χρηστίνα", "total": 417, "mapped": 417, "partial": false}, {"k": "54:3", "party": 54, "name": "Μπαϊκούσης Αθανάσιος", "total": 369, "mapped": 369, "partial": false}, {"k": "60:3", "party": 60, "name": "Κρανιδιώτης Γαρουφαήλ (Φαήλος)", "total": 1430, "mapped": 1424, "partial": false}, {"k": "60:6", "party": 60, "name": "Ψαραδέλης Κωνσταντίνος", "total": 703, "mapped": 702, "partial": false}, {"k": "60:1", "party": 60, "name": "Γαβουνέλη Ευαγγελία", "total": 626, "mapped": 626, "partial": false}, {"k": "60:2", "party": 60, "name": "Δρακόπουλος Σπυρίδων", "total": 541, "mapped": 541, "partial": false}, {"k": "60:4", "party": 60, "name": "Μάλαμας Αναστάσιος", "total": 478, "mapped": 478, "partial": false}, {"k": "60:5", "party": 60, "name": "Ποδογύρου Μαρία", "total": 449, "mapped": 449, "partial": false}, {"k": "66:1", "party": 66, "name": "Μπουμπουλίμα Παουλίν", "total": 17, "mapped": 16, "partial": false}, {"k": "85:1", "party": 85, "name": "Λιμνιωτάκη Δέσποινα", "total": 162, "mapped": 162, "partial": false}, {"k": "85:5", "party": 85, "name": "Φαρσάρη Σοφία", "total": 116, "mapped": 116, "partial": false}, {"k": "85:2", "party": 85, "name": "Μουζακίτης Γεώργιος", "total": 106, "mapped": 106, "partial": false}, {"k": "85:4", "party": 85, "name": "Πιτροπάκης Εμμανουήλ", "total": 105, "mapped": 105, "partial": false}, {"k": "85:3", "party": 85, "name": "Παπαδημητρίου Σπυρίδων", "total": 100, "mapped": 100, "partial": false}, {"k": "106:6", "party": 106, "name": "Γερουλάνος Παύλος", "total": 8274, "mapped": 8255, "partial": false}, {"k": "106:15", "party": 106, "name": "Σκανδαλίδης Κωνσταντίνος", "total": 6448, "mapped": 6428, "partial": false}, {"k": "106:13", "party": 106, "name": "Μπέη - Καραμπότσου Ρωξάνη - Ευαγγελία", "total": 3909, "mapped": 3896, "partial": false}, {"k": "106:14", "party": 106, "name": "Οικονόμου Δημήτριος", "total": 2656, "mapped": 2648, "partial": false}, {"k": "106:4", "party": 106, "name": "Αποστολόπουλος Γεώργιος", "total": 2064, "mapped": 2060, "partial": false}, {"k": "106:1", "party": 106, "name": "Αβραμόπουλος Παναγιώτης (Πάνος)", "total": 1911, "mapped": 1906, "partial": false}, {"k": "106:16", "party": 106, "name": "Σταμούλη Ευαγγελία (Κέλλυ)", "total": 1887, "mapped": 1880, "partial": false}, {"k": "106:9", "party": 106, "name": "Γιαννοπούλου Καλλιόπη (Πόπη)", "total": 1883, "mapped": 1880, "partial": false}, {"k": "106:11", "party": 106, "name": "Λαλιώτης Νικόλαος", "total": 1760, "mapped": 1755, "partial": false}, {"k": "106:17", "party": 106, "name": "Χριστοδούλου Αικατερίνη", "total": 1759, "mapped": 1755, "partial": false}, {"k": "106:2", "party": 106, "name": "Αγγελίδου Ουρανία (Ράνια)", "total": 1729, "mapped": 1726, "partial": false}, {"k": "106:5", "party": 106, "name": "Βασιλείου Χριστίνα", "total": 1698, "mapped": 1682, "partial": false}, {"k": "106:8", "party": 106, "name": "Γιάνναρος Γεώργιος - Κωνσταντίνος", "total": 1147, "mapped": 1139, "partial": false}, {"k": "106:3", "party": 106, "name": "Αγρογιάννη - Μουκριώτου Ζαχαρία (Ζαχαρούλα)", "total": 1004, "mapped": 999, "partial": false}, {"k": "106:12", "party": 106, "name": "Μαλάι Φάτος", "total": 769, "mapped": 769, "partial": false}, {"k": "106:10", "party": 106, "name": "Επιτροπάκης Εμμανουήλ (Μάνος)", "total": 751, "mapped": 746, "partial": false}, {"k": "106:7", "party": 106, "name": "Γεωργούλης Σταμάτιος", "total": 626, "mapped": 622, "partial": false}, {"k": "108:1", "party": 108, "name": "Γραμμένος Βασίλειος", "total": 3160, "mapped": 3151, "partial": false}, {"k": "108:2", "party": 108, "name": "Δαμιανάκη Σοφία", "total": 1607, "mapped": 1600, "partial": false}, {"k": "108:3", "party": 108, "name": "Δημητρακόπουλος Ανδρέας", "total": 1452, "mapped": 1445, "partial": false}, {"k": "108:16", "party": 108, "name": "Τσουκαλά Αγγελική", "total": 1301, "mapped": 1299, "partial": false}, {"k": "108:4", "party": 108, "name": "Καρκασίνα Μαρίνα", "total": 1233, "mapped": 1228, "partial": false}, {"k": "108:9", "party": 108, "name": "Μπούρα Μαρία", "total": 1190, "mapped": 1186, "partial": false}, {"k": "108:8", "party": 108, "name": "Μιαούλη Αγγελική", "total": 999, "mapped": 996, "partial": false}, {"k": "108:5", "party": 108, "name": "Καψιμάλης Ναπολέων", "total": 997, "mapped": 994, "partial": false}, {"k": "108:6", "party": 108, "name": "Κωτσανίνη Ειρήνη", "total": 964, "mapped": 964, "partial": false}, {"k": "108:7", "party": 108, "name": "Μαρκέτος Ανδρέας", "total": 909, "mapped": 904, "partial": false}, {"k": "108:10", "party": 108, "name": "Ντούτσης Χρήστος", "total": 694, "mapped": 693, "partial": false}, {"k": "108:14", "party": 108, "name": "Σιώκη Βασιλική", "total": 589, "mapped": 588, "partial": false}, {"k": "108:11", "party": 108, "name": "Πανταζίδης Δημήτριος", "total": 580, "mapped": 577, "partial": false}, {"k": "108:13", "party": 108, "name": "Σαμπράκος Λάμπρος", "total": 510, "mapped": 508, "partial": false}, {"k": "108:12", "party": 108, "name": "Πετρομιχελής Βασίλειος", "total": 379, "mapped": 378, "partial": false}, {"k": "108:15", "party": 108, "name": "Τάτσιωνας Δημήτριος", "total": 236, "mapped": 236, "partial": false}, {"k": "113:1", "party": 113, "name": "Βλάχος Παναγιώτης", "total": 84, "mapped": 84, "partial": false}, {"k": "113:3", "party": 113, "name": "Δερδελάκου Μαρία", "total": 80, "mapped": 80, "partial": false}, {"k": "113:4", "party": 113, "name": "Κωνσταντακοπούλου Χριστίνα", "total": 60, "mapped": 60, "partial": false}, {"k": "113:6", "party": 113, "name": "Μυλωνάς Ιωάννης", "total": 53, "mapped": 53, "partial": false}, {"k": "113:5", "party": 113, "name": "Μιχαλακόπουλος Φώτιος", "total": 52, "mapped": 52, "partial": false}, {"k": "113:9", "party": 113, "name": "Πλόσκας Ιωάννης", "total": 52, "mapped": 52, "partial": false}, {"k": "113:2", "party": 113, "name": "Γραμματικόπουλος Βασίλειος", "total": 51, "mapped": 51, "partial": false}, {"k": "113:7", "party": 113, "name": "Παπαδάκη Σμαράγδη", "total": 47, "mapped": 47, "partial": false}, {"k": "113:10", "party": 113, "name": "Χαραλάμπους Αντώνιος", "total": 36, "mapped": 36, "partial": false}, {"k": "113:8", "party": 113, "name": "Πατμανίδου Μαργαρίτα", "total": 27, "mapped": 27, "partial": false}, {"k": "122:1", "party": 122, "name": "Βαρουφάκης Ιωάννης (Γιάνης)", "total": 8880, "mapped": 1967, "partial": true}, {"k": "122:17", "party": 122, "name": "Τσίχλη Μαριάνα", "total": 2043, "mapped": 2026, "partial": false}, {"k": "122:14", "party": 122, "name": "Ρεβενιώτης (Ρεβενιώτη) Παύλος (Πάολα)", "total": 1551, "mapped": 1541, "partial": false}, {"k": "122:2", "party": 122, "name": "Αγιούμπι Σάντι", "total": 1190, "mapped": 1183, "partial": false}, {"k": "122:3", "party": 122, "name": "Αναγνωστοπούλου Γεωργία", "total": 1086, "mapped": 1082, "partial": false}, {"k": "122:10", "party": 122, "name": "Καρακίτσου Μαρία", "total": 971, "mapped": 967, "partial": false}, {"k": "122:6", "party": 122, "name": "Βελισσαρίου Ασπασία (Σίσσυ)", "total": 929, "mapped": 924, "partial": false}, {"k": "122:16", "party": 122, "name": "Σταυροπούλου Αναστασία", "total": 904, "mapped": 895, "partial": false}, {"k": "122:7", "party": 122, "name": "Βρεττού Δέσποινα-Αικατερίνη (Ντέπυ)", "total": 850, "mapped": 844, "partial": false}, {"k": "122:5", "party": 122, "name": "Βαμβακά Παναγιώτα", "total": 810, "mapped": 803, "partial": false}, {"k": "122:13", "party": 122, "name": "Μπαρσέφσκη Μαρία-Άννα (Μάνια)", "total": 735, "mapped": 733, "partial": false}, {"k": "122:15", "party": 122, "name": "Σαραφιανός Δημήτριος", "total": 723, "mapped": 720, "partial": false}, {"k": "122:4", "party": 122, "name": "Ανδρονικίδης Γεώργιος", "total": 572, "mapped": 570, "partial": false}, {"k": "122:12", "party": 122, "name": "Μαραγκουδάκης Θεόδωρος", "total": 543, "mapped": 540, "partial": false}, {"k": "122:9", "party": 122, "name": "Θεοδωρόπουλος Σαράντος", "total": 518, "mapped": 516, "partial": false}, {"k": "122:8", "party": 122, "name": "Θεοδόση-Μπέσκα Αυγούλα (Αυγή)", "total": 443, "mapped": 441, "partial": false}, {"k": "122:11", "party": 122, "name": "Κεπέρης Παναγιώτης", "total": 294, "mapped": 294, "partial": false}, {"k": "123:1", "party": 123, "name": "Κωνσταντοπούλου Ζωή", "total": 8268, "mapped": 1968, "partial": true}, {"k": "123:2", "party": 123, "name": "Δημοπούλου Ελένη", "total": 2858, "mapped": 2850, "partial": false}, {"k": "123:5", "party": 123, "name": "Μπιμπίλας Σπυρίδων", "total": 2577, "mapped": 2564, "partial": false}, {"k": "123:7", "party": 123, "name": "Τσολάκη Δέσποινα", "total": 2428, "mapped": 2419, "partial": false}, {"k": "123:3", "party": 123, "name": "Δρακόπουλος Δημήτριος", "total": 1418, "mapped": 1409, "partial": false}, {"k": "123:4", "party": 123, "name": "Ζαννιάς Πλούταρχος", "total": 985, "mapped": 984, "partial": false}, {"k": "123:6", "party": 123, "name": "Μπιτάρ Χασσάν - Πέτρος", "total": 493, "mapped": 490, "partial": false}, {"k": "125:1", "party": 125, "name": "Αλεξάνδρου Χρυσούλα", "total": 146, "mapped": 146, "partial": false}, {"k": "125:5", "party": 125, "name": "Γραμμένου Ειρήνη", "total": 112, "mapped": 112, "partial": false}, {"k": "125:3", "party": 125, "name": "Βαρδάκη Δέσποινα", "total": 105, "mapped": 105, "partial": false}, {"k": "125:2", "party": 125, "name": "Αποστολάκης Αντώνιος", "total": 99, "mapped": 99, "partial": false}, {"k": "125:11", "party": 125, "name": "Χαρίση Βασιλική", "total": 95, "mapped": 95, "partial": false}, {"k": "125:4", "party": 125, "name": "Βλαχόπουλος Κωνσταντίνος", "total": 73, "mapped": 73, "partial": false}, {"k": "125:6", "party": 125, "name": "Ζαργιανάκη Εμμανουέλα", "total": 62, "mapped": 62, "partial": false}, {"k": "125:8", "party": 125, "name": "Παναγόπουλος Γεώργιος", "total": 61, "mapped": 61, "partial": false}, {"k": "125:7", "party": 125, "name": "Κυριακίδης Νικόλαος", "total": 55, "mapped": 55, "partial": false}, {"k": "125:10", "party": 125, "name": "Φωτόπουλος Θεόδωρος", "total": 37, "mapped": 37, "partial": false}, {"k": "125:9", "party": 125, "name": "Σωτηρόπουλος Αντώνιος-Αλέξανδρος", "total": 28, "mapped": 28, "partial": false}, {"k": "128:1", "party": 128, "name": "Μαυραγάνης Νικόλαος", "total": 551, "mapped": 131, "partial": true}, {"k": "128:3", "party": 128, "name": "Καμινάρης Ιωάννης", "total": 216, "mapped": 216, "partial": false}, {"k": "128:2", "party": 128, "name": "Διονά Αναστασία", "total": 200, "mapped": 200, "partial": false}, {"k": "128:4", "party": 128, "name": "Καραζέρη Παρασκευή", "total": 175, "mapped": 175, "partial": false}, {"k": "128:6", "party": 128, "name": "Ρουσάκης Μανούσος", "total": 157, "mapped": 157, "partial": false}, {"k": "128:5", "party": 128, "name": "Κομσέλης Νικόλαος", "total": 102, "mapped": 102, "partial": false}, {"k": "129:1", "party": 129, "name": "Σιαγγανάς Δημήτριος", "total": 705, "mapped": 700, "partial": false}, {"k": "130:1", "party": 130, "name": "Βασιλάκη Σπυριδούλα", "total": 763, "mapped": 763, "partial": false}, {"k": "130:2", "party": 130, "name": "Δανιηλίδης Παράσχος", "total": 677, "mapped": 677, "partial": false}, {"k": "131:1", "party": 131, "name": "Νατσιός Δημήτριος", "total": 4847, "mapped": 1194, "partial": true}, {"k": "131:2", "party": 131, "name": "Γρατσία Μαρία", "total": 2442, "mapped": 2433, "partial": false}, {"k": "131:4", "party": 131, "name": "Σεϊταρίδου Αικατερίνη", "total": 2029, "mapped": 2023, "partial": false}, {"k": "131:3", "party": 131, "name": "Μαργέτης Γεώργιος", "total": 1681, "mapped": 1673, "partial": false}, {"k": "131:5", "party": 131, "name": "Τσουγανάτος Αθανάσιος", "total": 1630, "mapped": 1623, "partial": false}, {"k": "133:1", "party": 133, "name": "Ορφανίδης Χρήστος", "total": 148, "mapped": 19, "partial": true}, {"k": "133:2", "party": 133, "name": "Κατσούδα Δέσποινα-Σουζάνα", "total": 69, "mapped": 69, "partial": false}, {"k": "133:3", "party": 133, "name": "Κρικέλης Στέργιος", "total": 59, "mapped": 59, "partial": false}, {"k": "133:4", "party": 133, "name": "Σαργολόγου Μαρία", "total": 57, "mapped": 57, "partial": false}, {"k": "134:1", "party": 134, "name": "Κολυβάς Αθανάσιος", "total": 414, "mapped": 67, "partial": true}, {"k": "134:3", "party": 134, "name": "Γκοργκόλη Αφροδίτη", "total": 185, "mapped": 185, "partial": false}, {"k": "134:2", "party": 134, "name": "Βασιλειάδου Λι Ανν", "total": 183, "mapped": 182, "partial": false}, {"k": "134:4", "party": 134, "name": "Κάτσιος Αθανάσιος", "total": 153, "mapped": 153, "partial": false}, {"k": "134:5", "party": 134, "name": "Προκάκης Βικέντιος", "total": 131, "mapped": 131, "partial": false}, {"k": "135:3", "party": 135, "name": "Γρίβας Κλεάνθης", "total": 1142, "mapped": 1135, "partial": false}, {"k": "135:1", "party": 135, "name": "Γαλάτσης Δημήτριος", "total": 496, "mapped": 493, "partial": false}, {"k": "135:12", "party": 135, "name": "Στρατηγάκη Ευγενία", "total": 475, "mapped": 474, "partial": false}, {"k": "135:5", "party": 135, "name": "Καρούσος Δημήτριος", "total": 446, "mapped": 442, "partial": false}, {"k": "135:2", "party": 135, "name": "Γεωργής Γεώργιος", "total": 432, "mapped": 431, "partial": false}, {"k": "135:11", "party": 135, "name": "Πολυχρονοπούλου Χριστίνα", "total": 406, "mapped": 404, "partial": false}, {"k": "135:4", "party": 135, "name": "Δάκα Κυριακή", "total": 390, "mapped": 385, "partial": false}, {"k": "135:13", "party": 135, "name": "Τουρνάκη Γεωργία", "total": 346, "mapped": 344, "partial": false}, {"k": "135:6", "party": 135, "name": "Κερμελίδη Ανθή", "total": 324, "mapped": 322, "partial": false}, {"k": "135:7", "party": 135, "name": "Λαζάρου Νικόλαος", "total": 258, "mapped": 257, "partial": false}, {"k": "135:9", "party": 135, "name": "Μπιρπανάγου Βαρβάρα - Ελένη (Έλβα)", "total": 230, "mapped": 229, "partial": false}, {"k": "135:10", "party": 135, "name": "Νίκας Αθανάσιος", "total": 212, "mapped": 212, "partial": false}, {"k": "135:8", "party": 135, "name": "Μέντζας Νικόλαος", "total": 161, "mapped": 161, "partial": false}, {"k": "137:1", "party": 137, "name": "Ακριβοπούλου Σοφία", "total": 117, "mapped": 117, "partial": false}, {"k": "137:2", "party": 137, "name": "Καμαριάρης Κωνσταντίνος", "total": 93, "mapped": 93, "partial": false}, {"k": "137:4", "party": 137, "name": "Παπαγιαννόπουλος Γεώργιος", "total": 85, "mapped": 85, "partial": false}, {"k": "137:3", "party": 137, "name": "Λάππας Ιωάννης", "total": 82, "mapped": 82, "partial": false}, {"k": "137:5", "party": 137, "name": "Σερφιώτου Μαρία (Μάρι)", "total": 53, "mapped": 53, "partial": false}, {"k": "138:1", "party": 138, "name": "Αντωνοπούλου Άννα Μαρία", "total": 442, "mapped": 442, "partial": false}, {"k": "138:3", "party": 138, "name": "Καρυπίδου Μαρία", "total": 390, "mapped": 390, "partial": false}, {"k": "138:2", "party": 138, "name": "Βωσσος Σπυρίδων", "total": 326, "mapped": 326, "partial": false}, {"k": "138:4", "party": 138, "name": "Πρίφτης Πέτρος", "total": 258, "mapped": 258, "partial": false}, {"k": "138:5", "party": 138, "name": "Τσιούρης Ηλίας", "total": 218, "mapped": 218, "partial": false}, {"k": "140:1", "party": 140, "name": "Γιαννακοπούλου Ίριδα - Λυδία", "total": 589, "mapped": 585, "partial": false}, {"k": "140:2", "party": 140, "name": "Χιωτίνης Μιχαήλ", "total": 533, "mapped": 528, "partial": false}, {"k": "141:2", "party": 141, "name": "Γιώτα Αθανασία", "total": 192, "mapped": 192, "partial": false}, {"k": "141:3", "party": 141, "name": "Κανελλοπούλου Παρασκευή", "total": 165, "mapped": 165, "partial": false}, {"k": "141:1", "party": 141, "name": "Αγγελόπουλος Παναγιώτης", "total": 149, "mapped": 149, "partial": false}, {"k": "141:8", "party": 141, "name": "Χανδρινού Αθανασία", "total": 142, "mapped": 142, "partial": false}, {"k": "141:5", "party": 141, "name": "Οικονομέας Πέτρος", "total": 73, "mapped": 73, "partial": false}, {"k": "141:4", "party": 141, "name": "Καραπαυλίδης Νικόλαος", "total": 71, "mapped": 71, "partial": false}, {"k": "141:6", "party": 141, "name": "Σκούτας Γεώργιος", "total": 64, "mapped": 64, "partial": false}, {"k": "141:7", "party": 141, "name": "Φώτου Κωνσταντίνος", "total": 50, "mapped": 50, "partial": false}, {"k": "142:1", "party": 142, "name": "Κανελλόπουλος Αναστάσιος", "total": 858, "mapped": 193, "partial": true}, {"k": "142:2", "party": 142, "name": "Αλεξόπουλου Αναστασία - Αικατερίνη", "total": 412, "mapped": 412, "partial": false}, {"k": "142:3", "party": 142, "name": "Λούκισα Χρηστίνα", "total": 367, "mapped": 367, "partial": false}, {"k": "142:4", "party": 142, "name": "Λούπης Θεόδωρος", "total": 351, "mapped": 351, "partial": false}, {"k": "143:1", "party": 143, "name": "Νεοφώτιστος Παρασκευάς", "total": 211, "mapped": 211, "partial": false}, {"k": "143:2", "party": 143, "name": "Παπαδοπούλου Ευαγγελία", "total": 194, "mapped": 194, "partial": false}, {"k": "143:3", "party": 143, "name": "Σπέντζος Νικόλαος", "total": 180, "mapped": 180, "partial": false}], "unmatched": [], "coverage": 0.9965986665625334, "geo": {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.73981, 38.03003], [23.73639, 38.02816], [23.72908, 38.02328], [23.71787, 38.01312], [23.71701, 38.01108], [23.71003, 38.00293], [23.69954, 37.99708], [23.6958, 37.99041], [23.69181, 37.98294], [23.6853, 37.97586], [23.69465, 37.97312], [23.70351, 37.97262], [23.69821, 37.96619], [23.70466, 37.96207], [23.71312, 37.96151], [23.71867, 37.95698], [23.71311, 37.95278], [23.72283, 37.94733], [23.73123, 37.95351], [23.73844, 37.95311], [23.74603, 37.95482], [23.74287, 37.95833], [23.7541, 37.96326], [23.74832, 37.96957], [23.76563, 37.96755], [23.75503, 37.97669], [23.76913, 37.98205], [23.78308, 37.97921], [23.78877, 37.98982], [23.78488, 37.99788], [23.78561, 37.99831], [23.78066, 38.0007], [23.77628, 37.99599], [23.76943, 37.99719], [23.75891, 38.00271], [23.75009, 38.00614], [23.74141, 38.00601], [23.74498, 38.01673], [23.75114, 38.02536], [23.73981, 38.03003]]]}, "properties": {"name": "Αθηναίων", "unit": "Αθηναίων", "reg": 452358, "valid": 245814, "tm": 850, "incl": ["Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων", "Αθηναιων"], "pv": {"2": 103730, "3": 21127, "4": 55397, "10": 134, "11": 45, "15": 995, "20": 0, "28": 1747, "44": 2127, "54": 888, "60": 2359, "66": 47, "85": 327, "106": 16481, "108": 7442, "113": 220, "122": 8832, "123": 8235, "125": 476, "128": 551, "129": 1515, "130": 1364, "131": 4830, "133": 148, "134": 410, "135": 2488, "137": 283, "138": 773, "140": 1076, "141": 507, "142": 858, "143": 402}, "cv": {"2:1": 10052, "2:2": 2534, "2:3": 4892, "2:4": 30322, "2:5": 38796, "2:6": 45554, "2:7": 2680, "2:8": 56432, "2:9": 19843, "2:10": 33683, "2:11": 10677, "2:12": 4375, "2:13": 29778, "2:14": 4244, "2:15": 9759, "2:16": 1736, "2:17": 2515, "3:1": 3956, "3:3": 1987, "3:4": 1643, "3:5": 11534, "3:6": 6072, "3:7": 2186, "3:8": 2259, "3:9": 861, "3:10": 1566, "3:12": 1462, "3:13": 1700, "3:14": 3107, "3:15": 1439, "3:16": 2504, "3:17": 1633, "4:1": 11871, "4:2": 6939, "4:3": 8879, "4:4": 12366, "4:5": 5544, "4:6": 19910, "4:7": 9131, "4:8": 4279, "4:9": 9180, "4:10": 4778, "4:11": 6050, "4:12": 3041, "4:13": 16830, "4:14": 11783, "4:15": 6730, "4:16": 6609, "4:17": 4102, "10:2": 35, "15:1": 193, "15:3": 107, "15:5": 177, "15:8": 119, "15:12": 161, "28:1": 712, "28:2": 840, "28:3": 773, "28:4": 638, "44:1": 419, "44:2": 524, "44:4": 232, "44:5": 287, "44:7": 363, "44:8": 93, "44:12": 258, "85:1": 162, "85:2": 106, "85:3": 100, "85:5": 116, "106:1": 1906, "106:2": 1726, "106:3": 999, "106:4": 2060, "106:6": 8255, "106:8": 1139, "106:9": 1880, "106:10": 746, "106:11": 1755, "106:13": 3896, "106:14": 2648, "106:15": 6428, "106:16": 1880, "106:17": 1755, "108:1": 3151, "108:3": 1445, "108:4": 1228, "108:5": 994, "108:6": 964, "108:7": 904, "108:8": 996, "108:9": 1186, "108:10": 693, "108:14": 588, "108:16": 1299, "122:2": 1183, "122:3": 1082, "122:4": 570, "122:5": 803, "122:6": 924, "122:7": 844, "122:9": 516, "122:10": 967, "122:11": 294, "122:12": 540, "122:14": 1541, "122:15": 720, "122:16": 895, "122:17": 2026, "123:2": 2850, "123:3": 1409, "123:4": 984, "123:5": 2564, "123:6": 490, "123:7": 2419, "129:1": 700, "131:2": 2433, "131:3": 1673, "131:4": 2023, "131:5": 1623, "133:2": 69, "133:4": 57, "135:3": 1135, "135:5": 442, "135:6": 322, "135:13": 344, "138:1": 442, "138:2": 326, "138:3": 390, "138:4": 258, "138:5": 218, "140:1": 585, "141:1": 149, "141:3": 165, "141:5": 73, "141:8": 142, "3:2": 3394, "3:11": 1545, "44:10": 385, "44:17": 305, "60:3": 1424, "85:4": 105, "106:5": 1682, "108:2": 1600, "108:11": 577, "122:13": 733, "125:1": 146, "125:3": 105, "125:5": 112, "125:11": 95, "134:2": 182, "134:3": 185, "134:4": 153, "137:1": 117, "137:3": 82, "137:4": 85, "137:5": 53, "141:2": 192, "143:1": 211, "143:2": 194, "143:3": 180, "60:4": 478, "60:5": 449, "60:6": 702, "108:12": 378, "108:13": 508, "113:1": 84, "113:2": 51, "113:3": 80, "113:4": 60, "122:8": 441, "135:1": 493, "135:2": 431, "135:4": 385, "135:7": 257, "135:10": 212, "135:11": 404, "135:12": 474, "140:2": 528, "142:2": 412, "142:3": 367, "15:4": 225, "44:6": 256, "44:13": 181, "60:1": 626, "142:4": 351, "60:2": 541, "125:7": 55, "125:10": 37, "128:2": 200, "135:9": 229, "141:4": 71, "15:6": 93, "15:9": 181, "15:13": 69, "44:3": 202, "44:9": 165, "44:15": 224, "44:16": 107, "54:2": 417, "54:3": 369, "106:12": 769, "125:2": 99, "128:3": 216, "134:5": 131, "137:2": 93, "106:7": 622, "108:15": 236, "15:2": 137, "44:11": 112, "113:6": 53, "113:7": 47, "113:9": 52, "125:4": 73, "125:8": 61, "128:4": 175, "141:6": 64, "15:7": 116, "141:7": 50, "15:11": 110, "44:14": 184, "128:5": 102, "133:3": 59, "128:6": 157, "113:5": 52, "125:9": 28, "135:8": 161, "15:10": 112, "125:6": 62, "113:8": 27, "10:1": 36, "122:1": 1967, "123:1": 1968, "128:1": 131, "131:1": 1194, "130:1": 763, "130:2": 677, "113:10": 36, "54:1": 195, "134:1": 67, "142:1": 193, "133:1": 19, "11:1": 15, "66:1": 16}}}]}, "links": []};
+// Shared by template.html and stations_template.html; inlined at build time before the page script.
+// The page script defines `map` and fills `layers` (index = table row data-i).
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = n => n.toLocaleString("el-GR");
+const pct = x => (x * 100).toLocaleString("el-GR", {maximumFractionDigits: 1}) + "%";
+const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();
+const HOVER = matchMedia("(hover: hover)").matches;
+const TOUCH = matchMedia("(pointer: coarse)").matches;
+const seq = () => ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"].map(css);
+
+function breaks(vals) {  // quantile breaks over the non-zero values
+  const nz = vals.filter(v => v > 0).sort((a, b) => a - b);
+  return nz.length ? [1, 2, 3, 4, 5].map(i => nz[Math.floor(i * nz.length / 6)]) : [];
+}
+function colorFor(x, br) {
+  if (x <= 0) return css("--s0");
+  let i = 0; while (i < br.length && x > br[i]) i++; return seq()[i];
+}
+function seqLegend(br, show) {
+  let h = `<i style="background:${css("--s0")}"></i><span class="lbl">0</span>`;
+  const edges = [0, ...br];
+  seq().forEach((col, i) => {
+    if (i > br.length) return;
+    const lo = edges[i], hi = br[i];
+    h += `<i style="background:${col}"></i><span class="lbl">${hi === undefined ? "> " + show(lo) : show(lo) + "–" + show(hi)}</span>`;
+  });
+  return h;
+}
+
+// Deviation = local share / overall share (1 = average). Fixed, symmetric-in-ratio steps.
+const DEV_BR = [0.5, 0.75, 0.9, 1.1, 1.33, 2];
+const DEV_LBL = ["< −50%", "−50 έως −25%", "−25 έως −10%", "±10%", "+10 έως +33%", "+33 έως +100%", "> +100%"];
+const divSteps = () => ["--d-3", "--d-2", "--d-1", "--d0", "--d1", "--d2", "--d3"].map(css);
+function devColor(r) { let i = 0; while (i < DEV_BR.length && r >= DEV_BR[i]) i++; return divSteps()[i]; }
+const devFmt = r => { const d = Math.round((r - 1) * 100); return (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d) + "%"; };
+const devLegend = () => `<span class="lbl" style="margin-left:0">Σε σχέση με τον μέσο όρο:</span>` +
+  divSteps().map((c, i) => `<i style="background:${c}"></i><span class="lbl">${DEV_LBL[i]}</span>`).join("");
+
+// Links to the other maps of this constituency, and to the index of all maps.
+$("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("") +
+  `<a href="index.html">Όλοι οι χάρτες</a>`;
+
+// The first fit waits for a real container size: a page opened in a hidden tab or pane lays out at 0×0,
+// where fitBounds falls back to zoom 0 (the whole world). onFit runs once, right after that fit.
+function fitOnceSized(m, bounds, opts, onFit) {
+  let done = false;
+  const fit = () => {
+    const el = m.getContainer();
+    if (done || el.clientWidth < 50 || el.clientHeight < 50) return;
+    done = true;
+    // invalidateSize is a no-op until the map has a view, and getSize() caches the 0×0 size.
+    if (m.getZoom() === undefined) m.setView([0, 0], 0, {animate: false});
+    m.invalidateSize({animate: false});
+    m.fitBounds(bounds(), opts);
+    if (onFit) onFit();
+  };
+  new ResizeObserver(fit).observe(m.getContainer());
+  addEventListener("resize", fit);
+  document.addEventListener("visibilitychange", fit);  // hidden pages may skip ResizeObserver callbacks
+  fit();
+}
+
+// Touch: one finger scrolls the page, two fingers move/zoom the map (Leaflet's pinch also pans).
+function touchMap(m) {
+  if (!TOUCH) return;
+  m.dragging.disable();
+  const hint = $("hint");
+  let t;
+  m.getContainer().addEventListener("touchmove", e => {
+    if (e.touches.length !== 1) return hint.classList.remove("on");
+    hint.classList.add("on"); clearTimeout(t); t = setTimeout(() => hint.classList.remove("on"), 1200);
+  }, {passive: true});
+}
+
+// Details panel: tap/click on the map or a table row. Hover devices also get the tooltip.
+const panel = document.body.appendChild(document.createElement("aside"));
+panel.id = "panel"; panel.hidden = true; panel.setAttribute("aria-label", "Λεπτομέρειες");
+panel.setAttribute("aria-live", "polite");
+let layers = [], picked = null;
+function bindFeature(l, html) {
+  l.html = html; l._b = {color: l.options.color, weight: l.options.weight};
+  if (HOVER) l.bindTooltip(html, {sticky: true});
+  l.on({
+    mouseover: () => l !== picked && l.setStyle({color: css("--ink"), weight: 2}),
+    mouseout: () => l !== picked && l.setStyle(l._b),
+    click: () => pick(l),
+  });
+}
+function pick(l, fly) {
+  if (picked) picked.setStyle(picked._b);
+  picked = l;
+  document.querySelectorAll("tr.sel").forEach(r => r.classList.remove("sel"));
+  if (!l) { panel.hidden = true; return; }
+  l.setStyle({color: css("--ink"), weight: 3}); l.bringToFront();
+  document.querySelector(`tr[data-i="${l.i}"]`)?.classList.add("sel");
+  l.closeTooltip?.();
+  panel.innerHTML = `<button type="button" class="close" aria-label="Κλείσιμο">×</button>${l.html}`;
+  panel.hidden = false;
+  panel.firstChild.onclick = () => pick(null);
+  if (fly) {
+    if (l.getLatLng) map.setView(l.getLatLng(), Math.max(map.getZoom(), 15));
+    else map.fitBounds(l.getBounds(), {maxZoom: 14, padding: [24, 24]});
+    $("map").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center"});
+    panel.firstChild.focus({preventScroll: true});
+  }
+}
+function repick() { const i = picked?.i; picked = null; if (i != null && layers[i]) pick(layers[i]); else panel.hidden = true; }
+addEventListener("keydown", e => e.key === "Escape" && picked && pick(null));
+
+// Sortable table: numeric cells carry data-v. Sort state survives re-renders unless reset (tbl._sort = null).
+function sortable(tbl, col, dir) {
+  const st = tbl._sort ||= {col, dir};
+  const ths = [...tbl.tHead.rows[0].cells];
+  const apply = () => {
+    ths.forEach((th, i) => i === st.col ? th.setAttribute("aria-sort", st.dir) : th.removeAttribute("aria-sort"));
+    const key = r => { const td = r.cells[st.col]; return td.dataset.v != null ? +td.dataset.v : td.textContent; };
+    const s = st.dir === "ascending" ? 1 : -1;
+    const rows = [...tbl.tBodies[0].rows].sort((a, b) => {
+      const x = key(a), y = key(b);
+      return s * (typeof x === "number" ? x - y : x.localeCompare(y, "el", {numeric: true}));
+    });
+    tbl.tBodies[0].append(...rows);
+  };
+  ths.forEach((th, i) => {
+    th.innerHTML = `<button type="button">${th.innerHTML}</button>`;
+    th.firstChild.onclick = () => {
+      st.dir = st.col === i ? (st.dir === "ascending" ? "descending" : "ascending") : th.classList.contains("n") ? "descending" : "ascending";
+      st.col = i; apply();
+    };
+  });
+  tbl.onclick = e => { const b = e.target.closest(".rowlink"); if (b) pick(layers[+b.dataset.i], true); };
+  apply();
+}
+
+let metric = "share";
+// Party mode (no published preference votes): one pseudo-candidate "pid:0" per party, share = party votes / valid.
+const PARTY = D.mode === "party";
+const T = PARTY
+  ? {title: "Ψήφοι κομμάτων", num: "Ψήφοι", den: "Έγκυρα", share: "% εγκύρων", total: "ψήφοι στην περιφέρεια",
+     mean: () => "μέσος όρος: % εγκύρων", rank: "Θέση κόμματος", off: "ψήφοι"}
+  : {title: "Σταυροί προτίμησης", num: "Σταυροί", den: "Ψήφοι κόμματος", share: "% κόμματος", total: "σταυροί στην περιφέρεια",
+     mean: party => `μέσος όρος: σταυροί / ψήφοι ${party}`, rank: "Θέση στο κόμμα", off: "σταυροί"};
+const num = (p, c) => (PARTY ? p.pv[c.party] : p.cv[c.k]) || 0;
+const den = (p, c) => (PARTY ? p.valid : p.pv[c.party]) || 0;
+if (PARTY) {
+  ["q", "cand"].forEach(id => $(id).hidden = true);
+  document.querySelector('label[for="q"]').hidden = true;
+  document.querySelector('[data-m="share"]').textContent = "% εγκύρων";
+  document.querySelector('[data-m="votes"]').textContent = "Ψήφοι";
+  $("map").setAttribute("aria-label", "Χάρτης ψήφων κόμματος ανά περιοχή");
+}
+
+$("title").textContent = `${T.title} · ${D.ep_name}`;
+const MONTHS = {may: "Μαΐου", june: "Ιουνίου"};
+const [yr, mo] = D.election.split("/");
+$("sub").textContent = `Βουλευτικές εκλογές ${mo ? MONTHS[mo] + " " : ""}${yr} · ανά εκλογικό διαμέρισμα`;
+
+// Party, then candidate; the search box looks across all parties. Deep link: #party=131&cand=8.
+const partySel = $("party"), sel = $("cand"), q = $("q");
+const partyTotal = pid => D.cands.filter(c => c.party == pid).reduce((s, c) => s + c.total, 0);
+Object.keys(D.parties).sort((a, b) => partyTotal(b) - partyTotal(a))
+  .forEach(pid => partySel.append(new Option(D.parties[pid].name, pid)));
+const topCand = list => list.filter(c => !c.partial).sort((a, b) => b.total - a.total)[0] || list[0];
+function fillCands(keep) {
+  const s = fold(q.value.trim());
+  const list = D.cands.filter(c => s ? fold(c.name).includes(s) : c.party == partySel.value).sort((a, b) => b.total - a.total);
+  const groups = {};
+  list.forEach(c => (groups[c.party] ||= []).push(c));
+  sel.innerHTML = "";
+  Object.keys(groups).sort((a, b) => partyTotal(b) - partyTotal(a)).forEach(pid => {
+    const g = document.createElement("optgroup");
+    g.label = D.parties[pid].name;
+    groups[pid].forEach(c => g.append(new Option(`${c.name} (${fmt(c.total)})${c.partial ? " · μόνο σύνολο" : ""}`, c.k)));
+    sel.append(g);
+  });
+  if (!list.length) sel.append(new Option("Κανένα αποτέλεσμα", ""));
+  sel.value = list.some(c => c.k === keep) ? keep : (topCand(list)?.k ?? "");
+}
+const h = new URLSearchParams(location.hash.slice(1));
+const fromHash = D.cands.find(c => c.k === `${h.get("party")}:${h.get("cand")}`);
+const start = fromHash || (D.parties[h.get("party")] ? topCand(D.cands.filter(c => c.party == h.get("party"))) : topCand(D.cands));
+partySel.value = start.party;
+fillCands(start.k);
+
+const map = L.map("map", {scrollWheelZoom: false});
+const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '&copy; OpenStreetMap · Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)', maxZoom: 18, opacity: 0.6
+}).addTo(map);
+touchMap(map);
+
+const share = (p, c) => den(p, c) ? num(p, c) / den(p, c) : 0;
+function value(p, c, mean) {
+  if (metric === "votes") return num(p, c);
+  return metric === "dev" ? (mean ? share(p, c) / mean : 0) : share(p, c);
+}
+function rankInParty(p, c) {  // party mode: rank among all parties
+  const mine = num(p, c);
+  return 1 + D.cands.filter(o => (PARTY || o.party === c.party) && num(p, o) > mine).length;
+}
+
+let layer;
+function render() {
+  const c = D.cands.find(x => x.k === sel.value);
+  if (!c) return;
+  partySel.value = c.party;
+  history.replaceState(null, "", `#party=${c.party}&cand=${c.k.split(":")[1]}`);
+  const feats = D.geo.features, props = feats.map(f => f.properties);
+  const sumPv = props.reduce((s, p) => s + den(p, c), 0);
+  const mean = sumPv ? c.mapped / sumPv : 0;
+  const br = breaks(props.map(p => value(p, c, mean)));
+  const fill = p => metric === "dev" ? (den(p, c) ? devColor(value(p, c, mean)) : css("--d0")) : colorFor(value(p, c, mean), br);
+  const tip = p => `<div class="tip"><b>${p.name}</b><span class="m">${p.unit}</span><br>` +
+    `${T.num}: <b style="display:inline">${fmt(num(p, c))}</b><br>` +
+    `${T.den}: ${fmt(den(p, c))} · ${pct(share(p, c))}` +
+    (den(p, c) && mean ? ` (${devFmt(share(p, c) / mean)} από τον μέσο όρο)` : "") + `<br>` +
+    `${T.rank}: ${rankInParty(p, c)}η · ${p.tm} τμήμ.` +
+    (p.incl.length > 1 ? `<br><span class="m">Περιλαμβάνει τα Ε.Δ.: ${p.incl.join(", ")}</span>` : "") + `</div>`;
+
+  if (layer) layer.remove();
+  layers = [];
+  layer = L.geoJSON(D.geo, {
+    style: f => ({fillColor: fill(f.properties), fillOpacity: 0.85, color: css("--surface"), weight: 1}),
+    onEachFeature: (f, l) => { l.i = layers.length; layers.push(l); bindFeature(l, tip(f.properties)); }
+  }).addTo(map);
+  if (!render.fitted) { render.fitted = true; fitOnceSized(map, () => layer.getBounds()); }
+
+  const show = v => metric === "share" ? pct(v) : fmt(Math.round(v));
+  $("legend").innerHTML = metric === "dev" ? devLegend() : seqLegend(br, show);
+
+  const party = D.parties[c.party].name;
+  const best = props.slice().sort((a, b) => value(b, c, mean) - value(a, c, mean))[0];
+  $("stats").innerHTML =
+    `<div><b>${fmt(c.total)}</b><span>${T.total}</span></div>` +
+    `<div><b>${pct(c.total ? c.mapped / c.total : 0)}</b><span>από αυτούς στον χάρτη` +
+      (c.partial ? ` · το ΥΠΕΣ δίνει τους περισσότερους μόνο ως σύνολο περιφέρειας` : ``) + `</span></div>` +
+    `<div><b>${pct(mean)}</b><span>${T.mean(party)}</span></div>` +
+    `<div><b>${best ? best.name : "-"}</b><span>ισχυρότερη περιοχή (${metric === "votes" ? T.off : PARTY ? "% εγκύρων" : "% ψήφων " + party})</span></div>`;
+
+  const tbl = $("tbl");
+  tbl.innerHTML =
+    `<thead><tr><th>Περιοχή</th><th>Δημ. ενότητα</th><th class="n">${T.num}</th><th class="n">${T.den}</th>` +
+    `<th class="n">${T.share}</th><th class="n">Απόκλιση</th><th class="n">Θέση</th></tr></thead><tbody>` +
+    props.map((p, i) => {
+      const pv = den(p, c), r = mean ? share(p, c) / mean : 0;
+      return `<tr data-i="${i}"><td><button type="button" class="rowlink" data-i="${i}">${p.name}</button></td><td>${p.unit}</td>` +
+        `<td class="n" data-v="${num(p, c)}">${fmt(num(p, c))}</td><td class="n" data-v="${pv}">${fmt(pv)}</td>` +
+        `<td class="n" data-v="${share(p, c)}">${pct(share(p, c))}</td><td class="n" data-v="${pv ? r : -1}">${pv && mean ? devFmt(r) : "–"}</td>` +
+        `<td class="n" data-v="${rankInParty(p, c)}">${rankInParty(p, c)}</td></tr>`;
+    }).join("") + `</tbody>`;
+  sortable(tbl, metric === "votes" ? 2 : 4, "descending");
+  repick();  // keeps the open panel on the same area, with the new numbers
+}
+
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  metric = b.dataset.m;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("tbl")._sort = null;
+  render();
+});
+partySel.onchange = () => { q.value = ""; fillCands(); render(); };
+q.oninput = () => { fillCands(sel.value); render(); };
+sel.onchange = render;
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+// PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
+// The document title becomes the suggested file name.
+let saved;
+function fitForPrint() {
+  const c = D.cands.find(x => x.k === sel.value);
+  document.title = `${T.num} ${c.name} - ${D.ep_name} - ${D.election.replace("/", "-")}`;
+  saved = saved || [map.getCenter(), map.getZoom()];
+  document.body.classList.add("printing");
+  map.invalidateSize();
+  map.fitBounds(layer.getBounds(), {padding: [8, 8]});
+}
+function exportPdf() {
+  fitForPrint();
+  let done = false;
+  const go = () => { if (!done) { done = true; window.print(); } };
+  tiles.once("load", go);
+  setTimeout(go, 1500);
+}
+addEventListener("beforeprint", fitForPrint);  // also covers Ctrl+P
+addEventListener("afterprint", () => {
+  document.body.classList.remove("printing");
+  document.title = "Χάρτης σταυρών";
+  map.invalidateSize();
+  if (saved) map.setView(...saved);
+  saved = null;
+});
+
+$("note").textContent =
+  `Πηγή: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα, ενωμένα ανά εκλογικό διαμέρισμα και όρια κοινοτήτων ΕΛΣΤΑΤ 2021. ` +
+  `Απόκλιση: % της περιοχής προς τον μέσο όρο του χάρτη. ` +
+  `Εκτός χάρτη: ${T.off} ετεροδημοτών και ειδικών τμημάτων` +
+  (D.unmatched.length ? `, και ${D.unmatched.length} διαμερίσματα χωρίς αντιστοίχιση (${D.unmatched.map(u => u.name).join(", ")}).` : ".");
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Χάρτης σταυρών</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+/* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
+:root {
+  color-scheme: light;
+  --surface: #fcfcfb; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --shadow: rgba(0,0,0,.18);
+  --s0: #eef4fc; --s1: #cde2fb; --s2: #9ec5f4; --s3: #6da7ec; --s4: #3987e5; --s5: #256abf; --s6: #104281;
+  /* diverging: below the average (red), near it (gray), above it (blue) */
+  --d-3: #a8302e; --d-2: #e0736b; --d-1: #f6c4c0; --d0: #e4e3df; --d1: #9ec5f4; --d2: #3987e5; --d3: #104281;
+}
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; --surface: #1a1a19; --ink: #ecebe7; --ink-2: #a8a7a2; --line: #383835; --chip: #262624;
+          --shadow: rgba(0,0,0,.5); --d0: #5a5955; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
+main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 21px; line-height: 1.25; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+a { color: var(--s4); }
+.sub { color: var(--ink-2); margin: 0 0 8px; }
+.views { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; font-size: 14px; }
+.views:empty { display: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.controls label { color: var(--ink-2); font-size: 13px; }
+select, button, input { font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+select { min-width: 0; max-width: 100%; }
+input[type="search"] { width: 14em; max-width: 100%; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.pdf { margin-left: auto; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 24px; margin: 4px 0 12px; }
+.stats b { display: block; font-size: 20px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--ink-2); font-size: 12px; }
+.mapwrap { position: relative; }
+#map { height: 62vh; min-height: 360px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); }
+.hint { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; z-index: 1000;
+        background: rgba(0,0,0,.5); color: #fff; font-weight: 600; border-radius: 8px; pointer-events: none;
+        opacity: 0; transition: opacity .2s; }
+.hint.on { opacity: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 8px 0 20px; font-size: 12px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; }
+.legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+th button { all: unset; cursor: pointer; }
+th button:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+th[aria-sort="ascending"] button::after { content: " ▲"; font-size: 9px; }
+th[aria-sort="descending"] button::after { content: " ▼"; font-size: 9px; }
+td.n, th.n { text-align: right; }
+tbody tr:hover { background: var(--chip); }
+tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
+.rowlink { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
+.rowlink:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.m { color: var(--ink-2); }
+.tablewrap { max-height: 520px; overflow: auto; }
+.note { color: var(--ink-2); font-size: 12px; margin-top: 16px; }
+/* Tooltip (mouse hover) and details panel (tap, click, table row) */
+.leaflet-container .leaflet-tooltip { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: 0 2px 8px var(--shadow); }
+.leaflet-tooltip-left::before { border-left-color: var(--surface); }
+.leaflet-tooltip-right::before { border-right-color: var(--surface); }
+.tip { font-variant-numeric: tabular-nums; }
+.tip b { display: block; }
+.tip table { width: auto; }
+.tip table td { padding: 1px 6px 1px 0; border: 0; }
+#panel { position: fixed; z-index: 2000; left: 0; right: 0; bottom: 0; max-height: 55vh; overflow: auto;
+         background: var(--surface); color: var(--ink); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px var(--shadow);
+         padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 12px 12px 0 0; }
+#panel[hidden] { display: none; }
+#panel .close { float: right; margin: -6px -8px 4px 8px; min-width: 44px; min-height: 44px; font-size: 22px; line-height: 1; }
+#panel .tip table td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--line); }
+@media (min-width: 720px) {
+  #panel { left: auto; right: 16px; bottom: 16px; width: 420px; max-height: 70vh; border: 1px solid var(--line); border-radius: 10px; }
+}
+/* Touch: 44px targets */
+@media (pointer: coarse) {
+  select, button, input { min-height: 44px; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+  .rowlink { display: inline-block; min-height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
+/* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
+@page { size: A4; margin: 12mm; }
+@media print {
+  :root { color-scheme: light; --surface: #fff; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --d0: #e4e3df; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  main { max-width: none; padding: 0; }
+  .seg, .pdf, .views, .leaflet-control-zoom, #panel, .hint, input, .controls label { display: none !important; }
+  select { border: 0; padding: 0; appearance: none; background: none; font-weight: 600; font-size: 16px; min-height: 0; }
+  #map { break-inside: avoid; }
+  .tablewrap { max-height: none; overflow: visible; }
+  th { position: static; }
+  tr { break-inside: avoid; }
+  tr.sel { box-shadow: none; background: none; }
+  .rowlink { text-decoration: none; }
+  th[aria-sort] button::after { content: none; }
+}
+
+  body.printing #map { width: 186mm; height: 120mm; min-height: 0; }
+  @media print { #map { width: 186mm; height: 120mm; min-height: 0; } }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <p class="sub" id="sub"></p>
+  <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
+  <div class="controls">
+    <label for="party">Κόμμα</label>
+    <select id="party"></select>
+    <label for="q">Υποψήφιος</label>
+    <input id="q" type="search" placeholder="Αναζήτηση ονόματος" autocomplete="off">
+    <select id="cand" aria-label="Επιλογή υποψηφίου"></select>
+    <div class="seg" role="group" aria-label="Μέτρο">
+      <button type="button" data-m="share" aria-pressed="true">% ψήφων κόμματος</button>
+      <button type="button" data-m="dev" aria-pressed="false">Απόκλιση από μέσο όρο</button>
+      <button type="button" data-m="votes" aria-pressed="false">Σταυροί</button>
+    </div>
+    <button class="pdf" type="button" onclick="exportPdf()">Εξαγωγή PDF</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="mapwrap">
+    <div id="map" role="region" aria-label="Χάρτης σταυρών ανά περιοχή"></div>
+    <div class="hint" id="hint" aria-hidden="true">Χρησιμοποιήστε δύο δάχτυλα για να μετακινήσετε τον χάρτη</div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <h2>Ανά περιοχή</h2>
+  <div class="tablewrap"><table id="tbl"></table></div>
+  <p class="note" id="note"></p>
+</main>
+<script>
+const D = {"election": "2023/june", "ep": 61, "ep_name": "Β2' Δυτικού Τομέα Αθηνών", "mode": "party", "parties": {"2": {"name": "ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ", "color": "#0C99FF"}, "3": {"name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "color": "#D80000"}, "4": {"name": "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ", "color": "#FF8080"}, "130": {"name": "ΚΙΝΗΜΑ ΦΤΩΧΩΝ ΕΛΛΑΔΟΣ", "color": "#FF6600"}, "131": {"name": "ΝΙΚΗ", "color": "#DD6C6D"}, "10": {"name": "ΜΑΡΞΙΣΤΙΚΟ-ΛΕΝΙΝΙΣΤΙΚΟ ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "color": "#D71920"}, "11": {"name": "Ο.Α.Κ.Κ.Ε. Οργάνωση για την Ανασυγκρότηση του ΚΚΕ", "color": "#CA0904"}, "140": {"name": "ΠΝΟΗ ΔΗΜΟΚΡΑΤΙΑΣ-Δημήτριος Κούβελας", "color": "#8DAE5F"}, "15": {"name": "ΕΝΩΣΗ ΚΕΝΤΡΩΩΝ", "color": "#F2D400"}, "150": {"name": "ΕΥ-ΚΙΝΗΣΗ", "color": "#71C9BB"}, "151": {"name": "ΛΑΪΚΟ ΕΥΡΩΠΑΪΚΟ ΚΟΜΜΑ", "color": "#3CC2D2"}, "153": {"name": "ΠΑΤΡΙΩΤΙΚΟΣ ΣΥΝΑΣΠΙΣΜΟΣ", "color": "#026C9E"}, "155": {"name": "ΠΡΑΣΙΝΟ ΚΑΙ ΜΩΒ", "color": "#9FB430"}, "28": {"name": "ΟΙΚΟΛΟΓΟΙ ΠΡΑΣΙΝΟΙ", "color": "#FFCF00"}, "156": {"name": "Ρεπουμπλικανικό Κόμμα Ελλάδας-Τ.Ρ.Α.Μ.Π.", "color": "#1A2F47"}, "157": {"name": "ΣΠΑΡΤΙΑΤΕΣ", "color": "#E9B460"}, "158": {"name": "ΦΩΝΗ ΛΟΓΙΚΗΣ ΑΦΡΟΔΙΤΗ ΛΑΤΙΝΟΠΟΥΛΟΥ", "color": "#0093FE"}, "44": {"name": "ΑΝΤ.ΑΡ.ΣΥ.Α-ΑΝΤΙΚΑΠΙΤΑΛΙΣΤΙΚΗ ΑΡΙΣΤΕΡΗ ΣΥΝΕΡΓΑΣΙΑ για την ΑΝΑΤΡΟΠΗ", "color": "#E00B1D"}, "65": {"name": "ΠΑΝΑΘΗΝΑΪΚΟ ΚΙΝΗΜΑ", "color": "#1A8555"}, "66": {"name": "ΟΡΓΑΝΩΣΗ ΚΟΜΜΟΥΝΙΣΤΩΝ ΔΙΕΘΝΙΣΤΩΝ ΕΛΛΑΔΑΣ (Ο.Κ.Δ.Ε.)", "color": "#E31E24"}, "78": {"name": "ΕΘΝΙΚΟ ΜΕΤΩΠΟ", "color": "#0860A8"}, "106": {"name": "ΠΑΣΟΚ-Κίνημα Αλλαγής", "color": "#00CC0C"}, "108": {"name": "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ", "color": "#0A5FAE"}, "113": {"name": "ΕΛΛΗΝΩΝ ΣΥΝΕΛΕΥΣΙΣ", "color": "#1F4FA4"}, "122": {"name": "ΜέΡΑ25-ΣΥΜΜΑΧΙΑ ΓΙΑ ΤΗ ΡΗΞΗ", "color": "#F04E23"}, "123": {"name": "ΠΛΕΥΣΗ ΕΛΕΥΘΕΡΙΑΣ - ΖΩΗ ΚΩΝΣΤΑΝΤΟΠΟΥΛΟΥ", "color": "#9F1897"}, "125": {"name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ (μαρξιστικό-λενινιστικό)", "color": "#89001C"}}, "cands": [{"k": "2:0", "party": 2, "name": "ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ", "total": 71315, "mapped": 71315, "partial": false}, {"k": "3:0", "party": 3, "name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "total": 24950, "mapped": 24950, "partial": false}, {"k": "4:0", "party": 4, "name": "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ", "total": 43440, "mapped": 43440, "partial": false}, {"k": "10:0", "party": 10, "name": "ΜΑΡΞΙΣΤΙΚΟ-ΛΕΝΙΝΙΣΤΙΚΟ ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "total": 185, "mapped": 185, "partial": false}, {"k": "11:0", "party": 11, "name": "Ο.Α.Κ.Κ.Ε. Οργάνωση για την Ανασυγκρότηση του ΚΚΕ", "total": 37, "mapped": 37, "partial": false}, {"k": "15:0", "party": 15, "name": "ΕΝΩΣΗ ΚΕΝΤΡΩΩΝ", "total": 585, "mapped": 585, "partial": false}, {"k": "28:0", "party": 28, "name": "ΟΙΚΟΛΟΓΟΙ ΠΡΑΣΙΝΟΙ", "total": 1000, "mapped": 1000, "partial": false}, {"k": "44:0", "party": 44, "name": "ΑΝΤ.ΑΡ.ΣΥ.Α-ΑΝΤΙΚΑΠΙΤΑΛΙΣΤΙΚΗ ΑΡΙΣΤΕΡΗ ΣΥΝΕΡΓΑΣΙΑ για την ΑΝΑΤΡΟΠΗ", "total": 1090, "mapped": 1090, "partial": false}, {"k": "65:0", "party": 65, "name": "ΠΑΝΑΘΗΝΑΪΚΟ ΚΙΝΗΜΑ", "total": 1, "mapped": 1, "partial": false}, {"k": "66:0", "party": 66, "name": "ΟΡΓΑΝΩΣΗ ΚΟΜΜΟΥΝΙΣΤΩΝ ΔΙΕΘΝΙΣΤΩΝ ΕΛΛΑΔΑΣ (Ο.Κ.Δ.Ε.)", "total": 32, "mapped": 32, "partial": false}, {"k": "78:0", "party": 78, "name": "ΕΘΝΙΚΟ ΜΕΤΩΠΟ", "total": 76, "mapped": 76, "partial": false}, {"k": "106:0", "party": 106, "name": "ΠΑΣΟΚ-Κίνημα Αλλαγής", "total": 18367, "mapped": 18367, "partial": false}, {"k": "108:0", "party": 108, "name": "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ", "total": 8273, "mapped": 8273, "partial": false}, {"k": "113:0", "party": 113, "name": "ΕΛΛΗΝΩΝ ΣΥΝΕΛΕΥΣΙΣ", "total": 212, "mapped": 212, "partial": false}, {"k": "122:0", "party": 122, "name": "ΜέΡΑ25-ΣΥΜΜΑΧΙΑ ΓΙΑ ΤΗ ΡΗΞΗ", "total": 6241, "mapped": 6241, "partial": false}, {"k": "123:0", "party": 123, "name": "ΠΛΕΥΣΗ ΕΛΕΥΘΕΡΙΑΣ - ΖΩΗ ΚΩΝΣΤΑΝΤΟΠΟΥΛΟΥ", "total": 8338, "mapped": 8338, "partial": false}, {"k": "125:0", "party": 125, "name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ (μαρξιστικό-λενινιστικό)", "total": 476, "mapped": 476, "partial": false}, {"k": "130:0", "party": 130, "name": "ΚΙΝΗΜΑ ΦΤΩΧΩΝ ΕΛΛΑΔΟΣ", "total": 1053, "mapped": 1053, "partial": false}, {"k": "131:0", "party": 131, "name": "ΝΙΚΗ", "total": 5768, "mapped": 5768, "partial": false}, {"k": "140:0", "party": 140, "name": "ΠΝΟΗ ΔΗΜΟΚΡΑΤΙΑΣ-Δημήτριος Κούβελας", "total": 502, "mapped": 502, "partial": false}, {"k": "150:0", "party": 150, "name": "ΕΥ-ΚΙΝΗΣΗ", "total": 896, "mapped": 896, "partial": false}, {"k": "151:0", "party": 151, "name": "ΛΑΪΚΟ ΕΥΡΩΠΑΪΚΟ ΚΟΜΜΑ", "total": 7, "mapped": 7, "partial": false}, {"k": "153:0", "party": 153, "name": "ΠΑΤΡΙΩΤΙΚΟΣ ΣΥΝΑΣΠΙΣΜΟΣ", "total": 1020, "mapped": 1020, "partial": false}, {"k": "155:0", "party": 155, "name": "ΠΡΑΣΙΝΟ ΚΑΙ ΜΩΒ", "total": 505, "mapped": 505, "partial": false}, {"k": "156:0", "party": 156, "name": "Ρεπουμπλικανικό Κόμμα Ελλάδας-Τ.Ρ.Α.Μ.Π.", "total": 1, "mapped": 1, "partial": false}, {"k": "157:0", "party": 157, "name": "ΣΠΑΡΤΙΑΤΕΣ", "total": 10354, "mapped": 10354, "partial": false}, {"k": "158:0", "party": 158, "name": "ΦΩΝΗ ΛΟΓΙΚΗΣ ΑΦΡΟΔΙΤΗ ΛΑΤΙΝΟΠΟΥΛΟΥ", "total": 944, "mapped": 944, "partial": false}], "unmatched": [], "coverage": 1.0, "geo": {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66535, 37.99524], [23.647, 37.99627], [23.64517, 37.99011], [23.65223, 37.984], [23.66205, 37.98036], [23.66446, 37.98149], [23.66363, 37.99052], [23.66535, 37.99524]]]}, "properties": {"name": "Αγίας Βαρβάρας", "unit": "Αγίας Βαρβάρας", "reg": 22342, "valid": 11378, "tm": 43, "incl": ["Αγιας Βαρβαρας", "Αγιας Βαρβαρας", "Αγιας Βαρβαρας", "Αγιας Βαρβαρας"], "pv": {"2": 3631, "3": 1297, "4": 2423, "10": 17, "11": 6, "15": 37, "28": 66, "44": 41, "65": 0, "66": 2, "78": 2, "106": 1078, "108": 701, "113": 23, "122": 295, "123": 493, "125": 36, "130": 71, "131": 295, "140": 26, "150": 56, "151": 5, "153": 52, "155": 27, "156": 0, "157": 631, "158": 67}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.71787, 38.01312], [23.72828, 38.03155], [23.73206, 38.03688], [23.7332, 38.04804], [23.72837, 38.04967], [23.72701, 38.04316], [23.71976, 38.02949], [23.71196, 38.02568], [23.70941, 38.01434], [23.71701, 38.01108], [23.71787, 38.01312]]]}, "properties": {"name": "Αγίων Αναργύρων", "unit": "Αγίων Αναργύρων", "reg": 26658, "valid": 15061, "tm": 50, "incl": ["Αγιων Αναργυρων", "Αγιων Αναργυρων", "Αγιων Αναργυρων"], "pv": {"2": 5382, "3": 1812, "4": 3024, "10": 10, "11": 4, "15": 46, "28": 63, "44": 108, "65": 0, "66": 3, "78": 11, "106": 1418, "108": 593, "113": 19, "122": 482, "123": 548, "125": 64, "130": 65, "131": 409, "140": 47, "150": 64, "151": 0, "153": 79, "155": 39, "156": 0, "157": 705, "158": 66}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66989, 38.00593], [23.66605, 38.00307], [23.66535, 37.99524], [23.66363, 37.99052], [23.66446, 37.98149], [23.66908, 37.97783], [23.66664, 37.9739], [23.68361, 37.97379], [23.6853, 37.97586], [23.69181, 37.98294], [23.6958, 37.99041], [23.68815, 37.99658], [23.67645, 38.00157], [23.66989, 38.00593]]]}, "properties": {"name": "Αιγάλεω", "unit": "Αιγάλεω", "reg": 57717, "valid": 30857, "tm": 110, "incl": ["Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω"], "pv": {"2": 10705, "3": 3674, "4": 6656, "10": 36, "11": 4, "15": 85, "28": 158, "44": 97, "65": 0, "66": 3, "78": 9, "106": 2727, "108": 1268, "113": 29, "122": 1006, "123": 1200, "125": 64, "130": 153, "131": 794, "140": 71, "150": 124, "151": 1, "153": 167, "155": 63, "156": 0, "157": 1607, "158": 156}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68265, 38.05945], [23.67609, 38.05734], [23.6821, 38.04821], [23.69383, 38.04237], [23.69653, 38.03721], [23.68347, 38.02776], [23.69261, 38.01965], [23.70063, 38.02012], [23.70544, 38.01439], [23.70941, 38.01434], [23.71196, 38.02568], [23.71976, 38.02949], [23.72701, 38.04316], [23.7196, 38.04506], [23.70357, 38.04274], [23.6862, 38.04964], [23.68265, 38.05945]]]}, "properties": {"name": "Ιλίου", "unit": "Ιλίου", "reg": 55593, "valid": 31795, "tm": 105, "incl": ["Ιλιου", "Ιλιου", "Ιλιου", "Ιλιου", "Ιλιου"], "pv": {"2": 10754, "3": 3643, "4": 7017, "10": 32, "11": 4, "15": 72, "28": 154, "44": 151, "65": 0, "66": 10, "78": 10, "106": 3018, "108": 1229, "113": 26, "122": 900, "123": 1336, "125": 79, "130": 146, "131": 931, "140": 79, "150": 136, "151": 0, "153": 173, "155": 79, "156": 0, "157": 1670, "158": 146}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.71159, 38.06294], [23.69909, 38.06314], [23.69239, 38.05774], [23.6865, 38.06146], [23.68265, 38.05945], [23.6862, 38.04964], [23.70357, 38.04274], [23.7196, 38.04506], [23.72701, 38.04316], [23.72837, 38.04967], [23.72428, 38.05706], [23.71825, 38.05988], [23.71159, 38.06294]]]}, "properties": {"name": "Καματερού", "unit": "Καματερού", "reg": 18810, "valid": 10853, "tm": 36, "incl": ["Καματερου"], "pv": {"2": 3794, "3": 1269, "4": 2119, "10": 6, "11": 3, "15": 27, "28": 67, "44": 54, "65": 0, "66": 1, "78": 5, "106": 1127, "108": 512, "113": 9, "122": 273, "123": 382, "125": 29, "130": 55, "131": 323, "140": 30, "150": 44, "151": 0, "153": 53, "155": 22, "156": 0, "157": 590, "158": 59}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68347, 38.02776], [23.67606, 38.03247], [23.66523, 38.03047], [23.66161, 38.02317], [23.66718, 38.01976], [23.66771, 38.01471], [23.673, 38.01098], [23.66989, 38.00593], [23.67645, 38.00157], [23.68815, 37.99658], [23.6958, 37.99041], [23.69954, 37.99708], [23.71003, 38.00293], [23.71701, 38.01108], [23.70941, 38.01434], [23.70544, 38.01439], [23.70063, 38.02012], [23.69261, 38.01965], [23.68347, 38.02776]]]}, "properties": {"name": "Περιστερίου", "unit": "Περιστερίου", "reg": 112163, "valid": 60749, "tm": 210, "incl": ["Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου"], "pv": {"2": 20876, "3": 7357, "4": 13499, "10": 50, "11": 10, "15": 183, "28": 284, "44": 399, "65": 0, "66": 9, "78": 22, "106": 5127, "108": 2370, "113": 66, "122": 1680, "123": 2485, "125": 104, "130": 343, "131": 1734, "140": 145, "150": 250, "151": 0, "153": 279, "155": 154, "156": 0, "157": 3064, "158": 259}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68347, 38.02776], [23.69653, 38.03721], [23.69383, 38.04237], [23.6821, 38.04821], [23.67609, 38.05734], [23.65764, 38.04694], [23.65468, 38.04117], [23.65282, 38.03125], [23.65866, 38.02814], [23.66523, 38.03047], [23.67606, 38.03247], [23.68347, 38.02776]]]}, "properties": {"name": "Πετρουπόλεως", "unit": "Πετρουπόλεως", "reg": 40411, "valid": 23966, "tm": 77, "incl": ["Πετρουπολεως", "Πετρουπολεως", "Πετρουπολεως"], "pv": {"2": 8130, "3": 3325, "4": 4676, "10": 28, "11": 1, "15": 64, "28": 110, "44": 112, "65": 1, "66": 3, "78": 9, "106": 2158, "108": 856, "113": 16, "122": 877, "123": 1027, "125": 60, "130": 122, "131": 790, "140": 63, "150": 113, "151": 0, "153": 112, "155": 59, "156": 1, "157": 1159, "158": 94}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66523, 38.03047], [23.65866, 38.02814], [23.65282, 38.03125], [23.64619, 38.02527], [23.63691, 38.02472], [23.62713, 38.02169], [23.62391, 38.0184], [23.59949, 38.01392], [23.59679, 38.01459], [23.59053, 38.00975], [23.59569, 38.0071], [23.58866, 37.99798], [23.58269, 37.99416], [23.56864, 37.99701], [23.5697, 37.99062], [23.56529, 37.98484], [23.57607, 37.98925], [23.59645, 37.9856], [23.60311, 37.98653], [23.61086, 37.99022], [23.62299, 37.99157], [23.63318, 37.99099], [23.63535, 37.99467], [23.63173, 37.99949], [23.64395, 38.00007], [23.647, 37.99627], [23.66535, 37.99524], [23.66605, 38.00307], [23.66989, 38.00593], [23.673, 38.01098], [23.66771, 38.01471], [23.66718, 38.01976], [23.66161, 38.02317], [23.66523, 38.03047]]]}, "properties": {"name": "Χαϊδαρίου", "unit": "Χαϊδαρίου", "reg": 34018, "valid": 21009, "tm": 65, "incl": ["Χαιδαριου", "Χαιδαριου", "Χαιδαριου", "Χαιδαριου"], "pv": {"2": 8043, "3": 2573, "4": 4026, "10": 6, "11": 5, "15": 71, "28": 98, "44": 128, "65": 0, "66": 1, "78": 8, "106": 1714, "108": 744, "113": 24, "122": 728, "123": 867, "125": 40, "130": 98, "131": 492, "140": 41, "150": 109, "151": 1, "153": 105, "155": 62, "156": 0, "157": 928, "158": 97}, "cv": {}}}]}, "links": [{"href": "2023-june_61_tm_131-0.html", "label": "Ανά τμήμα · ΝΙΚΗ"}]};
+// Shared by template.html and stations_template.html; inlined at build time before the page script.
+// The page script defines `map` and fills `layers` (index = table row data-i).
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = n => n.toLocaleString("el-GR");
+const pct = x => (x * 100).toLocaleString("el-GR", {maximumFractionDigits: 1}) + "%";
+const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();
+const HOVER = matchMedia("(hover: hover)").matches;
+const TOUCH = matchMedia("(pointer: coarse)").matches;
+const seq = () => ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"].map(css);
+
+function breaks(vals) {  // quantile breaks over the non-zero values
+  const nz = vals.filter(v => v > 0).sort((a, b) => a - b);
+  return nz.length ? [1, 2, 3, 4, 5].map(i => nz[Math.floor(i * nz.length / 6)]) : [];
+}
+function colorFor(x, br) {
+  if (x <= 0) return css("--s0");
+  let i = 0; while (i < br.length && x > br[i]) i++; return seq()[i];
+}
+function seqLegend(br, show) {
+  let h = `<i style="background:${css("--s0")}"></i><span class="lbl">0</span>`;
+  const edges = [0, ...br];
+  seq().forEach((col, i) => {
+    if (i > br.length) return;
+    const lo = edges[i], hi = br[i];
+    h += `<i style="background:${col}"></i><span class="lbl">${hi === undefined ? "> " + show(lo) : show(lo) + "–" + show(hi)}</span>`;
+  });
+  return h;
+}
+
+// Deviation = local share / overall share (1 = average). Fixed, symmetric-in-ratio steps.
+const DEV_BR = [0.5, 0.75, 0.9, 1.1, 1.33, 2];
+const DEV_LBL = ["< −50%", "−50 έως −25%", "−25 έως −10%", "±10%", "+10 έως +33%", "+33 έως +100%", "> +100%"];
+const divSteps = () => ["--d-3", "--d-2", "--d-1", "--d0", "--d1", "--d2", "--d3"].map(css);
+function devColor(r) { let i = 0; while (i < DEV_BR.length && r >= DEV_BR[i]) i++; return divSteps()[i]; }
+const devFmt = r => { const d = Math.round((r - 1) * 100); return (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d) + "%"; };
+const devLegend = () => `<span class="lbl" style="margin-left:0">Σε σχέση με τον μέσο όρο:</span>` +
+  divSteps().map((c, i) => `<i style="background:${c}"></i><span class="lbl">${DEV_LBL[i]}</span>`).join("");
+
+// Links to the other maps of this constituency, and to the index of all maps.
+$("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("") +
+  `<a href="index.html">Όλοι οι χάρτες</a>`;
+
+// The first fit waits for a real container size: a page opened in a hidden tab or pane lays out at 0×0,
+// where fitBounds falls back to zoom 0 (the whole world). onFit runs once, right after that fit.
+function fitOnceSized(m, bounds, opts, onFit) {
+  let done = false;
+  const fit = () => {
+    const el = m.getContainer();
+    if (done || el.clientWidth < 50 || el.clientHeight < 50) return;
+    done = true;
+    // invalidateSize is a no-op until the map has a view, and getSize() caches the 0×0 size.
+    if (m.getZoom() === undefined) m.setView([0, 0], 0, {animate: false});
+    m.invalidateSize({animate: false});
+    m.fitBounds(bounds(), opts);
+    if (onFit) onFit();
+  };
+  new ResizeObserver(fit).observe(m.getContainer());
+  addEventListener("resize", fit);
+  document.addEventListener("visibilitychange", fit);  // hidden pages may skip ResizeObserver callbacks
+  fit();
+}
+
+// Touch: one finger scrolls the page, two fingers move/zoom the map (Leaflet's pinch also pans).
+function touchMap(m) {
+  if (!TOUCH) return;
+  m.dragging.disable();
+  const hint = $("hint");
+  let t;
+  m.getContainer().addEventListener("touchmove", e => {
+    if (e.touches.length !== 1) return hint.classList.remove("on");
+    hint.classList.add("on"); clearTimeout(t); t = setTimeout(() => hint.classList.remove("on"), 1200);
+  }, {passive: true});
+}
+
+// Details panel: tap/click on the map or a table row. Hover devices also get the tooltip.
+const panel = document.body.appendChild(document.createElement("aside"));
+panel.id = "panel"; panel.hidden = true; panel.setAttribute("aria-label", "Λεπτομέρειες");
+panel.setAttribute("aria-live", "polite");
+let layers = [], picked = null;
+function bindFeature(l, html) {
+  l.html = html; l._b = {color: l.options.color, weight: l.options.weight};
+  if (HOVER) l.bindTooltip(html, {sticky: true});
+  l.on({
+    mouseover: () => l !== picked && l.setStyle({color: css("--ink"), weight: 2}),
+    mouseout: () => l !== picked && l.setStyle(l._b),
+    click: () => pick(l),
+  });
+}
+function pick(l, fly) {
+  if (picked) picked.setStyle(picked._b);
+  picked = l;
+  document.querySelectorAll("tr.sel").forEach(r => r.classList.remove("sel"));
+  if (!l) { panel.hidden = true; return; }
+  l.setStyle({color: css("--ink"), weight: 3}); l.bringToFront();
+  document.querySelector(`tr[data-i="${l.i}"]`)?.classList.add("sel");
+  l.closeTooltip?.();
+  panel.innerHTML = `<button type="button" class="close" aria-label="Κλείσιμο">×</button>${l.html}`;
+  panel.hidden = false;
+  panel.firstChild.onclick = () => pick(null);
+  if (fly) {
+    if (l.getLatLng) map.setView(l.getLatLng(), Math.max(map.getZoom(), 15));
+    else map.fitBounds(l.getBounds(), {maxZoom: 14, padding: [24, 24]});
+    $("map").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center"});
+    panel.firstChild.focus({preventScroll: true});
+  }
+}
+function repick() { const i = picked?.i; picked = null; if (i != null && layers[i]) pick(layers[i]); else panel.hidden = true; }
+addEventListener("keydown", e => e.key === "Escape" && picked && pick(null));
+
+// Sortable table: numeric cells carry data-v. Sort state survives re-renders unless reset (tbl._sort = null).
+function sortable(tbl, col, dir) {
+  const st = tbl._sort ||= {col, dir};
+  const ths = [...tbl.tHead.rows[0].cells];
+  const apply = () => {
+    ths.forEach((th, i) => i === st.col ? th.setAttribute("aria-sort", st.dir) : th.removeAttribute("aria-sort"));
+    const key = r => { const td = r.cells[st.col]; return td.dataset.v != null ? +td.dataset.v : td.textContent; };
+    const s = st.dir === "ascending" ? 1 : -1;
+    const rows = [...tbl.tBodies[0].rows].sort((a, b) => {
+      const x = key(a), y = key(b);
+      return s * (typeof x === "number" ? x - y : x.localeCompare(y, "el", {numeric: true}));
+    });
+    tbl.tBodies[0].append(...rows);
+  };
+  ths.forEach((th, i) => {
+    th.innerHTML = `<button type="button">${th.innerHTML}</button>`;
+    th.firstChild.onclick = () => {
+      st.dir = st.col === i ? (st.dir === "ascending" ? "descending" : "ascending") : th.classList.contains("n") ? "descending" : "ascending";
+      st.col = i; apply();
+    };
+  });
+  tbl.onclick = e => { const b = e.target.closest(".rowlink"); if (b) pick(layers[+b.dataset.i], true); };
+  apply();
+}
+
+let metric = "share";
+// Party mode (no published preference votes): one pseudo-candidate "pid:0" per party, share = party votes / valid.
+const PARTY = D.mode === "party";
+const T = PARTY
+  ? {title: "Ψήφοι κομμάτων", num: "Ψήφοι", den: "Έγκυρα", share: "% εγκύρων", total: "ψήφοι στην περιφέρεια",
+     mean: () => "μέσος όρος: % εγκύρων", rank: "Θέση κόμματος", off: "ψήφοι"}
+  : {title: "Σταυροί προτίμησης", num: "Σταυροί", den: "Ψήφοι κόμματος", share: "% κόμματος", total: "σταυροί στην περιφέρεια",
+     mean: party => `μέσος όρος: σταυροί / ψήφοι ${party}`, rank: "Θέση στο κόμμα", off: "σταυροί"};
+const num = (p, c) => (PARTY ? p.pv[c.party] : p.cv[c.k]) || 0;
+const den = (p, c) => (PARTY ? p.valid : p.pv[c.party]) || 0;
+if (PARTY) {
+  ["q", "cand"].forEach(id => $(id).hidden = true);
+  document.querySelector('label[for="q"]').hidden = true;
+  document.querySelector('[data-m="share"]').textContent = "% εγκύρων";
+  document.querySelector('[data-m="votes"]').textContent = "Ψήφοι";
+  $("map").setAttribute("aria-label", "Χάρτης ψήφων κόμματος ανά περιοχή");
+}
+
+$("title").textContent = `${T.title} · ${D.ep_name}`;
+const MONTHS = {may: "Μαΐου", june: "Ιουνίου"};
+const [yr, mo] = D.election.split("/");
+$("sub").textContent = `Βουλευτικές εκλογές ${mo ? MONTHS[mo] + " " : ""}${yr} · ανά εκλογικό διαμέρισμα`;
+
+// Party, then candidate; the search box looks across all parties. Deep link: #party=131&cand=8.
+const partySel = $("party"), sel = $("cand"), q = $("q");
+const partyTotal = pid => D.cands.filter(c => c.party == pid).reduce((s, c) => s + c.total, 0);
+Object.keys(D.parties).sort((a, b) => partyTotal(b) - partyTotal(a))
+  .forEach(pid => partySel.append(new Option(D.parties[pid].name, pid)));
+const topCand = list => list.filter(c => !c.partial).sort((a, b) => b.total - a.total)[0] || list[0];
+function fillCands(keep) {
+  const s = fold(q.value.trim());
+  const list = D.cands.filter(c => s ? fold(c.name).includes(s) : c.party == partySel.value).sort((a, b) => b.total - a.total);
+  const groups = {};
+  list.forEach(c => (groups[c.party] ||= []).push(c));
+  sel.innerHTML = "";
+  Object.keys(groups).sort((a, b) => partyTotal(b) - partyTotal(a)).forEach(pid => {
+    const g = document.createElement("optgroup");
+    g.label = D.parties[pid].name;
+    groups[pid].forEach(c => g.append(new Option(`${c.name} (${fmt(c.total)})${c.partial ? " · μόνο σύνολο" : ""}`, c.k)));
+    sel.append(g);
+  });
+  if (!list.length) sel.append(new Option("Κανένα αποτέλεσμα", ""));
+  sel.value = list.some(c => c.k === keep) ? keep : (topCand(list)?.k ?? "");
+}
+const h = new URLSearchParams(location.hash.slice(1));
+const fromHash = D.cands.find(c => c.k === `${h.get("party")}:${h.get("cand")}`);
+const start = fromHash || (D.parties[h.get("party")] ? topCand(D.cands.filter(c => c.party == h.get("party"))) : topCand(D.cands));
+partySel.value = start.party;
+fillCands(start.k);
+
+const map = L.map("map", {scrollWheelZoom: false});
+const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '&copy; OpenStreetMap · Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)', maxZoom: 18, opacity: 0.6
+}).addTo(map);
+touchMap(map);
+
+const share = (p, c) => den(p, c) ? num(p, c) / den(p, c) : 0;
+function value(p, c, mean) {
+  if (metric === "votes") return num(p, c);
+  return metric === "dev" ? (mean ? share(p, c) / mean : 0) : share(p, c);
+}
+function rankInParty(p, c) {  // party mode: rank among all parties
+  const mine = num(p, c);
+  return 1 + D.cands.filter(o => (PARTY || o.party === c.party) && num(p, o) > mine).length;
+}
+
+let layer;
+function render() {
+  const c = D.cands.find(x => x.k === sel.value);
+  if (!c) return;
+  partySel.value = c.party;
+  history.replaceState(null, "", `#party=${c.party}&cand=${c.k.split(":")[1]}`);
+  const feats = D.geo.features, props = feats.map(f => f.properties);
+  const sumPv = props.reduce((s, p) => s + den(p, c), 0);
+  const mean = sumPv ? c.mapped / sumPv : 0;
+  const br = breaks(props.map(p => value(p, c, mean)));
+  const fill = p => metric === "dev" ? (den(p, c) ? devColor(value(p, c, mean)) : css("--d0")) : colorFor(value(p, c, mean), br);
+  const tip = p => `<div class="tip"><b>${p.name}</b><span class="m">${p.unit}</span><br>` +
+    `${T.num}: <b style="display:inline">${fmt(num(p, c))}</b><br>` +
+    `${T.den}: ${fmt(den(p, c))} · ${pct(share(p, c))}` +
+    (den(p, c) && mean ? ` (${devFmt(share(p, c) / mean)} από τον μέσο όρο)` : "") + `<br>` +
+    `${T.rank}: ${rankInParty(p, c)}η · ${p.tm} τμήμ.` +
+    (p.incl.length > 1 ? `<br><span class="m">Περιλαμβάνει τα Ε.Δ.: ${p.incl.join(", ")}</span>` : "") + `</div>`;
+
+  if (layer) layer.remove();
+  layers = [];
+  layer = L.geoJSON(D.geo, {
+    style: f => ({fillColor: fill(f.properties), fillOpacity: 0.85, color: css("--surface"), weight: 1}),
+    onEachFeature: (f, l) => { l.i = layers.length; layers.push(l); bindFeature(l, tip(f.properties)); }
+  }).addTo(map);
+  if (!render.fitted) { render.fitted = true; fitOnceSized(map, () => layer.getBounds()); }
+
+  const show = v => metric === "share" ? pct(v) : fmt(Math.round(v));
+  $("legend").innerHTML = metric === "dev" ? devLegend() : seqLegend(br, show);
+
+  const party = D.parties[c.party].name;
+  const best = props.slice().sort((a, b) => value(b, c, mean) - value(a, c, mean))[0];
+  $("stats").innerHTML =
+    `<div><b>${fmt(c.total)}</b><span>${T.total}</span></div>` +
+    `<div><b>${pct(c.total ? c.mapped / c.total : 0)}</b><span>από αυτούς στον χάρτη` +
+      (c.partial ? ` · το ΥΠΕΣ δίνει τους περισσότερους μόνο ως σύνολο περιφέρειας` : ``) + `</span></div>` +
+    `<div><b>${pct(mean)}</b><span>${T.mean(party)}</span></div>` +
+    `<div><b>${best ? best.name : "-"}</b><span>ισχυρότερη περιοχή (${metric === "votes" ? T.off : PARTY ? "% εγκύρων" : "% ψήφων " + party})</span></div>`;
+
+  const tbl = $("tbl");
+  tbl.innerHTML =
+    `<thead><tr><th>Περιοχή</th><th>Δημ. ενότητα</th><th class="n">${T.num}</th><th class="n">${T.den}</th>` +
+    `<th class="n">${T.share}</th><th class="n">Απόκλιση</th><th class="n">Θέση</th></tr></thead><tbody>` +
+    props.map((p, i) => {
+      const pv = den(p, c), r = mean ? share(p, c) / mean : 0;
+      return `<tr data-i="${i}"><td><button type="button" class="rowlink" data-i="${i}">${p.name}</button></td><td>${p.unit}</td>` +
+        `<td class="n" data-v="${num(p, c)}">${fmt(num(p, c))}</td><td class="n" data-v="${pv}">${fmt(pv)}</td>` +
+        `<td class="n" data-v="${share(p, c)}">${pct(share(p, c))}</td><td class="n" data-v="${pv ? r : -1}">${pv && mean ? devFmt(r) : "–"}</td>` +
+        `<td class="n" data-v="${rankInParty(p, c)}">${rankInParty(p, c)}</td></tr>`;
+    }).join("") + `</tbody>`;
+  sortable(tbl, metric === "votes" ? 2 : 4, "descending");
+  repick();  // keeps the open panel on the same area, with the new numbers
+}
+
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  metric = b.dataset.m;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("tbl")._sort = null;
+  render();
+});
+partySel.onchange = () => { q.value = ""; fillCands(); render(); };
+q.oninput = () => { fillCands(sel.value); render(); };
+sel.onchange = render;
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+// PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
+// The document title becomes the suggested file name.
+let saved;
+function fitForPrint() {
+  const c = D.cands.find(x => x.k === sel.value);
+  document.title = `${T.num} ${c.name} - ${D.ep_name} - ${D.election.replace("/", "-")}`;
+  saved = saved || [map.getCenter(), map.getZoom()];
+  document.body.classList.add("printing");
+  map.invalidateSize();
+  map.fitBounds(layer.getBounds(), {padding: [8, 8]});
+}
+function exportPdf() {
+  fitForPrint();
+  let done = false;
+  const go = () => { if (!done) { done = true; window.print(); } };
+  tiles.once("load", go);
+  setTimeout(go, 1500);
+}
+addEventListener("beforeprint", fitForPrint);  // also covers Ctrl+P
+addEventListener("afterprint", () => {
+  document.body.classList.remove("printing");
+  document.title = "Χάρτης σταυρών";
+  map.invalidateSize();
+  if (saved) map.setView(...saved);
+  saved = null;
+});
+
+$("note").textContent =
+  `Πηγή: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα, ενωμένα ανά εκλογικό διαμέρισμα και όρια κοινοτήτων ΕΛΣΤΑΤ 2021. ` +
+  `Απόκλιση: % της περιοχής προς τον μέσο όρο του χάρτη. ` +
+  `Εκτός χάρτη: ${T.off} ετεροδημοτών και ειδικών τμημάτων` +
+  (D.unmatched.length ? `, και ${D.unmatched.length} διαμερίσματα χωρίς αντιστοίχιση (${D.unmatched.map(u => u.name).join(", ")}).` : ".");
+render();
+</script>
+</body>
+</html>
