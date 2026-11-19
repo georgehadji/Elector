@@ -1,7 +1,7 @@
 """Nationwide map of NIKH (party 131) share per local community, May 2023 / June 2023 / Euro 2024.
 
 Also the "space" around NIKH (BLOCS): 2019 Ελλ. Λύση + Χρυσή Αυγή + Ένωση Κεντρώων vs
-June 2023 ΝΙΚΗ + Ελλ. Λύση + Σπαρτιάτες, for the 2019 -> June 2023 change view (NIKH did not run in 2019).
+June 2023 ΝΙΚΗ + Ελλ. Λύση + Σπαρτιάτες / Euro 2024 ΝΙΚΗ + Ελλ. Λύση + Φωνή Λογικής, for the 2019 change views (NIKH did not run in 2019).
 
 Reuses the community matching build.py already did: reads the data embedded in the
 per-constituency pages out/{election}_{ep}.html and merges them into one page.
@@ -18,7 +18,9 @@ NIKH = "131"
 ELECTIONS = {"2023-may": "Μάιος 2023", "2023-june": "Ιούνιος 2023", "2024-euro": "Ευρωεκλογές 2024"}
 # key -> (election pages, party ids summed, label)
 BLOCS = {"b2019": ("2019", ["108", "41", "15"], "Χώρος 2019 (Ελλ. Λύση, ΧΑ, Ένωση Κεντρ.)"),
-         "b2023-june": ("2023-june", ["131", "108", "157"], "Χώρος Ιούν. 2023 (ΝΙΚΗ, Ελλ. Λύση, Σπαρτιάτες)")}
+         "b2023-june": ("2023-june", ["131", "108", "157"], "Χώρος Ιούν. 2023 (ΝΙΚΗ, Ελλ. Λύση, Σπαρτιάτες)"),
+         # Σπαρτιάτες did not run in the Euro election; Φωνή Λογικής took that slot
+         "b2024-euro": ("2024-euro", ["131", "108", "158"], "Χώρος Ευρωεκλ. 2024 (ΝΙΚΗ, Ελλ. Λύση, Φωνή Λογικής)")}
 
 geoms, props = {}, {}  # geometry hash -> geometry / {name, unit, ep, per-election values}
 totals = {e: {"valid": 0, "votes": 0, "areas": 0} for e in [*ELECTIONS, *BLOCS]}

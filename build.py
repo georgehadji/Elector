@@ -28,7 +28,7 @@ EP_NAME_FIX = {"Αρτας": "Άρτας", "Ευβοιας": "Εύβοιας", "
 def ep_label(name):
     for a, b in EP_NAME_FIX.items():
         name = name.replace(a, b)
-    return name
+    return re.sub(r"(?<=[Α-Ω\d])['’]", "΄", name)  # ordinal keraia: Α΄ Αθηνών, Β1΄, not an apostrophe
 
 DB = HERE / "data" / "stavroi.sqlite"
 # Stripped in this order; "ΙΕΡΑΣ ΠΟΛΗΣ" is Missolonghi's honorific, absent from ELSTAT's community name.
@@ -530,7 +530,8 @@ def write_index(order, nikh, elected):
 <div class="more">
 <section id="cov"><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
 <section id="tm"><h2>Ανά εκλογικό κατάστημα</h2><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
-<a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a>, <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a>.</p><ul>{nikh_rows}</ul></section>
+<a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a>, <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a>,
+<a href="nikh_2023-2024.html">χάρτης όλης της χώρας: ποσοστά και μεταβολές 2019–2024</a>.</p><ul>{nikh_rows}</ul></section>
 <section id="party"><h2>Χάρτες ανά κόμμα</h2><p>Στατικοί χάρτες στο claude.ai, ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><ul>{artifacts}</ul></section>
 </div>
 <footer>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.
