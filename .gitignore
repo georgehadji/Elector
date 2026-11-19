@@ -4,3 +4,6 @@ data/stavroi.sqlite-journal
 *.log
 __pycache__/
 .ruff_cache/
+
+# Karagiannakidis analyses: kept local only
+analysis/*[Kk][Aa][Rr][Aa][Gg][Ii][Aa][Nn][Nn][Aa][Kk][Ii][Dd][Ii][Ss]*
