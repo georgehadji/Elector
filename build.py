@@ -386,7 +386,6 @@ h1 .x path+path{animation-delay:.3s}
       color:var(--ink);text-decoration:none;font-size:14px;white-space:nowrap}
 .el a:hover{border-color:var(--pen);color:var(--pen);background:var(--wash)}
 .el a.tm{border-style:dashed}
-.empty{border-top:1px solid var(--line);padding:16px 0;color:var(--ink-2)}
 .more{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 36px}
 .more section{border-top:2px solid var(--ink);padding-top:12px}
 .more h2{font:400 24px/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
@@ -402,15 +401,12 @@ footer{margin-top:48px;color:var(--ink-2);font-size:14px;max-width:40em}
 INDEX_JS = """
 const fold = s => s.normalize("NFD").replace(/\\p{M}/gu, "").toUpperCase();
 const f = document.getElementById("f"), n = document.getElementById("n"), items = [...document.querySelectorAll(".eps li")];
-const empty = document.querySelector(".empty");
 f.addEventListener("input", () => {
   // Stem the query so the nominative "Αργολίδα" finds the genitive "Αργολίδος".
   let q = fold(f.value.trim()); if (q.length > 4) q = q.slice(0, -2);
   let shown = 0;
   for (const li of items) { const hit = !q || li.dataset.k.includes(q); li.hidden = !hit; shown += hit; }
-  empty.hidden = shown > 0;
-  empty.textContent = `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του νομού ή της πόλης-έδρας.`;
-  n.textContent = !q || !shown ? "" : (shown === 1 ? "1 περιφέρεια" : `${shown} περιφέρειες`);
+  n.textContent = !q ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του νομού ή της πόλης-έδρας.` : (shown === 1 ? "1 περιφέρεια" : `${shown} περιφέρειες`);
 });
 """
 
@@ -459,7 +455,6 @@ def write_index(order, nikh, elected):
 <p id="n" aria-live="polite"></p>
 </header>
 <ul class="eps">{"".join(rows)}</ul>
-<p class="empty" hidden></p>
 <div class="more">
 <section><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
 <section><h2>ΝΙΚΗ ανά εκλογικό κατάστημα</h2><p>Οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.

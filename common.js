@@ -77,7 +77,7 @@ function touchMap(m) {
 const panel = document.body.appendChild(document.createElement("aside"));
 panel.id = "panel"; panel.hidden = true; panel.setAttribute("aria-label", "Λεπτομέρειες");
 panel.setAttribute("aria-live", "polite");
-let layers = [], picked = null;
+let layers = [], picked = null, opener = null;
 function bindFeature(l, html) {
   l.html = html; l._b = {color: l.options.color, weight: l.options.weight};
   if (HOVER) l.bindTooltip(html, {sticky: true});
@@ -91,7 +91,7 @@ function pick(l, fly) {
   if (picked) picked.setStyle(picked._b);
   picked = l;
   document.querySelectorAll("tr.sel").forEach(r => r.classList.remove("sel"));
-  if (!l) { panel.hidden = true; return; }
+  if (!l) { const back = panel.contains(document.activeElement); panel.hidden = true; if (back) opener?.focus(); return; }
   l.setStyle({color: css("--ink"), weight: 3}); l.bringToFront();
   document.querySelector(`tr[data-i="${l.i}"]`)?.classList.add("sel");
   l.closeTooltip?.();
@@ -99,6 +99,7 @@ function pick(l, fly) {
   panel.hidden = false;
   panel.firstChild.onclick = () => pick(null);
   if (fly) {
+    opener = document.activeElement;
     if (l.getLatLng) map.setView(l.getLatLng(), Math.max(map.getZoom(), 15));
     else map.fitBounds(l.getBounds(), {maxZoom: 14, padding: [24, 24]});
     $("map").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center"});
