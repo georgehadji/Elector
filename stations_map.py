@@ -25,7 +25,7 @@ from pathlib import Path
 import xlrd
 
 sys.path.insert(0, str(Path(__file__).parent))  # run with python -I, which drops the script dir
-from build import DB, HERE, match_units, norm, register, render_page, stems
+from build import DB, HERE, ep_label, match_units, norm, register, render_page, stems
 
 CACHE = HERE / "data" / "venues_geo.json"
 UA = "stavroi-map/0.1 (polling venue geocoding; low volume)"
@@ -168,6 +168,8 @@ def main(election, ep, party, cand, xls, dhm=None):
     """cand 0 = party mode (party votes over valid votes); dhm limits the map to one municipality."""
     db = sqlite3.connect(DB, timeout=60)
     ep_name = db.execute("SELECT name FROM ep WHERE election=? AND ep_id=?", (election, ep)).fetchone()[0]
+    xls_name = ep_name  # the venue spreadsheet keeps the ministry spelling
+    ep_name = ep_label(ep_name)
     pname = db.execute("SELECT name FROM party WHERE election=? AND party_id=?", (election, party)).fetchone()[0]
     scope = f"Δήμος {dhm} · {ep_name}" if dhm else ep_name
     if cand:
@@ -182,7 +184,7 @@ def main(election, ep, party, cand, xls, dhm=None):
 
     sheet = xlrd.open_workbook(xls).sheet_by_index(0)
     venue_of = {int(r[2]): r[10].strip() for r in (sheet.row_values(i) for i in range(1, sheet.nrows))
-                if norm(r[1]) == norm(XLS_EP.get(ep_name, ep_name))}
+                if norm(r[1]) == norm(XLS_EP.get(xls_name, xls_name))}
 
     # Each row: tm_id, den, ekd, registered, valid, denominator, numerator, rank, top candidate.
     where = "s.election=? AND s.ep_id=? AND s.ep_geo=? AND s.kind='Κ' AND (? IS NULL OR s.dhm_descr=?)"
