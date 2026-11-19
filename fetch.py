@@ -107,6 +107,8 @@ def main(election, ep):
     done = {r[0] for r in db.execute("SELECT tm_id FROM station WHERE election=?", (election,))}
     todo = [ep * 10000 + s for s in range(1, count + 1) if ep * 10000 + s not in done]
     print(f"{election} EP {ep}: {count} stations, {len(todo)} to fetch", flush=True)
+    # Euro 2024 station files omit den_Descr/dhm_Descr; the names are in statics.js.
+    den, dhm = ({r[0]: r[1] for r in statics(base, k, t)} for t in ("den", "dhm"))
 
     with ThreadPoolExecutor(WORKERS) as pool:
         for n, res in enumerate(pool.map(lambda t: fetch_station(base, ep, t, k), todo), 1):
@@ -117,7 +119,8 @@ def main(election, ep):
             db.execute("INSERT OR REPLACE INTO station VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
                 election, tm, meta["EP_ID"], meta["EP_ID_GEO"], meta["TM_KIND"],
                 meta["EKD_ID"], meta.get("ekd_Descr") or meta.get("EKD_Descr"),
-                meta["DEN_ID"], meta.get("den_Descr"), meta["DHM_ID"], meta.get("dhm_Descr"),
+                meta["DEN_ID"], meta.get("den_Descr") or den[meta["DEN_ID"]],
+                meta["DHM_ID"], meta.get("dhm_Descr") or dhm[meta["DHM_ID"]],
                 meta["Descr"], meta.get("CATAL_V"), (party or {}).get("Egkyra")))
             for p in (party or {}).get("party", []):
                 db.execute("INSERT OR REPLACE INTO party_votes VALUES (?,?,?,?)",
