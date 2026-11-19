@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Χάρτης ανά τμήμα</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+/* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
+:root {
+  color-scheme: light;
+  --surface: #fcfcfb; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --shadow: rgba(0,0,0,.18);
+  --s0: #eef4fc; --s1: #cde2fb; --s2: #9ec5f4; --s3: #6da7ec; --s4: #3987e5; --s5: #256abf; --s6: #104281;
+  /* diverging: below the average (red), near it (gray), above it (blue) */
+  --d-3: #a8302e; --d-2: #e0736b; --d-1: #f6c4c0; --d0: #e4e3df; --d1: #9ec5f4; --d2: #3987e5; --d3: #104281;
+}
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; --surface: #1a1a19; --ink: #ecebe7; --ink-2: #a8a7a2; --line: #383835; --chip: #262624;
+          --shadow: rgba(0,0,0,.5); --d0: #5a5955; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
+main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 21px; line-height: 1.25; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+a { color: var(--s4); }
+.sub { color: var(--ink-2); margin: 0 0 8px; }
+.views { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; font-size: 14px; }
+.views:empty { display: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.controls label { color: var(--ink-2); font-size: 13px; }
+select, button, input { font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+select { min-width: 0; max-width: 100%; }
+input[type="search"] { width: 14em; max-width: 100%; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.pdf { margin-left: auto; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 24px; margin: 4px 0 12px; }
+.stats b { display: block; font-size: 20px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--ink-2); font-size: 12px; }
+.mapwrap { position: relative; }
+#map { height: 62vh; min-height: 360px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); }
+.hint { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; z-index: 1000;
+        background: rgba(0,0,0,.5); color: #fff; font-weight: 600; border-radius: 8px; pointer-events: none;
+        opacity: 0; transition: opacity .2s; }
+.hint.on { opacity: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 8px 0 20px; font-size: 12px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; }
+.legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+th button { all: unset; cursor: pointer; }
+th button:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+th[aria-sort="ascending"] button::after { content: " ▲"; font-size: 9px; }
+th[aria-sort="descending"] button::after { content: " ▼"; font-size: 9px; }
+td.n, th.n { text-align: right; }
+tbody tr:hover { background: var(--chip); }
+tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
+.rowlink { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
+.rowlink:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.m { color: var(--ink-2); }
+.tablewrap { max-height: 520px; overflow: auto; }
+.note { color: var(--ink-2); font-size: 12px; margin-top: 16px; }
+/* Tooltip (mouse hover) and details panel (tap, click, table row) */
+.leaflet-container .leaflet-tooltip { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: 0 2px 8px var(--shadow); }
+.leaflet-tooltip-left::before { border-left-color: var(--surface); }
+.leaflet-tooltip-right::before { border-right-color: var(--surface); }
+.tip { font-variant-numeric: tabular-nums; }
+.tip b { display: block; }
+.tip table { width: auto; }
+.tip table td { padding: 1px 6px 1px 0; border: 0; }
+#panel { position: fixed; z-index: 2000; left: 0; right: 0; bottom: 0; max-height: 55vh; overflow: auto;
+         background: var(--surface); color: var(--ink); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px var(--shadow);
+         padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 12px 12px 0 0; }
+#panel[hidden] { display: none; }
+#panel .close { float: right; margin: -6px -8px 4px 8px; min-width: 44px; min-height: 44px; font-size: 22px; line-height: 1; }
+#panel .tip table td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--line); }
+@media (min-width: 720px) {
+  #panel { left: auto; right: 16px; bottom: 16px; width: 420px; max-height: 70vh; border: 1px solid var(--line); border-radius: 10px; }
+}
+/* Touch: 44px targets */
+@media (pointer: coarse) {
+  select, button, input { min-height: 44px; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+  .rowlink { display: inline-block; min-height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
+/* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
+@page { size: A4; margin: 12mm; }
+@media print {
+  :root { color-scheme: light; --surface: #fff; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --d0: #e4e3df; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  main { max-width: none; padding: 0; }
+  .seg, .pdf, .views, .leaflet-control-zoom, #panel, .hint, input, .controls label { display: none !important; }
+  select { border: 0; padding: 0; appearance: none; background: none; font-weight: 600; font-size: 16px; min-height: 0; }
+  #map { break-inside: avoid; }
+  .tablewrap { max-height: none; overflow: visible; }
+  th { position: static; }
+  tr { break-inside: avoid; }
+  tr.sel { box-shadow: none; background: none; }
+  .rowlink { text-decoration: none; }
+  th[aria-sort] button::after { content: none; }
+}
+
+  #map { height: 66vh; min-height: 380px; }
+  body.printing #map { width: 186mm; height: 130mm; min-height: 0; }
+  @media print {
+    #map { width: 186mm; height: 130mm; min-height: 0; }
+    #detail { display: block; break-before: page; }
+    #tbl { font-size: 9pt; line-height: 1.3; }
+    #tbl th, #tbl td { padding: 3px 6px; }
+  }
+  /* Per-station detail: print/PDF only (1,000+ rows; the screen has the panel and the CSV). */
+  @media screen { #detail { display: none; } }
+  #detail table { font-size: 8.5pt; line-height: 1.25; }
+  #detail th, #detail td { padding: 2px 4px; }
+  #detail thead { display: table-header-group; }  /* repeat header on every page */
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <p class="sub" id="sub"></p>
+  <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Χρώμα">
+      <button type="button" data-m="share" aria-pressed="true">% ψήφων κόμματος</button>
+      <button type="button" data-m="dev" aria-pressed="false">Απόκλιση από μέσο όρο</button>
+      <button type="button" data-m="votes" aria-pressed="false">Σταυροί</button>
+    </div>
+    <button class="pdf" type="button" onclick="exportPdf()">Εξαγωγή PDF</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="mapwrap">
+    <div id="map" role="region" aria-label="Χάρτης ανά εκλογικό κατάστημα"></div>
+    <div class="hint" id="hint" aria-hidden="true">Χρησιμοποιήστε δύο δάχτυλα για να μετακινήσετε τον χάρτη</div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <h2>Ανά εκλογικό κατάστημα</h2>
+  <div class="tablewrap"><table id="tbl"></table></div>
+  <p class="note" id="note"></p>
+  <section id="detail">
+    <h2>Αναλυτικά ανά εκλογικό τμήμα</h2>
+    <table id="dtbl"></table>
+  </section>
+</main>
+<script>
+const D = {"ep_name": "Πιερίας", "party": "ΝΙΚΗ", "election": "2023/june", "mode": "party", "labels": {"title": "ΝΙΚΗ", "num": "Ψήφοι ΝΙΚΗ", "den": "Έγκυρα", "share": "% εγκύρων", "of": "των εγκύρων", "rank": "Θέση κόμματος", "ord": "ο", "scope": "Πιερίας"}, "venues": [{"venue": "1ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΛΕΠΤΟΚΑΡΥΑΣ    ΛΕΠΤΟΚΑΡΥΑ", "st": [[1, "Ε.Δ. ΛΕΠΤΟΚΑΡΥΑΣ", 266, 17, 6], [2, "Ε.Δ. ΛΕΠΤΟΚΑΡΥΑΣ", 239, 13, 6], [3, "Ε.Δ. ΛΕΠΤΟΚΑΡΥΑΣ", 224, 12, 6], [4, "Ε.Δ. ΛΕΠΤΟΚΑΡΥΑΣ", 234, 9, 7]], "den": "Ανατολικού Ολύμπου", "lat": 40.05869, "lon": 22.56175, "how": "settlement"}, {"venue": "2ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΛΕΠΤΟΚΑΡΥΑΣ    ΛΕΠΤΟΚΑΡΥΑ", "st": [[5, "Ε.Δ. ΛΕΠΤΟΚΑΡΥΑΣ", 238, 14, 5], [6, "Ε.Δ. ΛΕΠΤΟΚΑΡΥΑΣ", 241, 19, 6], [7, "Ε.Δ. ΛΕΠΤΟΚΑΡΥΑΣ", 286, 15, 6], [8, "Ε.Δ. ΛΕΠΤΟΚΑΡΥΑΣ", 257, 20, 5]], "den": "Ανατολικού Ολύμπου", "lat": 40.05869, "lon": 22.56175, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΛΑΤΑΜΩΝΑ    ΠΛΑΤΑΜΩΝΑΣ", "st": [[12, "Ε.Δ. ΠΛΑΤΑΜΩΝΑ", 328, 18, 7], [13, "Ε.Δ. ΠΛΑΤΑΜΩΝΑ", 273, 11, 8], [14, "Ε.Δ. ΠΛΑΤΑΜΩΝΑ", 262, 19, 6]], "den": "Ανατολικού Ολύμπου", "lat": 39.9888258, "lon": 22.6276763, "how": "name-border"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΟΡΩΝ    ΠΟΡΟΙ", "st": [[15, "Ε.Δ. ΠΟΡΩΝ", 212, 13, 5], [16, "Ε.Δ. ΠΟΡΩΝ", 196, 9, 6], [17, "Ε.Δ. ΠΟΡΩΝ", 215, 17, 5]], "den": "Ανατολικού Ολύμπου", "lat": 39.96569, "lon": 22.58639, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΣΚΟΤΙΝΑΣ    ΣΚΟΤΙΝΑ", "st": [[18, "Ε.Δ. ΣΚΟΤΙΝΑΣ", 213, 19, 5], [19, "Ε.Δ. ΣΚΟΤΙΝΑΣ", 235, 28, 3], [20, "Ε.Δ. ΣΚΟΤΙΝΑΣ", 275, 16, 6]], "den": "Ανατολικού Ολύμπου", "lat": 40.01339, "lon": 22.5517, "how": "settlement"}, {"venue": "ΓΥΜΝΑΣΙΟ ΚΟΝΤΑΡΙΩΤΙΣΣΑΣ    ΚΟΝΤΑΡΙΩΤΙΣΣΑ", "st": [[21, "Ε.Δ. ΚΟΝΤΑΡΙΩΤΙΣΣΑΣ", 251, 19, 6], [22, "Ε.Δ. ΚΟΝΤΑΡΙΩΤΙΣΣΑΣ", 250, 19, 4], [23, "Ε.Δ. ΚΟΝΤΑΡΙΩΤΙΣΣΑΣ", 262, 16, 4], [24, "Ε.Δ. ΚΟΝΤΑΡΙΩΤΙΣΣΑΣ", 274, 18, 4]], "den": "Δίου", "lat": 40.2279862, "lon": 22.4671857, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΒΡΟΝΤΟΥΣ    ΒΡΟΝΤΟΥ", "st": [[28, "Ε.Δ. ΒΡΟΝΤΟΥΣ", 301, 34, 4], [29, "Ε.Δ. ΒΡΟΝΤΟΥΣ", 275, 36, 2], [30, "Ε.Δ. ΒΡΟΝΤΟΥΣ", 278, 25, 3], [31, "Ε.Δ. ΒΡΟΝΤΟΥΣ", 272, 29, 4], [32, "Ε.Δ. ΒΡΟΝΤΟΥΣ", 249, 25, 4]], "den": "Δίου", "lat": 40.1943114, "lon": 22.4361647, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΔΙΟΥ    ΔΙΟΝ", "st": [[33, "Ε.Δ. ΔΙΟΥ", 321, 64, 3], [34, "Ε.Δ. ΔΙΟΥ", 322, 38, 3], [35, "Ε.Δ. ΔΙΟΥ", 316, 35, 3]], "den": "Δίου", "lat": 40.170546, "lon": 22.4847482, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΡΙΤΣΑΣ    ΚΑΡΙΤΣΑ", "st": [[36, "Ε.Δ. ΚΑΡΙΤΣΑΣ", 351, 22, 3], [37, "Ε.Δ. ΚΑΡΙΤΣΑΣ", 344, 25, 4], [38, "Ε.Δ. ΚΑΡΙΤΣΑΣ", 315, 24, 3], [39, "Ε.Δ. ΚΑΡΙΤΣΑΣ", 361, 24, 4]], "den": "Δίου", "lat": 40.18515, "lon": 22.48085, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΝΕΑΣ ΕΦΕΣΟΥ    ΝΕΑ ΕΦΕΣΟΣ", "st": [[40, "Ε.Δ. ΝΕΑΣ ΕΦΕΣΟΥ", 237, 23, 5], [41, "Ε.Δ. ΝΕΑΣ ΕΦΕΣΟΥ", 270, 16, 6], [42, "Ε.Δ. ΝΕΑΣ ΕΦΕΣΟΥ", 238, 28, 4], [43, "Ε.Δ. ΝΕΑΣ ΕΦΕΣΟΥ", 217, 19, 4]], "den": "Δίου", "lat": 40.2303557, "lon": 22.4971689, "how": "name"}, {"venue": "1ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΛΙΤΟΧΩΡΟΥ  ΝΙΚΟΛΑΟΥ ΕΠΙΣΚΟΠΟΥ ΚΙΤΡΟΥΣ 28  ΛΙΤΟΧΩΡΟ", "st": [[44, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 280, 17, 6], [45, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 295, 8, 8], [46, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 303, 17, 7]], "den": "Λιτοχώρου", "lat": 40.1028049, "lon": 22.5005506, "how": "street"}, {"venue": "2ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΛΙΤΟΧΩΡΟΥ  ΑΓΙΟΥ ΓΕΩΡΓΙΟΥ 64  ΛΙΤΟΧΩΡΟ", "st": [[47, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 289, 14, 5], [48, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 271, 14, 7], [49, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 303, 21, 6], [50, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 314, 15, 7]], "den": "Λιτοχώρου", "lat": 40.1041865, "lon": 22.5084327, "how": "street"}, {"venue": "ΓΥΜΝΑΣΙΟ ΛΙΤΟΧΩΡΟΥ  ΔΙΟΥ 29  ΛΙΤΟΧΩΡΟ", "st": [[51, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 279, 10, 5], [52, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 298, 22, 6], [53, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 304, 14, 6], [54, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 258, 14, 7], [55, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 304, 16, 7], [56, "Ε.Δ. ΛΙΤΟΧΩΡΟΥ", 322, 18, 7]], "den": "Λιτοχώρου", "lat": 40.1004592, "lon": 22.5050968, "how": "street"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΑΡΩΝΑ    ΑΡΩΝΑΣ", "st": [[57, "Ε.Δ. ΑΡΩΝΑ", 246, 20, 5]], "den": "Ελαφίνας", "lat": 40.28865, "lon": 22.429, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΛΑΦΟΥ    ΕΛΑΦΟΣ", "st": [[58, "Ε.Δ. ΕΛΑΦΟΥ", 391, 27, 5]], "den": "Ελαφίνας", "lat": 40.36967, "lon": 22.39483, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΞΟΧΗΣ    ΕΞΟΧΗ", "st": [[59, "Ε.Δ. ΕΞΟΧΗΣ", 168, 18, 5], [60, "Ε.Δ. ΕΞΟΧΗΣ", 146, 16, 5], [61, "Ε.Δ. ΕΞΟΧΗΣ", 167, 13, 5]], "den": "Ελαφίνας", "lat": 40.34676, "lon": 22.42563, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΤΟΞΟΥ    ΤΟΞΟ", "st": [[62, "(ΤΟΞΟΥ)", 128, 11, 4]], "den": "Ελαφίνας", "lat": 40.33861, "lon": 22.39485, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΑΛΩΝΙΩΝ    ΚΑΤΑΛΩΝΙΑ", "st": [[63, "Ε.Δ. ΚΑΤΑΛΩΝΙΩΝ", 373, 40, 4]], "den": "Ελαφίνας", "lat": 40.34802, "lon": 22.36412, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΛΑΓΟΡΑΧΗΣ    ΛΑΓΟΡΑΧΗ", "st": [[64, "Ε.Δ. ΛΑΓΟΡΑΧΗΣ", 220, 27, 2], [65, "Ε.Δ. ΛΑΓΟΡΑΧΗΣ", 224, 25, 3]], "den": "Ελαφίνας", "lat": 40.29253, "lon": 22.34861, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΜΕΛΙΑΔΙΟΥ    ΜΕΛΙΑΔΙ", "st": [[66, "(ΜΕΛΙΑΔΙΟΥ)", 117, 21, 3]], "den": "Ελαφίνας", "lat": 40.31955, "lon": 22.3497, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΜΟΣΧΟΠΟΤΑΜΟΥ    ΜΟΣΧΟΠΟΤΑΜΟΣ", "st": [[67, "Ε.Δ. ΜΟΣΧΟΠΟΤΑΜΟΥ", 270, 30, 3], [68, "Ε.Δ. ΜΟΣΧΟΠΟΤΑΜΟΥ", 270, 33, 3]], "den": "Ελαφίνας", "lat": 40.32369, "lon": 22.3074, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΑΛΙΟΥ ΚΕΡΑΜΙΔΙΟΥ    ΠΑΛΙΟ ΚΕΡΑΜΙΔΙ", "st": [[69, "Ε.Δ. ΠΑΛΑΙΟΥ ΚΕΡΑΜΙΔΙΟΥ", 238, 33, 2], [70, "Ε.Δ. ΠΑΛΑΙΟΥ ΚΕΡΑΜΙΔΙΟΥ", 246, 16, 5]], "den": "Ελαφίνας", "lat": 40.31109, "lon": 22.46401, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΤΡΙΛΟΦΟΥ    ΤΡΙΛΟΦΟΣ", "st": [[71, "Ε.Δ. ΤΡΙΛΟΦΟΥ", 230, 13, 4], [72, "Ε.Δ. ΤΡΙΛΟΦΟΥ", 204, 20, 3]], "den": "Ελαφίνας", "lat": 40.3708343, "lon": 22.4621941, "how": "name"}, {"venue": "13ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΕΡΙΝΗΣ  ΠΛΑΤΩΝΟΣ 39  ΚΑΤΕΡΙΝΗ", "st": [[73, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 232, 32, 2], [74, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 255, 22, 4], [75, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 292, 45, 2], [76, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 275, 35, 2], [77, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 273, 38, 3], [78, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 240, 38, 2], [79, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 291, 28, 4], [80, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 234, 23, 3], [81, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 246, 31, 3], [82, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 286, 29, 4], [83, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 266, 28, 4]], "den": "Κατερίνης", "lat": 40.2757312, "lon": 22.4913863, "how": "street"}, {"venue": "16ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΕΡΙΝΗΣ  ΑΓΙΟΥ ΧΡΙΣΤΟΦΟΡΟΥ 1  ΚΑΤΕΡΙΝΗ", "st": [[84, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 269, 32, 3], [85, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 267, 25, 4], [86, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 280, 38, 3], [87, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 260, 24, 4], [88, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 230, 24, 4], [89, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 264, 38, 2], [90, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 291, 34, 3]], "den": "Κατερίνης", "lat": 40.2772013, "lon": 22.494812, "how": "street"}, {"venue": "3ο ΓΥΜΝΑΣΙΟ-ΛΥΚΕΙΟ ΚΑΤΕΡΙΝΗΣ  ΜΙΛΗΤΟΥ  1  ΚΑΤΕΡΙΝΗ", "st": [[91, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 284, 32, 3], [92, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 280, 32, 3], [93, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 290, 31, 4], [94, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 306, 44, 2], [95, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 276, 41, 2], [96, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 233, 26, 4], [97, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 238, 27, 3], [98, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 270, 23, 4], [99, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 261, 31, 3], [100, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 245, 24, 4], [101, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 268, 11, 6], [102, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 273, 24, 5], [103, "1 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 273, 31, 4]], "den": "Κατερίνης", "lat": 40.2847125, "lon": 22.5011704, "how": "street"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΝΕΟΥ ΚΕΡΑΜΙΔΙΟΥ  ΝΕΟ ΚΕΡΑΜΙΔΙ  ΝΕΟ ΚΕΡΑΜΙΔΙ", "st": [[104, "(ΝΕΟ ΚΕΡΑΜΙΔΙ)", 239, 19, 5]], "den": "Κατερίνης", "lat": 40.2859117, "lon": 22.4649108, "how": "name"}, {"venue": "8ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΕΡΙΝΗΣ  ΣΤΡΑΤΗΓΟΥ ΡΟΚΑ 13  ΚΑΤΕΡΙΝΗ", "st": [[105, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 223, 31, 3], [106, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 250, 27, 4], [107, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 236, 37, 2], [108, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 228, 24, 4], [109, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 239, 26, 4]], "den": "Κατερίνης", "lat": 40.2708322, "lon": 22.5284435, "how": "street"}, {"venue": "7ο ΓΥΜΝΑΣΙΟ ΚΑΤΕΡΙΝΗΣ  19ΗΣ ΜΑΪΟΥ 1  ΚΑΤΕΡΙΝΗ", "st": [[110, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 238, 20, 5], [111, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 240, 27, 5], [112, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 245, 17, 5], [113, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 241, 26, 4], [114, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 220, 23, 5], [115, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 217, 25, 4], [116, "2 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 231, 21, 4]], "den": "Κατερίνης", "lat": 40.2693023, "lon": 22.5234128, "how": "street"}, {"venue": "6ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΕΡΙΝΗΣ  28ΗΣ ΟΚΤΩΒΡΙΟΥ 15  ΚΑΤΕΡΙΝΗ", "st": [[118, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 253, 22, 5], [119, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 261, 30, 3], [120, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 274, 25, 4], [121, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 277, 24, 5], [122, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 297, 24, 4], [123, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 288, 24, 4], [124, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 265, 26, 4], [125, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 215, 19, 4], [126, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 265, 23, 4]], "den": "Κατερίνης", "lat": 40.2691765, "lon": 22.5170829, "how": "street"}, {"venue": "1ο ΕΝΙΑΙΟ ΛΥΚΕΙΟ ΚΑΤΕΡΙΝΗ  ΚΛΕΙΣΟΥΡΑΣ  48  ΚΑΤΕΡΙΝΗ", "st": [[127, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 252, 23, 4], [128, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 264, 22, 4], [129, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 252, 18, 4], [130, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 275, 26, 4], [131, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 232, 21, 4], [132, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 280, 20, 6], [133, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 245, 20, 4]], "den": "Κατερίνης", "lat": 40.2674451, "lon": 22.5105613, "how": "street"}, {"venue": "1ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΕΡΙΝΗΣ  ΙΠΠΟΚΡΑΤΟΥΣ 3  ΚΑΤΕΡΙΝΗ", "st": [[134, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 275, 37, 2], [135, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 255, 25, 4], [136, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 254, 33, 3], [137, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 246, 26, 3], [138, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 277, 46, 2], [139, "3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 255, 18, 5]], "den": "Κατερίνης", "lat": 40.2706736, "lon": 22.4680679, "how": "street"}, {"venue": "7ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΕΡΙΝΗΣ  ΜΗΤΡΟΠΟΛΙΤΟΥ ΚΥΡΙΛΛΟΥ 8  ΚΑΤΕΡΙΝΗ", "st": [[140, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 277, 35, 3], [141, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 310, 46, 3], [142, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 285, 17, 5], [143, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 279, 37, 3], [144, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 291, 38, 3]], "den": "Κατερίνης", "lat": 40.2711231, "lon": 22.4917844, "how": "street"}, {"venue": "4ο ΓΥΜΝΑΣΙΟ-ΛΥΚΕΙΟ ΚΑΤΕΡΙΝΗΣ  ΜΗΤΡΟΠΟΛΕΩΣ  2  ΚΑΤΕΡΙΝΗ", "st": [[145, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 306, 42, 2], [146, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 275, 35, 3], [147, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 276, 34, 4], [148, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 290, 36, 4], [149, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 290, 54, 2], [150, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 276, 26, 4], [151, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 288, 31, 2], [152, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 286, 41, 3], [153, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 266, 21, 4], [154, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 302, 58, 2], [155, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 282, 32, 3], [156, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 301, 47, 3], [157, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 288, 32, 3]], "den": "Κατερίνης", "lat": 40.2698963, "lon": 22.5001545, "how": "street"}, {"venue": "3ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΕΡΙΝΗΣ  ΜΑΡΑΘΩΝΟΣ 13  ΚΑΤΕΡΙΝΗ", "st": [[158, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 294, 30, 4], [159, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 299, 35, 3], [160, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 252, 29, 4], [161, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 284, 37, 4], [162, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 267, 30, 4], [163, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 295, 28, 4], [164, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 282, 35, 3], [165, "4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ", 268, 23, 4]], "den": "Κατερίνης", "lat": 40.2662313, "lon": 22.5060907, "how": "street"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΑΝΩ ΑΓ. ΙΩΑΝΝΗ    ΑΝΩ ΑΓΙΟΣ ΙΩΑΝΝΗΣ", "st": [[166, "Ε.Δ. ΑΝΩ ΑΓΙΟΥ ΙΩΑΝΝΗ", 248, 24, 3], [167, "Ε.Δ. ΑΝΩ ΑΓΙΟΥ ΙΩΑΝΝΗ", 210, 30, 2]], "den": "Κατερίνης", "lat": 40.31809, "lon": 22.49108, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΓΑΝΟΧΩΡΑΣ    ΓΑΝΟΧΩΡΑ", "st": [[168, "Ε.Δ. ΓΑΝΟΧΩΡΑΣ", 211, 21, 4], [169, "Ε.Δ. ΓΑΝΟΧΩΡΑΣ", 204, 24, 4]], "den": "Κατερίνης", "lat": 40.3083978, "lon": 22.4973267, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΝΕΟΚΑΙΣΑΡΕΙΑΣ    ΝΕΟΚΑΙΣΑΡΕΙΑ", "st": [[170, "Ε.Δ. ΝΕΟΚΑΙΣΑΡΕΙΑΣ", 136, 8, 5], [171, "Ε.Δ. ΝΕΟΚΑΙΣΑΡΕΙΑΣ", 170, 46, 2]], "den": "Κατερίνης", "lat": 40.2639, "lon": 22.42297, "how": "settlement"}, {"venue": "ΝΗΠΙΑΓΩΓΕΙΟ ΝΕΟΚΑΙΣΑΡΕΙΑΣ    ΝΕΟΚΑΙΣΑΡΕΙΑ", "st": [[172, "Ε.Δ. ΝΕΟΚΑΙΣΑΡΕΙΑΣ", 149, 11, 4]], "den": "Κατερίνης", "lat": 40.2639, "lon": 22.42297, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΣΒΟΡΩΝΟΥ    ΣΒΟΡΩΝΟΣ", "st": [[173, "Ε.Δ. ΣΒΟΡΩΝΟΥ", 304, 32, 4], [174, "Ε.Δ. ΣΒΟΡΩΝΟΥ", 297, 36, 3], [175, "Ε.Δ. ΣΒΟΡΩΝΟΥ", 321, 38, 3], [176, "Ε.Δ. ΣΒΟΡΩΝΟΥ", 312, 29, 4]], "den": "Κατερίνης", "lat": 40.2697354, "lon": 22.4649039, "how": "name"}, {"venue": "ΓΥΜΝΑΣΙΟ - ΛΥΚΕΙΟ ΚΟΡΙΝΟΥ    ΚΟΡΙΝΟΣ", "st": [[177, "Ε.Δ. ΚΟΡΙΝΟΥ", 221, 19, 5], [178, "Ε.Δ. ΚΟΡΙΝΟΥ", 211, 25, 2], [179, "Ε.Δ. ΚΟΡΙΝΟΥ", 230, 22, 4], [180, "Ε.Δ. ΚΟΡΙΝΟΥ", 228, 32, 2], [181, "Ε.Δ. ΚΟΡΙΝΟΥ", 221, 22, 3], [182, "Ε.Δ. ΚΟΡΙΝΟΥ", 264, 25, 4], [183, "Ε.Δ. ΚΟΡΙΝΟΥ", 250, 23, 4], [184, "Ε.Δ. ΚΟΡΙΝΟΥ", 247, 23, 3], [185, "Ε.Δ. ΚΟΡΙΝΟΥ", 227, 19, 4], [186, "Ε.Δ. ΚΟΡΙΝΟΥ", 232, 12, 5], [187, "Ε.Δ. ΚΟΡΙΝΟΥ", 217, 29, 3]], "den": "Κορινού", "lat": 40.3187144, "lon": 22.5939714, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΩ ΑΓ.ΙΩΑΝΝΗ    ΚΑΤΩ ΑΓΙΟΣ ΙΩΑΝΝΗΣ", "st": [[188, "Ε.Δ. ΚΑΤΩ ΑΓΙΟΥ ΙΩΑΝΝΗ", 241, 20, 6], [189, "Ε.Δ. ΚΑΤΩ ΑΓΙΟΥ ΙΩΑΝΝΗ", 215, 17, 4]], "den": "Κορινού", "lat": 40.32233, "lon": 22.52773, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΟΥΚΟΥ    ΚΟΥΚΟΣ", "st": [[190, "Ε.Δ. ΚΟΥΚΟΥ", 105, 20, 2], [191, "Ε.Δ. ΚΟΥΚΟΥ", 127, 14, 3]], "den": "Κορινού", "lat": 40.38172, "lon": 22.51254, "how": "settlement"}, {"venue": "ΚΤΙΡΙΟ ΠΟΛΙΤΙΣΤΙΚΟΥ ΣΥΛΛΟΓΟΥ \"ΑΛΕΞΑΝΔΡΟΣ ΥΨΗΛΑΝΤΗΣ\"    ΝΕΑ ΤΡΑΠΕΖΟΥΝΤΑ", "st": [[192, "Ε.Δ. ΝΕΑΣ ΤΡΑΠΕΖΟΥΝΤΑΣ", 366, 49, 2]], "den": "Κορινού", "lat": 40.332723, "lon": 22.5824087, "how": "street-surname"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΣΕΒΑΣΤΗΣ    ΣΕΒΑΣΤΗ", "st": [[193, "Ε.Δ. ΣΕΒΑΣΤΗΣ", 216, 37, 2], [194, "Ε.Δ. ΣΕΒΑΣΤΗΣ", 149, 30, 2]], "den": "Κορινού", "lat": 40.35639, "lon": 22.5432, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΛΛΙΘΕΑΣ    ΚΑΛΛΙΘΕΑ", "st": [[195, "Ε.Δ. ΚΑΛΛΙΘΕΑΣ", 226, 21, 3], [196, "Ε.Δ. ΚΑΛΛΙΘΕΑΣ", 251, 24, 4], [197, "Ε.Δ. ΚΑΛΛΙΘΕΑΣ", 214, 15, 6], [198, "Ε.Δ. ΚΑΛΛΙΘΕΑΣ", 253, 25, 4], [199, "Ε.Δ. ΚΑΛΛΙΘΕΑΣ", 247, 20, 4], [200, "Ε.Δ. ΚΑΛΛΙΘΕΑΣ", 231, 25, 3], [201, "Ε.Δ. ΚΑΛΛΙΘΕΑΣ", 216, 21, 4]], "den": "Παραλίας", "lat": 40.2751074, "lon": 22.578006, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΑΡΑΛΙΑΣ    ΠΑΡΑΛΙΑ", "st": [[202, "Ε.Δ. ΠΑΡΑΛΙΑΣ", 238, 31, 2], [203, "Ε.Δ. ΠΑΡΑΛΙΑΣ", 254, 16, 6], [204, "Ε.Δ. ΠΑΡΑΛΙΑΣ", 255, 30, 2]], "den": "Παραλίας", "lat": 40.2647853, "lon": 22.5961904, "how": "name"}, {"venue": "ΓΥΜΝΑΣΙΟ ΠΕΡΙΣΤΑΣΗΣ    ΠΕΡΙΣΤΑΣΗ", "st": [[205, "Ε.Δ. ΠΕΡΙΣΤΑΣΗΣ", 260, 16, 6], [206, "Ε.Δ. ΠΕΡΙΣΤΑΣΗΣ", 232, 20, 5], [207, "Ε.Δ. ΠΕΡΙΣΤΑΣΗΣ", 247, 27, 3], [208, "Ε.Δ. ΠΕΡΙΣΤΑΣΗΣ", 245, 28, 3], [209, "Ε.Δ. ΠΕΡΙΣΤΑΣΗΣ", 228, 19, 6]], "den": "Παραλίας", "lat": 40.2736256, "lon": 22.5364677, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΑΓΙΟΥ ΔΗΜΗΤΡΙΟΥ    ΑΓ. ΔΗΜΗΤΡΙΟΣ", "st": [[210, "Ε.Δ. ΑΓΙΟΥ ΔΗΜΗΤΡΙΟΥ", 206, 12, 4], [211, "Ε.Δ. ΑΓΙΟΥ ΔΗΜΗΤΡΙΟΥ", 215, 15, 4], [212, "Ε.Δ. ΑΓΙΟΥ ΔΗΜΗΤΡΙΟΥ", 220, 20, 4]], "den": "Πέτρας", "lat": 40.1561872, "lon": 22.2311834, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΛΟΦΟΥ    ΛΟΦΟΣ", "st": [[213, "Ε.Δ. ΛΟΦΟΥ", 238, 18, 5], [214, "Ε.Δ. ΛΟΦΟΥ", 227, 9, 5], [215, "Ε.Δ. ΛΟΦΟΥ", 216, 12, 5], [216, "Ε.Δ. ΛΟΦΟΥ", 230, 19, 4], [217, "Ε.Δ. ΛΟΦΟΥ", 266, 42, 2]], "den": "Πέτρας", "lat": 40.24188, "lon": 22.37632, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΡΑΧΗΣ    ΡΑΧΗ", "st": [[218, "(ΡΑΧΗΣ)", 377, 53, 3]], "den": "Πέτρας", "lat": 40.24174, "lon": 22.35912, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΩ ΜΗΛΙΑΣ    ΚΑΤΩ ΜΗΛΙΑ", "st": [[219, "Ε.Δ. ΜΗΛΙΑΣ", 235, 25, 2], [220, "Ε.Δ. ΜΗΛΙΑΣ", 245, 30, 3], [221, "Ε.Δ. ΜΗΛΙΑΣ", 239, 27, 2]], "den": "Πέτρας", "lat": 40.2557714, "lon": 22.3408698, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΜΕΣΑΙΑΣ ΜΗΛΙΑΣ    ΜΕΣΑΙΑ ΜΗΛΙΑ", "st": [[222, "(ΜΕΣΑΙΑΣ ΜΗΛΙΑΣ)", 299, 9, 5]], "den": "Πέτρας", "lat": 40.2503843, "lon": 22.3041737, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΡΥΩΝ    ΚΑΡΥΕΣ", "st": [[223, "(ΚΑΡΥΩΝ)", 141, 13, 3]], "den": "Πέτρας", "lat": 40.23582, "lon": 22.2921, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΜΟΣΧΟΧΩΡΙΟΥ    ΜΟΣΧΟΧΩΡΙ", "st": [[224, "Ε.Δ. ΜΟΣΧΟΧΩΡΙΟΥ", 392, 191, 1]], "den": "Πέτρας", "lat": 40.2649948, "lon": 22.3983034, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΦΩΤΕΙΝΩΝ    ΦΩΤΕΙΝΑ", "st": [[225, "Ε.Δ. ΦΩΤΕΙΝΩΝ", 421, 40, 4]], "den": "Πέτρας", "lat": 40.21818, "lon": 22.31063, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΒΡΙΑΣ    ΒΡΙΑ", "st": [[226, "Ε.Δ. ΒΡΙΑΣ", 318, 33, 2]], "den": "Πιερίων", "lat": 40.27051, "lon": 22.32231, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΛΑΤΟΧΩΡΙΟΥ    ΕΛΑΤΟΧΩΡΙ", "st": [[227, "Ε.Δ. ΕΛΑΤΟΧΩΡΙΟΥ", 286, 15, 6], [228, "Ε.Δ. ΕΛΑΤΟΧΩΡΙΟΥ", 263, 15, 5]], "den": "Πιερίων", "lat": 40.3200079, "lon": 22.2647722, "how": "name"}, {"venue": "ΓΥΜΝΑΣΙΟ ΡΗΤΙΝΗΣ    ΡΗΤΙΝΗ", "st": [[229, "Ε.Δ. ΡΗΤΙΝΗΣ", 260, 24, 4], [230, "Ε.Δ. ΡΗΤΙΝΗΣ", 230, 7, 8], [231, "Ε.Δ. ΡΗΤΙΝΗΣ", 232, 19, 4], [232, "Ε.Δ. ΡΗΤΙΝΗΣ", 239, 20, 4]], "den": "Πιερίων", "lat": 40.2862482, "lon": 22.2831573, "how": "name"}, {"venue": "1ο ΕΠΑΛ ΑΙΓΙΝΙΟΥ    ΑΙΓΙΝΙΟ", "st": [[233, "Ε.Δ. ΑΙΓΙΝΙΟΥ", 302, 13, 6], [234, "Ε.Δ. ΑΙΓΙΝΙΟΥ", 302, 8, 8]], "den": "Αιγινίου", "lat": 40.49588, "lon": 22.54117, "how": "settlement"}, {"venue": "1ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΑΙΓΙΝΙΟΥ    ΑΙΓΙΝΙΟ", "st": [[235, "Ε.Δ. ΑΙΓΙΝΙΟΥ", 304, 13, 8], [236, "Ε.Δ. ΑΙΓΙΝΙΟΥ", 286, 12, 7]], "den": "Αιγινίου", "lat": 40.4986328, "lon": 22.5429028, "how": "name"}, {"venue": "ΓΕΝΙΚΟ ΛΥΚΕΙΟ ΑΙΓΙΝΙΟΥ    ΑΙΓΙΝΙΟ", "st": [[237, "Ε.Δ. ΑΙΓΙΝΙΟΥ", 286, 7, 8], [238, "Ε.Δ. ΑΙΓΙΝΙΟΥ", 289, 11, 8]], "den": "Αιγινίου", "lat": 40.49588, "lon": 22.54117, "how": "settlement"}, {"venue": "2ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΑΙΓΙΝΙΟΥ    ΑΙΓΙΝΙΟ", "st": [[239, "Ε.Δ. ΑΙΓΙΝΙΟΥ", 288, 6, 8], [240, "Ε.Δ. ΑΙΓΙΝΙΟΥ", 292, 4, 8]], "den": "Αιγινίου", "lat": 40.5014092, "lon": 22.5391218, "how": "name"}, {"venue": "ΠΡΩΗΝ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΜΕΓΑΛΗΣ ΓΕΦΥΡΑΣ    ΜΕΓΑΛΗ ΓΕΦΥΡΑ", "st": [[241, "(ΜΕΓΑΛΗΣ ΓΕΦΥΡΑΣ)", 158, 7, 6]], "den": "Αιγινίου", "lat": 40.53036, "lon": 22.52401, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΑΧΑ    ΚΑΤΑΧΑΣ", "st": [[242, "Ε.Δ. ΚΑΤΑΧΑ", 215, 11, 7], [243, "Ε.Δ. ΚΑΤΑΧΑ", 221, 8, 7]], "den": "Αιγινίου", "lat": 40.46458, "lon": 22.54007, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΣΤΑΝΕΑΣ    ΚΑΣΤΑΝΕΑ", "st": [[244, "Ε.Δ. ΚΑΣΤΑΝΕΑΣ", 224, 15, 5]], "den": "Κολινδρού", "lat": 40.45576, "lon": 22.45055, "how": "settlement"}, {"venue": "1ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΟΛΙΝΔΡΟΥ    ΚΟΛΙΝΔΡΟΣ", "st": [[245, "Ε.Δ. ΚΟΛΙΝΔΡΟΥ", 274, 13, 7], [246, "Ε.Δ. ΚΟΛΙΝΔΡΟΥ", 304, 24, 5], [247, "Ε.Δ. ΚΟΛΙΝΔΡΟΥ", 255, 20, 5], [248, "Ε.Δ. ΚΟΛΙΝΔΡΟΥ", 282, 31, 3]], "den": "Κολινδρού", "lat": 40.4775238, "lon": 22.4877371, "how": "name"}, {"venue": "ΓΥΜΝΑΣΙΟ ΚΟΛΙΝΔΡΟΥ    ΚΟΛΙΝΔΡΟΣ", "st": [[249, "Ε.Δ. ΚΟΛΙΝΔΡΟΥ", 283, 14, 6], [250, "Ε.Δ. ΚΟΛΙΝΔΡΟΥ", 271, 14, 6]], "den": "Κολινδρού", "lat": 40.4797591, "lon": 22.4924514, "how": "name"}, {"venue": "ΠΑΛΑΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΑΛΗΑΜΠΕΛΩΝ    ΠΑΛΗΑΜΠΕΛΑ", "st": [[251, "(ΠΑΛΗΑΜΠΕΛΩΝ)", 161, 2, 8]], "den": "Κολινδρού", "lat": 40.50786, "lon": 22.50189, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΛΙΒΑΔΙΟΥ    ΛΙΒΑΔΙ", "st": [[252, "Ε.Δ. ΛΙΒΑΔΙΟΥ", 161, 5, 6]], "den": "Κολινδρού", "lat": 40.49793, "lon": 22.43693, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΡΥΑΚΙΩΝ    ΡΥΑΚΙΑ", "st": [[253, "Ε.Δ. ΡΥΑΚΙΩΝ", 307, 11, 5]], "den": "Κολινδρού", "lat": 40.39908, "lon": 22.39188, "how": "settlement"}, {"venue": "ΓΥΜΝΑΣΙΟ ΜΑΚΡΥΓΙΑΛΟΥ    ΜΑΚΡΥΓΙΑΛΟΣ", "st": [[254, "Ε.Δ. ΜΑΚΡΥΓΙΑΛΟΥ", 241, 14, 6], [255, "Ε.Δ. ΜΑΚΡΥΓΙΑΛΟΥ", 247, 15, 6], [256, "Ε.Δ. ΜΑΚΡΥΓΙΑΛΟΥ", 227, 13, 5], [257, "Ε.Δ. ΜΑΚΡΥΓΙΑΛΟΥ", 229, 13, 6]], "den": "Μεθώνης", "lat": 40.4171178, "lon": 22.6078516, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΜΕΘΩΝΗΣ (ΚΔΑΠ ΜΕΘΩΝΗΣ)    ΜΕΘΩΝΗ", "st": [[258, "Ε.Δ. ΜΕΘΩΝΗΣ", 215, 15, 5], [259, "Ε.Δ. ΜΕΘΩΝΗΣ", 232, 9, 6]], "den": "Μεθώνης", "lat": 40.44503, "lon": 22.58854, "how": "settlement"}, {"venue": "ΚΟΙΝΟΤΙΚΟ ΚΑΤΑΣΤΗΜΑ Π. ΕΛΕΥΘΕΡΟΧΩΡΙΟΥ    ΠΑΛΑΙΟ ΕΛΕΥΘΕΡΟΧΩΡΙ", "st": [[261, "Ε.Δ. ΠΑΛΑΙΟΥ ΕΛΕΥΘΕΡΟΧΩΡΙΟΥ", 322, 16, 5]], "den": "Μεθώνης", "lat": 40.43547, "lon": 22.57404, "how": "settlement"}, {"venue": "ΓΥΜΝΑΣΙΟ ΑΛΩΝΙΩΝ    ΑΛΩΝΙΑ", "st": [[262, "Ε.Δ. ΑΛΩΝΙΩΝ", 257, 12, 6], [263, "Ε.Δ. ΑΛΩΝΙΩΝ", 237, 13, 5]], "den": "Πύδνας", "lat": 40.3897626, "lon": 22.5501887, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΑΛΑΙΟΣΤΑΝΗΣ    ΠΑΛΑΙΟΣΤΑΝΗ", "st": [[264, "Ε.Δ. ΠΑΛΑΙΟΣΤΑΝΗΣ", 352, 26, 4]], "den": "Πύδνας", "lat": 40.41629, "lon": 22.46179, "how": "settlement"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΥΔΝΑΣ    ΠΥΔΝΑ", "st": [[265, "Ε.Δ. ΠΥΔΝΑΣ", 222, 12, 5], [266, "Ε.Δ. ΠΥΔΝΑΣ", 247, 16, 5], [267, "Ε.Δ. ΠΥΔΝΑΣ", 243, 15, 4], [268, "Ε.Δ. ΠΥΔΝΑΣ", 231, 13, 6]], "den": "Πύδνας", "lat": 40.3726664, "lon": 22.5715084, "how": "name"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΣΦΕΝΔΑΜΙΟΥ    ΣΦΕΝΔΑΜΗ", "st": [[269, "Ε.Δ. ΣΦΕΝΔΑΜΙΟΥ", 220, 24, 4], [270, "Ε.Δ. ΣΦΕΝΔΑΜΙΟΥ", 231, 18, 4], [271, "Ε.Δ. ΣΦΕΝΔΑΜΙΟΥ", 213, 8, 6]], "den": "Πύδνας", "lat": 40.41034, "lon": 22.54586, "how": "settlement"}], "missing": [{"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΑΝΤΕΛΕΗΜΟΝΑ    ΠΑΝΤΕΛΕΗΜΟΝΑΣ", "st": [[9, "Ε.Δ. ΠΑΝΤΕΛΕΗΜΟΝΑ", 207, 9, 7], [10, "Ε.Δ. ΠΑΝΤΕΛΕΗΜΟΝΑ", 195, 12, 5], [11, "Ε.Δ. ΠΑΝΤΕΛΕΗΜΟΝΑ", 238, 12, 6]], "den": "Ανατολικού Ολύμπου"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΑΓΙΟΥ ΣΠΥΡΙΔΩΝΑ    ΑΓΙΟΣ ΣΠΥΡΙΔΩΝΑΣ", "st": [[25, "Ε.Δ. ΑΓΙΟΥ ΣΠΥΡΙΔΩΝΑ", 332, 20, 4], [26, "Ε.Δ. ΑΓΙΟΥ ΣΠΥΡΙΔΩΝΑ", 322, 35, 3], [27, "Ε.Δ. ΑΓΙΟΥ ΣΠΥΡΙΔΩΝΑ", 322, 15, 5]], "den": "Δίου"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΧΡΑΝΗΣ    ΧΡΑΝΗ", "st": [[117, "(ΧΡΑΝΗ)", 223, 19, 5]], "den": "Κατερίνης"}, {"venue": "ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ Ν. ΑΓΑΘΟΥΠΟΛΗΣ    Ν. ΑΓΑΘΟΥΠΟΛΗ", "st": [[260, "Ε.Δ. ΝΕΑΣ ΑΓΑΘΟΥΠΟΛΗΣ", 186, 7, 7]], "den": "Μεθώνης"}], "links": [{"href": "2023-june_13.html", "label": "Ανά περιοχή · κόμματα (% εγκύρων)"}]};
+// Shared by template.html and stations_template.html; inlined at build time before the page script.
+// The page script defines `map` and fills `layers` (index = table row data-i).
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = n => n.toLocaleString("el-GR");
+const pct = x => (x * 100).toLocaleString("el-GR", {maximumFractionDigits: 1}) + "%";
+const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();
+const HOVER = matchMedia("(hover: hover)").matches;
+const TOUCH = matchMedia("(pointer: coarse)").matches;
+const seq = () => ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"].map(css);
+
+function breaks(vals) {  // quantile breaks over the non-zero values
+  const nz = vals.filter(v => v > 0).sort((a, b) => a - b);
+  return nz.length ? [1, 2, 3, 4, 5].map(i => nz[Math.floor(i * nz.length / 6)]) : [];
+}
+function colorFor(x, br) {
+  if (x <= 0) return css("--s0");
+  let i = 0; while (i < br.length && x > br[i]) i++; return seq()[i];
+}
+function seqLegend(br, show) {
+  let h = `<i style="background:${css("--s0")}"></i><span class="lbl">0</span>`;
+  const edges = [0, ...br];
+  seq().forEach((col, i) => {
+    if (i > br.length) return;
+    const lo = edges[i], hi = br[i];
+    h += `<i style="background:${col}"></i><span class="lbl">${hi === undefined ? "> " + show(lo) : show(lo) + "–" + show(hi)}</span>`;
+  });
+  return h;
+}
+
+// Deviation = local share / overall share (1 = average). Fixed, symmetric-in-ratio steps.
+const DEV_BR = [0.5, 0.75, 0.9, 1.1, 1.33, 2];
+const DEV_LBL = ["< −50%", "−50 έως −25%", "−25 έως −10%", "±10%", "+10 έως +33%", "+33 έως +100%", "> +100%"];
+const divSteps = () => ["--d-3", "--d-2", "--d-1", "--d0", "--d1", "--d2", "--d3"].map(css);
+function devColor(r) { let i = 0; while (i < DEV_BR.length && r >= DEV_BR[i]) i++; return divSteps()[i]; }
+const devFmt = r => { const d = Math.round((r - 1) * 100); return (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d) + "%"; };
+const devLegend = () => `<span class="lbl" style="margin-left:0">Σε σχέση με τον μέσο όρο:</span>` +
+  divSteps().map((c, i) => `<i style="background:${c}"></i><span class="lbl">${DEV_LBL[i]}</span>`).join("");
+
+// Links to the other maps of this constituency, and to the index of all maps.
+$("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("") +
+  `<a href="index.html">Όλοι οι χάρτες</a>`;
+
+// The first fit waits for a real container size: a page opened in a hidden tab or pane lays out at 0×0,
+// where fitBounds falls back to zoom 0 (the whole world). onFit runs once, right after that fit.
+function fitOnceSized(m, bounds, opts, onFit) {
+  let done = false;
+  const fit = () => {
+    const el = m.getContainer();
+    if (done || el.clientWidth < 50 || el.clientHeight < 50) return;
+    done = true;
+    // invalidateSize is a no-op until the map has a view, and getSize() caches the 0×0 size.
+    if (m.getZoom() === undefined) m.setView([0, 0], 0, {animate: false});
+    m.invalidateSize({animate: false});
+    m.fitBounds(bounds(), opts);
+    if (onFit) onFit();
+  };
+  new ResizeObserver(fit).observe(m.getContainer());
+  addEventListener("resize", fit);
+  document.addEventListener("visibilitychange", fit);  // hidden pages may skip ResizeObserver callbacks
+  fit();
+}
+
+// Touch: one finger scrolls the page, two fingers move/zoom the map (Leaflet's pinch also pans).
+function touchMap(m) {
+  if (!TOUCH) return;
+  m.dragging.disable();
+  const hint = $("hint");
+  let t;
+  m.getContainer().addEventListener("touchmove", e => {
+    if (e.touches.length !== 1) return hint.classList.remove("on");
+    hint.classList.add("on"); clearTimeout(t); t = setTimeout(() => hint.classList.remove("on"), 1200);
+  }, {passive: true});
+}
+
+// Details panel: tap/click on the map or a table row. Hover devices also get the tooltip.
+const panel = document.body.appendChild(document.createElement("aside"));
+panel.id = "panel"; panel.hidden = true; panel.setAttribute("aria-label", "Λεπτομέρειες");
+panel.setAttribute("aria-live", "polite");
+let layers = [], picked = null;
+function bindFeature(l, html) {
+  l.html = html; l._b = {color: l.options.color, weight: l.options.weight};
+  if (HOVER) l.bindTooltip(html, {sticky: true});
+  l.on({
+    mouseover: () => l !== picked && l.setStyle({color: css("--ink"), weight: 2}),
+    mouseout: () => l !== picked && l.setStyle(l._b),
+    click: () => pick(l),
+  });
+}
+function pick(l, fly) {
+  if (picked) picked.setStyle(picked._b);
+  picked = l;
+  document.querySelectorAll("tr.sel").forEach(r => r.classList.remove("sel"));
+  if (!l) { panel.hidden = true; return; }
+  l.setStyle({color: css("--ink"), weight: 3}); l.bringToFront();
+  document.querySelector(`tr[data-i="${l.i}"]`)?.classList.add("sel");
+  l.closeTooltip?.();
+  panel.innerHTML = `<button type="button" class="close" aria-label="Κλείσιμο">×</button>${l.html}`;
+  panel.hidden = false;
+  panel.firstChild.onclick = () => pick(null);
+  if (fly) {
+    if (l.getLatLng) map.setView(l.getLatLng(), Math.max(map.getZoom(), 15));
+    else map.fitBounds(l.getBounds(), {maxZoom: 14, padding: [24, 24]});
+    $("map").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center"});
+    panel.firstChild.focus({preventScroll: true});
+  }
+}
+function repick() { const i = picked?.i; picked = null; if (i != null && layers[i]) pick(layers[i]); else panel.hidden = true; }
+addEventListener("keydown", e => e.key === "Escape" && picked && pick(null));
+
+// Sortable table: numeric cells carry data-v. Sort state survives re-renders unless reset (tbl._sort = null).
+function sortable(tbl, col, dir) {
+  const st = tbl._sort ||= {col, dir};
+  const ths = [...tbl.tHead.rows[0].cells];
+  const apply = () => {
+    ths.forEach((th, i) => i === st.col ? th.setAttribute("aria-sort", st.dir) : th.removeAttribute("aria-sort"));
+    const key = r => { const td = r.cells[st.col]; return td.dataset.v != null ? +td.dataset.v : td.textContent; };
+    const s = st.dir === "ascending" ? 1 : -1;
+    const rows = [...tbl.tBodies[0].rows].sort((a, b) => {
+      const x = key(a), y = key(b);
+      return s * (typeof x === "number" ? x - y : x.localeCompare(y, "el", {numeric: true}));
+    });
+    tbl.tBodies[0].append(...rows);
+  };
+  ths.forEach((th, i) => {
+    th.innerHTML = `<button type="button">${th.innerHTML}</button>`;
+    th.firstChild.onclick = () => {
+      st.dir = st.col === i ? (st.dir === "ascending" ? "descending" : "ascending") : th.classList.contains("n") ? "descending" : "ascending";
+      st.col = i; apply();
+    };
+  });
+  tbl.onclick = e => { const b = e.target.closest(".rowlink"); if (b) pick(layers[+b.dataset.i], true); };
+  apply();
+}
+
+let metric = "share";
+
+// Each venue: st = [[station no, Ε.Δ., party votes, crosses, rank in party], ...]
+// Venue text is "NAME  STREET  TOWN"; some names contain a double space themselves.
+[...D.venues, ...D.missing].forEach(v => {
+  v.pv = v.st.reduce((s, x) => s + x[2], 0);
+  v.cv = v.st.reduce((s, x) => s + x[3], 0);
+  const p = v.venue.split(/\s{2,}/).reduce((a, s) => (/^\d+[Α-Ω]?$/.test(s) && a.length ? a[a.length - 1] += " " + s : a.push(s), a), []);
+  [v.name, v.street, v.town] = p.length > 3 ? [p.slice(0, -2).join(" "), ...p.slice(-2)] : p;
+});
+const MONTHS = {may: "Μαΐου", june: "Ιουνίου"};
+const [yr, mo] = D.election.split("/");
+// Labels differ by mode: a candidate's crosses over party votes, or a party's votes over valid votes.
+const T = D.labels;
+$("title").textContent = T.title;
+$("sub").textContent =
+  `${T.num} ανά εκλογικό τμήμα · ${T.scope} · Βουλευτικές ${mo ? MONTHS[mo] + " " : ""}${yr} · κάθε κύκλος = ένα εκλογικό κατάστημα`;
+document.querySelector('[data-m="share"]').textContent = T.share;
+document.querySelector('[data-m="votes"]').textContent = T.num;
+
+const all = [...D.venues, ...D.missing];  // index in `all` = table data-i; the first D.venues.length are on the map
+const totC = all.reduce((s, v) => s + v.cv, 0), totP = all.reduce((s, v) => s + v.pv, 0);
+const mean = totP ? totC / totP : 0;
+const nSt = all.reduce((s, v) => s + v.st.length, 0);
+const first = all.reduce((s, v) => s + v.st.filter(x => x[4] === 1 && x[3] > 0).length, 0);
+const best = all.flatMap(v => v.st).filter(x => x[2] >= 50).sort((a, b) => b[3] / b[2] - a[3] / a[2])[0];
+$("stats").innerHTML =
+  `<div><b>${fmt(totC)}</b><span>${T.num} σε ${fmt(nSt)} τμήματα</span></div>` +
+  `<div><b>${pct(mean)}</b><span>${T.of} (μέσος όρος)</span></div>` +
+  (D.mode === "party"
+    ? `<div><b>${best ? pct(best[3] / best[2]) : "–"}</b><span>καλύτερο τμήμα${best ? ` (Τμ. ${best[0]}, ${best[1].replace(/^\d*\s*Ε\.Δ\.\s*/, "")})` : ""}</span></div>`
+    : `<div><b>${fmt(first)}</b><span>τμήματα όπου βγήκε 1ος στο κόμμα</span></div>`) +
+  `<div><b>${D.venues.length} / ${all.length}</b><span>καταστήματα στον χάρτη</span></div>`;
+
+const map = L.map("map", {scrollWheelZoom: false});
+const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '&copy; OpenStreetMap · Καταστήματα & αποτελέσματα: ΥΠΕΣ (ανεπίσημα)', maxZoom: 19, opacity: 0.6
+}).addTo(map);
+touchMap(map);
+
+const share = v => v.pv ? v.cv / v.pv : 0;
+const value = v => metric === "votes" ? v.cv : metric === "dev" ? (mean ? share(v) / mean : 0) : share(v);
+// Small circles at the fitted zoom (dense city centres), growing as the user zooms in.
+// Patras, 375px: overlapping pairs at the fitted zoom 294 -> 136 vs the old fixed 4 + 14·√ size.
+const maxC = Math.max(1, ...D.venues.map(v => v.cv));
+let z0;
+const radius = v => (2.5 + 8 * Math.sqrt(v.cv / maxC)) * Math.min(1.6, Math.max(0.7, 2 ** ((map.getZoom() - (z0 ?? map.getZoom())) / 3)));  // before the first fit: scale 1
+map.on("zoomend", () => z0 != null && layer.eachLayer(l => l.setRadius(radius(l.v))));
+function tip(v) {
+  const approx = !["street", "name"].includes(v.how) ? `<br><span class="m">Θέση κατά προσέγγιση (βάσει οδού)</span>` : "";
+  return `<div class="tip"><b>${v.name}</b><span class="m">${v.street || ""} · ${v.den}</span>${approx}<br>` +
+    `${T.num} <b style="display:inline">${fmt(v.cv)}</b> / ${T.den} ${fmt(v.pv)} · ${pct(share(v))}` +
+    (v.pv && mean ? ` (${devFmt(share(v) / mean)} από τον μέσο όρο)` : "") +
+    `<table>${v.st.map(x => `<tr><td>Τμ. ${x[0]}</td><td>${fmt(x[3])} / ${fmt(x[2])}</td><td>${pct(x[2] ? x[3] / x[2] : 0)}</td>` +
+      `<td>${x[4]}${T.ord}</td>${x[5] ? `<td>${x[5]}</td>` : ""}</tr>`).join("")}</table></div>`;
+}
+
+let layer;
+function render() {
+  const br = breaks(D.venues.map(value));
+  const fill = v => metric === "dev" ? (v.pv ? devColor(value(v)) : css("--d0")) : colorFor(value(v), br);
+  if (layer) layer.remove();
+  layers = [];
+  const ms = D.venues.map((v, i) => {
+    const l = L.circleMarker([v.lat, v.lon], {radius: z0 == null ? 3 : radius(v), fillColor: fill(v), fillOpacity: 0.75,
+                                              color: css("--surface"), weight: 1});
+    l.v = v; l.i = i; layers[i] = l; bindFeature(l, tip(v));
+    return l;
+  });
+  // Largest on the bottom so small venues stay clickable.
+  layer = L.featureGroup(ms.sort((a, b) => b.v.cv - a.v.cv)).addTo(map);
+  if (!render.fitted) {
+    render.fitted = true;
+    fitOnceSized(map, () => layer.getBounds(), {padding: [12, 12]},
+                 () => { z0 = map.getZoom(); layer.eachLayer(l => l.setRadius(radius(l.v))); });
+  }
+
+  const show = x => metric === "share" ? pct(x) : fmt(Math.round(x));
+  $("legend").innerHTML = (metric === "dev" ? devLegend()
+    : `<span class="lbl" style="margin-left:0">Χρώμα:</span>` + seqLegend(br, show)) +
+    `<span class="lbl">· μέγεθος κύκλου = ${T.num}</span>`;
+
+  const tbl = $("tbl");
+  tbl.innerHTML =
+    `<thead><tr><th>Κατάστημα</th><th>Δημ. ενότητα</th><th>Τμήματα</th><th class="n">${T.num}</th><th class="n">${T.den}</th>` +
+    `<th class="n">%</th><th class="n">Απόκλιση</th></tr></thead><tbody>` +
+    all.map((v, i) => {
+      const r = mean ? share(v) / mean : 0;
+      return `<tr data-i="${i}"><td>${v.lat ? `<button type="button" class="rowlink" data-i="${i}">${v.name}</button>` : `${v.name} <span class="m">(εκτός χάρτη)</span>`}</td>` +
+        `<td>${v.den}</td><td>${v.st.map(x => x[0]).join(", ")}</td><td class="n" data-v="${v.cv}">${fmt(v.cv)}</td>` +
+        `<td class="n" data-v="${v.pv}">${fmt(v.pv)}</td><td class="n" data-v="${share(v)}">${pct(share(v))}</td>` +
+        `<td class="n" data-v="${v.pv ? r : -1}">${v.pv && mean ? devFmt(r) : "–"}</td></tr>`;
+    }).join("") + `</tbody>`;
+  sortable(tbl, metric === "votes" ? 3 : 5, "descending");
+  repick();
+}
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  metric = b.dataset.m;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("tbl")._sort = null;
+  render();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+// PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
+// The document title becomes the suggested file name.
+let saved;
+function fitForPrint() {
+  document.title = `${T.title} ανά τμήμα - ${T.scope} - ${D.election.replace("/", "-")}`;
+  saved = saved || [map.getCenter(), map.getZoom()];
+  document.body.classList.add("printing");
+  map.invalidateSize();
+  map.fitBounds(layer.getBounds(), {padding: [8, 8]});
+}
+function exportPdf() {
+  fitForPrint();
+  let done = false;
+  const go = () => { if (!done) { done = true; window.print(); } };
+  tiles.once("load", go);
+  setTimeout(go, 1500);
+}
+addEventListener("beforeprint", fitForPrint);  // also covers Ctrl+P
+addEventListener("afterprint", () => {
+  document.body.classList.remove("printing");
+  document.title = "Χάρτης ανά τμήμα";
+  map.invalidateSize();
+  if (saved) map.setView(...saved);
+  saved = null;
+});
+
+$("note").textContent =
+  `Πηγές: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα· καταστήματα ψηφοφορίας από το αρχείο ΥΠΕΣ «Εκλογικά τμήματα με κατάστημα ψηφοφορίας» (20.5.2023)· ` +
+  `θέσεις καταστημάτων με γεωκωδικοποίηση OpenStreetMap/Nominatim, ελεγμένες ότι πέφτουν στη σωστή δημοτική ενότητα. ` +
+  `Απόκλιση: % του καταστήματος προς τον μέσο όρο. ` +
+  `Εκτός χάρτη: τμήματα ετεροδημοτών και ειδικά τμήματα` +
+  (D.missing.length ? `, και ${D.missing.length} καταστήματα χωρίς θέση (στον πίνακα).` : ".");
+
+// Per-station table for the PDF, by station number; independent of the colour metric.
+$("dtbl").innerHTML =
+  `<thead><tr><th>Τμ.</th><th>Εκλ. διαμέρισμα</th><th>Κατάστημα</th>` +
+  `<th class="n">${T.num}</th><th class="n">${T.den}</th><th class="n">%</th><th class="n">${T.rank}</th>` +
+  (D.mode === "party" ? `<th>Πρώτος σε σταυρούς</th>` : "") + `</tr></thead><tbody>` +
+  all.flatMap(v => v.st.map(x => ({x, v}))).sort((a, b) => a.x[0] - b.x[0]).map(({x, v}) =>
+    `<tr><td>${x[0]}</td><td>${x[1].replace(/^\d*\s*Ε\.Δ\.\s*/, "")}</td><td>${v.name}</td>` +
+    `<td class="n">${fmt(x[3])}</td><td class="n">${fmt(x[2])}</td><td class="n">${pct(x[2] ? x[3] / x[2] : 0)}</td>` +
+    `<td class="n">${x[3] ? x[4] : "–"}</td>` + (D.mode === "party" ? `<td>${x[5] || "–"}</td>` : "") + `</tr>`).join("") + `</tbody>`;
+render();
+</script>
+</body>
+</html>
