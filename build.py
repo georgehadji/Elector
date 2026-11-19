@@ -383,7 +383,8 @@ def register(file, election, ep, ep_name, label):
 @media (prefers-color-scheme: dark){{:root{{color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--link:#6da7ec}}}}
 body{{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
 main{{max-width:760px;margin:0 auto;padding:16px}} h1{{font-size:21px}} h2{{font-size:16px;margin:20px 0 4px}}
-p{{color:var(--ink-2)}} a{{color:var(--link)}} ul{{margin:0;padding-left:20px}} li{{padding:6px 0}}</style></head><body><main>
+p{{color:var(--ink-2)}} a{{color:var(--link)}} ul{{margin:0;padding-left:20px}} li{{padding:6px 0}}
+@media (pointer: coarse){{li{{padding:0}} li>a,p>a{{display:inline-block;padding:11px 0}}}}</style></head><body><main>
 <h1>Χάρτες σταυρών</h1>
 <p>Ανά περιοχή: όλοι οι υποψήφιοι ανά κοινότητα. Ανά τμήμα: ένας υποψήφιος ή κόμμα ανά εκλογικό κατάστημα
 (πιο λεπτομερές στις πόλεις).</p>
@@ -420,12 +421,14 @@ body{{margin:0;font:14px/1.45 system-ui,sans-serif;background:var(--surface);col
 main{{max-width:900px;margin:0 auto;padding:16px}} a{{color:inherit}}
 table{{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}}
 th,td{{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}} th{{color:var(--ink-2);font-size:12px}}
-.n{{text-align:right}} p{{color:var(--ink-2)}}</style></head><body><main>
+.n{{text-align:right}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}
+@media (max-width:599px){{main{{padding:12px}} th,td{{padding:6px 4px}} th{{font-size:11px}} td{{font-size:13px}}}}
+@media (pointer:coarse){{td a{{display:inline-block;padding:13px 0}}}}</style></head><body><main>
 <h1 style="font-size:20px">Χάρτες σταυρών · {election}</h1>
 <p>Ε.Δ.: εκλογικά διαμερίσματα · Περιοχές: κοινότητες στον χάρτη · Έδρα: διαμερίσματα που μπήκαν στην κοινότητα-έδρα
 χωρίς αντιστοίχιση ονόματος · Κάλυψη: σταυροί στον χάρτη ως ποσοστό του συνόλου.</p>
-<table><thead><tr><th>Περιφέρεια</th><th class="n">Ε.Δ.</th><th class="n">Περιοχές</th><th class="n">Χωρίς χάρτη</th>
-<th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody>{tr}</tbody></table></main></body></html>""",
+<div class="wrap"><table><thead><tr><th>Περιφέρεια</th><th class="n">Ε.Δ.</th><th class="n">Περιοχές</th><th class="n">Χωρίς χάρτη</th>
+<th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody>{tr}</tbody></table></div></main></body></html>""",
                                                                                           encoding="utf-8")
     ok = [r for r in rows if r.get("file")]
     print(f"\n{len(ok)}/{len(rows)} built; unmatched Ε.Δ.: {sum(r['unmatched'] for r in ok)}, "

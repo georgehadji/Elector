@@ -73,11 +73,30 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
 @media (min-width: 720px) {
   #panel { left: auto; right: 16px; bottom: 16px; width: 420px; max-height: 70vh; border: 1px solid var(--line); border-radius: 10px; }
 }
+/* Phones: full-width controls so the map starts higher; the table drops its least useful column. */
+@media (max-width: 599px) {
+  main { padding: 12px; }
+  .controls > label { flex-basis: 100%; margin-bottom: -6px; }
+  .controls > select, .controls > input { flex: 1 1 100%; width: auto; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
+  .seg button { padding: 6px 4px; font-size: 14px; line-height: 1.2; }
+  .pdf { display: none; }  /* print-to-PDF is a desktop task */
+  #map { height: 58vh; min-height: 320px; }
+  #tbl th:nth-child(2), #tbl td:nth-child(2) { display: none; }  /* Δημ. ενότητα */
+  #tbl th:first-child, #tbl td:first-child { position: sticky; left: 0; background: var(--surface); }
+  #tbl th:first-child { z-index: 2; }
+  #tbl tbody tr:hover td:first-child, #tbl tr.sel td:first-child { background: var(--chip); }
+  th, td { padding: 6px; }
+}
 /* Touch: 44px targets */
 @media (pointer: coarse) {
   select, button, input { min-height: 44px; }
+  select, input { font-size: 16px; }  /* iOS zooms into fields under 16px */
+  .views a { display: inline-block; padding: 12px 0; }
   .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
-  .rowlink { display: inline-block; min-height: 32px; }
+  th button { display: flex; align-items: center; min-height: 44px; width: 100%; }
+  th.n button { justify-content: flex-end; }
+  .rowlink { display: inline-flex; align-items: center; min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
 /* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
