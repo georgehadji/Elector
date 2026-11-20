@@ -33,6 +33,7 @@ h1{font-size:1.0625rem;margin:0 0 2px}
 .t .m{color:#55627a}
 .note{color:var(--ink-2);font-size:.71875rem;line-height:1.35;margin:2px 0 0}
 @media (max-width:600px){
+  #map{min-height:360px;min-height:max(360px,55svh)}  /* the map keeps over half the screen; the rest scrolls below it */
   h1{font-size:.9375rem}
   .sub{font-size:.75rem}
   .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
