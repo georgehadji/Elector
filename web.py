@@ -50,7 +50,7 @@ def header(current="maps", ctx="", skip="#main"):
                   for key, href, label in NAV)
     to = "τον χάρτη" if skip == "#map" else "το περιεχόμενο"
     return (f'<a class="skip" href="{skip}">Μετάβαση στ{to}</a>'
-            f'<header class="bar"><a class="home" href="index.html">{MARK}Χάρτες σταυρών</a>'
+            f'<header class="bar{" with-ctx" if ctx else ""}"><a class="home" href="index.html">{MARK}Χάρτες σταυρών</a>'
             f'<nav aria-label="Κύριο μενού">{nav}</nav>{THEME_BTN}</header>{ctx}')
 
 

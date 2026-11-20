@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-GLyWch25fTu6KlPuDZEBoOihCUckDA2Rpuqy+VuKAsc=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-x7xXR5ehO32wd4ww5Uw7CJTBdz/Qi0ETjV/J40nzpbk=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-GLyWch25fTu6KlPuDZEBoOihCUckDA2Rpuqy+VuKAsc=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-oZmqdmSPTYSFZ/yfSgsK8HMCkZtt0N2jr062mwIEBHk=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
@@ -79,6 +79,11 @@ h1 { font: 400 28px/1.15 "GFS Didot", Georgia, serif; margin: 0 0 4px; }
   .bar .home { order: 1; }
   #theme { order: 2; }
   .bar nav { order: 3; flex: 1 0 100%; gap: 16px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  /* map pages: the election switcher is the wayfinding; the footer has the other pages, the map gets the height */
+  .bar.with-ctx { min-height: 44px; margin-bottom: 4px; }
+  .bar.with-ctx nav { display: none; }
+  body .ctx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; white-space: nowrap; margin-bottom: 8px; padding-bottom: 4px; align-items: center; }
+  body .ctx nav { flex-wrap: nowrap; }
 }
 /* Map pages: constituency and its other elections */
 .ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
@@ -248,7 +253,7 @@ button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
 </head>
 <body>
 <main>
-<a class="skip" href="#map">Μετάβαση σττον χάρτη</a><header class="bar"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες σταυρών</a><nav aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="index.html#party">Ανά κόμμα</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header><div class="ctx"><b>Κοζάνης</b><nav aria-label="Εκλογές αυτής της περιφέρειας"><a href="2024-euro_15.html">Ευρωεκλογές 2024</a><a href="2023-june_15.html">Ιούνιος 2023</a><a href="2023-may_15.html" aria-current="page">Μάιος 2023</a><a href="2019_15.html">2019</a></nav></div>
+<a class="skip" href="#map">Μετάβαση σττον χάρτη</a><header class="bar with-ctx"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες σταυρών</a><nav aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="index.html#party">Ανά κόμμα</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header><div class="ctx"><b>Κοζάνης</b><nav aria-label="Εκλογές αυτής της περιφέρειας"><a href="2024-euro_15.html">Ευρωεκλογές 2024</a><a href="2023-june_15.html">Ιούνιος 2023</a><a href="2023-may_15.html" aria-current="page">Μάιος 2023</a><a href="2019_15.html">2019</a></nav></div>
   <h1 id="title"></h1>
   <p class="sub" id="sub"></p>
   <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
