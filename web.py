@@ -49,8 +49,9 @@ def header(current="maps", ctx="", skip="#main"):
     nav = "".join(f'<a href="{href}"' + (f' aria-current="{cur[1]}"' if cur and cur[0] == key else "") + f">{label}</a>"
                   for key, href, label in NAV)
     to = "στον χάρτη" if skip == "#map" else "στο περιεχόμενο"
-    return (f'<a class="skip" href="{skip}">Μετάβαση {to}</a>'
-            f'<header class="bar{" with-ctx" if ctx else ""}"><a class="home" href="index.html">{MARK}Χάρτες σταυρών</a>'
+    home = (f'<a class="home" href="index.html" aria-label="Χάρτες σταυρών">{MARK}</a>' if current == "index"  # the h1 below says it
+            else f'<a class="home" href="index.html">{MARK}Χάρτες σταυρών</a>')
+    return (f'<a class="skip" href="{skip}">Μετάβαση {to}</a><header class="bar{" with-ctx" if ctx else ""}">{home}'
             f'<nav aria-label="Κύριο μενού">{nav}</nav>{THEME_BTN}</header>{ctx}')
 
 
@@ -295,7 +296,7 @@ def card(ep, name, keys, n_own, lead, note, chips, sil=""):
 
 def nationwide():
     """Pages that cover the whole country, ahead of the constituency list."""
-    links = (("compare.html", "Σύγκριση εκλογών"), ("#party", "Χάρτες ανά κόμμα"), ("#tm", "Ανά εκλογικό κατάστημα"), ("#cov", "Κάλυψη ανά νομό"))
+    links = (("#tm", "Ανά εκλογικό κατάστημα"), ("#cov", "Κάλυψη ανά νομό"))
     return ('<nav class="nation" aria-label="Χάρτες όλης της χώρας">' + "".join(f'<a href="{h}">{t}</a>' for h, t in links) + '</nav>')
 
 
