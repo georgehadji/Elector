@@ -4,7 +4,6 @@ const $ = id => document.getElementById(id);
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const fmt = n => n.toLocaleString("el-GR");
 const pct = x => (x * 100).toLocaleString("el-GR", {maximumFractionDigits: 1}) + "%";
-const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();
 const HOVER = matchMedia("(hover: hover)").matches;
 const TOUCH = matchMedia("(pointer: coarse)").matches;
 const seq = () => ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"].map(css);
@@ -17,25 +16,26 @@ function colorFor(x, br) {
   if (x <= 0) return css("--s0");
   let i = 0; while (i < br.length && x > br[i]) i++; return seq()[i];
 }
+// One swatch and its label travel together, so a legend never wraps between them.
+const swatch = (col, label) => `<span class="k"><i style="background:${col}"></i><span class="lbl">${label}</span></span>`;
+const zeroLabel = () => D.mode === "party" ? "Καμία ψήφος" : "Κανένας σταυρός";
 function seqLegend(br, show) {
-  let h = `<i style="background:${css("--s0")}"></i><span class="lbl">0</span>`;
-  const edges = [0, ...br];
-  seq().forEach((col, i) => {
-    if (i > br.length) return;
-    const lo = edges[i], hi = br[i];
-    h += `<i style="background:${col}"></i><span class="lbl">${hi === undefined ? "> " + show(lo) : show(lo) + "–" + show(hi)}</span>`;
-  });
+  let h = swatch(css("--s0"), zeroLabel());
+  const edges = [-Infinity, ...br];  // the first non-zero class is open below, the last open above
+  seq().forEach((col, i) => { if (br.length && i <= br.length) h += swatch(col, binLabel(edges[i], br[i], show)); });
   return h;
 }
 
 // Deviation = local share / overall share (1 = average). Fixed, symmetric-in-ratio steps.
 const DEV_BR = [0.5, 0.75, 0.9, 1.1, 1.33, 2];
-const DEV_LBL = ["< −50%", "−50 έως −25%", "−25 έως −10%", "±10%", "+10 έως +33%", "+33 έως +100%", "> +100%"];
+const devPct = r => { const d = Math.round((r - 1) * 100); return (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d) + "%"; };
+const DEV_EDGES = [-Infinity, ...DEV_BR];
+const DEV_LBL = DEV_EDGES.map((lo, i) => binLabel(lo, DEV_BR[i], devPct));
 const divSteps = () => ["--d-3", "--d-2", "--d-1", "--d0", "--d1", "--d2", "--d3"].map(css);
 function devColor(r) { let i = 0; while (i < DEV_BR.length && r >= DEV_BR[i]) i++; return divSteps()[i]; }
-const devFmt = r => { const d = Math.round((r - 1) * 100); return (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d) + "%"; };
+const devFmt = devPct;
 const devLegend = () => `<span class="lbl" style="margin-left:0">Σε σχέση με τον μέσο όρο:</span>` +
-  divSteps().map((c, i) => `<i style="background:${c}"></i><span class="lbl">${DEV_LBL[i]}</span>`).join("");
+  divSteps().map((c, i) => swatch(c, DEV_LBL[i])).join("");
 
 // Links to the other maps of this constituency, and to the index of all maps.
 $("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("");

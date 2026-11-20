@@ -173,11 +173,11 @@ def main(election, ep, party, cand, xls, dhm=None):
     xls_name = ep_name  # the venue spreadsheet keeps the ministry spelling
     ep_name = ep_label(ep_name)
     pname = db.execute("SELECT name FROM party WHERE election=? AND party_id=?", (election, party)).fetchone()[0]
-    scope = f"Δήμος {dhm} · {ep_name}" if dhm else ep_name
+    scope = f"Δήμος {dhm}, {ep_name}" if dhm else ep_name
     if cand:
         cname = db.execute("SELECT name FROM candidate WHERE election=? AND ep_id=? AND party_id=? AND cand_id=?",
                            (election, ep, party, cand)).fetchone()[0]
-        labels = {"title": f"{cname} · {pname}", "num": "Σταυροί", "den": f"Ψήφοι {pname}",
+        labels = {"title": f"{cname}, {pname}", "num": "Σταυροί", "den": f"Ψήφοι {pname}",
                   "share": "% ψήφων κόμματος", "of": f"των ψηφοφόρων {pname}", "rank": "Θέση", "ord": "ος",
                   "scope": scope}
     else:
@@ -242,7 +242,7 @@ def main(election, ep, party, cand, xls, dhm=None):
     out = OUT / f"{slug(election)}_{ep}_tm_{party}-{cand}{'_' + dhm if dhm else ''}.html"
     data["links"] = links(out.name, election, ep)
     out.write_text(render_page("stations_template.html", data), encoding="utf-8")
-    record({out.name: entry(election, ep, ep_name, f"Ανά τμήμα · {labels['title']}" + (f" · Δήμος {dhm}" if dhm else ""))})
+    record({out.name: entry(election, ep, ep_name, f"Ανά τμήμα: {labels['title']}" + (f", Δήμος {dhm}" if dhm else ""))})
     write_index()
     on_map = sum(s[3] for v in data["venues"] for s in v["st"])
     print(f"venues {len(venues)}, located {len(located)}, missing {len(missing)}; "

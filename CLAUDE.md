@@ -17,7 +17,7 @@ python -I -X utf8 build.py 2023/may 45        # -> out/2023-may_45.html
 python -I -X utf8 build.py 2023/may all       # all, in parallel + out/index_2023-may.html (match coverage per constituency)
 python -I -X utf8 build.py index              # rewrite out/index.html from out/maps.json only
 python -I -X utf8 compare.py                  # -> out/compare.html (needs build.py <e> all for every election)
-python -I -X utf8 -m unittest discover -s tests   # matching unit tests + coverage regression
+python -I -X utf8 -m unittest discover -s tests   # matching unit tests, coverage regression, structure of out/*.html (test_pages.py)
 python -I -X utf8 tests/test_coverage.py --update # accept new coverage after an intended matching change
 python -I -X utf8 stations_map.py 2023/may 31 131 0 <venues.xls> Πατρέων   # cand 0 = party share
 python -I -X utf8 nikh_report.py <venues.xls>
@@ -32,6 +32,7 @@ Election keys: `2019`, `2023/may`, `2023/june`, `2024/euro`, all defined once in
 **Modules** (no cycles: config ← matching ← web ← build ← compare/stations_map/nikh_report):
 - **config.py**: paths, `ELECTIONS`, `source()` (results site per election), the SQLite `SCHEMA`, `PARTY_SHORT` (by party id; ids are stable across elections), `PARTY_ARTIFACTS`, `ELECTED`. New elections and parties go here.
 - **matching.py**: name matching and `boundaries()` (ELSTAT files, loaded once per process via `functools.cache`). `match_areas()` returns `{(den, ekd): community code}` for one constituency.
+- **shared.js**: pure helpers every page inlines through `fill()` (`/*SHARED_JS*/`): search folding (`fold`, `key`, `hits`, `queryWords`), `binLabel` (one legend wording) and `mapOptions` (reduced motion). `theme.js` is a small state machine (system / light / dark) that returns to the system setting.
 - **web.py**: everything shared by pages: `fill()` (colour tokens, site CSS, theme script, fonts, header, footer), `render_page()`, and the index. `record()` adds entries to `out/maps.json` (atomic replace); `write_index()` rebuilds `out/index.html` from it, once per build. Not named `site.py`: that would shadow Python's own `site` module.
 
 - **fetch.py** reads the Ministry of Interior results site (`/stat/{k}/…` static, `/dyn/{k}/…` results; `k`=`v` parliamentary, `e` European). `source(election)` maps an election key to (base URL, kind); Euro 2024 is served from `ekloges.ypes.gr/current`, the rest from `ekloges-prev.singularlogic.eu/{election}`. Station id = `ep * 10000 + seq`, so per-constituency queries use `tm_id BETWEEN ep*10000 AND ep*10000+9999`. Per-station preference votes (`tm_vc_*`) exist for 2019 and May 2023 only; June 2023 and Euro 2024 have party votes only. Party leaders' crosses exist only as constituency totals (`ep_total`).
