@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/*THEME_JS*/</script>
+<title>Καταστήματα και χώροι</title>
+<!--FONTS-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+/*COMMON_CSS*/
+  #map { height: 72vh; min-height: 420px; }
+  .controls .chk { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-size: 14px; }
+  .controls .chk input { min-height: 0; padding: 0; width: 16px; height: 16px; }
+  @media (max-width: 599px) {  /* common.css hides control labels on phones; this one holds its checkbox */
+    .controls > label.chk { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
+  }
+  .tip td.n { text-align: right; }
+  .tip .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: baseline; }
+  .tip h3 { font-size: 12px; color: var(--ink-2); font-weight: 600; margin: 8px 0 2px; }
+  .tip .other { font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+</style>
+</head>
+<body>
+<main>
+<!--HEADER-->
+  <h1>Καταστήματα ψηφοφορίας και πολιτικοί χώροι</h1>
+  <p class="sub" id="sub"></p>
+  <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
+  <div class="controls">
+    <div class="seg" id="elections" role="group" aria-label="Εκλογές"></div>
+    <label for="mode">Χρώμα</label><select id="mode"></select>
+    <label for="ep">Περιφέρεια</label><select id="ep"><option value="">Όλη η χώρα</option></select>
+    <label class="chk"><input type="checkbox" id="approx" checked> Και θέσεις κατά προσέγγιση</label>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="mapwrap">
+    <div id="map" role="region" aria-label="Χάρτης εκλογικών καταστημάτων"></div>
+    <div class="hint" id="hint" aria-hidden="true">Χρησιμοποιήστε δύο δάχτυλα για να μετακινήσετε τον χάρτη</div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <p class="note" id="note"></p>
+<!--FOOTER-->
+</main>
+<script>/*SHARED_JS*/</script>
+<script>
+const D = /*DATA*/null;
+/*COMMON_JS*/
+// D.venues: [lat, lon, placement (0 geocode, 1 settlement point, 2 community centre), constituency index,
+//            municipal unit, community, venue text, per election: null | [valid, stations, [party, votes, ...]]]
+const BLOC_NAMES = Object.keys(D.blocs);
+const blocOf = {};
+BLOC_NAMES.forEach(b => D.blocs[b].forEach(p => blocOf[p] = b));
+const pname = p => D.parties[p]?.[0] ?? p;
+const pcol = p => D.parties[p]?.[1] ?? "#8a8a85";
+const V = D.venues.map(([lat, lon, q, ep, den, comm, text, per]) => {
+  const p = text.split(/\s{2,}/).reduce((a, s) => (/^\d+[Α-Ω]?$/.test(s) && a.length ? a[a.length - 1] += " " + s : a.push(s), a), []);
+  const [name, street, town] = p.length >= 3 ? [p.slice(0, -2).join(" "), ...p.slice(-2)] : [p[0], "", p[p.length - 1]];
+  return {lat, lon, q, ep, den, comm, name: name || "(χωρίς όνομα στο αρχείο ΥΠΕΣ)", street, town, per: per.map(r => r && results(r))};
+});
+// One election at one venue: parties by votes, and each bloc's share with its parties by votes.
+function results([valid, stations, flat]) {
+  const ps = [];
+  for (let i = 0; i < flat.length; i += 2) ps.push({p: flat[i], v: flat[i + 1], s: valid ? flat[i + 1] / valid : 0});
+  ps.sort((a, b) => b.v - a.v);
+  const blocs = Object.fromEntries(BLOC_NAMES.map(b => {
+    const mine = ps.filter(x => blocOf[x.p] === b);
+    return [b, {s: mine.reduce((t, x) => t + x.s, 0), ps: mine}];
+  }));
+  return {valid, stations, ps, blocs};
+}
+
+const MODES = [["lead", "1ο κόμμα"], ...BLOC_NAMES.flatMap((b, i) => [[`s${i}`, `${b}: ποσοστό χώρου`], [`l${i}`, `${b}: 1ο κόμμα του χώρου`]])];
+$("mode").innerHTML = MODES.map(([k, t]) => `<option value="${k}">${t}</option>`).join("");
+$("ep").innerHTML += D.eps.map((e, i) => `<option value="${i}">${e}</option>`).join("");
+$("elections").innerHTML = D.elections.map((e, i) => `<button type="button" data-e="${i}" aria-pressed="false">${e}</button>`).join("");
+
+const st = {e: D.elections.length - 1, m: "lead", ep: "", approx: true};
+for (const [k, v] of new URLSearchParams(location.hash.slice(1))) {
+  if (k === "e" && D.elections[+v]) st.e = +v;
+  if (k === "m" && MODES.some(([x]) => x === v)) st.m = v;
+  if (k === "ep" && D.eps[+v]) st.ep = v;
+  if (k === "approx") st.approx = v !== "0";
+}
+const saveHash = () => history.replaceState(null, "", "#" + new URLSearchParams({e: st.e, m: st.m, ...(st.ep ? {ep: st.ep} : {}), ...(st.approx ? {} : {approx: 0})}));
+
+const map = L.map("map", mapOptions({preferCanvas: true, scrollWheelZoom: false})).setView([38.6, 23.8], 6.5);
+baseTiles(map, "Αποτελέσματα & καταστήματα: ΥΠΕΣ (ανεπίσημα) · όρια: ΕΛΣΤΑΤ", 17);
+touchMap(map);
+const maxValid = Math.max(1, ...V.flatMap(v => v.per.map(r => r?.valid || 0)));
+const radius = v => (2 + 7 * Math.sqrt((v.per[st.e]?.valid || 0) / maxValid)) * Math.min(2.2, Math.max(0.6, 2 ** ((map.getZoom() - 7) / 3)));
+map.on("zoomend", () => layer && layer.eachLayer(l => l.setRadius(radius(l.v))));
+
+const PLACE = ["", "Θέση: κέντρο του οικισμού (ΕΛΣΤΑΤ)", "Θέση κατά προσέγγιση: κέντρο της κοινότητας"];
+const row = x => `<tr><td><span class="dot" style="background:${pcol(x.p)}"></span>${pname(x.p)}</td><td class="n">${pct(x.s)}</td><td class="n m">${fmt(x.v)}</td></tr>`;
+function tip(v) {
+  const r = v.per[st.e];
+  const other = v.per.map((o, i) => i !== st.e && o?.ps[0] ? `${D.elections[i]}: ${pname(o.ps[0].p)} ${pct(o.ps[0].s)}` : "").filter(Boolean);
+  return `<div class="tip"><b>${v.name}</b><span class="m">${[v.street, v.town].filter(Boolean).join(" · ")}</span><br>` +
+    `<span class="m">${v.den}${v.comm && v.comm !== v.den ? " · " + v.comm : ""} · ${D.eps[v.ep]}</span>` +
+    (v.q ? `<br><span class="m">${PLACE[v.q]}</span>` : "") +
+    `<h3>${D.elections[st.e]} · ${r.stations} τμ. · ${fmt(r.valid)} έγκυρα</h3><table>${r.ps.slice(0, 3).map(row).join("")}</table>` +
+    `<h3>Χώροι</h3><table>${BLOC_NAMES.map(b => { const x = r.blocs[b];
+      return `<tr><td>${b}</td><td class="n"><b style="display:inline">${pct(x.s)}</b></td>` +
+        `<td>${x.ps.slice(0, 2).map(y => `<span class="dot" style="background:${pcol(y.p)}"></span>${pname(y.p)} ${pct(y.s)}`).join(" · ") || "–"}</td></tr>`; }).join("")}</table>` +
+    (other.length ? `<div class="other">1ο κόμμα σε άλλες εκλογές: ${other.join(" · ")}</div>` : "") + `</div>`;
+}
+
+let layer;
+function render() {
+  saveHash();
+  document.querySelectorAll("#elections button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.e === st.e));
+  $("mode").value = st.m; $("ep").value = st.ep; $("approx").checked = st.approx;
+  const shown = V.filter(v => v.per[st.e] && (st.approx || v.q < 2) && (st.ep === "" || v.ep === +st.ep));
+  const bi = +st.m.slice(1), bloc = BLOC_NAMES[bi];
+  let fill, legend;
+  if (st.m[0] === "s") {
+    const val = v => v.per[st.e].blocs[bloc].s;
+    const br = breaks(shown.map(val));
+    fill = v => colorFor(val(v), br);
+    legend = `<span class="lbl" style="margin-left:0">${bloc}, % έγκυρων:</span>` + seqLegend(br, pct);
+  } else {
+    const lead = st.m === "lead" ? v => v.per[st.e].ps[0] : v => v.per[st.e].blocs[bloc].ps[0];
+    const n = {};
+    shown.forEach(v => { const x = lead(v); if (x) n[x.p] = (n[x.p] || 0) + 1; });
+    fill = v => lead(v) ? pcol(lead(v).p) : css("--s0");
+    legend = `<span class="lbl" style="margin-left:0">${st.m === "lead" ? "1ο κόμμα" : `1ο κόμμα: ${bloc}`} (καταστήματα):</span>` +
+      Object.entries(n).sort((a, b) => b[1] - a[1]).map(([p, c]) => swatch(pcol(+p), `${pname(+p)} ${fmt(c)}`)).join("");
+  }
+  if (layer) layer.remove();
+  layers = [];
+  const ms = shown.map((v, i) => {
+    const l = L.circleMarker([v.lat, v.lon], {radius: radius(v), fillColor: fill(v), fillOpacity: v.q === 2 ? 0.55 : 0.85,
+      color: v.q === 2 ? css("--ink-2") : css("--surface"), weight: 1, dashArray: v.q === 2 ? "2 2" : null});
+    l.v = v; l.i = i; layers[i] = l; bindFeature(l, tip(v));
+    return l;
+  });
+  layer = L.featureGroup(ms.sort((a, b) => (b.v.per[st.e].valid - a.v.per[st.e].valid))).addTo(map);  // large below
+  $("legend").innerHTML = legend + `<span class="lbl">· μέγεθος = έγκυρα ψηφοδέλτια · διακεκομμένο περίγραμμα = θέση κατά προσέγγιση</span>`;
+
+  const valid = shown.reduce((t, v) => t + v.per[st.e].valid, 0);
+  const count = q => shown.filter(v => v.q === q).length;
+  $("stats").innerHTML =
+    `<div><b>${fmt(shown.length)}</b><span>καταστήματα στον χάρτη</span></div>` +
+    `<div><b>${fmt(shown.reduce((t, v) => t + v.per[st.e].stations, 0))}</b><span>εκλογικά τμήματα</span></div>` +
+    `<div><b>${fmt(valid)}</b><span>έγκυρα ψηφοδέλτια</span></div>` +
+    `<div><b>${fmt(count(0))} · ${fmt(count(1))} · ${fmt(count(2))}</b><span>θέση: διεύθυνση · οικισμός · κέντρο κοινότητας</span></div>`;
+  $("sub").textContent = `${D.elections[st.e]}. Κάθε κύκλος είναι ένα εκλογικό κατάστημα (σχολείο ή άλλο κτίριο με ένα ή περισσότερα τμήματα).`;
+  repick();
+}
+function fit() {
+  const pts = V.filter(v => st.ep === "" || v.ep === +st.ep).map(v => [v.lat, v.lon]);
+  if (pts.length) map.fitBounds(pts, {padding: [12, 12], maxZoom: 13});
+}
+document.querySelectorAll("#elections button").forEach(b => b.onclick = () => { st.e = +b.dataset.e; render(); });
+$("mode").onchange = e => { st.m = e.target.value; render(); };
+$("ep").onchange = e => { st.ep = e.target.value; pick(null); render(); fit(); };
+$("approx").onchange = e => { st.approx = e.target.checked; pick(null); render(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+addEventListener("themechange", render);
+fitOnceSized(map, () => L.latLngBounds(V.filter(v => st.ep === "" || v.ep === +st.ep).map(v => [v.lat, v.lon])), {padding: [12, 12], maxZoom: 13},
+             () => layer && layer.eachLayer(l => l.setRadius(radius(l.v))));
+
+$("note").textContent =
+  "Πηγές: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα, αθροισμένα ανά κατάστημα· καταστήματα από τα αρχεία ΥΠΕΣ «Εκλογικά τμήματα με κατάστημα ψηφοφορίας» κάθε εκλογής, " +
+  "συνδεδεμένα μεταξύ εκλογών με το όνομα του καταστήματος· όρια και οικισμοί ΕΛΣΤΑΤ 2021. Μόνο συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο. " +
+  "Θέσεις: γεωκωδικοποίηση OpenStreetMap/Nominatim όπου υπάρχει· αλλιώς το σημείο του οικισμού που ονομάζει η διεύθυνση· αλλιώς το κέντρο της κοινότητας " +
+  "(κατά προσέγγιση, απλωμένα σε μικρή σπείρα· στις πόλεις αυτό δεν είναι η πραγματική θέση). " +
+  "Χώροι: " + BLOC_NAMES.map(b => `${b}: ${D.blocs[b].filter(p => D.parties[p]).map(pname).join(", ")}`).join("· ") +
+  ". Τα υπόλοιπα κόμματα δεν ανήκουν σε χώρο. Τμήματα ετεροδημοτών και ειδικά τμήματα δεν έχουν κατάστημα και λείπουν.";
+render();
+</script>
+</body>
+</html>
