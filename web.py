@@ -255,7 +255,7 @@ body.pick .acts{display:none}
 .gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
 .gr .k{display:inline-flex;align-items:center;white-space:nowrap}
 .gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
-@media (min-width:900px){main{position:relative}.gr{position:absolute;right:24px;top:56px;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.cover{max-width:calc(100% - 380px)}}
+@media (min-width:900px){main{position:relative}.gr{position:absolute;right:24px;top:56px;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.nums{max-width:calc(100% - 380px)}}
 .dhm{margin:0 0 8px;color:var(--ink-2);font-size:.8125rem;line-height:1.45}
 .eps .dhm{grid-column:2/-1;grid-row:2;margin:4px 0 0;position:relative}
 .sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
@@ -265,7 +265,18 @@ body.pick .acts{display:none}
 .sw button:hover{color:var(--pen)}
 .sw button:active{background:var(--wash)}
 .sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
-.cover{margin:14px 0 0;font-size:.875rem;color:var(--ink-2)}
+.nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 24px;margin:32px 0 0;max-width:640px}
+.nums div{display:flex;flex-direction:column-reverse;border-top:2px solid var(--ink);padding-top:8px}
+.nums dd{margin:0;font:400 clamp(1.75rem,1.2rem + 2.4vw,2.5rem)/1.1 "GFS Didot",Georgia,serif;font-variant-numeric:tabular-nums}
+.nums dt{font-size:.8125rem;color:var(--ink-2);line-height:1.3}
+.sf{position:relative;max-width:560px}
+.sug{position:absolute;left:0;right:0;top:100%;z-index:20;list-style:none;margin:4px 0 0;padding:4px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 18%,transparent)}
+.sug[hidden]{display:none}
+.sug a{display:grid;gap:1px;padding:10px 12px;min-height:44px;color:var(--ink);text-decoration:none;border-radius:6px}
+.sug a b{font:400 1.25rem/1.2 "GFS Didot",Georgia,serif}
+.sug a span{color:var(--ink-2);font-size:.875rem}
+.sug a.act,.sug a:hover{background:var(--wash)}
+.sug a.more{min-height:36px;padding:8px 12px;color:var(--pen);font-size:.875rem}
 .country,#regions{margin-top:96px}
 .country h2,#regions>h2{font:400 1.75rem/1.2 "GFS Didot",Georgia,serif;margin:0 0 16px}
 .cg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 36px}  /* title, text and link rows line up across the four entries */
@@ -300,7 +311,7 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
   .eps .dhm{grid-row:3}
   .acts{grid-row:4}
 }
-@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem}#f{font-size:1.0625rem}}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.nums{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;margin-top:20px}.gr{display:none}}
 @media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
@@ -308,6 +319,33 @@ document.getElementById("s").hidden = false;
 const f = document.getElementById("f"), n = document.getElementById("n"), items = [...document.querySelectorAll(".eps li")];
 const words = new Map(items.map(li => [li, li.dataset.k.split(" ").map(w => [w, key(w)])]));
 const own = li => words.get(li).slice(0, +li.dataset.n);  // the constituency's own name, ahead of its towns
+const sug = document.getElementById("sug");
+let act = -1;
+const setAct = i => {
+  const opts = [...sug.querySelectorAll("a[role=option]")];
+  act = opts.length ? (i + opts.length) % opts.length : -1;
+  opts.forEach((o, k) => o.classList.toggle("act", k === act));
+  act >= 0 ? f.setAttribute("aria-activedescendant", opts[act].id) : f.removeAttribute("aria-activedescendant");
+};
+const closeSug = () => { sug.hidden = true; f.setAttribute("aria-expanded", "false"); setAct(-1); };
+// Up to 6 constituencies under the field: the name, its region and its first candidate; the rest stay in the list below.
+const suggest = (shown, total) => {
+  sug.replaceChildren();
+  shown.slice(0, 6).forEach((li, i) => {
+    const a = document.createElement("a"), b = document.createElement("b"), s = document.createElement("span");
+    a.id = "o" + i; a.href = li.querySelector("h4 a").href; a.setAttribute("role", "option");
+    b.textContent = li.querySelector("h4 a").textContent;
+    s.textContent = [li.closest(".grp").querySelector(".reg").textContent, (li.querySelector(".who") || {}).textContent].filter(Boolean).join(" · ");
+    a.append(b, s); const item = document.createElement("li"); item.setAttribute("role", "presentation"); item.append(a); sug.append(item);
+  });
+  if (total > 6) {
+    const a = document.createElement("a"), item = document.createElement("li");
+    a.className = "more"; a.href = "#regions"; a.textContent = `και ${total - 6} ακόμη στη λίστα`; a.addEventListener("click", closeSug);
+    item.append(a); sug.append(item);
+  }
+  const any = shown.length > 0;
+  sug.hidden = !any; f.setAttribute("aria-expanded", String(any)); setAct(-1);
+};
 f.addEventListener("input", () => {
   const qs = queryWords(f.value);
   let shown = 0;
@@ -316,6 +354,8 @@ f.addEventListener("input", () => {
     li.style.order = hit && qs.length && !qs.every(q => hits(own(li), q)) ? 1 : "";  // name matches first
   }
   for (const li of items) { const d = li.querySelector("details"); if (d) d.open = shown === 1 && !li.hidden; }  // the one match shows its older maps
+  const ranked = items.filter(li => !li.hidden).sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
+  qs.length ? suggest(ranked, shown) : closeSug();
   n.textContent = !qs.length ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του δήμου ή του νομού.`
     : shown === 1 ? "1 περιφέρεια. Enter για τον πιο πρόσφατο χάρτη." : `${shown} περιφέρειες`;
 });
@@ -346,7 +386,12 @@ document.querySelector(".jump").addEventListener("click", e => {
   const a = e.target.closest("a");
   if (a) { e.preventDefault(); history.pushState(null, "", a.hash); fromHash(); }
 });
+document.addEventListener("click", e => { if (!e.target.closest(".sf")) closeSug(); });
+f.addEventListener("focus", () => { if (f.value.trim()) f.dispatchEvent(new Event("input")); });
 f.addEventListener("keydown", e => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { if (!sug.hidden) { e.preventDefault(); setAct(act + (e.key === "ArrowDown" ? 1 : -1)); } return; }
+  if (e.key === "Escape") { closeSug(); return; }
+  if (e.key === "Enter" && act >= 0) { e.preventDefault(); location.href = sug.querySelectorAll("a[role=option]")[act].href; return; }
   const shown = items.filter(li => !li.hidden).sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
   if (e.key === "Enter" && f.value.trim() && (shown.length === 1 || +shown[1].style.order > +shown[0].style.order)) location.href = shown[0].querySelector("h4 a").href;
 });
@@ -437,8 +482,15 @@ def _write_index(order, nikh, elected):
     if DB.exists():
         with sqlite3.connect(DB) as con:
             n_tm = con.execute("SELECT COUNT(*) FROM station WHERE election=? AND kind='Κ'", (last,)).fetchone()[0]
-    cover = (f"{len(eps)} εκλογικές περιφέρειες, {len(ELECTIONS)} αναμετρήσεις από το {list(ELECTIONS)[0][:4]} έως το {last[:4]}"
-             + (f", {f'{n_tm:,}'.replace(',', '.')} εκλογικά τμήματα στις {ELECTION_NAMES[last]}" if n_tm else ""))
+    n_comm = None
+    if DB.exists():
+        with sqlite3.connect(DB) as con:
+            n_comm = con.execute("SELECT COUNT(DISTINCT comm_code) FROM area_match WHERE election=?", (last,)).fetchone()[0]
+    dots = lambda n: f"{n:,}".replace(",", ".")
+    figs = [(len(eps), "εκλογικές περιφέρειες"), (len(ELECTIONS), f"αναμετρήσεις, {list(ELECTIONS)[0][:4]} έως {last[:4]}")]
+    figs += [(n_tm, f"εκλογικά τμήματα, {ELECTION_NAMES[last]}")] if n_tm else []
+    figs += [(n_comm, "κοινότητες στους χάρτες")] if n_comm else []
+    nums = "".join(f"<div><dt>{label}</dt><dd>{dots(n)}</dd></div>" for n, label in figs)
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
@@ -451,9 +503,10 @@ def _write_index(order, nikh, elected):
 <h1>{CROSS_SVG}Χάρτες σταυρών</h1>
 <p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και ανά εκλογικό τμήμα, σε όλες τις εκλογικές περιφέρειες.</p>
 <div id="s" hidden><label class="sr" for="f">Αναζήτηση περιφέρειας</label>
-<input id="f" type="search" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
+<div class="sf"><input id="f" type="search" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
+<ul id="sug" class="sug" role="listbox" aria-label="Προτάσεις" hidden></ul></div>
 <p id="n" aria-live="polite"></p></div>
-<p class="cover">{cover}</p>
+<dl class="nums">{nums}</dl>
 {greece}
 </header>
 <section class="country" aria-labelledby="ct"><h2 id="ct">Όλη η χώρα</h2><div class="cg">
