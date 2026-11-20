@@ -5,8 +5,10 @@ Columns: target-election parties (+ others, abstention/invalid) as shares of tar
 Unit: (constituency, municipal unit) present in both elections, ordinary stations only.
 
 Needs pyei (pymc). Run:
-  python -I -X utf8 analysis/pyei_2019_2023.py data/stavroi.sqlite <target> [base] [max_units]
+  python -I -X utf8 analysis/pyei_2019_2023.py data/stavroi.sqlite <target> [base] [max_units] [--full]
   target: 2023/may | 2023/june | 2024/euro; base: 2019 (default) | 2023/may | 2023/june
+  Default: compact rows/columns (small parties in "Λοιπά") and longer sampling, so the chains converge.
+  --full: the first runs' larger tables (analysis/pyei_*.txt, which did not converge).
 """
 import os
 import sqlite3
@@ -17,9 +19,11 @@ os.environ.setdefault("XLA_FLAGS", "--xla_force_host_platform_device_count=4")  
 import numpy as np
 from pyei.r_by_c import RowByColumnEI
 
-DB, ELECTION = sys.argv[1], sys.argv[2]
-BASE = sys.argv[3] if len(sys.argv) > 3 else "2019"
-MAX_UNITS = int(sys.argv[4]) if len(sys.argv) > 4 else None
+FULL = "--full" in sys.argv
+args = [a for a in sys.argv[1:] if a != "--full"]
+DB, ELECTION = args[0], args[1]
+BASE = args[2] if len(args) > 2 else "2019"
+MAX_UNITS = int(args[3]) if len(args) > 3 else None
 c = sqlite3.connect(DB)
 
 ROWS = {
@@ -29,11 +33,16 @@ ROWS = {
                  "Πλεύση": 123, "ΜέΡΑ25": 122},  # no Spartiates in May
     "2023/june": {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΠΑΣΟΚ": 106, "ΚΚΕ": 3, "Ελλ. Λύση": 108,
                   "Σπαρτιάτες": 157, "Πλεύση": 123, "ΜέΡΑ25": 122},
+}[BASE] if FULL else {
+    "2019": {"ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "Ελλ. Λύση": 108, "Χρυσή Αυγή": 41, "Ένωση Κεντρ.": 15},
+    "2023/may": {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "Ελλ. Λύση": 108},
+    "2023/june": {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "Ελλ. Λύση": 108, "Σπαρτιάτες": 157},
 }[BASE]
 # few columns keeps the R x C model tractable (rows carry the detail we care about)
-COLS = {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΠΑΣΟΚ": 106, "Ελλ. Λύση": 108}
+COLS = {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΠΑΣΟΚ": 106, "Ελλ. Λύση": 108} if FULL else     {"ΝΙΚΗ": 131, "ΝΔ": 2, "Ελλ. Λύση": 108}
 if ELECTION == "2024/euro":
     COLS["Φωνή Λογικής"] = 158
+TUNE, DRAWS = (1500, 1000) if FULL else (3000, 1500)
 
 
 def load(e):
@@ -83,13 +92,15 @@ assert np.allclose(X.sum(0), 1) and np.allclose(Y.sum(0), 1)
 
 ei = RowByColumnEI(model_name="multinomial-dirichlet-modified", pareto_shape=100, pareto_scale=100)
 ei.fit(X, Y, pops, demographic_group_names=row_names, candidate_names=col_names,
-       draws=1000, tune=1500, chains=4, target_accept=0.9, random_seed=0,  # PyEI samples with numpyro
+       draws=DRAWS, tune=TUNE, chains=4, target_accept=0.9, random_seed=0,  # PyEI samples with numpyro
        nuts_sampler_kwargs={"chain_method": "parallel"})
 
 import arviz as az
 
 rhat = az.rhat(ei.sim_trace, var_names=["b"]) if "b" in ei.sim_trace.posterior else az.rhat(ei.sim_trace)
 print("max rhat:", float(max(rhat[v].max() for v in rhat.data_vars)))
+ess = az.ess(ei.sim_trace, var_names=["b"]) if "b" in ei.sim_trace.posterior else az.ess(ei.sim_trace)
+print("min ess:", float(min(ess[v].min() for v in ess.data_vars)))
 
 prefs = ei.sampled_voting_prefs  # (samples, rows, cols), group-population weighted
 grp_pop = (X * pops).sum(1)  # people in each base group (on target registered base)
