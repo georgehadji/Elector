@@ -125,7 +125,7 @@ def geocode(venue, unit, unit_name, cache):
     """Address, then venue name, then street without number. A hit inside the unit wins;
     otherwise the first hit within 0.3 km of its edge (ELSTAT edges are simplified and
     long streets cross unit borders)."""
-    if cache.get(venue):
+    if venue in cache:  # a cached null is a venue no search could place: asking Nominatim again finds nothing new
         return cache[venue]
     name, street, town = venue_parts(venue)
     full, bare = clean_street(street)

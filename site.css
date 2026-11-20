@@ -1,0 +1,18 @@
+/* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
+   Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.bar .home { color: var(--ink); font-weight: 600; text-decoration: none; }
+.bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
+#theme { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 12px; font: inherit; font-size: 13px;
+         color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 16px; cursor: pointer; }
+#theme:hover, #theme[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); }
+#theme svg { width: 16px; height: 16px; fill: currentColor; }
+.site { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+.site p { margin: 0 0 4px; }
+.site a { color: inherit; text-underline-offset: 3px; }
+.site a + a { margin-left: 16px; }
+@media (pointer: coarse) {
+  #theme { min-height: 44px; }
+  .bar .home, .site a { display: inline-block; padding: 12px 0; }
+}
+@media print { .bar, .site { display: none !important; } }

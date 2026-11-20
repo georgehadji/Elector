@@ -9,10 +9,14 @@ Run build.py for all four elections first, then:
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-ELECTIONS = {"2019": "2019", "2023-may": "Μάιος 2023", "2023-june": "Ιούνιος 2023", "2024-euro": "Ευρωεκλογές 2024"}
+sys.path.insert(0, str(ROOT))  # python -I drops the script dir
+from build import ELECTION_NAMES, INDEX_DARK, INDEX_LIGHT, fill  # noqa: E402
+
+ELECTIONS = {k.replace("/", "-"): name for k, name in ELECTION_NAMES.items()}  # file-name form of the keys
 MIN_SHARE = 1.0  # % of valid votes on the map, in at least one election, for a party to be listed
 SHORT = {"2": "ΝΔ", "4": "ΣΥΡΙΖΑ", "106": "ΠΑΣΟΚ-ΚΙΝΑΛ", "3": "ΚΚΕ", "108": "Ελληνική Λύση", "122": "ΜέΡΑ25",
          "123": "Πλεύση Ελευθερίας", "131": "ΝΙΚΗ", "157": "Σπαρτιάτες", "41": "Χρυσή Αυγή", "158": "Φωνή Λογικής",
@@ -60,7 +64,8 @@ for i, pid in enumerate(order):
 data = {"elections": ELECTIONS, "totals": totals,
         "parties": [{"id": pid, "name": SHORT.get(pid, parties[pid]["name"]), "color": parties[pid]["color"]} for pid in order],
         "geo": {"type": "FeatureCollection", "features": features}}
-template = (ROOT / "compare_template.html").read_text(encoding="utf-8")
+template = fill((ROOT / "compare_template.html").read_text(encoding="utf-8"),
+                INDEX_LIGHT | {"panel": "#ffffffee", "field": "#fff"}, INDEX_DARK | {"panel": "#1d2430ee", "field": "#1d2430"})
 out = ROOT / "out" / "compare.html"
 out.write_text(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))),
                encoding="utf-8")

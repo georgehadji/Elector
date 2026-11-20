@@ -1,17 +1,177 @@
 <!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Χάρτες σταυρών</title><style>
-:root{--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df}
-@media (prefers-color-scheme: dark){:root{--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835}}
-body{margin:0;font:14px/1.45 system-ui,sans-serif;background:var(--surface);color:var(--ink)}
-main{max-width:900px;margin:0 auto;padding:16px} a{color:inherit}
-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)} th{color:var(--ink-2);font-size:12px}
-.n{text-align:right} p{color:var(--ink-2)} .wrap{overflow-x:auto}
-@media (max-width:599px){main{padding:12px} th,td{padding:6px 4px} th{font-size:11px} td{font-size:13px}}
+<title>Κάλυψη χαρτών · Ευρωεκλογές 2024</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
+<script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
+// Without a saved choice the page follows the system setting.
+(() => {
+  const root = document.documentElement, sys = matchMedia("(prefers-color-scheme: dark)");
+  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") root.dataset.theme = t; } catch {}
+  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : sys.matches;
+  addEventListener("DOMContentLoaded", () => {
+    const b = document.getElementById("theme");
+    if (!b) return;
+    const sync = () => b.setAttribute("aria-pressed", dark());
+    sync();
+    sys.addEventListener("change", sync);
+    b.onclick = () => {
+      root.dataset.theme = dark() ? "light" : "dark";
+      try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+      sync();
+      dispatchEvent(new Event("themechange"));  // map pages redraw: their colours are read from CSS variables
+    };
+  });
+})();
+</script><style>/* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
+:root{color-scheme:light;--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--shadow:rgba(0,0,0,.18);--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--link:#256abf;--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:#e4e3df;--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--shadow:rgba(0,0,0,.5);--d0:#5a5955;--link:#6da7ec}}
+:root[data-theme=dark]{color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--shadow:rgba(0,0,0,.5);--d0:#5a5955;--link:#6da7ec}
+@media print{:root:not([data-theme]),:root[data-theme]{color-scheme:light;--surface:#fff;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--shadow:rgba(0,0,0,.18);--d0:#e4e3df;--link:#256abf}}
+
+}
+:root[data-theme="dark"] { color-scheme: dark; --surface: #1a1a19; --ink: #ecebe7; --ink-2: #a8a7a2; --line: #383835; --chip: #262624;
+        --shadow: rgba(0,0,0,.5); --d0: #5a5955; --link: #6da7ec; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
+main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+h1 { font: 400 28px/1.15 "GFS Didot", Georgia, serif; margin: 0 0 4px; }
+/* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
+   Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.bar .home { color: var(--ink); font-weight: 600; text-decoration: none; }
+.bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
+#theme { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 12px; font: inherit; font-size: 13px;
+         color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 16px; cursor: pointer; }
+#theme:hover, #theme[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); }
+#theme svg { width: 16px; height: 16px; fill: currentColor; }
+.site { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+.site p { margin: 0 0 4px; }
+.site a { color: inherit; text-underline-offset: 3px; }
+.site a + a { margin-left: 16px; }
+@media (pointer: coarse) {
+  #theme { min-height: 44px; }
+  .bar .home, .site a { display: inline-block; padding: 12px 0; }
+}
+@media print { .bar, .site { display: none !important; } }
+
+h2 { font-size: 16px; margin: 0 0 8px; }
+a { color: var(--link); }
+.sub { color: var(--ink-2); margin: 0 0 8px; }
+.views { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; font-size: 14px; }
+.views:empty { display: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.controls label { color: var(--ink-2); font-size: 13px; }
+select, button, input { font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+select { min-width: 0; max-width: 100%; }
+input[type="search"] { width: 14em; max-width: 100%; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.pdf { margin-left: auto; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 24px; margin: 4px 0 12px; }
+.stats b { display: block; font-size: 20px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--ink-2); font-size: 12px; }
+.mapwrap { position: relative; }
+#map { height: 62vh; min-height: 360px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); }
+.hint { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; z-index: 1000;
+        background: rgba(0,0,0,.5); color: #fff; font-weight: 600; border-radius: 8px; pointer-events: none;
+        opacity: 0; transition: opacity .2s; }
+.hint.on { opacity: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 8px 0 20px; font-size: 12px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; }
+.legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+th button { all: unset; cursor: pointer; }
+th button:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+th[aria-sort="ascending"] button::after { content: " ▲"; font-size: 9px; }
+th[aria-sort="descending"] button::after { content: " ▼"; font-size: 9px; }
+td.n, th.n { text-align: right; }
+tbody tr:hover { background: var(--chip); }
+tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
+.rowlink { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
+.rowlink:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.m { color: var(--ink-2); }
+.tablewrap { max-height: 520px; overflow: auto; }
+.note { color: var(--ink-2); font-size: 12px; margin-top: 16px; }
+/* Tooltip (mouse hover) and details panel (tap, click, table row) */
+.leaflet-container .leaflet-tooltip { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: 0 2px 8px var(--shadow); }
+.leaflet-tooltip-left::before { border-left-color: var(--surface); }
+.leaflet-tooltip-right::before { border-right-color: var(--surface); }
+.tip { font-variant-numeric: tabular-nums; }
+.tip b { display: block; }
+.tip table { width: auto; }
+.tip table td { padding: 1px 6px 1px 0; border: 0; }
+#panel { position: fixed; z-index: 2000; left: 0; right: 0; bottom: 0; max-height: 55vh; overflow: auto;
+         background: var(--surface); color: var(--ink); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px var(--shadow);
+         padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 12px 12px 0 0; }
+#panel[hidden] { display: none; }
+#panel .close { float: right; margin: -6px -8px 4px 8px; min-width: 44px; min-height: 44px; font-size: 22px; line-height: 1; }
+#panel .tip table td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--line); }
+@media (min-width: 720px) {
+  #panel { left: auto; right: 16px; bottom: 16px; width: 420px; max-height: 70vh; border: 1px solid var(--line); border-radius: 10px; }
+}
+/* Phones: full-width controls so the map starts higher; the table drops its least useful column. */
+@media (max-width: 599px) {
+  /* The whole map fits the first screen: stats go below it, labels are for screen readers only. */
+  main { padding: 12px; display: flex; flex-direction: column; }
+  main > .stats { order: 1; margin-top: 4px; }
+  main > h2, main > .tablewrap, main > .note, main > #detail { order: 2; }
+  main > .site { order: 3; }
+  h1 { font-size: 23px; }
+  .sub { font-size: 13px; margin-bottom: 4px; }
+  .views { margin-bottom: 4px; }
+  .controls > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .controls > select, .controls > input { flex: 1 1 100%; width: auto; }
+  .controls > #q { flex: 1 1 38%; min-width: 0; }  /* else its 14em width forces a wrap */
+  .controls > #cand { flex: 1 1 58%; }
+  .legend { margin: 8px 0 12px; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
+  .seg button { padding: 6px 4px; font-size: 14px; line-height: 1.2; }
+  .pdf { display: none; }  /* print-to-PDF is a desktop task */
+  .mapwrap #map { height: 55vh; height: 55svh; min-height: 300px; }  /* beats the station page's own #map height */
+  #tbl th:nth-child(2), #tbl td:nth-child(2) { display: none; }  /* Δημ. ενότητα */
+  #tbl th:first-child, #tbl td:first-child { position: sticky; left: 0; background: var(--surface); }
+  #tbl th:first-child { z-index: 2; }
+  #tbl tbody tr:hover td:first-child, #tbl tr.sel td:first-child { background: var(--chip); }
+  th, td { padding: 6px; }
+}
+/* Touch: 44px targets */
+@media (pointer: coarse) {
+  select, button, input { min-height: 44px; }
+  select, input { font-size: 16px; }  /* iOS zooms into fields under 16px */
+  .views a { display: inline-block; padding: 12px 0; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+  th button { display: flex; align-items: center; min-height: 44px; width: 100%; }
+  th.n button { justify-content: flex-end; }
+  .rowlink { display: inline-flex; align-items: center; min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
+/* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
+@page { size: A4; margin: 12mm; }
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  main { max-width: none; padding: 0; }
+  .seg, .pdf, .views, .leaflet-control-zoom, #panel, .hint, input, .controls label { display: none !important; }
+  select { border: 0; padding: 0; appearance: none; background: none; font-weight: 600; font-size: 16px; min-height: 0; }
+  #map { break-inside: avoid; }
+  .tablewrap { max-height: none; overflow: visible; }
+  th { position: static; }
+  tr { break-inside: avoid; }
+  tr.sel { box-shadow: none; background: none; }
+  .rowlink { text-decoration: none; }
+  th[aria-sort] button::after { content: none; }
+}
+
+main{max-width:900px} p{color:var(--ink-2)} .wrap{overflow-x:auto}
+@media (max-width:599px){th,td{padding:6px 4px} th{font-size:11px} td{font-size:13px}}
 @media (pointer:coarse){td a{display:inline-block;padding:13px 0}}</style></head><body><main>
-<h1 style="font-size:20px">Χάρτες σταυρών · 2024/euro</h1>
+<header class="bar"><a class="home" href="index.html">Χάρτες σταυρών</a><button id="theme" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg>Σκούρο θέμα</button></header>
+<h1>Κάλυψη χαρτών · Ευρωεκλογές 2024</h1>
 <p>Ε.Δ.: εκλογικά διαμερίσματα · Περιοχές: κοινότητες στον χάρτη · Έδρα: διαμερίσματα που μπήκαν στην κοινότητα-έδρα
 χωρίς αντιστοίχιση ονόματος · Κάλυψη: σταυροί στον χάρτη ως ποσοστό του συνόλου.</p>
 <div class="wrap"><table><thead><tr><th>Περιφέρεια</th><th class="n">Ε.Δ.</th><th class="n">Περιοχές</th><th class="n">Χωρίς χάρτη</th>
-<th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody><tr><td><a href="2024-euro_1.html">Έβρου</a></td><td class="n">148</td><td class="n">87</td><td class="n">0</td><td class="n">6</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_38.html">Α΄ Αθηνών</a></td><td class="n">58</td><td class="n">1</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_63.html">Α΄ Ανατολικής Αττικής</a></td><td class="n">57</td><td class="n">47</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_6.html">Α΄ Θεσσαλονίκης</a></td><td class="n">67</td><td class="n">14</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_40.html">Α΄ Πειραιώς</a></td><td class="n">63</td><td class="n">34</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_30.html">Αιτωλοακαρνανίας</a></td><td class="n">279</td><td class="n">240</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_44.html">Αργολίδος</a></td><td class="n">93</td><td class="n">75</td><td class="n">0</td><td class="n">0</td><td class="n">99.6%</td></tr><tr><td><a href="2024-euro_45.html">Αρκαδίας</a></td><td class="n">258</td><td class="n">252</td><td class="n">0</td><td class="n">1</td><td class="n">99.7%</td></tr><tr><td><a href="2024-euro_19.html">Άρτας</a></td><td class="n">115</td><td class="n">80</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_31.html">Αχαΐας</a></td><td class="n">264</td><td class="n">238</td><td class="n">0</td><td class="n">3</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_64.html">Β΄ Δυτικής Αττικής</a></td><td class="n">18</td><td class="n">13</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_7.html">Β΄ Θεσσαλονίκης</a></td><td class="n">121</td><td class="n">113</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_41.html">Β΄ Πειραιώς</a></td><td class="n">36</td><td class="n">10</td><td class="n">0</td><td class="n">0</td><td class="n">99.5%</td></tr><tr><td><a href="2024-euro_60.html">Β1΄ Βορείου Τομέα Αθηνών</a></td><td class="n">61</td><td class="n">23</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_61.html">Β2΄ Δυτικού Τομέα Αθηνών</a></td><td class="n">40</td><td class="n">8</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_62.html">Β3΄ Νοτίου Τομέα Αθηνών</a></td><td class="n">69</td><td class="n">16</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_36.html">Βοιωτίας</a></td><td class="n">82</td><td class="n">76</td><td class="n">0</td><td class="n">0</td><td class="n">99.7%</td></tr><tr><td><a href="2024-euro_17.html">Γρεβενών</a></td><td class="n">92</td><td class="n">70</td><td class="n">0</td><td class="n">2</td><td class="n">98.4%</td></tr><tr><td><a href="2024-euro_4.html">Δράμας</a></td><td class="n">86</td><td class="n">70</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_52.html">Δωδεκανήσου</a></td><td class="n">91</td><td class="n">74</td><td class="n">0</td><td class="n">1</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_37.html">Εύβοιας</a></td><td class="n">194</td><td class="n">165</td><td class="n">0</td><td class="n">3</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_34.html">Ευρυτανίας</a></td><td class="n">106</td><td class="n">83</td><td class="n">0</td><td class="n">2</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_29.html">Ζακύνθου</a></td><td class="n">47</td><td class="n">47</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_32.html">Ηλείας</a></td><td class="n">237</td><td class="n">219</td><td class="n">0</td><td class="n">2</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_12.html">Ημαθίας</a></td><td class="n">87</td><td class="n">67</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_55.html">Ηρακλείου</a></td><td class="n">217</td><td class="n">194</td><td class="n">0</td><td class="n">0</td><td class="n">99.8%</td></tr><tr><td><a href="2024-euro_20.html">Θεσπρωτίας</a></td><td class="n">114</td><td class="n">105</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_18.html">Ιωαννίνων</a></td><td class="n">328</td><td class="n">314</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_26.html">Κέρκυρας</a></td><td class="n">124</td><td class="n">107</td><td class="n">0</td><td class="n">5</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_5.html">Καβάλας</a></td><td class="n">90</td><td class="n">79</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_25.html">Καρδίτσας</a></td><td class="n">158</td><td class="n">143</td><td class="n">0</td><td class="n">3</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_16.html">Καστοριάς</a></td><td class="n">74</td><td class="n">68</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_28.html">Κεφαλληνίας</a></td><td class="n">80</td><td class="n">79</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_10.html">Κιλκίς</a></td><td class="n">112</td><td class="n">83</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_15.html">Κοζάνης</a></td><td class="n">173</td><td class="n">160</td><td class="n">0</td><td class="n">3</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_43.html">Κορινθίας</a></td><td class="n">126</td><td class="n">122</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_51.html">Κυκλάδων</a></td><td class="n">120</td><td class="n">120</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_22.html">Λάρισας</a></td><td class="n">189</td><td class="n">164</td><td class="n">0</td><td class="n">0</td><td class="n">99.8%</td></tr><tr><td><a href="2024-euro_48.html">Λέσβου</a></td><td class="n">108</td><td class="n">105</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_47.html">Λακωνίας</a></td><td class="n">168</td><td class="n">168</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_56.html">Λασιθίου</a></td><td class="n">94</td><td class="n">88</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_27.html">Λευκάδας</a></td><td class="n">48</td><td class="n">45</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_23.html">Μαγνησίας</a></td><td class="n">97</td><td class="n">81</td><td class="n">0</td><td class="n">2</td><td class="n">99.8%</td></tr><tr><td><a href="2024-euro_46.html">Μεσσηνίας</a></td><td class="n">290</td><td class="n">280</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_3.html">Ξάνθης</a></td><td class="n">86</td><td class="n">37</td><td class="n">0</td><td class="n">3</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_11.html">Πέλλας</a></td><td class="n">115</td><td class="n">90</td><td class="n">0</td><td class="n">6</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_13.html">Πιερίας</a></td><td class="n">67</td><td class="n">55</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_21.html">Πρέβεζας</a></td><td class="n">85</td><td class="n">72</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_54.html">Ρεθύμνης</a></td><td class="n">146</td><td class="n">133</td><td class="n">0</td><td class="n">3</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_2.html">Ροδόπης</a></td><td class="n">135</td><td class="n">77</td><td class="n">0</td><td class="n">3</td><td class="n">99.6%</td></tr><tr><td><a href="2024-euro_50.html">Σάμου</a></td><td class="n">50</td><td class="n">48</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_8.html">Σερρών</a></td><td class="n">173</td><td class="n">148</td><td class="n">0</td><td class="n">1</td><td class="n">99.6%</td></tr><tr><td><a href="2024-euro_24.html">Τρικάλων</a></td><td class="n">176</td><td class="n">142</td><td class="n">2</td><td class="n">12</td><td class="n">99.4%</td></tr><tr><td><a href="2024-euro_33.html">Φθιώτιδας</a></td><td class="n">201</td><td class="n">187</td><td class="n">0</td><td class="n">2</td><td class="n">99.8%</td></tr><tr><td><a href="2024-euro_14.html">Φλώρινας</a></td><td class="n">92</td><td class="n">89</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_35.html">Φωκίδας</a></td><td class="n">94</td><td class="n">91</td><td class="n">0</td><td class="n">0</td><td class="n">99.1%</td></tr><tr><td><a href="2024-euro_49.html">Χίου</a></td><td class="n">62</td><td class="n">60</td><td class="n">0</td><td class="n">0</td><td class="n">99.4%</td></tr><tr><td><a href="2024-euro_9.html">Χαλκιδικής</a></td><td class="n">76</td><td class="n">74</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_53.html">Χανίων</a></td><td class="n">170</td><td class="n">163</td><td class="n">0</td><td class="n">0</td><td class="n">99.7%</td></tr></tbody></table></div></main></body></html>
+<th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody><tr><td><a href="2024-euro_1.html">Έβρου</a></td><td class="n">148</td><td class="n">87</td><td class="n">0</td><td class="n">6</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_38.html">Α΄ Αθηνών</a></td><td class="n">58</td><td class="n">1</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_63.html">Α΄ Ανατολικής Αττικής</a></td><td class="n">57</td><td class="n">47</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_6.html">Α΄ Θεσσαλονίκης</a></td><td class="n">67</td><td class="n">14</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_40.html">Α΄ Πειραιώς</a></td><td class="n">63</td><td class="n">34</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_30.html">Αιτωλοακαρνανίας</a></td><td class="n">279</td><td class="n">240</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_44.html">Αργολίδος</a></td><td class="n">93</td><td class="n">75</td><td class="n">0</td><td class="n">0</td><td class="n">99.6%</td></tr><tr><td><a href="2024-euro_45.html">Αρκαδίας</a></td><td class="n">258</td><td class="n">252</td><td class="n">0</td><td class="n">1</td><td class="n">99.7%</td></tr><tr><td><a href="2024-euro_19.html">Άρτας</a></td><td class="n">115</td><td class="n">80</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_31.html">Αχαΐας</a></td><td class="n">264</td><td class="n">238</td><td class="n">0</td><td class="n">3</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_64.html">Β΄ Δυτικής Αττικής</a></td><td class="n">18</td><td class="n">13</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_7.html">Β΄ Θεσσαλονίκης</a></td><td class="n">121</td><td class="n">113</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_41.html">Β΄ Πειραιώς</a></td><td class="n">36</td><td class="n">10</td><td class="n">0</td><td class="n">0</td><td class="n">99.5%</td></tr><tr><td><a href="2024-euro_60.html">Β1΄ Βορείου Τομέα Αθηνών</a></td><td class="n">61</td><td class="n">23</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_61.html">Β2΄ Δυτικού Τομέα Αθηνών</a></td><td class="n">40</td><td class="n">8</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_62.html">Β3΄ Νοτίου Τομέα Αθηνών</a></td><td class="n">69</td><td class="n">16</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_36.html">Βοιωτίας</a></td><td class="n">82</td><td class="n">76</td><td class="n">0</td><td class="n">0</td><td class="n">99.7%</td></tr><tr><td><a href="2024-euro_17.html">Γρεβενών</a></td><td class="n">92</td><td class="n">70</td><td class="n">0</td><td class="n">2</td><td class="n">98.4%</td></tr><tr><td><a href="2024-euro_4.html">Δράμας</a></td><td class="n">86</td><td class="n">70</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_52.html">Δωδεκανήσου</a></td><td class="n">91</td><td class="n">74</td><td class="n">0</td><td class="n">1</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_37.html">Εύβοιας</a></td><td class="n">194</td><td class="n">165</td><td class="n">0</td><td class="n">3</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_34.html">Ευρυτανίας</a></td><td class="n">106</td><td class="n">83</td><td class="n">0</td><td class="n">2</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_29.html">Ζακύνθου</a></td><td class="n">47</td><td class="n">47</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_32.html">Ηλείας</a></td><td class="n">237</td><td class="n">219</td><td class="n">0</td><td class="n">2</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_12.html">Ημαθίας</a></td><td class="n">87</td><td class="n">67</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_55.html">Ηρακλείου</a></td><td class="n">217</td><td class="n">194</td><td class="n">0</td><td class="n">0</td><td class="n">99.8%</td></tr><tr><td><a href="2024-euro_20.html">Θεσπρωτίας</a></td><td class="n">114</td><td class="n">105</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_18.html">Ιωαννίνων</a></td><td class="n">328</td><td class="n">314</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_26.html">Κέρκυρας</a></td><td class="n">124</td><td class="n">107</td><td class="n">0</td><td class="n">5</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_5.html">Καβάλας</a></td><td class="n">90</td><td class="n">79</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_25.html">Καρδίτσας</a></td><td class="n">158</td><td class="n">143</td><td class="n">0</td><td class="n">3</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_16.html">Καστοριάς</a></td><td class="n">74</td><td class="n">68</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_28.html">Κεφαλληνίας</a></td><td class="n">80</td><td class="n">79</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_10.html">Κιλκίς</a></td><td class="n">112</td><td class="n">83</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_15.html">Κοζάνης</a></td><td class="n">173</td><td class="n">160</td><td class="n">0</td><td class="n">3</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_43.html">Κορινθίας</a></td><td class="n">126</td><td class="n">122</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_51.html">Κυκλάδων</a></td><td class="n">120</td><td class="n">120</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_22.html">Λάρισας</a></td><td class="n">189</td><td class="n">164</td><td class="n">0</td><td class="n">0</td><td class="n">99.8%</td></tr><tr><td><a href="2024-euro_48.html">Λέσβου</a></td><td class="n">108</td><td class="n">105</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_47.html">Λακωνίας</a></td><td class="n">168</td><td class="n">168</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_56.html">Λασιθίου</a></td><td class="n">94</td><td class="n">88</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_27.html">Λευκάδας</a></td><td class="n">48</td><td class="n">45</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_23.html">Μαγνησίας</a></td><td class="n">97</td><td class="n">81</td><td class="n">0</td><td class="n">2</td><td class="n">99.8%</td></tr><tr><td><a href="2024-euro_46.html">Μεσσηνίας</a></td><td class="n">290</td><td class="n">280</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_3.html">Ξάνθης</a></td><td class="n">86</td><td class="n">37</td><td class="n">0</td><td class="n">3</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_11.html">Πέλλας</a></td><td class="n">115</td><td class="n">90</td><td class="n">0</td><td class="n">6</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_13.html">Πιερίας</a></td><td class="n">67</td><td class="n">55</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_21.html">Πρέβεζας</a></td><td class="n">85</td><td class="n">72</td><td class="n">0</td><td class="n">1</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_54.html">Ρεθύμνης</a></td><td class="n">146</td><td class="n">133</td><td class="n">0</td><td class="n">3</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_2.html">Ροδόπης</a></td><td class="n">135</td><td class="n">77</td><td class="n">0</td><td class="n">3</td><td class="n">99.6%</td></tr><tr><td><a href="2024-euro_50.html">Σάμου</a></td><td class="n">50</td><td class="n">48</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_8.html">Σερρών</a></td><td class="n">173</td><td class="n">148</td><td class="n">0</td><td class="n">1</td><td class="n">99.6%</td></tr><tr><td><a href="2024-euro_24.html">Τρικάλων</a></td><td class="n">176</td><td class="n">142</td><td class="n">2</td><td class="n">12</td><td class="n">99.4%</td></tr><tr><td><a href="2024-euro_33.html">Φθιώτιδας</a></td><td class="n">201</td><td class="n">187</td><td class="n">0</td><td class="n">2</td><td class="n">99.8%</td></tr><tr><td><a href="2024-euro_14.html">Φλώρινας</a></td><td class="n">92</td><td class="n">89</td><td class="n">0</td><td class="n">0</td><td class="n">100.0%</td></tr><tr><td><a href="2024-euro_35.html">Φωκίδας</a></td><td class="n">94</td><td class="n">91</td><td class="n">0</td><td class="n">0</td><td class="n">99.1%</td></tr><tr><td><a href="2024-euro_49.html">Χίου</a></td><td class="n">62</td><td class="n">60</td><td class="n">0</td><td class="n">0</td><td class="n">99.4%</td></tr><tr><td><a href="2024-euro_9.html">Χαλκιδικής</a></td><td class="n">76</td><td class="n">74</td><td class="n">0</td><td class="n">0</td><td class="n">99.9%</td></tr><tr><td><a href="2024-euro_53.html">Χανίων</a></td><td class="n">170</td><td class="n">163</td><td class="n">0</td><td class="n">0</td><td class="n">99.7%</td></tr></tbody></table></div>
+<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a></p></footer></main></body></html>

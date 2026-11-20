@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))  # python -I drops the script dir
 import xlrd
-from build import norm
+from build import fill, norm
 from stations_map import XLS_EP, venue_parts
 
 HERE = Path(__file__).parent
@@ -163,11 +163,11 @@ def to_html(lines):
         elif line:
             body.append(f"<p>{html.escape(line)}</p>")
     flush()
-    return f"""<!doctype html>
+    return fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ΝΙΚΗ 2023</title><style>
-:root{{color-scheme:light;--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--link:#256abf}}
-@media (prefers-color-scheme: dark){{:root{{color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--link:#6da7ec}}}}
+<title>ΝΙΚΗ 2023</title><script>/*THEME_JS*/</script><style>
+/*THEME_TOKENS*/
+/*SITE_CSS*/
 body{{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
 main{{max-width:960px;margin:0 auto;padding:16px}} h1{{font-size:21px;line-height:1.25}} h2{{font-size:17px;margin:32px 0 4px;padding-top:16px;border-top:1px solid var(--line)}}
 p{{color:var(--ink-2)}} a{{color:var(--link)}}
@@ -176,8 +176,10 @@ th,td{{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);verti
 th{{color:var(--ink-2);font-size:12px;font-weight:600}} .n{{text-align:right;white-space:nowrap}} tbody tr:hover{{background:var(--chip)}}
 @media print{{h2{{break-after:avoid}} tr{{break-inside:avoid}} a{{color:inherit}}}}
 </style></head><body><main>
+<!--HEADER-->
 {chr(10).join(body)}
-</main></body></html>"""
+<!--FOOTER-->
+</main></body></html>""")
 
 
 if __name__ == "__main__":

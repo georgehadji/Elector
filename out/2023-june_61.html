@@ -3,30 +3,64 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
+// Without a saved choice the page follows the system setting.
+(() => {
+  const root = document.documentElement, sys = matchMedia("(prefers-color-scheme: dark)");
+  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") root.dataset.theme = t; } catch {}
+  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : sys.matches;
+  addEventListener("DOMContentLoaded", () => {
+    const b = document.getElementById("theme");
+    if (!b) return;
+    const sync = () => b.setAttribute("aria-pressed", dark());
+    sync();
+    sys.addEventListener("change", sync);
+    b.onclick = () => {
+      root.dataset.theme = dark() ? "light" : "dark";
+      try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+      sync();
+      dispatchEvent(new Event("themechange"));  // map pages redraw: their colours are read from CSS variables
+    };
+  });
+})();
+</script>
 <title>Χάρτης σταυρών</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 /* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
-:root {
-  color-scheme: light;
-  --surface: #fcfcfb; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --shadow: rgba(0,0,0,.18);
-  --s0: #eef4fc; --s1: #cde2fb; --s2: #9ec5f4; --s3: #6da7ec; --s4: #3987e5; --s5: #256abf; --s6: #104281;
-  /* diverging: below the average (red), near it (gray), above it (blue) */
-  --link: #256abf;
-  --d-3: #a8302e; --d-2: #e0736b; --d-1: #f6c4c0; --d0: #e4e3df; --d1: #9ec5f4; --d2: #3987e5; --d3: #104281;
+:root{color-scheme:light;--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--shadow:rgba(0,0,0,.18);--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--link:#256abf;--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:#e4e3df;--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--shadow:rgba(0,0,0,.5);--d0:#5a5955;--link:#6da7ec}}
+:root[data-theme=dark]{color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--shadow:rgba(0,0,0,.5);--d0:#5a5955;--link:#6da7ec}
+@media print{:root:not([data-theme]),:root[data-theme]{color-scheme:light;--surface:#fff;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--shadow:rgba(0,0,0,.18);--d0:#e4e3df;--link:#256abf}}
+
 }
-@media (prefers-color-scheme: dark) {
-  :root { color-scheme: dark; --surface: #1a1a19; --ink: #ecebe7; --ink-2: #a8a7a2; --line: #383835; --chip: #262624;
-          --shadow: rgba(0,0,0,.5); --d0: #5a5955; --link: #6da7ec; }
-}
+:root[data-theme="dark"] { color-scheme: dark; --surface: #1a1a19; --ink: #ecebe7; --ink-2: #a8a7a2; --line: #383835; --chip: #262624;
+        --shadow: rgba(0,0,0,.5); --d0: #5a5955; --link: #6da7ec; }
 * { box-sizing: border-box; }
 body { margin: 0; font: 15px/1.5 "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
 main { max-width: 1200px; margin: 0 auto; padding: 16px; }
 h1 { font: 400 28px/1.15 "GFS Didot", Georgia, serif; margin: 0 0 4px; }
-.views a[href="index.html"] { font-weight: 600; }
+/* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
+   Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.bar .home { color: var(--ink); font-weight: 600; text-decoration: none; }
+.bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
+#theme { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 12px; font: inherit; font-size: 13px;
+         color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 16px; cursor: pointer; }
+#theme:hover, #theme[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); }
+#theme svg { width: 16px; height: 16px; fill: currentColor; }
+.site { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+.site p { margin: 0 0 4px; }
+.site a { color: inherit; text-underline-offset: 3px; }
+.site a + a { margin-left: 16px; }
+@media (pointer: coarse) {
+  #theme { min-height: 44px; }
+  .bar .home, .site a { display: inline-block; padding: 12px 0; }
+}
+@media print { .bar, .site { display: none !important; } }
+
 h2 { font-size: 16px; margin: 0 0 8px; }
 a { color: var(--link); }
 .sub { color: var(--ink-2); margin: 0 0 8px; }
@@ -92,6 +126,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
   main { padding: 12px; display: flex; flex-direction: column; }
   main > .stats { order: 1; margin-top: 4px; }
   main > h2, main > .tablewrap, main > .note, main > #detail { order: 2; }
+  main > .site { order: 3; }
   h1 { font-size: 23px; }
   .sub { font-size: 13px; margin-bottom: 4px; }
   .views { margin-bottom: 4px; }
@@ -124,7 +159,6 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
 /* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
 @page { size: A4; margin: 12mm; }
 @media print {
-  :root { color-scheme: light; --link: #256abf; --surface: #fff; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --d0: #e4e3df; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   main { max-width: none; padding: 0; }
   .seg, .pdf, .views, .leaflet-control-zoom, #panel, .hint, input, .controls label { display: none !important; }
@@ -144,6 +178,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
 </head>
 <body>
 <main>
+<header class="bar"><a class="home" href="index.html">Χάρτες σταυρών</a><button id="theme" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg>Σκούρο θέμα</button></header>
   <h1 id="title"></h1>
   <p class="sub" id="sub"></p>
   <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
@@ -169,9 +204,10 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
   <h2>Ανά περιοχή</h2>
   <div class="tablewrap"><table id="tbl"></table></div>
   <p class="note" id="note"></p>
+<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a></p></footer>
 </main>
 <script>
-const D = {"election": "2023/june", "ep": 61, "ep_name": "Β2΄ Δυτικού Τομέα Αθηνών", "mode": "party", "parties": {"2": {"name": "ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ", "color": "#0C99FF"}, "3": {"name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "color": "#D80000"}, "4": {"name": "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ", "color": "#FF8080"}, "130": {"name": "ΚΙΝΗΜΑ ΦΤΩΧΩΝ ΕΛΛΑΔΟΣ", "color": "#FF6600"}, "131": {"name": "ΝΙΚΗ", "color": "#DD6C6D"}, "10": {"name": "ΜΑΡΞΙΣΤΙΚΟ-ΛΕΝΙΝΙΣΤΙΚΟ ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "color": "#D71920"}, "11": {"name": "Ο.Α.Κ.Κ.Ε. Οργάνωση για την Ανασυγκρότηση του ΚΚΕ", "color": "#CA0904"}, "140": {"name": "ΠΝΟΗ ΔΗΜΟΚΡΑΤΙΑΣ-Δημήτριος Κούβελας", "color": "#8DAE5F"}, "15": {"name": "ΕΝΩΣΗ ΚΕΝΤΡΩΩΝ", "color": "#F2D400"}, "150": {"name": "ΕΥ-ΚΙΝΗΣΗ", "color": "#71C9BB"}, "151": {"name": "ΛΑΪΚΟ ΕΥΡΩΠΑΪΚΟ ΚΟΜΜΑ", "color": "#3CC2D2"}, "153": {"name": "ΠΑΤΡΙΩΤΙΚΟΣ ΣΥΝΑΣΠΙΣΜΟΣ", "color": "#026C9E"}, "155": {"name": "ΠΡΑΣΙΝΟ ΚΑΙ ΜΩΒ", "color": "#9FB430"}, "28": {"name": "ΟΙΚΟΛΟΓΟΙ ΠΡΑΣΙΝΟΙ", "color": "#FFCF00"}, "156": {"name": "Ρεπουμπλικανικό Κόμμα Ελλάδας-Τ.Ρ.Α.Μ.Π.", "color": "#1A2F47"}, "157": {"name": "ΣΠΑΡΤΙΑΤΕΣ", "color": "#E9B460"}, "158": {"name": "ΦΩΝΗ ΛΟΓΙΚΗΣ ΑΦΡΟΔΙΤΗ ΛΑΤΙΝΟΠΟΥΛΟΥ", "color": "#0093FE"}, "44": {"name": "ΑΝΤ.ΑΡ.ΣΥ.Α-ΑΝΤΙΚΑΠΙΤΑΛΙΣΤΙΚΗ ΑΡΙΣΤΕΡΗ ΣΥΝΕΡΓΑΣΙΑ για την ΑΝΑΤΡΟΠΗ", "color": "#E00B1D"}, "65": {"name": "ΠΑΝΑΘΗΝΑΪΚΟ ΚΙΝΗΜΑ", "color": "#1A8555"}, "66": {"name": "ΟΡΓΑΝΩΣΗ ΚΟΜΜΟΥΝΙΣΤΩΝ ΔΙΕΘΝΙΣΤΩΝ ΕΛΛΑΔΑΣ (Ο.Κ.Δ.Ε.)", "color": "#E31E24"}, "78": {"name": "ΕΘΝΙΚΟ ΜΕΤΩΠΟ", "color": "#0860A8"}, "106": {"name": "ΠΑΣΟΚ-Κίνημα Αλλαγής", "color": "#00CC0C"}, "108": {"name": "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ", "color": "#0A5FAE"}, "113": {"name": "ΕΛΛΗΝΩΝ ΣΥΝΕΛΕΥΣΙΣ", "color": "#1F4FA4"}, "122": {"name": "ΜέΡΑ25-ΣΥΜΜΑΧΙΑ ΓΙΑ ΤΗ ΡΗΞΗ", "color": "#F04E23"}, "123": {"name": "ΠΛΕΥΣΗ ΕΛΕΥΘΕΡΙΑΣ - ΖΩΗ ΚΩΝΣΤΑΝΤΟΠΟΥΛΟΥ", "color": "#9F1897"}, "125": {"name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ (μαρξιστικό-λενινιστικό)", "color": "#89001C"}}, "cands": [{"k": "2:0", "party": 2, "name": "ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ", "total": 71315, "mapped": 71315, "partial": false}, {"k": "3:0", "party": 3, "name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "total": 24950, "mapped": 24950, "partial": false}, {"k": "4:0", "party": 4, "name": "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ", "total": 43440, "mapped": 43440, "partial": false}, {"k": "10:0", "party": 10, "name": "ΜΑΡΞΙΣΤΙΚΟ-ΛΕΝΙΝΙΣΤΙΚΟ ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "total": 185, "mapped": 185, "partial": false}, {"k": "11:0", "party": 11, "name": "Ο.Α.Κ.Κ.Ε. Οργάνωση για την Ανασυγκρότηση του ΚΚΕ", "total": 37, "mapped": 37, "partial": false}, {"k": "15:0", "party": 15, "name": "ΕΝΩΣΗ ΚΕΝΤΡΩΩΝ", "total": 585, "mapped": 585, "partial": false}, {"k": "28:0", "party": 28, "name": "ΟΙΚΟΛΟΓΟΙ ΠΡΑΣΙΝΟΙ", "total": 1000, "mapped": 1000, "partial": false}, {"k": "44:0", "party": 44, "name": "ΑΝΤ.ΑΡ.ΣΥ.Α-ΑΝΤΙΚΑΠΙΤΑΛΙΣΤΙΚΗ ΑΡΙΣΤΕΡΗ ΣΥΝΕΡΓΑΣΙΑ για την ΑΝΑΤΡΟΠΗ", "total": 1090, "mapped": 1090, "partial": false}, {"k": "65:0", "party": 65, "name": "ΠΑΝΑΘΗΝΑΪΚΟ ΚΙΝΗΜΑ", "total": 1, "mapped": 1, "partial": false}, {"k": "66:0", "party": 66, "name": "ΟΡΓΑΝΩΣΗ ΚΟΜΜΟΥΝΙΣΤΩΝ ΔΙΕΘΝΙΣΤΩΝ ΕΛΛΑΔΑΣ (Ο.Κ.Δ.Ε.)", "total": 32, "mapped": 32, "partial": false}, {"k": "78:0", "party": 78, "name": "ΕΘΝΙΚΟ ΜΕΤΩΠΟ", "total": 76, "mapped": 76, "partial": false}, {"k": "106:0", "party": 106, "name": "ΠΑΣΟΚ-Κίνημα Αλλαγής", "total": 18367, "mapped": 18367, "partial": false}, {"k": "108:0", "party": 108, "name": "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ", "total": 8273, "mapped": 8273, "partial": false}, {"k": "113:0", "party": 113, "name": "ΕΛΛΗΝΩΝ ΣΥΝΕΛΕΥΣΙΣ", "total": 212, "mapped": 212, "partial": false}, {"k": "122:0", "party": 122, "name": "ΜέΡΑ25-ΣΥΜΜΑΧΙΑ ΓΙΑ ΤΗ ΡΗΞΗ", "total": 6241, "mapped": 6241, "partial": false}, {"k": "123:0", "party": 123, "name": "ΠΛΕΥΣΗ ΕΛΕΥΘΕΡΙΑΣ - ΖΩΗ ΚΩΝΣΤΑΝΤΟΠΟΥΛΟΥ", "total": 8338, "mapped": 8338, "partial": false}, {"k": "125:0", "party": 125, "name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ (μαρξιστικό-λενινιστικό)", "total": 476, "mapped": 476, "partial": false}, {"k": "130:0", "party": 130, "name": "ΚΙΝΗΜΑ ΦΤΩΧΩΝ ΕΛΛΑΔΟΣ", "total": 1053, "mapped": 1053, "partial": false}, {"k": "131:0", "party": 131, "name": "ΝΙΚΗ", "total": 5768, "mapped": 5768, "partial": false}, {"k": "140:0", "party": 140, "name": "ΠΝΟΗ ΔΗΜΟΚΡΑΤΙΑΣ-Δημήτριος Κούβελας", "total": 502, "mapped": 502, "partial": false}, {"k": "150:0", "party": 150, "name": "ΕΥ-ΚΙΝΗΣΗ", "total": 896, "mapped": 896, "partial": false}, {"k": "151:0", "party": 151, "name": "ΛΑΪΚΟ ΕΥΡΩΠΑΪΚΟ ΚΟΜΜΑ", "total": 7, "mapped": 7, "partial": false}, {"k": "153:0", "party": 153, "name": "ΠΑΤΡΙΩΤΙΚΟΣ ΣΥΝΑΣΠΙΣΜΟΣ", "total": 1020, "mapped": 1020, "partial": false}, {"k": "155:0", "party": 155, "name": "ΠΡΑΣΙΝΟ ΚΑΙ ΜΩΒ", "total": 505, "mapped": 505, "partial": false}, {"k": "156:0", "party": 156, "name": "Ρεπουμπλικανικό Κόμμα Ελλάδας-Τ.Ρ.Α.Μ.Π.", "total": 1, "mapped": 1, "partial": false}, {"k": "157:0", "party": 157, "name": "ΣΠΑΡΤΙΑΤΕΣ", "total": 10354, "mapped": 10354, "partial": false}, {"k": "158:0", "party": 158, "name": "ΦΩΝΗ ΛΟΓΙΚΗΣ ΑΦΡΟΔΙΤΗ ΛΑΤΙΝΟΠΟΥΛΟΥ", "total": 944, "mapped": 944, "partial": false}], "unmatched": [], "coverage": 1.0, "geo": {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66535, 37.99524], [23.647, 37.99627], [23.64517, 37.99011], [23.65223, 37.984], [23.66205, 37.98036], [23.66446, 37.98149], [23.66363, 37.99052], [23.66535, 37.99524]]]}, "properties": {"name": "Αγίας Βαρβάρας", "unit": "Αγίας Βαρβάρας", "reg": 22342, "valid": 11378, "tm": 43, "incl": ["Αγιας Βαρβαρας", "Αγιας Βαρβαρας", "Αγιας Βαρβαρας", "Αγιας Βαρβαρας"], "pv": {"2": 3631, "3": 1297, "4": 2423, "10": 17, "11": 6, "15": 37, "28": 66, "44": 41, "65": 0, "66": 2, "78": 2, "106": 1078, "108": 701, "113": 23, "122": 295, "123": 493, "125": 36, "130": 71, "131": 295, "140": 26, "150": 56, "151": 5, "153": 52, "155": 27, "156": 0, "157": 631, "158": 67}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.71787, 38.01312], [23.72828, 38.03155], [23.73206, 38.03688], [23.7332, 38.04804], [23.72837, 38.04967], [23.72701, 38.04316], [23.71976, 38.02949], [23.71196, 38.02568], [23.70941, 38.01434], [23.71701, 38.01108], [23.71787, 38.01312]]]}, "properties": {"name": "Αγίων Αναργύρων", "unit": "Αγίων Αναργύρων", "reg": 26658, "valid": 15061, "tm": 50, "incl": ["Αγιων Αναργυρων", "Αγιων Αναργυρων", "Αγιων Αναργυρων"], "pv": {"2": 5382, "3": 1812, "4": 3024, "10": 10, "11": 4, "15": 46, "28": 63, "44": 108, "65": 0, "66": 3, "78": 11, "106": 1418, "108": 593, "113": 19, "122": 482, "123": 548, "125": 64, "130": 65, "131": 409, "140": 47, "150": 64, "151": 0, "153": 79, "155": 39, "156": 0, "157": 705, "158": 66}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66989, 38.00593], [23.66605, 38.00307], [23.66535, 37.99524], [23.66363, 37.99052], [23.66446, 37.98149], [23.66908, 37.97783], [23.66664, 37.9739], [23.68361, 37.97379], [23.6853, 37.97586], [23.69181, 37.98294], [23.6958, 37.99041], [23.68815, 37.99658], [23.67645, 38.00157], [23.66989, 38.00593]]]}, "properties": {"name": "Αιγάλεω", "unit": "Αιγάλεω", "reg": 57717, "valid": 30857, "tm": 110, "incl": ["Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω"], "pv": {"2": 10705, "3": 3674, "4": 6656, "10": 36, "11": 4, "15": 85, "28": 158, "44": 97, "65": 0, "66": 3, "78": 9, "106": 2727, "108": 1268, "113": 29, "122": 1006, "123": 1200, "125": 64, "130": 153, "131": 794, "140": 71, "150": 124, "151": 1, "153": 167, "155": 63, "156": 0, "157": 1607, "158": 156}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68265, 38.05945], [23.67609, 38.05734], [23.6821, 38.04821], [23.69383, 38.04237], [23.69653, 38.03721], [23.68347, 38.02776], [23.69261, 38.01965], [23.70063, 38.02012], [23.70544, 38.01439], [23.70941, 38.01434], [23.71196, 38.02568], [23.71976, 38.02949], [23.72701, 38.04316], [23.7196, 38.04506], [23.70357, 38.04274], [23.6862, 38.04964], [23.68265, 38.05945]]]}, "properties": {"name": "Ιλίου", "unit": "Ιλίου", "reg": 55593, "valid": 31795, "tm": 105, "incl": ["Ιλιου", "Ιλιου", "Ιλιου", "Ιλιου", "Ιλιου"], "pv": {"2": 10754, "3": 3643, "4": 7017, "10": 32, "11": 4, "15": 72, "28": 154, "44": 151, "65": 0, "66": 10, "78": 10, "106": 3018, "108": 1229, "113": 26, "122": 900, "123": 1336, "125": 79, "130": 146, "131": 931, "140": 79, "150": 136, "151": 0, "153": 173, "155": 79, "156": 0, "157": 1670, "158": 146}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.71159, 38.06294], [23.69909, 38.06314], [23.69239, 38.05774], [23.6865, 38.06146], [23.68265, 38.05945], [23.6862, 38.04964], [23.70357, 38.04274], [23.7196, 38.04506], [23.72701, 38.04316], [23.72837, 38.04967], [23.72428, 38.05706], [23.71825, 38.05988], [23.71159, 38.06294]]]}, "properties": {"name": "Καματερού", "unit": "Καματερού", "reg": 18810, "valid": 10853, "tm": 36, "incl": ["Καματερου"], "pv": {"2": 3794, "3": 1269, "4": 2119, "10": 6, "11": 3, "15": 27, "28": 67, "44": 54, "65": 0, "66": 1, "78": 5, "106": 1127, "108": 512, "113": 9, "122": 273, "123": 382, "125": 29, "130": 55, "131": 323, "140": 30, "150": 44, "151": 0, "153": 53, "155": 22, "156": 0, "157": 590, "158": 59}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68347, 38.02776], [23.67606, 38.03247], [23.66523, 38.03047], [23.66161, 38.02317], [23.66718, 38.01976], [23.66771, 38.01471], [23.673, 38.01098], [23.66989, 38.00593], [23.67645, 38.00157], [23.68815, 37.99658], [23.6958, 37.99041], [23.69954, 37.99708], [23.71003, 38.00293], [23.71701, 38.01108], [23.70941, 38.01434], [23.70544, 38.01439], [23.70063, 38.02012], [23.69261, 38.01965], [23.68347, 38.02776]]]}, "properties": {"name": "Περιστερίου", "unit": "Περιστερίου", "reg": 112163, "valid": 60749, "tm": 210, "incl": ["Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου"], "pv": {"2": 20876, "3": 7357, "4": 13499, "10": 50, "11": 10, "15": 183, "28": 284, "44": 399, "65": 0, "66": 9, "78": 22, "106": 5127, "108": 2370, "113": 66, "122": 1680, "123": 2485, "125": 104, "130": 343, "131": 1734, "140": 145, "150": 250, "151": 0, "153": 279, "155": 154, "156": 0, "157": 3064, "158": 259}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68347, 38.02776], [23.69653, 38.03721], [23.69383, 38.04237], [23.6821, 38.04821], [23.67609, 38.05734], [23.65764, 38.04694], [23.65468, 38.04117], [23.65282, 38.03125], [23.65866, 38.02814], [23.66523, 38.03047], [23.67606, 38.03247], [23.68347, 38.02776]]]}, "properties": {"name": "Πετρουπόλεως", "unit": "Πετρουπόλεως", "reg": 40411, "valid": 23966, "tm": 77, "incl": ["Πετρουπολεως", "Πετρουπολεως", "Πετρουπολεως"], "pv": {"2": 8130, "3": 3325, "4": 4676, "10": 28, "11": 1, "15": 64, "28": 110, "44": 112, "65": 1, "66": 3, "78": 9, "106": 2158, "108": 856, "113": 16, "122": 877, "123": 1027, "125": 60, "130": 122, "131": 790, "140": 63, "150": 113, "151": 0, "153": 112, "155": 59, "156": 1, "157": 1159, "158": 94}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66523, 38.03047], [23.65866, 38.02814], [23.65282, 38.03125], [23.64619, 38.02527], [23.63691, 38.02472], [23.62713, 38.02169], [23.62391, 38.0184], [23.59949, 38.01392], [23.59679, 38.01459], [23.59053, 38.00975], [23.59569, 38.0071], [23.58866, 37.99798], [23.58269, 37.99416], [23.56864, 37.99701], [23.5697, 37.99062], [23.56529, 37.98484], [23.57607, 37.98925], [23.59645, 37.9856], [23.60311, 37.98653], [23.61086, 37.99022], [23.62299, 37.99157], [23.63318, 37.99099], [23.63535, 37.99467], [23.63173, 37.99949], [23.64395, 38.00007], [23.647, 37.99627], [23.66535, 37.99524], [23.66605, 38.00307], [23.66989, 38.00593], [23.673, 38.01098], [23.66771, 38.01471], [23.66718, 38.01976], [23.66161, 38.02317], [23.66523, 38.03047]]]}, "properties": {"name": "Χαϊδαρίου", "unit": "Χαϊδαρίου", "reg": 34018, "valid": 21009, "tm": 65, "incl": ["Χαιδαριου", "Χαιδαριου", "Χαιδαριου", "Χαιδαριου"], "pv": {"2": 8043, "3": 2573, "4": 4026, "10": 6, "11": 5, "15": 71, "28": 98, "44": 128, "65": 0, "66": 1, "78": 8, "106": 1714, "108": 744, "113": 24, "122": 728, "123": 867, "125": 40, "130": 98, "131": 492, "140": 41, "150": 109, "151": 1, "153": 105, "155": 62, "156": 0, "157": 928, "158": 97}, "cv": {}}}]}, "links": [{"href": "2023-june_61_tm_131-0.html", "label": "Ανά τμήμα · ΝΙΚΗ"}]};
+const D = {"election": "2023/june", "ep": 61, "ep_name": "Β2΄ Δυτικού Τομέα Αθηνών", "mode": "party", "parties": {"2": {"name": "ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ", "color": "#0C99FF"}, "3": {"name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "color": "#D80000"}, "4": {"name": "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ", "color": "#FF8080"}, "130": {"name": "ΚΙΝΗΜΑ ΦΤΩΧΩΝ ΕΛΛΑΔΟΣ", "color": "#FF6600"}, "131": {"name": "ΝΙΚΗ", "color": "#DD6C6D"}, "10": {"name": "ΜΑΡΞΙΣΤΙΚΟ-ΛΕΝΙΝΙΣΤΙΚΟ ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "color": "#D71920"}, "11": {"name": "Ο.Α.Κ.Κ.Ε. Οργάνωση για την Ανασυγκρότηση του ΚΚΕ", "color": "#CA0904"}, "140": {"name": "ΠΝΟΗ ΔΗΜΟΚΡΑΤΙΑΣ-Δημήτριος Κούβελας", "color": "#8DAE5F"}, "15": {"name": "ΕΝΩΣΗ ΚΕΝΤΡΩΩΝ", "color": "#F2D400"}, "150": {"name": "ΕΥ-ΚΙΝΗΣΗ", "color": "#71C9BB"}, "151": {"name": "ΛΑΪΚΟ ΕΥΡΩΠΑΪΚΟ ΚΟΜΜΑ", "color": "#3CC2D2"}, "153": {"name": "ΠΑΤΡΙΩΤΙΚΟΣ ΣΥΝΑΣΠΙΣΜΟΣ", "color": "#026C9E"}, "155": {"name": "ΠΡΑΣΙΝΟ ΚΑΙ ΜΩΒ", "color": "#9FB430"}, "28": {"name": "ΟΙΚΟΛΟΓΟΙ ΠΡΑΣΙΝΟΙ", "color": "#FFCF00"}, "156": {"name": "Ρεπουμπλικανικό Κόμμα Ελλάδας-Τ.Ρ.Α.Μ.Π.", "color": "#1A2F47"}, "157": {"name": "ΣΠΑΡΤΙΑΤΕΣ", "color": "#E9B460"}, "158": {"name": "ΦΩΝΗ ΛΟΓΙΚΗΣ ΑΦΡΟΔΙΤΗ ΛΑΤΙΝΟΠΟΥΛΟΥ", "color": "#0093FE"}, "44": {"name": "ΑΝΤ.ΑΡ.ΣΥ.Α-ΑΝΤΙΚΑΠΙΤΑΛΙΣΤΙΚΗ ΑΡΙΣΤΕΡΗ ΣΥΝΕΡΓΑΣΙΑ για την ΑΝΑΤΡΟΠΗ", "color": "#E00B1D"}, "65": {"name": "ΠΑΝΑΘΗΝΑΪΚΟ ΚΙΝΗΜΑ", "color": "#1A8555"}, "66": {"name": "ΟΡΓΑΝΩΣΗ ΚΟΜΜΟΥΝΙΣΤΩΝ ΔΙΕΘΝΙΣΤΩΝ ΕΛΛΑΔΑΣ (Ο.Κ.Δ.Ε.)", "color": "#E31E24"}, "78": {"name": "ΕΘΝΙΚΟ ΜΕΤΩΠΟ", "color": "#0860A8"}, "106": {"name": "ΠΑΣΟΚ-Κίνημα Αλλαγής", "color": "#00CC0C"}, "108": {"name": "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ", "color": "#0A5FAE"}, "113": {"name": "ΕΛΛΗΝΩΝ ΣΥΝΕΛΕΥΣΙΣ", "color": "#1F4FA4"}, "122": {"name": "ΜέΡΑ25-ΣΥΜΜΑΧΙΑ ΓΙΑ ΤΗ ΡΗΞΗ", "color": "#F04E23"}, "123": {"name": "ΠΛΕΥΣΗ ΕΛΕΥΘΕΡΙΑΣ - ΖΩΗ ΚΩΝΣΤΑΝΤΟΠΟΥΛΟΥ", "color": "#9F1897"}, "125": {"name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ (μαρξιστικό-λενινιστικό)", "color": "#89001C"}}, "cands": [{"k": "2:0", "party": 2, "name": "ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ", "total": 71315, "mapped": 71315, "partial": false}, {"k": "3:0", "party": 3, "name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "total": 24950, "mapped": 24950, "partial": false}, {"k": "4:0", "party": 4, "name": "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ", "total": 43440, "mapped": 43440, "partial": false}, {"k": "10:0", "party": 10, "name": "ΜΑΡΞΙΣΤΙΚΟ-ΛΕΝΙΝΙΣΤΙΚΟ ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ", "total": 185, "mapped": 185, "partial": false}, {"k": "11:0", "party": 11, "name": "Ο.Α.Κ.Κ.Ε. Οργάνωση για την Ανασυγκρότηση του ΚΚΕ", "total": 37, "mapped": 37, "partial": false}, {"k": "15:0", "party": 15, "name": "ΕΝΩΣΗ ΚΕΝΤΡΩΩΝ", "total": 585, "mapped": 585, "partial": false}, {"k": "28:0", "party": 28, "name": "ΟΙΚΟΛΟΓΟΙ ΠΡΑΣΙΝΟΙ", "total": 1000, "mapped": 1000, "partial": false}, {"k": "44:0", "party": 44, "name": "ΑΝΤ.ΑΡ.ΣΥ.Α-ΑΝΤΙΚΑΠΙΤΑΛΙΣΤΙΚΗ ΑΡΙΣΤΕΡΗ ΣΥΝΕΡΓΑΣΙΑ για την ΑΝΑΤΡΟΠΗ", "total": 1090, "mapped": 1090, "partial": false}, {"k": "65:0", "party": 65, "name": "ΠΑΝΑΘΗΝΑΪΚΟ ΚΙΝΗΜΑ", "total": 1, "mapped": 1, "partial": false}, {"k": "66:0", "party": 66, "name": "ΟΡΓΑΝΩΣΗ ΚΟΜΜΟΥΝΙΣΤΩΝ ΔΙΕΘΝΙΣΤΩΝ ΕΛΛΑΔΑΣ (Ο.Κ.Δ.Ε.)", "total": 32, "mapped": 32, "partial": false}, {"k": "78:0", "party": 78, "name": "ΕΘΝΙΚΟ ΜΕΤΩΠΟ", "total": 76, "mapped": 76, "partial": false}, {"k": "106:0", "party": 106, "name": "ΠΑΣΟΚ-Κίνημα Αλλαγής", "total": 18367, "mapped": 18367, "partial": false}, {"k": "108:0", "party": 108, "name": "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ", "total": 8273, "mapped": 8273, "partial": false}, {"k": "113:0", "party": 113, "name": "ΕΛΛΗΝΩΝ ΣΥΝΕΛΕΥΣΙΣ", "total": 212, "mapped": 212, "partial": false}, {"k": "122:0", "party": 122, "name": "ΜέΡΑ25-ΣΥΜΜΑΧΙΑ ΓΙΑ ΤΗ ΡΗΞΗ", "total": 6241, "mapped": 6241, "partial": false}, {"k": "123:0", "party": 123, "name": "ΠΛΕΥΣΗ ΕΛΕΥΘΕΡΙΑΣ - ΖΩΗ ΚΩΝΣΤΑΝΤΟΠΟΥΛΟΥ", "total": 8338, "mapped": 8338, "partial": false}, {"k": "125:0", "party": 125, "name": "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ (μαρξιστικό-λενινιστικό)", "total": 476, "mapped": 476, "partial": false}, {"k": "130:0", "party": 130, "name": "ΚΙΝΗΜΑ ΦΤΩΧΩΝ ΕΛΛΑΔΟΣ", "total": 1053, "mapped": 1053, "partial": false}, {"k": "131:0", "party": 131, "name": "ΝΙΚΗ", "total": 5768, "mapped": 5768, "partial": false}, {"k": "140:0", "party": 140, "name": "ΠΝΟΗ ΔΗΜΟΚΡΑΤΙΑΣ-Δημήτριος Κούβελας", "total": 502, "mapped": 502, "partial": false}, {"k": "150:0", "party": 150, "name": "ΕΥ-ΚΙΝΗΣΗ", "total": 896, "mapped": 896, "partial": false}, {"k": "151:0", "party": 151, "name": "ΛΑΪΚΟ ΕΥΡΩΠΑΪΚΟ ΚΟΜΜΑ", "total": 7, "mapped": 7, "partial": false}, {"k": "153:0", "party": 153, "name": "ΠΑΤΡΙΩΤΙΚΟΣ ΣΥΝΑΣΠΙΣΜΟΣ", "total": 1020, "mapped": 1020, "partial": false}, {"k": "155:0", "party": 155, "name": "ΠΡΑΣΙΝΟ ΚΑΙ ΜΩΒ", "total": 505, "mapped": 505, "partial": false}, {"k": "156:0", "party": 156, "name": "Ρεπουμπλικανικό Κόμμα Ελλάδας-Τ.Ρ.Α.Μ.Π.", "total": 1, "mapped": 1, "partial": false}, {"k": "157:0", "party": 157, "name": "ΣΠΑΡΤΙΑΤΕΣ", "total": 10354, "mapped": 10354, "partial": false}, {"k": "158:0", "party": 158, "name": "ΦΩΝΗ ΛΟΓΙΚΗΣ ΑΦΡΟΔΙΤΗ ΛΑΤΙΝΟΠΟΥΛΟΥ", "total": 944, "mapped": 944, "partial": false}], "unmatched": [], "coverage": 1.0, "geo": {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66535, 37.99524], [23.647, 37.99627], [23.64517, 37.99011], [23.65223, 37.984], [23.66205, 37.98036], [23.66446, 37.98149], [23.66363, 37.99052], [23.66535, 37.99524]]]}, "properties": {"name": "Αγίας Βαρβάρας", "unit": "Αγίας Βαρβάρας", "reg": 22342, "valid": 11378, "tm": 43, "incl": ["Αγιας Βαρβαρας", "Αγιας Βαρβαρας", "Αγιας Βαρβαρας", "Αγιας Βαρβαρας"], "pv": {"2": 3631, "3": 1297, "4": 2423, "10": 17, "11": 6, "15": 37, "28": 66, "44": 41, "65": 0, "66": 2, "78": 2, "106": 1078, "108": 701, "113": 23, "122": 295, "123": 493, "125": 36, "130": 71, "131": 295, "140": 26, "150": 56, "151": 5, "153": 52, "155": 27, "156": 0, "157": 631, "158": 67}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.71787, 38.01312], [23.72828, 38.03155], [23.73206, 38.03688], [23.7332, 38.04804], [23.72837, 38.04967], [23.72701, 38.04316], [23.71976, 38.02949], [23.71196, 38.02568], [23.70941, 38.01434], [23.71701, 38.01108], [23.71787, 38.01312]]]}, "properties": {"name": "Αγίων Αναργύρων", "unit": "Αγίων Αναργύρων", "reg": 26658, "valid": 15061, "tm": 50, "incl": ["Αγιων Αναργυρων", "Αγιων Αναργυρων", "Αγιων Αναργυρων"], "pv": {"2": 5382, "3": 1812, "4": 3024, "10": 10, "11": 4, "15": 46, "28": 63, "44": 108, "65": 0, "66": 3, "78": 11, "106": 1418, "108": 593, "113": 19, "122": 482, "123": 548, "125": 64, "130": 65, "131": 409, "140": 47, "150": 64, "151": 0, "153": 79, "155": 39, "156": 0, "157": 705, "158": 66}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66989, 38.00593], [23.66605, 38.00307], [23.66535, 37.99524], [23.66363, 37.99052], [23.66446, 37.98149], [23.66908, 37.97783], [23.66664, 37.9739], [23.68361, 37.97379], [23.6853, 37.97586], [23.69181, 37.98294], [23.6958, 37.99041], [23.68815, 37.99658], [23.67645, 38.00157], [23.66989, 38.00593]]]}, "properties": {"name": "Αιγάλεω", "unit": "Αιγάλεω", "reg": 57717, "valid": 30857, "tm": 110, "incl": ["Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω", "Αιγαλεω"], "pv": {"2": 10705, "3": 3674, "4": 6656, "10": 36, "11": 4, "15": 85, "28": 158, "44": 97, "65": 0, "66": 3, "78": 9, "106": 2727, "108": 1268, "113": 29, "122": 1006, "123": 1200, "125": 64, "130": 153, "131": 794, "140": 71, "150": 124, "151": 1, "153": 167, "155": 63, "156": 0, "157": 1607, "158": 156}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68265, 38.05945], [23.67609, 38.05734], [23.6821, 38.04821], [23.69383, 38.04237], [23.69653, 38.03721], [23.68347, 38.02776], [23.69261, 38.01965], [23.70063, 38.02012], [23.70544, 38.01439], [23.70941, 38.01434], [23.71196, 38.02568], [23.71976, 38.02949], [23.72701, 38.04316], [23.7196, 38.04506], [23.70357, 38.04274], [23.6862, 38.04964], [23.68265, 38.05945]]]}, "properties": {"name": "Ιλίου", "unit": "Ιλίου", "reg": 55593, "valid": 31795, "tm": 105, "incl": ["Ιλιου", "Ιλιου", "Ιλιου", "Ιλιου", "Ιλιου"], "pv": {"2": 10754, "3": 3643, "4": 7017, "10": 32, "11": 4, "15": 72, "28": 154, "44": 151, "65": 0, "66": 10, "78": 10, "106": 3018, "108": 1229, "113": 26, "122": 900, "123": 1336, "125": 79, "130": 146, "131": 931, "140": 79, "150": 136, "151": 0, "153": 173, "155": 79, "156": 0, "157": 1670, "158": 146}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.71159, 38.06294], [23.69909, 38.06314], [23.69239, 38.05774], [23.6865, 38.06146], [23.68265, 38.05945], [23.6862, 38.04964], [23.70357, 38.04274], [23.7196, 38.04506], [23.72701, 38.04316], [23.72837, 38.04967], [23.72428, 38.05706], [23.71825, 38.05988], [23.71159, 38.06294]]]}, "properties": {"name": "Καματερού", "unit": "Καματερού", "reg": 18810, "valid": 10853, "tm": 36, "incl": ["Καματερου"], "pv": {"2": 3794, "3": 1269, "4": 2119, "10": 6, "11": 3, "15": 27, "28": 67, "44": 54, "65": 0, "66": 1, "78": 5, "106": 1127, "108": 512, "113": 9, "122": 273, "123": 382, "125": 29, "130": 55, "131": 323, "140": 30, "150": 44, "151": 0, "153": 53, "155": 22, "156": 0, "157": 590, "158": 59}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68347, 38.02776], [23.67606, 38.03247], [23.66523, 38.03047], [23.66161, 38.02317], [23.66718, 38.01976], [23.66771, 38.01471], [23.673, 38.01098], [23.66989, 38.00593], [23.67645, 38.00157], [23.68815, 37.99658], [23.6958, 37.99041], [23.69954, 37.99708], [23.71003, 38.00293], [23.71701, 38.01108], [23.70941, 38.01434], [23.70544, 38.01439], [23.70063, 38.02012], [23.69261, 38.01965], [23.68347, 38.02776]]]}, "properties": {"name": "Περιστερίου", "unit": "Περιστερίου", "reg": 112163, "valid": 60749, "tm": 210, "incl": ["Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου", "Περιστεριου"], "pv": {"2": 20876, "3": 7357, "4": 13499, "10": 50, "11": 10, "15": 183, "28": 284, "44": 399, "65": 0, "66": 9, "78": 22, "106": 5127, "108": 2370, "113": 66, "122": 1680, "123": 2485, "125": 104, "130": 343, "131": 1734, "140": 145, "150": 250, "151": 0, "153": 279, "155": 154, "156": 0, "157": 3064, "158": 259}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.68347, 38.02776], [23.69653, 38.03721], [23.69383, 38.04237], [23.6821, 38.04821], [23.67609, 38.05734], [23.65764, 38.04694], [23.65468, 38.04117], [23.65282, 38.03125], [23.65866, 38.02814], [23.66523, 38.03047], [23.67606, 38.03247], [23.68347, 38.02776]]]}, "properties": {"name": "Πετρουπόλεως", "unit": "Πετρουπόλεως", "reg": 40411, "valid": 23966, "tm": 77, "incl": ["Πετρουπολεως", "Πετρουπολεως", "Πετρουπολεως"], "pv": {"2": 8130, "3": 3325, "4": 4676, "10": 28, "11": 1, "15": 64, "28": 110, "44": 112, "65": 1, "66": 3, "78": 9, "106": 2158, "108": 856, "113": 16, "122": 877, "123": 1027, "125": 60, "130": 122, "131": 790, "140": 63, "150": 113, "151": 0, "153": 112, "155": 59, "156": 1, "157": 1159, "158": 94}, "cv": {}}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[23.66523, 38.03047], [23.65866, 38.02814], [23.65282, 38.03125], [23.64619, 38.02527], [23.63691, 38.02472], [23.62713, 38.02169], [23.62391, 38.0184], [23.59949, 38.01392], [23.59679, 38.01459], [23.59053, 38.00975], [23.59569, 38.0071], [23.58866, 37.99798], [23.58269, 37.99416], [23.56864, 37.99701], [23.5697, 37.99062], [23.56529, 37.98484], [23.57607, 37.98925], [23.59645, 37.9856], [23.60311, 37.98653], [23.61086, 37.99022], [23.62299, 37.99157], [23.63318, 37.99099], [23.63535, 37.99467], [23.63173, 37.99949], [23.64395, 38.00007], [23.647, 37.99627], [23.66535, 37.99524], [23.66605, 38.00307], [23.66989, 38.00593], [23.673, 38.01098], [23.66771, 38.01471], [23.66718, 38.01976], [23.66161, 38.02317], [23.66523, 38.03047]]]}, "properties": {"name": "Χαϊδαρίου", "unit": "Χαϊδαρίου", "reg": 34018, "valid": 21009, "tm": 65, "incl": ["Χαιδαριου", "Χαιδαριου", "Χαιδαριου", "Χαιδαριου"], "pv": {"2": 8043, "3": 2573, "4": 4026, "10": 6, "11": 5, "15": 71, "28": 98, "44": 128, "65": 0, "66": 1, "78": 8, "106": 1714, "108": 744, "113": 24, "122": 728, "123": 867, "125": 40, "130": 98, "131": 492, "140": 41, "150": 109, "151": 1, "153": 105, "155": 62, "156": 0, "157": 928, "158": 97}, "cv": {}}}]}, "links": [{"href": "2023-june_61_tm_131-0.html", "label": "Ανά τμήμα · ΝΙΚΗ"}], "election_title": "Βουλευτικές εκλογές Ιουνίου 2023"};
 // Shared by template.html and stations_template.html; inlined at build time before the page script.
 // The page script defines `map` and fills `layers` (index = table row data-i).
 const $ = id => document.getElementById(id);
@@ -212,8 +248,41 @@ const devLegend = () => `<span class="lbl" style="margin-left:0">Σε σχέση
   divSteps().map((c, i) => `<i style="background:${c}"></i><span class="lbl">${DEV_LBL[i]}</span>`).join("");
 
 // Links to the other maps of this constituency, and to the index of all maps.
-$("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("") +
-  `<a href="index.html">Όλοι οι χάρτες</a>`;
+$("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("");
+
+// OpenStreetMap base tiles, faded under the data. `attribution` names the page's own sources.
+const baseTiles = (m, attribution, maxZoom) => L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap · " + attribution, maxZoom, opacity: 0.6
+}).addTo(m);
+
+// PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
+// pdfTitle() becomes the document title, i.e. the suggested file name. Returns the PDF button's handler.
+function printSetup(m, tiles, bounds, pdfTitle) {
+  const screenTitle = document.title;
+  let saved;
+  const fit = () => {
+    document.title = pdfTitle();
+    saved = saved || [m.getCenter(), m.getZoom()];
+    document.body.classList.add("printing");
+    m.invalidateSize();
+    m.fitBounds(bounds(), {padding: [8, 8]});
+  };
+  addEventListener("beforeprint", fit);  // also covers Ctrl+P
+  addEventListener("afterprint", () => {
+    document.body.classList.remove("printing");
+    document.title = screenTitle;
+    m.invalidateSize();
+    if (saved) m.setView(...saved);
+    saved = null;
+  });
+  return () => {
+    fit();
+    let done = false;
+    const go = () => { if (!done) { done = true; window.print(); } };
+    tiles.once("load", go);
+    setTimeout(go, 1500);
+  };
+}
 
 // The first fit waits for a real container size: a page opened in a hidden tab or pane lays out at 0×0,
 // where fitBounds falls back to zoom 0 (the whole world). onFit runs once, right after that fit.
@@ -327,10 +396,7 @@ if (PARTY) {
 }
 
 $("title").textContent = `${T.title} · ${D.ep_name}`;
-const MONTHS = {may: "Μαΐου", june: "Ιουνίου"};
-const [yr, mo] = D.election.split("/");
-$("sub").textContent = (mo === "euro" ? `Ευρωεκλογές ${yr}` : `Βουλευτικές εκλογές ${mo ? MONTHS[mo] + " " : ""}${yr}`) +
-  " · ανά εκλογικό διαμέρισμα";
+$("sub").textContent = `${D.election_title} · ανά εκλογικό διαμέρισμα`;
 
 // Party, then candidate; the search box looks across all parties. Deep link: #party=131&cand=8.
 const partySel = $("party"), sel = $("cand"), q = $("q");
@@ -360,9 +426,7 @@ partySel.value = start.party;
 fillCands(start.k);
 
 const map = L.map("map", {scrollWheelZoom: false, zoomSnap: 0.25});  // fractional fit: whole zoom levels leave a small constituency at ~half the map
-const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: '&copy; OpenStreetMap · Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)', maxZoom: 18, opacity: 0.6
-}).addTo(map);
+const tiles = baseTiles(map, "Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)", 18);
 touchMap(map);
 
 const share = (p, c) => den(p, c) ? num(p, c) / den(p, c) : 0;
@@ -438,32 +502,11 @@ partySel.onchange = () => { q.value = ""; fillCands(); render(); };
 q.oninput = () => { fillCands(sel.value); render(); };
 sel.onchange = render;
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+addEventListener("themechange", render);
 
-// PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
-// The document title becomes the suggested file name.
-let saved;
-function fitForPrint() {
+const exportPdf = printSetup(map, tiles, () => layer.getBounds(), () => {
   const c = D.cands.find(x => x.k === sel.value);
-  document.title = `${T.num} ${c.name} - ${D.ep_name} - ${D.election.replace("/", "-")}`;
-  saved = saved || [map.getCenter(), map.getZoom()];
-  document.body.classList.add("printing");
-  map.invalidateSize();
-  map.fitBounds(layer.getBounds(), {padding: [8, 8]});
-}
-function exportPdf() {
-  fitForPrint();
-  let done = false;
-  const go = () => { if (!done) { done = true; window.print(); } };
-  tiles.once("load", go);
-  setTimeout(go, 1500);
-}
-addEventListener("beforeprint", fitForPrint);  // also covers Ctrl+P
-addEventListener("afterprint", () => {
-  document.body.classList.remove("printing");
-  document.title = "Χάρτης σταυρών";
-  map.invalidateSize();
-  if (saved) map.setView(...saved);
-  saved = null;
+  return `${T.num} ${c.name} - ${D.ep_name} - ${D.election.replace("/", "-")}`;
 });
 
 $("note").textContent =

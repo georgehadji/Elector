@@ -338,11 +338,66 @@ def main(election, ep):
             "unmatched": len(unmatched), "seat": seat_fallbacks, "coverage": coverage}
 
 
+# Site header and footer of every page. The toggle's pressed state means dark; theme.js keeps it in sync.
+THEME_BTN = ('<button id="theme" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true">'
+             '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg>Σκούρο θέμα</button>')
+HEADER = f'<header class="bar"><a class="home" href="index.html">Χάρτες σταυρών</a>{THEME_BTN}</header>'
+FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">')
+
+
+def footer(note="", home=True):
+    """Site footer; `note` adds page-specific caveats, `home` links back to the index."""
+    return ('<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.'
+            f'{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p>'
+            + ('<a href="index.html">Όλοι οι χάρτες</a>' if home else "")
+            + '<a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a></p></footer>')
+
+
+def theme_css(light, dark, print_=None):
+    """Colour tokens: light; dark (the system setting unless the toggle chose light, or the toggle chose dark);
+    print (always light). CSS needs the dark block twice, a media query and an attribute selector: here it is written once."""
+    def decl(t):
+        return ";".join(f"--{k}:{v}" for k, v in t.items())
+    d = f"color-scheme:dark;{decl(dark)}"
+    out = (f":root{{color-scheme:light;{decl(light)}}}\n"
+           f"@media (prefers-color-scheme:dark){{:root:not([data-theme=light]){{{d}}}}}\n:root[data-theme=dark]{{{d}}}\n")
+    if print_ is not None:  # undo every dark override
+        out += f"@media print{{:root:not([data-theme]),:root[data-theme]{{color-scheme:light;{decl({k: light[k] for k in dark} | print_)}}}}}\n"
+    return out
+
+
+# Map pages: warm grays, a blue sequential ramp (s0-s6) and a red-gray-blue diverging one (d-3..d3).
+MAP_LIGHT = {"surface": "#fcfcfb", "ink": "#1d1d1b", "ink-2": "#5c5b57", "line": "#e4e3df", "chip": "#f2f1ee", "shadow": "rgba(0,0,0,.18)",
+             "s0": "#eef4fc", "s1": "#cde2fb", "s2": "#9ec5f4", "s3": "#6da7ec", "s4": "#3987e5", "s5": "#256abf", "s6": "#104281",
+             "link": "#256abf", "d-3": "#a8302e", "d-2": "#e0736b", "d-1": "#f6c4c0", "d0": "#e4e3df", "d1": "#9ec5f4", "d2": "#3987e5",
+             "d3": "#104281"}
+MAP_DARK = {"surface": "#1a1a19", "ink": "#ecebe7", "ink-2": "#a8a7a2", "line": "#383835", "chip": "#262624",
+            "shadow": "rgba(0,0,0,.5)", "d0": "#5a5955", "link": "#6da7ec"}
+# Index: cool paper and ink, one blue pen.
+INDEX_LIGHT = {"paper": "#f6f7f9", "ink": "#13233d", "ink-2": "#55627a", "line": "#dde2ea", "pen": "#256abf", "wash": "#eaf1fb"}
+INDEX_DARK = {"paper": "#171c24", "ink": "#e8edf5", "ink-2": "#9aa6b8", "line": "#2b3442", "pen": "#6da7ec", "wash": "#1f2a3a"}
+
+
+def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None):
+    """Shared parts of every page: colour tokens, site CSS and theme script, fonts, header, footer."""
+    for placeholder, text in (("/*THEME_TOKENS*/", theme_css(light, dark, print_)),
+                              ("/*SITE_CSS*/", (HERE / "site.css").read_text(encoding="utf-8")),
+                              ("/*THEME_JS*/", (HERE / "theme.js").read_text(encoding="utf-8")),
+                              ("<!--FONTS-->", FONTS), ("<!--HEADER-->", HEADER), ("<!--FOOTER-->", footer())):
+        page = page.replace(placeholder, text)
+    return page
+
+
+def common_css():
+    return fill((HERE / "common.css").read_text(encoding="utf-8"), print_={"surface": "#fff"})
+
+
 def render_page(template, data):
-    """Template with the shared UI (common.css/js) and the page data inlined: one self-contained file."""
+    """Template with the shared UI (common.css/js, theme, header, footer) and the page data inlined: one self-contained file."""
     page = (HERE / template).read_text(encoding="utf-8")
-    for placeholder, name in (("/*COMMON_CSS*/", "common.css"), ("/*COMMON_JS*/", "common.js")):
-        page = page.replace(placeholder, (HERE / name).read_text(encoding="utf-8"))
+    page = fill(page.replace("/*COMMON_CSS*/", common_css()).replace("/*COMMON_JS*/", (HERE / "common.js").read_text(encoding="utf-8")))
+    data = {**data, "election_title": ELECTIONS[data["election"]][1]}
     return page.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False))  # last: data may contain anything
 
 
@@ -360,13 +415,20 @@ PARTY_ARTIFACTS = [  # published static map pages, one per party (June share + M
 
 PARTY_SHORT = {"ΝΕΑ ΔΗΜΟΚΡΑΤΙΑ": "ΝΔ", "ΣΥΝΑΣΠΙΣΜΟΣ ΡΙΖΟΣΠΑΣΤΙΚΗΣ ΑΡΙΣΤΕΡΑΣ": "ΣΥΡΙΖΑ", "ΠΑΣΟΚ-Κίνημα Αλλαγής": "ΠΑΣΟΚ",
                "ΚΟΜΜΟΥΝΙΣΤΙΚΟ ΚΟΜΜΑ ΕΛΛΑΔΑΣ": "ΚΚΕ", "ΕΛΛΗΝΙΚΗ ΛΥΣΗ - ΚΥΡΙΑΚΟΣ ΒΕΛΟΠΟΥΛΟΣ": "Ελληνική Λύση"}
-ELECTION_NAMES = {"2019": "2019", "2023/may": "Μάιος 2023", "2023/june": "Ιούνιος 2023", "2024/euro": "Ευρωεκλογές 2024"}
+ELECTIONS = {  # oldest first
+    "2019": ("2019", "Βουλευτικές εκλογές 2019"),
+    "2023/may": ("Μάιος 2023", "Βουλευτικές εκλογές Μαΐου 2023"),
+    "2023/june": ("Ιούνιος 2023", "Βουλευτικές εκλογές Ιουνίου 2023"),
+    "2024/euro": ("Ευρωεκλογές 2024", "Ευρωεκλογές 2024"),
+}
+ELECTION_NAMES = {k: short for k, (short, _) in ELECTIONS.items()}
 # A ballpoint cross, the mark a voter puts next to a candidate: the one decorative element of the site.
 CROSS_SVG = ('<svg class="x" viewBox="0 0 40 40" aria-hidden="true"><path d="M7 8 C15 15 24 25 33 33"/>'
              '<path d="M32 7 C25 14 15 24 8 34"/></svg>')
 INDEX_CSS = """
-:root{color-scheme:light;--paper:#f6f7f9;--ink:#13233d;--ink-2:#55627a;--line:#dde2ea;--pen:#256abf;--wash:#eaf1fb}
-@media (prefers-color-scheme:dark){:root{color-scheme:dark;--paper:#171c24;--ink:#e8edf5;--ink-2:#9aa6b8;--line:#2b3442;--pen:#6da7ec;--wash:#1f2a3a}}
+/*THEME_TOKENS*/
+/*SITE_CSS*/
+.bar{justify-content:flex-end;margin:-24px 0 16px}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "Fira Sans",system-ui,sans-serif}
 main{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
@@ -412,8 +474,8 @@ h1 .x path+path{animation-delay:.3s}
 .more ul{margin:0;padding:0;list-style:none}
 .more li{padding:3px 0}
 .more li span{color:var(--ink-2);font-size:14px}
-footer{margin-top:48px;color:var(--ink-2);font-size:14px;max-width:40em}
-@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:16px}#f{font-size:17px}.eps{margin-top:16px}}
+footer{margin-top:48px;font-size:14px;max-width:40em}
+@media (max-width:599px){main{padding:24px 16px 48px}.bar{margin:-12px 0 12px}.lede{font-size:16px}#f{font-size:17px}.eps{margin-top:16px}}
 @media (pointer:coarse){.jump a{display:inline-block;padding:12px 0}.eps h2 a{display:inline-block;padding:9px 0}.el a{min-height:44px}.el a.now{padding:0 16px}.more li a{display:inline-block;padding:10px 0}}
 """
 INDEX_JS = """
@@ -508,35 +570,36 @@ def write_index(order, nikh, elected):
     nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
                          for f, m in tm if "_tm_131-" not in f)
     coverage = "".join(
-        f'<li><a href="{q.name}">{ {"june": "Ιούνιος", "may": "Μάιος", "euro": "Ευρωεκλογές", "": "Βουλευτικές"}[q.stem[11:]]} {q.stem[6:10]}</a></li>'
-        for q in sorted((HERE / "out").glob("index_*.html")))
+        f'<li><a href="index_{e.replace("/", "-")}.html">{name}</a></li>' for e, name in reversed(ELECTION_NAMES.items())
+        if (HERE / "out" / f'index_{e.replace("/", "-")}.html').exists())
     artifacts = "".join(f'<li><a href="{u}">{html.escape(n)}</a></li>' for n, u in PARTY_ARTIFACTS)
-    (HERE / "out" / "index.html").write_text(f"""<!doctype html>
+    (HERE / "out" / "index.html").write_text(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
 <meta name="description" content="Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
+{FONTS}
+<script>/*THEME_JS*/</script>
 <style>{INDEX_CSS}</style></head><body><main>
 <header>
+<div class="bar">{THEME_BTN}</div>
 <h1>{CROSS_SVG}Χάρτες σταυρών</h1>
 <p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και ανά εκλογικό τμήμα, σε όλες τις εκλογικές περιφέρειες.</p>
 <div id="s" hidden><label class="sr" for="f">Αναζήτηση περιφέρειας</label>
 <input id="f" type="search" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off">
 <p id="n" aria-live="polite"></p></div>
-<nav class="jump" aria-label="Άλλες ενότητες"><a href="#cov">Κάλυψη ανά νομό</a><a href="#tm">Ανά εκλογικό κατάστημα</a><a href="#party">Χάρτες ανά κόμμα</a></nav>
+<nav class="jump" aria-label="Άλλες ενότητες"><a href="#cmp">Σύγκριση εκλογών</a><a href="#cov">Κάλυψη ανά νομό</a><a href="#tm">Ανά εκλογικό κατάστημα</a><a href="#party">Χάρτες ανά κόμμα</a></nav>
 </header>
 <ul class="eps">{"".join(rows)}</ul>
 <div class="more">
+<section id="cmp"><h2>Σύγκριση εκλογών</h2><p><a href="compare.html">Χάρτης όλης της χώρας</a>: ποσοστό κάθε κόμματος και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές (2019–2024).</p></section>
 <section id="cov"><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
 <section id="tm"><h2>Ανά εκλογικό κατάστημα</h2><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
 <a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a>, <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a>,
 <a href="nikh_2023-2024.html">χάρτης όλης της χώρας: ποσοστά και μεταβολές 2019–2024</a>.</p><ul>{nikh_rows}</ul></section>
 <section id="party"><h2>Χάρτες ανά κόμμα</h2><p>Στατικοί χάρτες στο claude.ai, ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><ul>{artifacts}</ul></section>
 </div>
-<footer>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.
-Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.</footer>
-</main><script>{INDEX_JS}</script></body></html>""", encoding="utf-8")
+{footer(" Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.", home=False)}
+</main><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK), encoding="utf-8")
 
 
 def register(file, election, ep, ep_name, label):
@@ -573,23 +636,21 @@ def build_all(election):
         f'<td class="n">{r["map_areas"]}</td><td class="n">{r["unmatched"]}</td><td class="n">{r["seat"]}</td>'
         f'<td class="n">{r["coverage"]:.1%}</td></tr>' if r.get("file") else
         f'<tr><td>{r["name"]}</td><td colspan="5">σφάλμα: {r["error"]}</td></tr>' for r in rows)
-    (HERE / "out" / f"index_{election.replace('/', '-')}.html").write_text(f"""<!doctype html>
+    (HERE / "out" / f"index_{election.replace('/', '-')}.html").write_text(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Χάρτες σταυρών</title><style>
-:root{{--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df}}
-@media (prefers-color-scheme: dark){{:root{{--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835}}}}
-body{{margin:0;font:14px/1.45 system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
-main{{max-width:900px;margin:0 auto;padding:16px}} a{{color:inherit}}
-table{{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}}
-th,td{{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}} th{{color:var(--ink-2);font-size:12px}}
-.n{{text-align:right}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}
-@media (max-width:599px){{main{{padding:12px}} th,td{{padding:6px 4px}} th{{font-size:11px}} td{{font-size:13px}}}}
+<title>Κάλυψη χαρτών · {ELECTION_NAMES.get(election, election)}</title>
+{FONTS}
+<script>/*THEME_JS*/</script><style>{common_css()}
+main{{max-width:900px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}
+@media (max-width:599px){{th,td{{padding:6px 4px}} th{{font-size:11px}} td{{font-size:13px}}}}
 @media (pointer:coarse){{td a{{display:inline-block;padding:13px 0}}}}</style></head><body><main>
-<h1 style="font-size:20px">Χάρτες σταυρών · {election}</h1>
+{HEADER}
+<h1>Κάλυψη χαρτών · {ELECTION_NAMES.get(election, election)}</h1>
 <p>Ε.Δ.: εκλογικά διαμερίσματα · Περιοχές: κοινότητες στον χάρτη · Έδρα: διαμερίσματα που μπήκαν στην κοινότητα-έδρα
 χωρίς αντιστοίχιση ονόματος · Κάλυψη: σταυροί στον χάρτη ως ποσοστό του συνόλου.</p>
 <div class="wrap"><table><thead><tr><th>Περιφέρεια</th><th class="n">Ε.Δ.</th><th class="n">Περιοχές</th><th class="n">Χωρίς χάρτη</th>
-<th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody>{tr}</tbody></table></div></main></body></html>""",
+<th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody>{tr}</tbody></table></div>
+{footer()}</main></body></html>"""),
                                                                                           encoding="utf-8")
     ok = [r for r in rows if r.get("file")]
     print(f"\n{len(ok)}/{len(rows)} built; unmatched Ε.Δ.: {sum(r['unmatched'] for r in ok)}, "
