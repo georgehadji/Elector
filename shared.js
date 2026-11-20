@@ -21,3 +21,16 @@ const binLabel = (lo, hi, f) => lo === -Infinity ? `κάτω από ${f(hi)}` : 
 // Motion: reduced-motion users get jumps instead of animated zooms.
 const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 const mapOptions = extra => ({zoomAnimation: MOTION, fadeAnimation: MOTION, markerZoomAnimation: MOTION, zoomSnap: 0.25, ...extra});
+
+// Footer "Αντιγραφή συνδέσμου": copies the current address (with the hash) and says so for 2 seconds.
+// Without the clipboard API the address goes into a selected read-only field to copy by hand.
+document.addEventListener("click", async e => {
+  const b = e.target.closest(".copy");
+  if (!b) return;
+  const done = () => { const t = b.textContent; b.textContent = "Αντιγράφηκε"; setTimeout(() => { b.textContent = t; }, 2000); };
+  try { await navigator.clipboard.writeText(location.href); done(); } catch {
+    let f = b.parentNode.querySelector(".copyfield");
+    if (!f) { f = Object.assign(document.createElement("input"), {readOnly: true, className: "copyfield"}); b.parentNode.append(f); }
+    f.value = location.href; f.select();
+  }
+});

@@ -21,7 +21,9 @@ from config import (
     OUT,
     PARTY_ARTIFACTS,
     PARTY_SHORT,
+    REGIONS,
 )
+from geo import exteriors, frame, path
 from matching import ep_label
 
 # Site header and footer of every page. The toggle's pressed state means dark; theme.js keeps it in sync.
@@ -37,7 +39,8 @@ def footer(note="", home=True):
     return ('<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.'
             f'{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p>'
             + ('<a href="index.html">Όλοι οι χάρτες</a>' if home else "")
-            + '<a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a></p></footer>')
+            + '<a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a>'
+            '<button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>')
 
 
 def theme_css(light, dark, print_=None):
@@ -56,10 +59,11 @@ def theme_css(light, dark, print_=None):
 # Map pages: warm grays, a blue sequential ramp (s0-s6) and a red-gray-blue diverging one (d-3..d3).
 MAP_LIGHT = {"surface": "#fcfcfb", "ink": "#1d1d1b", "ink-2": "#5c5b57", "line": "#e4e3df", "chip": "#f2f1ee", "shadow": "rgba(0,0,0,.18)",
              "s0": "#eef4fc", "s1": "#cde2fb", "s2": "#9ec5f4", "s3": "#6da7ec", "s4": "#3987e5", "s5": "#256abf", "s6": "#104281",
+             "scrim": "rgba(0,0,0,.5)", "on-scrim": "#fff",
              "link": "#256abf", "d-3": "#a8302e", "d-2": "#e0736b", "d-1": "#f6c4c0", "d0": "#e4e3df", "d1": "#9ec5f4", "d2": "#3987e5",
              "d3": "#104281"}
 MAP_DARK = {"surface": "#1a1a19", "ink": "#ecebe7", "ink-2": "#a8a7a2", "line": "#383835", "chip": "#262624",
-            "shadow": "rgba(0,0,0,.5)", "d0": "#5a5955", "link": "#6da7ec"}
+            "shadow": "rgba(0,0,0,.5)", "d0": "#5a5955", "link": "#6da7ec"}  # dark: scrim and on-scrim stay as in light
 # Index: cool paper and ink, one blue pen.
 INDEX_LIGHT = {"paper": "#f6f7f9", "ink": "#13233d", "ink-2": "#55627a", "line": "#dde2ea", "pen": "#256abf", "wash": "#eaf1fb"}
 INDEX_DARK = {"paper": "#171c24", "ink": "#e8edf5", "ink-2": "#9aa6b8", "line": "#2b3442", "pen": "#6da7ec", "wash": "#1f2a3a"}
@@ -76,6 +80,13 @@ def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None):
     return page
 
 
+def meta(title, description):
+    """Description and Open Graph tags (no og:image: that needs a hosted raster picture)."""
+    t, d = html.escape(title, quote=True), html.escape(description, quote=True)
+    return (f'<meta name="description" content="{d}"><meta property="og:type" content="website">'
+            f'<meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR">'
+            f'<meta property="og:title" content="{t}"><meta property="og:description" content="{d}">')
+
 def common_css():
     return fill((HERE / "common.css").read_text(encoding="utf-8"), print_={"surface": "#fff"})
 
@@ -85,6 +96,11 @@ def render_page(template, data):
     page = (HERE / template).read_text(encoding="utf-8")
     page = fill(page.replace("/*COMMON_CSS*/", common_css()).replace("/*COMMON_JS*/", (HERE / "common.js").read_text(encoding="utf-8")))
     data = {**data, "election_title": ELECTIONS[data["election"]][1]}
+    kind = "Ψήφοι κομμάτων" if data.get("mode") == "party" else "Σταυροί προτίμησης"
+    unit = "εκλογικό τμήμα" if "venues" in data else "εκλογικό διαμέρισμα"
+    et = data["election_title"]
+    page = page.replace("<!--META-->", meta(f"{kind}, {data['ep_name']}",
+                                            f"{kind} ανά {unit}, {data['ep_name']}, {et[0].lower() + et[1:]}."))
     return page.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False))  # last: data may contain anything
 
 
@@ -92,6 +108,21 @@ def render_page(template, data):
 CROSS_SVG = ('<svg class="x" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
              '<path d="M11 12 C16 17 22 24 29 29"/>'
              '<path d="M28 11 C23 16 17 23 12 30"/></svg>')
+TOP_KEY = "Πρώτος σε σταυρούς, Μάιος 2023"  # said once above the list, and as a screen-reader prefix on each card
+
+def greece_figure(areas, key, caption, size=440):
+    """Static map of Greece for the index: `areas` = [(GeoJSON geometry, colour)], `key` = [(name, colour)].
+    One path per colour; neighbouring areas keep their own outline, simplified to whole units."""
+    to_xy, w, h = frame([g for g, _ in areas], size)
+    by_color = defaultdict(list)
+    for g, color in areas:
+        by_color[color].extend(exteriors(g))
+    paths = "".join(f'<path fill="{c}" stroke="{c}" d="{path(rings, to_xy, 0.8, 1.0)}"/>' for c, rings in by_color.items())
+    swatches = "".join(f'<span class="k"><i style="background:{c}"></i>{html.escape(n)}</span>' for n, c in key)
+    return (f'<figure class="gr"><a href="compare.html"><svg viewBox="0 0 {w} {h}" role="img" aria-label="{html.escape(caption)}">'
+            f'<g stroke-width=".6" stroke-linejoin="round">{paths}</g></svg></a>'
+            f'<figcaption>{html.escape(caption)}. <a href="compare.html">Σύγκριση εκλογών</a><span class="keys">{swatches}</span></figcaption></figure>')
+
 INDEX_CSS = """
 /*THEME_TOKENS*/
 /*SITE_CSS*/
@@ -137,6 +168,23 @@ h1 .x path+path{animation-delay:.3s}
 .el a.now{padding:0 12px;border:1px solid var(--pen);border-radius:16px;color:var(--pen);background:var(--wash);
           text-decoration:none;font-weight:600}
 .el a.now:hover{background:var(--pen);color:var(--paper)}
+.sil{position:absolute;right:0;top:12px;width:48px;height:48px;color:var(--ink-2)}
+.sil path{fill:currentColor;fill-opacity:.22;stroke:currentColor;stroke-width:1;stroke-linejoin:round}
+.eps li{position:relative}
+.eps li>h2,.eps li>.top{margin-right:60px}
+.reg{font:600 13px/1.2 "Fira Sans",system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin:28px 0 0}
+.grp[hidden]{display:none}
+.eps{margin-top:6px}
+.key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:14px;color:var(--ink-2)}
+.key .x{width:14px;height:14px;flex:none}
+.gr{margin:20px 0 0;max-width:380px}
+.gr a:first-child{display:block}
+.gr svg{display:block;width:100%;height:auto;max-height:260px}
+.gr figcaption{margin:6px 0 0;font-size:13px;color:var(--ink-2)}
+.gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
+.gr .k{display:inline-flex;align-items:center;white-space:nowrap}
+.gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+@media (min-width:900px){main{position:relative}.gr{position:absolute;right:24px;top:56px;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.nation,.key{max-width:calc(100% - 380px)}}
 .dhm{margin:0 0 8px;color:var(--ink-2);font-size:13px;line-height:1.45}
 .more{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 36px}
 .more section{border-top:2px solid var(--ink);padding-top:12px}
@@ -146,7 +194,7 @@ h1 .x path+path{animation-delay:.3s}
 .more li{padding:3px 0}
 .more li span{color:var(--ink-2);font-size:14px}
 footer{margin-top:48px;font-size:14px;max-width:40em}
-@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h2{margin:0 0 2px}.top{margin:0 0 4px;font-size:13px;line-height:1.3}.bar{margin:-12px 0 12px}.lede{font-size:16px}#f{font-size:17px}.eps{margin-top:16px}}
+@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h2{margin:0 0 2px}.top{margin:0 0 4px;font-size:13px;line-height:1.3}.bar{margin:-12px 0 12px}.lede{font-size:16px}#f{font-size:17px}}
 @media (pointer:coarse){.nation a{display:inline-flex;align-items:center;min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.more li a{display:inline-block;padding:10px 0}}
 """
 INDEX_JS = """
@@ -161,6 +209,7 @@ f.addEventListener("input", () => {
     const hit = qs.every(q => hits(words.get(li), q)); li.hidden = !hit; shown += hit;
     li.style.order = hit && qs.length && !qs.every(q => hits(own(li), q)) ? 1 : "";  // name matches first
   }
+  document.querySelectorAll(".grp").forEach(g => { g.hidden = !g.querySelector("li:not([hidden])"); });  // a region head goes with its cards
   for (const li of items) { const d = li.querySelector("details"); if (d) d.open = shown === 1 && !li.hidden; }  // the one match shows its older maps
   n.textContent = !qs.length ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του δήμου ή του νομού.`
     : shown === 1 ? "1 περιφέρεια. Enter για τον πιο πρόσφατο χάρτη." : `${shown} περιφέρειες`;
@@ -172,14 +221,14 @@ f.addEventListener("keydown", e => {
 """
 
 
-def card(ep, name, keys, n_own, lead, note, chips):
+def card(ep, name, keys, n_own, lead, note, chips, sil=""):
     """One constituency: the newest election is the default link, the older ones fold into a <details>.
     `chips` are link markup, newest first; `note` is the optional list of municipalities."""
     now, *older = chips
     folded = (f'<details class="older"><summary>Παλαιότερες εκλογές ({len(older)})</summary>'
               f'<p class="el">{"".join(older)}</p>{note}</details>') if older else note
     return (f'<li id="ep-{ep}" data-k="{html.escape(keys)}" data-n="{n_own}"><h2>{html.escape(name)}</h2>'
-            f'{lead}<div class="acts"><p class="el">{now}</p>{folded}</div></li>')
+            f'{sil}{lead}<div class="acts"><p class="el">{now}</p>{folded}</div></li>')
 
 def nationwide():
     """Pages that cover the whole country, ahead of the constituency list."""
@@ -214,7 +263,8 @@ def _write_index(order, nikh, elected):
         else:
             eps.setdefault(m["ep_name"], []).append((f, m))
     rank = list(ELECTION_NAMES)
-    rows = []
+    region_of = {ep: region for region, eps_ in REGIONS for ep in eps_}
+    by_region = {region: [] for region, _ in REGIONS}  # keeps the regions' north-to-south order
     for name in sorted(eps, key=fold):
         links = sorted(eps[name], key=lambda fm: rank.index(fm[1]["election"]) if fm[1]["election"] in rank else -1)
         latest = links[-1][1]
@@ -233,9 +283,10 @@ def _write_index(order, nikh, elected):
                 if re.search(r"Αθηνών|Πειραιώς|Αττικής", name) and len(towns) > 1 else "")
         t = top.get(name)
         # The cross marks the candidate with the most crosses: the one mark on the page that carries data.
-        lead = (f'<p class="top">{CROSS_SVG}<span>Πρώτος σε σταυρούς (Μάιος 2023): <b>{html.escape(t[0])}</b> '
+        lead = (f'<p class="top">{CROSS_SVG}<span><span class="sr">{TOP_KEY}: </span><b>{html.escape(t[0])}</b> '
                 f'({html.escape(t[1])}), {f"{t[2]:,}".replace(",", ".")}</span></p>' if t else "")
-        rows.append(card(latest["ep"], name, k, len(own), lead, note, chips))
+        by_region.setdefault(region_of.get(latest["ep"], "Λοιπές"), []).append(
+            card(latest["ep"], name, k, len(own), lead, note, chips, latest.get("sil", "")))
     nikh_rows = "".join(
         f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>'
         f'{ELECTION_NAMES.get(m["election"], m["election"])}'
@@ -243,6 +294,10 @@ def _write_index(order, nikh, elected):
         for f, m in nikh)
     nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
                          for f, m in tm if "_tm_131-" not in f)
+    groups = "".join(f'<section class="grp"><h2 class="reg">{html.escape(region)}</h2><ul class="eps">{"".join(lis)}</ul></section>'
+                     for region, lis in by_region.items() if lis)
+    gr = HERE / "out" / "greece_map.html"
+    greece = gr.read_text(encoding="utf-8") if gr.exists() else ""  # written by compare.py
     nikh_n = nikh_rows.count("<li>")
     coverage = "".join(
         f'<li><a href="index_{e.replace("/", "-")}.html">{name}</a></li>' for e, name in reversed(ELECTION_NAMES.items())
@@ -263,8 +318,10 @@ def _write_index(order, nikh, elected):
 <input id="f" type="search" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off">
 <p id="n" aria-live="polite"></p></div>
 {nationwide()}
+{greece}
+<p class="key">{CROSS_SVG}<span>{TOP_KEY}</span></p>
 </header>
-<ul class="eps">{"".join(rows)}</ul>
+{groups}
 <div class="more">
 <section id="cov"><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
 <section id="tm"><h2>Ανά εκλογικό κατάστημα</h2><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
@@ -293,8 +350,9 @@ def links(file, election, ep):
             if m["ep"] == ep and m["election"] == election and f != file]
 
 
-def entry(election, ep, ep_name, label):
-    return {"election": election, "ep": ep, "ep_name": ep_label(ep_name), "label": label}
+def entry(election, ep, ep_name, label, sil=""):
+    """A maps.json record; `sil` is the constituency's silhouette SVG (area maps only)."""
+    return {"election": election, "ep": ep, "ep_name": ep_label(ep_name), "label": label, **({"sil": sil} if sil else {})}
 
 
 def record(entries):

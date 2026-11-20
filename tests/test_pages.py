@@ -41,6 +41,12 @@ class Pages(unittest.TestCase):
             self.assertIn("L.map(", s, p.name)
             self.assertEqual(len(re.findall(r'L\.map\("map", (?!mapOptions\()', s)), 0, p.name)
 
+    def test_share_tags(self):
+        for p in APP + [OUT / "compare.html"]:
+            s = read(p)
+            self.assertIn('property="og:title"', s, p.name)
+            self.assertIn('name="description"', s, p.name)
+
     def test_no_middle_dot_in_titles(self):
         for p in APP:
             s = read(p)
@@ -51,7 +57,7 @@ class Cards(HTMLParser):
     """Collects, per index card, whether it has a <details class=older> and how many election links it shows."""
     def __init__(self):
         super().__init__()
-        self.cards, self.cur, self.nation_at, self.eps_at, self.pos = [], None, None, None, 0
+        self.cards, self.cur, self.nation_at, self.eps_at, self.pos, self.groups = [], None, None, None, 0, 0
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -62,8 +68,12 @@ class Cards(HTMLParser):
         elif tag == "ul" and "eps" in cls:
             self.eps_at = self.pos
         elif tag == "li" and (a.get("id") or "").startswith("ep-"):
-            self.cur = {"older": False, "links": 0}
+            self.cur = {"older": False, "links": 0, "sil": False}
             self.cards.append(self.cur)
+        elif tag == "section" and "grp" in cls:
+            self.groups += 1
+        elif tag == "svg" and "sil" in cls and self.cur is not None:
+            self.cur["sil"] = True
         elif tag == "details" and "older" in cls and self.cur is not None:
             self.cur["older"] = True
         elif tag == "a" and self.cur is not None and a.get("href", "").endswith(".html"):
@@ -78,6 +88,21 @@ class Index(unittest.TestCase):
         self.assertGreater(len(c.cards), 50)
         for card in c.cards:
             self.assertEqual(card["older"], card["links"] > 1)
+
+    def test_cards_have_silhouette_and_region(self):
+        c = Cards()
+        c.feed(read(OUT / "index.html"))
+        self.assertTrue(all(card["sil"] for card in c.cards))
+        self.assertEqual(c.groups, 13)
+
+    def test_every_constituency_has_a_region(self):
+        import json
+        import sys
+        sys.path.insert(0, str(OUT.parent))
+        from config import REGIONS
+        known = {ep for _, eps in REGIONS for ep in eps}
+        built = {m["ep"] for f, m in json.loads(read(OUT / "maps.json")).items() if "_tm_" not in f}
+        self.assertFalse(built - known, f"no region: {sorted(built - known)}")
 
     def test_nationwide_block_before_list(self):
         c = Cards()
