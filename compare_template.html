@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Σύγκριση εκλογών</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--ink:#13233d;--ink-2:#55627a;--line:#dde2ea;--panel:#ffffffee;--field:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171c24;--ink:#e8edf5;--ink-2:#9aa6b8;--line:#2b3442;--panel:#1d2430ee;--field:#1d2430}}
+:root[data-theme="dark"]{--bg:#171c24;--ink:#e8edf5;--ink-2:#9aa6b8;--line:#2b3442;--panel:#1d2430ee;--field:#1d2430}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+header{padding:10px 16px 8px;border-bottom:1px solid var(--line)}
+h1{font-size:17px;margin:0 0 2px}
+h1 a{color:inherit;text-decoration:none;color:var(--ink-2);font-weight:400}
+.sub{color:var(--ink-2);font-size:12.5px;margin:0}
+.note{color:var(--ink-2);font-size:11.5px;line-height:1.35;margin:2px 0 0}
+.ctl{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:8px}
+.ctl label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)}
+select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:5px 8px;min-height:36px;max-width:100%}
+#map{flex:1;min-height:300px}
+.legend{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.3;box-shadow:0 1px 4px #0003}
+.legend b{display:block;margin-bottom:4px}
+.legend i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid #0002}
+.leaflet-tooltip.t{font:12.5px/1.4 system-ui,sans-serif}
+.t b{font-size:13px}
+.t .m{color:#55627a}
+.t td{padding:0 4px}
+@media (max-width:600px){
+  h1{font-size:15px}
+  .sub{font-size:12px}
+  .ctl label{flex:1 1 100%}
+  .ctl select{flex:1}
+  .legend{font-size:11px;padding:6px 8px}
+  .legend i{width:11px;height:10px;margin-right:4px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Σύγκριση εκλογών ανά κοινότητα <a href="index.html">· όλοι οι χάρτες</a></h1>
+  <div class="ctl">
+    <label>Κόμμα <select id="party"></select></label>
+    <label>Προβολή <select id="view"></select></label>
+  </div>
+  <p class="sub" id="sub" aria-live="polite"></p>
+  <p class="note" id="note"></p>
+</header>
+<div id="map" role="region" aria-label="Χάρτης"></div>
+<script>
+const D = /*DATA*/null;
+const E = Object.keys(D.elections);  // chronological
+// change views: every ordered pair (older -> newer)
+const VIEWS = {};
+for (const e of E) VIEWS[e] = {label: D.elections[e]};
+for (let i = 0; i < E.length; i++) for (let j = i + 1; j < E.length; j++)
+  VIEWS[`${E[i]}~${E[j]}`] = {from: E[i], to: E[j], label: `Μεταβολή ${D.elections[E[i]]} → ${D.elections[E[j]]}`};
+const COLORS = ["#f3eef8", "#e0d3ec", "#cbb5de", "#b497cf", "#9c78bf", "#845bae", "#6b3f9a", "#532a82", "#3a1866"];
+const DCOLORS = ["#b35806", "#e08214", "#fdb863", "#fee0b6", "#f2f0ee", "#d8daeb", "#b2abd2", "#8073ac", "#542788"];
+const EURO_NOTE = "Οι ευρωεκλογές είχαν πολύ χαμηλότερη συμμετοχή και ενιαία εθνική λίστα· ανεβάζουν τα ποσοστά των μικρότερων κομμάτων. ";
+const NOTE = "Ανεπίσημα αποτελέσματα ΥΠΕΣ, κανονικά τμήματα· διαμερίσματα που δεν αντιστοιχίστηκαν σε κοινότητα ΕΛΣΤΑΤ λείπουν. Αχνό: λιγότερα από 50 έγκυρα.";
+
+const fmt = n => n.toLocaleString("el-GR");
+const num = (x, d = 1) => x.toLocaleString("el-GR", {minimumFractionDigits: d, maximumFractionDigits: d});
+const pctf = p => num(p) + "%";
+const signed = (d, digits = 1) => (d > 0 ? "+" : d < 0 ? "−" : "±") + num(Math.abs(d), digits);
+const bin = (p, bins, colors) => { let i = 0; while (i + 1 < bins.length && p >= bins[i + 1]) i++; return colors[i]; };
+// round a positive step to 1, 2, 2.5 or 5 x 10^k
+const nice = x => { const p = 10 ** Math.floor(Math.log10(x)), m = x / p; return p * (m < 1.5 ? 1 : m < 2.25 ? 2 : m < 3.5 ? 2.5 : m < 7.5 ? 5 : 10); };
+
+let pi = 0, view = "2023-june", bins = [], colors = COLORS;
+// share of party index pi in election e for row r = [valid, votes...]; null when the party did not run or no votes
+const share = (r, e) => { const v = r && r[e]; return v && v[0] && v[pi + 1] !== null ? 100 * v[pi + 1] / v[0] : null; };
+const valueOf = f => {
+  const V = VIEWS[view], r = f.properties.e;
+  if (!V.from) return share(r, view);
+  const a = share(r, V.from), b = share(r, V.to);
+  return a === null || b === null ? null : b - a;
+};
+const thin = f => {
+  const V = VIEWS[view], r = f.properties.e;
+  return Math.min(...(V.from ? [V.from, V.to] : [view]).map(e => r[e] ? r[e][0] : 0)) < 50;
+};
+
+function makeBins() {
+  const vals = [];
+  layer.eachLayer(l => { if (!thin(l.feature)) { const v = valueOf(l.feature); if (v !== null) vals.push(v); } });
+  vals.sort((a, b) => a - b);
+  const q = t => vals.length ? vals[Math.min(vals.length - 1, Math.floor(t * vals.length))] : 0;
+  if (VIEWS[view].from) {  // symmetric diverging bins around 0, step from the spread of changes
+    const s = nice(Math.max(0.1, Math.max(Math.abs(q(0.05)), Math.abs(q(0.95))) / 3));
+    bins = [-Infinity, -3 * s, -2 * s, -s, -s / 4, s / 4, s, 2 * s, 3 * s]; colors = DCOLORS;
+  } else {  // sequential: rounded ninths of the distribution
+    const step = nice(Math.max(0.1, (q(0.97) - q(0.03)) / 8));
+    const lo = Math.max(0, Math.floor(q(0.03) / step) * step);
+    bins = [0, ...Array.from({length: 8}, (_, i) => lo + (i + 1) * step)]; colors = COLORS;
+  }
+}
+
+function style(f) {
+  const v = valueOf(f);
+  if (v === null) return {weight: 0.3, color: "#888", fillColor: "#ccc", fillOpacity: 0.25};
+  return {weight: 0.3, color: "#5553", fillColor: bin(v, bins, colors), fillOpacity: thin(f) ? 0.45 : 0.85};
+}
+
+function tip(f) {
+  const a = f.properties, r = a.e, V = VIEWS[view];
+  const rows = E.map(e => {
+    const p = share(r, e), on = e === view || e === V.from || e === V.to ? "font-weight:600" : "";
+    if (p === null) return `<tr style="${on}"><td>${D.elections[e]}</td><td colspan=2>${r[e] && r[e][pi + 1] === null ? "δεν κατέβηκε" : "—"}</td></tr>`;
+    return `<tr style="${on}"><td>${D.elections[e]}</td><td style="text-align:right">${pctf(p)}</td>` +
+           `<td class="m" style="text-align:right">${fmt(r[e][pi + 1])}/${fmt(r[e][0])}</td></tr>`;
+  }).join("");
+  let d = "";
+  if (V.from) {
+    const p0 = share(r, V.from), p1 = share(r, V.to);
+    if (p0 !== null && p1 !== null)
+      d = `<tr style="font-weight:600"><td>Μεταβολή</td><td style="text-align:right">${signed(p1 - p0)} μον.</td>` +
+          `<td class="m" style="text-align:right">${signed(r[V.to][pi + 1] - r[V.from][pi + 1], 0)} ψήφοι</td></tr>`;
+  }
+  return `<b>${a.n}</b><div class="m">${a.u} · ${a.ep}</div><div class="m">${D.parties[pi].name}</div><table>${rows}${d}</table>`;
+}
+
+const map = L.map("map", {preferCanvas: true, zoomSnap: 0.25}).setView([38.6, 23.8], 6.5);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 14, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+const layer = L.geoJSON(D.geo, {style: () => ({}), onEachFeature: (f, l) => {
+  l.bindTooltip(() => tip(f), {sticky: true, className: "t"});
+  l.on("click", () => l.openTooltip());
+}}).addTo(map);
+const legend = L.control({position: "bottomright"});
+legend.onAdd = () => L.DomUtil.create("div", "legend");
+legend.addTo(map);
+
+function drawLegend() {
+  const delta = Boolean(VIEWS[view].from);
+  legend.getContainer().innerHTML = `<b>${delta ? "Μεταβολή (μονάδες)" : "% εγκύρων"}</b>` + bins.map((b, i) => {
+    const dig = x => (x * 10) % 1 ? 2 : x % 1 ? 1 : 0;
+    const hi = bins[i + 1], f = x => delta ? signed(x, dig(x)) : num(x, dig(x));
+    const label = b === -Infinity ? `κάτω από ${f(hi)}` : hi === undefined ? `${f(b)} και πάνω` : `${f(b)} έως ${f(hi)}`;
+    return `<div><i style="background:${colors[i]}"></i>${label}</div>`;
+  }).join("");
+}
+
+function total(e) { const t = D.totals[e]; return t[pi + 1] === null ? null : [t[pi + 1], t[0]]; }
+function render() {
+  const V = VIEWS[view], name = D.parties[pi].name;
+  makeBins();
+  layer.setStyle(style);
+  drawLegend();
+  const sub = document.getElementById("sub");
+  if (V.from) {
+    const a = total(V.from), b = total(V.to);
+    sub.textContent = !a || !b ? `${name}: δεν κατέβηκε ${!a ? "το " + D.elections[V.from] : "το " + D.elections[V.to]}, δεν υπάρχει σύγκριση.`
+      : `${name}, ${D.elections[V.from]} → ${D.elections[V.to]}: ${pctf(100 * a[0] / a[1])} → ${pctf(100 * b[0] / b[1])} ` +
+        `(${signed(100 * b[0] / b[1] - 100 * a[0] / a[1])} μονάδες, ${signed(b[0] - a[0], 0)} ψήφοι) στις περιοχές του χάρτη.`;
+  } else {
+    const t = total(view);
+    sub.textContent = t ? `${name}, ${D.elections[view]}: ${pctf(100 * t[0] / t[1])} (${fmt(t[0])} ψήφοι) στις περιοχές του χάρτη.`
+      : `${name}: δεν κατέβηκε στις εκλογές: ${D.elections[view]}.`;
+  }
+  const euro = [view, V.from, V.to].includes("2024-euro");
+  document.getElementById("note").textContent =
+    (V.from ? "Χρώμα = διαφορά ποσοστού σε ποσοστιαίες μονάδες· η μεταβολή δεν δείχνει από πού ήρθαν οι ψηφοφόροι. " : "") +
+    (euro && V.from ? EURO_NOTE : "") + NOTE;
+  history.replaceState(null, "", `#party=${D.parties[pi].id}&view=${view}`);
+}
+
+const partySel = document.getElementById("party"), viewSel = document.getElementById("view");
+D.parties.forEach((p, i) => partySel.add(new Option(p.name, i)));
+const og = (label, keys) => { const g = document.createElement("optgroup"); g.label = label;
+  keys.forEach(k => g.append(new Option(VIEWS[k].label.replace("Μεταβολή ", ""), k))); viewSel.append(g); };
+og("Ποσοστό", E);
+og("Μεταβολή", Object.keys(VIEWS).filter(k => VIEWS[k].from));
+const h = new URLSearchParams(location.hash.slice(1));
+const hp = D.parties.findIndex(p => p.id === h.get("party"));
+if (hp >= 0) pi = hp;
+if (VIEWS[h.get("view")]) view = h.get("view");
+partySel.value = pi; viewSel.value = view;
+partySel.onchange = () => { pi = +partySel.value; render(); };
+viewSel.onchange = () => { view = viewSel.value; render(); };
+render();
+if (map.getSize().x) map.fitBounds(layer.getBounds());
+// Pages opened in hidden panes lay out at 0x0: fit once the map has a real size.
+new ResizeObserver((_, o) => { if (map.getSize().x) { map.invalidateSize(); map.fitBounds(layer.getBounds()); o.disconnect(); } })
+  .observe(document.getElementById("map"));
+</script>
+</body>
+</html>
