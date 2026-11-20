@@ -102,6 +102,7 @@ class Cards(HTMLParser):
         super().__init__()
         self.cards, self.cur, self.nation_at, self.eps_at, self.pos, self.groups = [], None, None, None, 0, 0
         self.jump = self.h4 = 0
+        self.in_h4 = False
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -113,6 +114,7 @@ class Cards(HTMLParser):
             self.jump = self.jump + 1
         elif tag == "h4":
             self.h4 += 1
+            self.in_h4 = True
         elif tag == "ul" and "eps" in cls:
             self.eps_at = self.pos
         elif tag == "li" and (a.get("id") or "").startswith("ep-"):
@@ -124,8 +126,12 @@ class Cards(HTMLParser):
             self.cur["sil"] = True
         elif tag == "details" and "older" in cls and self.cur is not None:
             self.cur["older"] = True
-        elif tag == "a" and self.cur is not None and a.get("href", "").endswith(".html"):
+        elif tag == "a" and self.cur is not None and not self.in_h4 and a.get("href", "").endswith(".html"):
             self.cur["links"] += 1
+
+    def handle_endtag(self, tag):
+        if tag == "h4":
+            self.in_h4 = False
 
 
 @unittest.skipUnless((OUT / "index.html").exists(), "index not built")
