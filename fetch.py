@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
-from config import DB, SCHEMA, source  # noqa: E402
+from config import DB, SCHEMA, accented, source  # noqa: E402
 
 WORKERS = 4  # keep the load on a public site low
 
@@ -61,13 +61,13 @@ def main(election, ep):
     db.executescript(SCHEMA)
 
     for pid, _order, name, color, *_ in statics(base, k, "party"):
-        db.execute("INSERT OR REPLACE INTO party VALUES (?,?,?,?)", (election, pid, name, color))
+        db.execute("INSERT OR REPLACE INTO party VALUES (?,?,?,?)", (election, pid, accented(name), color))
 
     cands = get(f"{base}/stat/{k}/cd_{ep}.js") or {}
     for pid, by_id in cands.items():
         for cid, c in by_id.items():
             db.execute("INSERT OR REPLACE INTO candidate VALUES (?,?,?,?,?)",
-                       (election, ep, int(pid), int(cid), c.get("TvDescr") or c["Descr"]))
+                       (election, ep, int(pid), int(cid), accented(c.get("TvDescr") or c["Descr"])))
 
     totals = get(f"{base}/dyn/{k}/ep_vc_{ep}.js") or {"party": {}}
     for pid, rows in totals["party"].items():
@@ -79,7 +79,7 @@ def main(election, ep):
     # Station ids are constituency id * 10000 + sequence; CountTmGeo covers every station
     # located in this constituency, including those of voters registered elsewhere.
     ep_meta = get(f"{base}/stat/{k}/ep_{ep}.js")
-    db.execute("INSERT OR REPLACE INTO ep VALUES (?,?,?)", (election, ep, ep_meta["Descr"]))
+    db.execute("INSERT OR REPLACE INTO ep VALUES (?,?,?)", (election, ep, accented(ep_meta["Descr"])))
     count = ep_meta["CountTmGeo"]
     done = {r[0] for r in db.execute("SELECT tm_id FROM station WHERE election=?", (election,))}
     todo = [ep * 10000 + s for s in range(1, count + 1) if ep * 10000 + s not in done]
@@ -95,10 +95,10 @@ def main(election, ep):
             tm = meta["TM_ID"]
             db.execute("INSERT OR REPLACE INTO station VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
                 election, tm, meta["EP_ID"], meta["EP_ID_GEO"], meta["TM_KIND"],
-                meta["EKD_ID"], meta.get("ekd_Descr") or meta.get("EKD_Descr"),
-                meta["DEN_ID"], meta.get("den_Descr") or den[meta["DEN_ID"]],
-                meta["DHM_ID"], meta.get("dhm_Descr") or dhm[meta["DHM_ID"]],
-                meta["Descr"], meta.get("CATAL_V"), (party or {}).get("Egkyra")))
+                meta["EKD_ID"], accented(meta.get("ekd_Descr") or meta.get("EKD_Descr")),
+                meta["DEN_ID"], accented(meta.get("den_Descr") or den[meta["DEN_ID"]]),
+                meta["DHM_ID"], accented(meta.get("dhm_Descr") or dhm[meta["DHM_ID"]]),
+                accented(meta["Descr"]), meta.get("CATAL_V"), (party or {}).get("Egkyra")))
             for p in (party or {}).get("party", []):
                 db.execute("INSERT OR REPLACE INTO party_votes VALUES (?,?,?,?)",
                            (election, tm, p["PARTY_ID"], p["VOTES"]))

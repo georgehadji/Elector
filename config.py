@@ -3,11 +3,17 @@
 Adding an election: one line in ELECTIONS (plus SOURCES if the ministry serves it elsewhere),
 then fetch.py, build.py and the nationwide pages pick it up.
 """
+import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DB = HERE / "data" / "stavroi.sqlite"
 OUT = HERE / "out"
+
+
+def accented(s):
+    """The ministry writes a capital alpha with tonos as a right quote ("’νδρου" = "Άνδρου"); fixed where names enter the database."""
+    return re.sub(r"’(?=\w)", "Ά", s) if isinstance(s, str) else s
 
 ELECTIONS = {  # key -> (short name, page title); oldest first
     "2019": ("2019", "Βουλευτικές εκλογές 2019"),

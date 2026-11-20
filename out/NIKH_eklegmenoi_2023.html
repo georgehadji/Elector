@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-YJetTSsDwLk+j1v9R5tyS1rebsMcUQwqJCm7Mhnqck0=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-lqL6nAug5Qj+TkyLGRaX6rGbGYZtEadwEH1oZPU1hs0=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ 2023</title><script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
 (() => {
@@ -61,6 +61,11 @@
   .bar .home { order: 1; }
   #theme { order: 2; }
   .bar nav { order: 3; flex: 1 0 100%; gap: 16px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  /* map pages: the election switcher is the wayfinding; the footer has the other pages, the map gets the height */
+  .bar.with-ctx { min-height: 44px; margin-bottom: 4px; }
+  .bar.with-ctx nav { display: none; }
+  body .ctx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; white-space: nowrap; margin-bottom: 8px; padding-bottom: 4px; align-items: center; }
+  body .ctx nav { flex-wrap: nowrap; }
 }
 /* Map pages: constituency and its other elections */
 .ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }

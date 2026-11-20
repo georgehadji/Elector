@@ -63,6 +63,11 @@ class Pages(unittest.TestCase):
         # a map page can switch to its constituency's other elections
         self.assertIn('class="ctx"', read(APP[0]))
 
+    def test_no_ministry_quote_for_tonos_alpha(self):
+        # the ministry writes "Άνδρου" as "’νδρου"; config.accented fixes it where names enter the database
+        bad = [p.name for p in OUT.glob("*.html") if re.search("’[Α-Ωα-ω]", read(p))]
+        self.assertFalse(bad, bad[:5])
+
     def test_csp_matches_inline_blocks(self):
         import base64
         import hashlib

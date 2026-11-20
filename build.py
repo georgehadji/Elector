@@ -11,7 +11,6 @@ by word stems, because the ministry uses the genitive ("ΠΙΚΕΡΝΙΟΥ") and
 import contextlib
 import io
 import os
-import re
 import sqlite3
 import sys
 from collections import defaultdict
@@ -19,7 +18,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
-from config import DB, ELECTION_NAMES, OUT, SCHEMA, slug  # noqa: E402
+from config import DB, ELECTION_NAMES, OUT, SCHEMA, accented, slug  # noqa: E402
 from geo import silhouette  # noqa: E402
 from matching import boundaries, ep_label, label, match_areas, norm  # noqa: E402
 from web import (  # noqa: E402
@@ -49,7 +48,7 @@ def main(election, ep):
               "LEFT JOIN ep_total t USING(election, ep_id, party_id, cand_id) "
               "WHERE c.election=? AND c.ep_id=? ORDER BY c.party_id, t.votes DESC", ep)
     # The source writes a capital alpha with tonos as a right quote ("’ννα" = "Άννα").
-    cands = [(pid, cid, re.sub(r"’(?=\w)", "Ά", name), total) for pid, cid, name, total in cands]
+    cands = [(pid, cid, accented(name), total) for pid, cid, name, total in cands]
     # No published preference votes (June 2023 results site): map party votes / valid instead.
     # (Party leaders still get a constituency total there, so test the per-station data.)
     party_mode = not q("SELECT 1 FROM cand_votes WHERE election=? AND tm_id BETWEEN ? AND ? AND votes > 0 LIMIT 1",

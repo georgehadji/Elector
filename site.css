@@ -24,6 +24,11 @@
   .bar .home { order: 1; }
   #theme { order: 2; }
   .bar nav { order: 3; flex: 1 0 100%; gap: 16px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  /* map pages: the election switcher is the wayfinding; the footer has the other pages, the map gets the height */
+  .bar.with-ctx { min-height: 44px; margin-bottom: 4px; }
+  .bar.with-ctx nav { display: none; }
+  body .ctx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; white-space: nowrap; margin-bottom: 8px; padding-bottom: 4px; align-items: center; }
+  body .ctx nav { flex-wrap: nowrap; }
 }
 /* Map pages: constituency and its other elections */
 .ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
