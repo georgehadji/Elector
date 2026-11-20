@@ -315,7 +315,7 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
   .eps .dhm{grid-row:3}
   .acts{grid-row:4}
 }
-@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.nums{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin-top:20px}.nums div{margin-bottom:16px}.gr{display:none}}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.nums{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin-top:20px}.nums div{margin-bottom:16px}}
 @media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
