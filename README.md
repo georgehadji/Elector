@@ -38,9 +38,10 @@ pip install xlrd
    ```
    python build.py 2023/may 45      # -> out/2023-may_45.html
    python build.py 2023/may all     # όλες οι περιφέρειες + out/index_2023-may.html (κάλυψη ανά νομό)
+   python build.py index            # ξαναγράφει μόνο το out/index.html
    ```
 
-   Κάθε build ξαναγράφει το `out/index.html` και το `out/maps.json`.
+   Το `all` φτιάχνει τις περιφέρειες παράλληλα. Το build καταγράφει τη σελίδα στο `out/maps.json`, γράφει στη βάση σε ποια κοινότητα ανήκει κάθε τμήμα (πίνακας `area_match`) και στο τέλος ξαναγράφει μία φορά το `out/index.html`.
 
 3. Χάρτες ανά εκλογικό τμήμα, με σημεία στα καταστήματα ψηφοφορίας. Χρειάζεται το αρχείο του ΥΠΕΣ «Εκλογικά τμήματα με κατάστημα ψηφοφορίας» (`.xls`):
 
@@ -59,6 +60,14 @@ pip install xlrd
 
    Γράφει τα `out/NIKH_eklegmenoi_2023.html` και `exports/NIKH_2023_ana_dhm_enotita.csv`.
 
+5. Χάρτης σύγκρισης όλων των κομμάτων σε όλη τη χώρα, μετά το `build.py <εκλογή> all` για κάθε εκλογή:
+
+   ```
+   python -I -X utf8 compare.py     # -> out/compare.html
+   ```
+
+Έλεγχοι: `python -I -X utf8 -m unittest discover -s tests`. Ελέγχουν την αντιστοίχιση ονομάτων και ότι η κάλυψη κάθε χάρτη δεν έπεσε κάτω από το `tests/coverage_baseline.json`.
+
 Στα Windows τρέξε τα scripts με `-X utf8`, για να τυπώνονται σωστά τα ελληνικά.
 
 ## Χάρτες
@@ -72,10 +81,14 @@ pip install xlrd
 | Αρχείο | Ρόλος |
 |---|---|
 | `fetch.py` | λήψη αποτελεσμάτων στη SQLite |
-| `build.py` | αντιστοίχιση τμημάτων με κοινότητες ΕΛΣΤΑΤ, χάρτες ανά περιοχή, index |
+| `config.py` | εκλογές, πηγές, σχήμα βάσης, σύντομα ονόματα κομμάτων: ό,τι μοιράζονται τα scripts |
+| `matching.py` | αντιστοίχιση ονομάτων ΥΠΕΣ με κοινότητες και οικισμούς ΕΛΣΤΑΤ |
+| `build.py` | χάρτες ανά περιοχή, αποθήκευση της αντιστοίχισης στη βάση |
+| `web.py` | κοινά μέρη κάθε σελίδας (χρώματα, header, footer, θέμα) και το index |
+| `compare.py` | χάρτης σύγκρισης εκλογών για όλη τη χώρα |
 | `stations_map.py` | χάρτες σημείων ανά εκλογικό τμήμα |
 | `nikh_report.py` | αναφορά ΝΙΚΗ Μαΐου–Ιουνίου 2023 |
-| `template.html`, `stations_template.html` | πρότυπα σελίδων. Το `build.py` ενσωματώνει μέσα τους τα `common.css`/`common.js` και τα δεδομένα |
+| `template.html`, `stations_template.html` | πρότυπα σελίδων. Το `web.py` ενσωματώνει μέσα τους τα `common.css`/`common.js` και τα δεδομένα |
 | `data/koinotites_2021.json`, `data/dhm_enotites_2021.json`, `data/oikismoi_2021.csv` | όρια κοινοτήτων και δημοτικών ενοτήτων, και κατάλογος οικισμών ΕΛΣΤΑΤ 2021 |
 | `out/` | οι χάρτες που έχουν παραχθεί |
 | `exports/` | CSV ανά δημοτική ενότητα ή τμήμα |
