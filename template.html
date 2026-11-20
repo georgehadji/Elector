@@ -7,8 +7,8 @@
 <title>Χάρτης σταυρών</title>
 <!--META-->
 <!--FONTS-->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <style>
 /*COMMON_CSS*/
   body.printing #map { width: 186mm; height: 120mm; min-height: 0; }
@@ -32,7 +32,7 @@
       <button type="button" data-m="dev" aria-pressed="false">Απόκλιση από μέσο όρο</button>
       <button type="button" data-m="votes" aria-pressed="false">Σταυροί</button>
     </div>
-    <button class="pdf" type="button" onclick="exportPdf()">Εξαγωγή PDF</button>
+    <button class="pdf" type="button">Εξαγωγή PDF</button>
   </div>
   <div class="stats" id="stats"></div>
   <div class="mapwrap">
@@ -180,6 +180,7 @@ const exportPdf = printSetup(map, tiles, () => layer.getBounds(), () => {
   const c = D.cands.find(x => x.k === sel.value);
   return `${T.num} ${c.name} - ${D.ep_name} - ${D.election.replace("/", "-")}`;
 });
+document.querySelector(".pdf").addEventListener("click", exportPdf);  // no inline handlers: the page's CSP forbids them
 
 $("note").textContent =
   `Πηγή: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα, ενωμένα ανά εκλογικό διαμέρισμα και όρια κοινοτήτων ΕΛΣΤΑΤ 2021. ` +

@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
 from build import communities, parties  # noqa: E402
 from config import ELECTION_NAMES, HERE, OUT, PARTY_SHORT, slug  # noqa: E402
-from web import INDEX_DARK, INDEX_LIGHT, fill, greece_figure, meta  # noqa: E402
+from web import INDEX_DARK, INDEX_LIGHT, fill, greece_figure, meta, secure  # noqa: E402
 
 ELECTIONS = {slug(k): name for k, name in ELECTION_NAMES.items()}  # file-name form of the keys
 MIN_SHARE = 1.0  # % of valid votes on the map, in at least one election, for a party to be listed
@@ -52,7 +52,7 @@ template = fill((HERE / "compare_template.html").read_text(encoding="utf-8"),
 template = template.replace("<!--META-->", meta("Σύγκριση εκλογών ανά κοινότητα",
     "Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024."))
 out = OUT / "compare.html"
-out.write_text(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))),
+out.write_text(secure(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":")))),
                encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB, {len(features)} areas, {len(order)} parties)")
 
