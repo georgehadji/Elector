@@ -266,9 +266,9 @@ body.pick .acts{display:none}
 .sw button:active{background:var(--wash)}
 .sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
 .nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 24px;margin:32px 0 0;max-width:640px}
-.nums div{display:flex;flex-direction:column-reverse;border-top:2px solid var(--ink);padding-top:8px}
-.nums dd{margin:0;font:400 clamp(1.75rem,1.2rem + 2.4vw,2.5rem)/1.1 "GFS Didot",Georgia,serif;font-variant-numeric:tabular-nums}
-.nums dt{font-size:.8125rem;color:var(--ink-2);line-height:1.3}
+.nums div{display:grid;grid-template-rows:subgrid;grid-row:span 2;row-gap:0;border-top:2px solid var(--ink);padding-top:8px}  /* numbers share one row, labels the next, whatever the label length */
+.nums dd{grid-row:1;margin:0;font:400 clamp(1.75rem,1.2rem + 2.4vw,2.5rem)/1.1 "GFS Didot",Georgia,serif;font-variant-numeric:tabular-nums}
+.nums dt{grid-row:2;font-size:.8125rem;color:var(--ink-2);line-height:1.3}
 .sf{position:relative;max-width:560px}
 .sug{position:absolute;left:0;right:0;top:100%;z-index:20;list-style:none;margin:4px 0 0;padding:4px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 18%,transparent)}
 .sug[hidden]{display:none}
@@ -315,7 +315,7 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
   .eps .dhm{grid-row:3}
   .acts{grid-row:4}
 }
-@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.nums{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;margin-top:20px}.gr{display:none}}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.nums{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin-top:20px}.nums div{margin-bottom:16px}.gr{display:none}}
 @media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """

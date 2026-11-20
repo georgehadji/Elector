@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-QWCmukVZc6DHhlC16Hr+nqAukAJ0/JvpihfYUJHgj5E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-M0Yp81TAwIEFTpX9EyS1odm3e0hmBoTvKWKjII0mGIo=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-QWCmukVZc6DHhlC16Hr+nqAukAJ0/JvpihfYUJHgj5E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-LH+qPD2dfy0oG8Xos/WagyRtuA0Dmw/Dpv5Ex+HJkWg=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
 <meta name="description" content="Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
@@ -196,9 +196,9 @@ body.pick .acts{display:none}
 .sw button:active{background:var(--wash)}
 .sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
 .nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 24px;margin:32px 0 0;max-width:640px}
-.nums div{display:flex;flex-direction:column-reverse;border-top:2px solid var(--ink);padding-top:8px}
-.nums dd{margin:0;font:400 clamp(1.75rem,1.2rem + 2.4vw,2.5rem)/1.1 "GFS Didot",Georgia,serif;font-variant-numeric:tabular-nums}
-.nums dt{font-size:.8125rem;color:var(--ink-2);line-height:1.3}
+.nums div{display:grid;grid-template-rows:subgrid;grid-row:span 2;row-gap:0;border-top:2px solid var(--ink);padding-top:8px}  /* numbers share one row, labels the next, whatever the label length */
+.nums dd{grid-row:1;margin:0;font:400 clamp(1.75rem,1.2rem + 2.4vw,2.5rem)/1.1 "GFS Didot",Georgia,serif;font-variant-numeric:tabular-nums}
+.nums dt{grid-row:2;font-size:.8125rem;color:var(--ink-2);line-height:1.3}
 .sf{position:relative;max-width:560px}
 .sug{position:absolute;left:0;right:0;top:100%;z-index:20;list-style:none;margin:4px 0 0;padding:4px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 18%,transparent)}
 .sug[hidden]{display:none}
@@ -245,7 +245,7 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
   .eps .dhm{grid-row:3}
   .acts{grid-row:4}
 }
-@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.nums{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;margin-top:20px}.gr{display:none}}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.nums{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin-top:20px}.nums div{margin-bottom:16px}.gr{display:none}}
 @media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 </style></head><body><main id="main">
 <a class="skip" href="#main">Μετάβαση στο περιεχόμενο</a><header class="bar"><a class="home" href="index.html" aria-label="Χάρτες σταυρών"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg></a><nav aria-label="Κύριο μενού"><a href="index.html" aria-current="page">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="index.html#party">Ανά κόμμα</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header>
