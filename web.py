@@ -292,6 +292,10 @@ body.pick .acts{display:none}
 .jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .jump a[aria-current]{color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
 body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* one region at a time; a search looks in all */
+.rsel{display:none;align-items:center;gap:10px;width:100%;color:var(--ink-2)}
+.rsel select{flex:1;min-width:0;min-height:44px;font:inherit;font-size:1rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:0 10px}
+.rsel select:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+@media (max-width:639px){body.tabs .jump a{display:none}body.tabs .rsel{display:flex}.jump{overflow:visible}}  /* phones: one native select instead of a 13-tab row */
 .eps li{scroll-margin-top:64px}
 .reg{scroll-margin-top:64px}
 body:has(#f:not(:placeholder-shown)) :is(.country,.jump){display:none}  /* results start right under the search */
@@ -371,8 +375,12 @@ document.body.classList.add("pick");
 open(sw.querySelector("button").dataset.e);
 // Region tabs: the jump row shows one region at a time. Without script every region stays listed.
 const groups = [...document.querySelectorAll(".grp")], tabs = [...document.querySelectorAll(".jump a")];
+const rsel = document.querySelector(".rsel select");
+rsel.replaceChildren(...tabs.map(a => new Option(a.textContent, a.hash.slice(1))));
+rsel.addEventListener("change", () => { history.pushState(null, "", "#" + rsel.value); fromHash(); });
 const pick = g => {
   groups.forEach(x => x.classList.toggle("on", x === g));
+  const id = g.querySelector(".reg").id; if (rsel.value !== id) rsel.value = id;
   tabs.forEach(a => a.hash === "#" + g.querySelector(".reg").id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
 };
 const fromHash = () => {
@@ -520,7 +528,7 @@ def _write_index(order, nikh, elected):
 </div></section>
 <section id="regions" aria-labelledby="rt"><h2 id="rt">Εκλογικές περιφέρειες</h2>
 <div class="sw" role="group" aria-label="Άνοιγμα στην εκλογή" hidden><span class="swl">Άνοιγμα στην εκλογή</span>{switch}</div>
-<nav class="jump" aria-label="Περιφέρειες">{jump}</nav>
+<nav class="jump" aria-label="Περιφέρειες">{jump}<label class="rsel">Περιφέρεια <select></select></label></nav>
 {groups}
 </section>
 {footer(" Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.", home=False)}
