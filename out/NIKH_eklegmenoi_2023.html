@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-dSTA/vREyQ5/hy1F1YpGDbFBkq0jQcR6CEyYVgjJaAg=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-/Hfti10KWRJkTrTTVI1eHjzQW8qjBW6P7DkWIbnabRg=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ 2023</title><script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
 (() => {
@@ -31,9 +31,9 @@
   });
 })();
 </script><style>
-:root{color-scheme:light;--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--shadow:rgba(0,0,0,.18);--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:#256abf;--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:#e4e3df;--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--shadow:rgba(0,0,0,.5);--d0:#5a5955;--link:#6da7ec}}
-:root[data-theme=dark]{color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--shadow:rgba(0,0,0,.5);--d0:#5a5955;--link:#6da7ec}
+:root{color-scheme:light dark;--surface:light-dark(#fcfcfb,#1a1a19);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#5c5b57,#a8a7a2);--line:light-dark(#e4e3df,#383835);--chip:light-dark(#f2f1ee,#262624);--shadow:light-dark(rgba(0,0,0,.18),rgba(0,0,0,.5));--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:light-dark(#256abf,#6da7ec);--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:light-dark(#e4e3df,#5a5955);--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
 
 /* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
    Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
@@ -41,13 +41,13 @@
 .skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: 8px 12px; color: var(--ink); background: var(--paper, var(--surface)); border: 1px solid var(--ink); border-radius: 6px; }
 .skip:focus { top: 8px; }
 .bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
-.bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 20px/1.2 "GFS Didot", Georgia, serif; text-decoration: none; }
+.bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 1.25rem/1.2 "GFS Didot", Georgia, serif; text-decoration: none; }
 .bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mark { width: 20px; height: 20px; flex: none; }
 .mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
 .mark rect { stroke-width: 2.4; }
 .mark path { stroke-width: 3.2; }
-.bar nav { display: flex; gap: 20px; font-size: 14px; }
+.bar nav { display: flex; gap: 20px; font-size: .875rem; }
 .bar nav a { color: var(--ink-2); text-decoration: none; padding: 4px 0; }
 .bar nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; }
 .bar nav a[aria-current] { color: var(--ink); }
@@ -67,24 +67,26 @@
   .ctx { margin-bottom: 8px; padding-bottom: 4px; }
 }
 /* Map pages: constituency and its other elections */
-.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: .875rem; }
 .ctx nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .ctx nav a { color: var(--ink-2); text-underline-offset: 4px; }
 .ctx nav a[aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
 /* Colophon */
-.site { margin-top: 64px; padding: 24px 0 32px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+.site { margin-top: 64px; padding: 24px 0 32px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: .8125rem; line-height: 1.55; }
 .site .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.site h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.site h3 { margin: 0 0 6px; font-size: .8125rem; font-weight: 600; color: var(--ink); }
 .site p { margin: 0 0 4px; }
 .site ul { margin: 0; padding: 0; list-style: none; }
 .site a { color: inherit; text-underline-offset: 3px; }
 .site .built { display: flex; align-items: center; justify-content: space-between; margin: 24px 0 0; }
 .site .built .mark { width: 16px; height: 16px; }
-.site.compact { margin: 0; padding: 6px 16px 8px; }
-.site.compact .cols { display: flex; flex-wrap: wrap; gap: 0 20px; }
-.site.compact h3, .site.compact .built { display: none; }
-.site.compact ul { display: flex; flex-wrap: wrap; gap: 0 12px; }
-.site.compact .cols > div:nth-child(3) li:not(:has(.copy)) { display: none; }  /* the nav above has these */
+.site.compact {
+  margin: 0; padding: 6px 16px 8px;
+  .cols { display: flex; flex-wrap: wrap; gap: 0 20px; }
+  h3, .built { display: none; }
+  ul { display: flex; flex-wrap: wrap; gap: 0 12px; }
+  .cols > div:nth-child(3) li:not(:has(.copy)) { display: none; }  /* the nav above has these */
+}
 @media (max-width: 639px) { .site .cols { grid-template-columns: 1fr; gap: 16px; } .site.compact .cols { display: flex; gap: 0 12px; } }
 html, body { overflow-x: clip; }
 h1, h2 { text-wrap: balance; }
@@ -99,7 +101,7 @@ h1, h2 { text-wrap: balance; }
 @media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none; } }
 /* higher contrast on request: darker lines and secondary ink, solid borders on swatches */
 @media (prefers-contrast: more) {
-  :root:root:root { --line: color-mix(in srgb, var(--ink) 60%, var(--paper)); --ink-2: color-mix(in srgb, var(--ink) 88%, var(--paper)); }
+  :root { --line: color-mix(in srgb, var(--ink) 60%, var(--paper, var(--surface))); --ink-2: color-mix(in srgb, var(--ink) 88%, var(--paper, var(--surface))); }
   .legend i { border: 1px solid var(--ink); }
 }
 @media (pointer: coarse) {
@@ -111,12 +113,12 @@ h1, h2 { text-wrap: balance; }
 }
 @media print { .bar, .site, .skip, .ctx { display: none !important; } }
 
-body{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--surface);color:var(--ink)}
-main{max-width:960px;margin:0 auto;padding:16px} h1{font-size:21px;line-height:1.25} h2{font-size:17px;margin:32px 0 4px;padding-top:16px;border-top:1px solid var(--line)}
+body{margin:0;font:.9375rem/1.5 system-ui,sans-serif;background:var(--surface);color:var(--ink)}
+main{max-width:960px;margin:0 auto;padding:16px} h1{font-size:1.3125rem;line-height:1.25} h2{font-size:1.0625rem;margin:32px 0 4px;padding-top:16px;border-top:1px solid var(--line)}
 p{color:var(--ink-2)} a{color:var(--link)}
 .tw{overflow-x:auto} table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;margin:8px 0 16px}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--ink-2);font-size:12px;font-weight:600} .n{text-align:right;white-space:nowrap} tbody tr:hover{background:var(--chip)}
+th{color:var(--ink-2);font-size:.75rem;font-weight:600} .n{text-align:right;white-space:nowrap} tbody tr:hover{background:var(--chip)}
 @media print{h2{break-after:avoid} tr{break-inside:avoid} a{color:inherit}}
 </style></head><body><main id="main">
 <a class="skip" href="#main">Μετάβαση στο περιεχόμενο</a><header class="bar"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες σταυρών</a><nav aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="index.html#party">Ανά κόμμα</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header>

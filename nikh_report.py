@@ -166,12 +166,12 @@ def to_html(lines):
 <title>ΝΙΚΗ 2023</title><script>/*THEME_JS*/</script><style>
 /*THEME_TOKENS*/
 /*SITE_CSS*/
-body{{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
-main{{max-width:960px;margin:0 auto;padding:16px}} h1{{font-size:21px;line-height:1.25}} h2{{font-size:17px;margin:32px 0 4px;padding-top:16px;border-top:1px solid var(--line)}}
+body{{margin:0;font:.9375rem/1.5 system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
+main{{max-width:960px;margin:0 auto;padding:16px}} h1{{font-size:1.3125rem;line-height:1.25}} h2{{font-size:1.0625rem;margin:32px 0 4px;padding-top:16px;border-top:1px solid var(--line)}}
 p{{color:var(--ink-2)}} a{{color:var(--link)}}
 .tw{{overflow-x:auto}} table{{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;margin:8px 0 16px}}
 th,td{{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}}
-th{{color:var(--ink-2);font-size:12px;font-weight:600}} .n{{text-align:right;white-space:nowrap}} tbody tr:hover{{background:var(--chip)}}
+th{{color:var(--ink-2);font-size:.75rem;font-weight:600}} .n{{text-align:right;white-space:nowrap}} tbody tr:hover{{background:var(--chip)}}
 @media print{{h2{{break-after:avoid}} tr{{break-inside:avoid}} a{{color:inherit}}}}
 </style></head><body><main id="main">
 <!--HEADER-->
