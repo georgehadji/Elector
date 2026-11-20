@@ -379,7 +379,7 @@ def _write_index(order, nikh, elected):
         with sqlite3.connect(DB) as con:
             n_tm = con.execute("SELECT COUNT(*) FROM station WHERE election=? AND kind='Κ'", (last,)).fetchone()[0]
     cover = (f"{len(eps)} εκλογικές περιφέρειες, {len(ELECTIONS)} αναμετρήσεις από το {list(ELECTIONS)[0][:4]} έως το {last[:4]}"
-             + (f", {n_tm:,} εκλογικά τμήματα στις {ELECTION_NAMES[last]}".replace(",", ".") if n_tm else ""))
+             + (f", {f'{n_tm:,}'.replace(',', '.')} εκλογικά τμήματα στις {ELECTION_NAMES[last]}" if n_tm else ""))
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
