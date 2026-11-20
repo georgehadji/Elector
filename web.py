@@ -265,6 +265,9 @@ h1 .x path+path{animation-delay:.3s}
       scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:.875rem}
 .jump a{color:var(--ink-2);text-decoration:none}
 .jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.jump a[aria-current]{color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* one region at a time; a search looks in all */
+.eps li{scroll-margin-top:64px}
 .reg{scroll-margin-top:64px}
 body:has(#f:not(:placeholder-shown)) :is(.country,.jump){display:none}  /* results start right under the search */
 body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
@@ -289,6 +292,23 @@ f.addEventListener("input", () => {
   for (const li of items) { const d = li.querySelector("details"); if (d) d.open = shown === 1 && !li.hidden; }  // the one match shows its older maps
   n.textContent = !qs.length ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του δήμου ή του νομού.`
     : shown === 1 ? "1 περιφέρεια. Enter για τον πιο πρόσφατο χάρτη." : `${shown} περιφέρειες`;
+});
+// Region tabs: the jump row shows one region at a time. Without script every region stays listed.
+const groups = [...document.querySelectorAll(".grp")], tabs = [...document.querySelectorAll(".jump a")];
+const pick = g => {
+  groups.forEach(x => x.classList.toggle("on", x === g));
+  tabs.forEach(a => a.hash === "#" + g.querySelector(".reg").id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
+};
+const fromHash = () => {
+  const el = document.getElementById(location.hash.slice(1)), g = el && el.closest(".grp");
+  if (g) { pick(g); el.scrollIntoView({behavior: "instant"}); } else if (!location.hash || !document.querySelector(".grp.on")) pick(groups[0]);  // back to the bare address = the first region
+};
+document.body.classList.add("tabs");
+fromHash();
+addEventListener("hashchange", fromHash);
+document.querySelector(".jump").addEventListener("click", e => {
+  const a = e.target.closest("a");
+  if (a) { e.preventDefault(); history.pushState(null, "", a.hash); fromHash(); }
 });
 f.addEventListener("keydown", e => {
   const shown = items.filter(li => !li.hidden).sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
