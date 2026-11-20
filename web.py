@@ -3,6 +3,8 @@
 fill() puts the shared parts into a page; render_page() also inlines common.css/js and the page data.
 record() keeps out/maps.json, the list of built pages; write_index() turns it into out/index.html.
 """
+import base64
+import hashlib
 import html
 import json
 import os
@@ -39,7 +41,7 @@ def footer(note="", home=True):
     return ('<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.'
             f'{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p>'
             + ('<a href="index.html">Όλοι οι χάρτες</a>' if home else "")
-            + '<a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a>'
+            + '<a href="https://github.com/georgehadji/Elector" rel="noopener">Κώδικας και δεδομένα στο GitHub</a>'
             '<button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>')
 
 
@@ -87,6 +89,26 @@ def meta(title, description):
             f'<meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR">'
             f'<meta property="og:title" content="{t}"><meta property="og:description" content="{d}">')
 
+LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/"
+
+def secure(page):
+    """Content-Security-Policy (as a <meta>: GitHub Pages sets no headers) and referrer policy. Call it last, on the
+    finished page: the inline scripts and styles are allowed by their SHA-256 hash, so injected markup cannot run.
+    Leaflet (cdnjs, also pinned by integrity=) and the OSM tiles are the only outside sources besides the fonts."""
+    def hashes(tag):
+        return [f"'sha256-{base64.b64encode(hashlib.sha256(m.encode()).digest()).decode()}'"
+                for m in re.findall(rf"<{tag}>(.*?)</{tag}>", page, re.S)]
+    csp = "; ".join([
+        "default-src 'none'",
+        " ".join(["script-src", *hashes("script"), LEAFLET + "leaflet.min.js"]),
+        " ".join(["style-src-elem", *hashes("style"), LEAFLET + "leaflet.min.css", "https://fonts.googleapis.com"]),
+        "style-src-attr 'unsafe-inline'",  # style="" in markup the pages build (legend swatches, table cells)
+        "font-src https://fonts.gstatic.com",
+        f"img-src 'self' data: https://tile.openstreetmap.org {LEAFLET}",
+        "connect-src 'none'", "base-uri 'none'", "form-action 'none'", "object-src 'none'", "frame-src 'none'"])
+    tags = f'<meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="referrer" content="strict-origin-when-cross-origin">'
+    return page.replace('<meta charset="utf-8">', '<meta charset="utf-8">' + tags, 1)
+
 def common_css():
     return fill((HERE / "common.css").read_text(encoding="utf-8"), print_={"surface": "#fff"})
 
@@ -101,7 +123,7 @@ def render_page(template, data):
     et = data["election_title"]
     page = page.replace("<!--META-->", meta(f"{kind}, {data['ep_name']}",
                                             f"{kind} ανά {unit}, {data['ep_name']}, {et[0].lower() + et[1:]}."))
-    return page.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False))  # last: data may contain anything
+    return secure(page.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False)))  # last: data may contain anything
 
 
 # A ballpoint cross in a ballot box, the mark a voter puts next to a candidate: the one decorative element of the site.
@@ -302,8 +324,8 @@ def _write_index(order, nikh, elected):
     coverage = "".join(
         f'<li><a href="index_{e.replace("/", "-")}.html">{name}</a></li>' for e, name in reversed(ELECTION_NAMES.items())
         if (OUT / f'index_{e.replace("/", "-")}.html').exists())
-    artifacts = "".join(f'<li><a href="{u}">{html.escape(n)}</a></li>' for n, u in PARTY_ARTIFACTS)
-    (OUT / "index.html").write_text(fill(f"""<!doctype html>
+    artifacts = "".join(f'<li><a href="{u}" rel="noopener">{html.escape(n)}</a></li>' for n, u in PARTY_ARTIFACTS)
+    (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
 <meta name="description" content="Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.">
@@ -330,7 +352,7 @@ def _write_index(order, nikh, elected):
 <section id="party"><h2>Χάρτες ανά κόμμα</h2><p>Στατικοί χάρτες στο claude.ai, ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><details class="fold"><summary>Όλα τα κόμματα ({len(PARTY_ARTIFACTS)})</summary><ul>{artifacts}</ul></details></section>
 </div>
 {footer(" Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.", home=False)}
-</main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK), encoding="utf-8")
+</main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK)), encoding="utf-8")
 
 
 MAPS = OUT / "maps.json"

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xdCxMT9F97GqIN7HI2p8TlD2pgbk9ERvKlInt7rJlTc=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-hmwHKqFMpXu+1Bl5ijhtQ9tvE0Onho8h3nREazTEa4w=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-7lcLVZlDOJ6gAs+6vxiSyF/hdpOB6CCM8R2JjxmpqPI=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
@@ -38,8 +38,8 @@
 <title>Χάρτης σταυρών</title>
 <meta name="description" content="Ψήφοι κομμάτων ανά εκλογικό διαμέρισμα, Πρέβεζας, βουλευτικές εκλογές Ιουνίου 2023."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Ψήφοι κομμάτων, Πρέβεζας"><meta property="og:description" content="Ψήφοι κομμάτων ανά εκλογικό διαμέρισμα, Πρέβεζας, βουλευτικές εκλογές Ιουνίου 2023.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <style>
 /* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
 :root{color-scheme:light;--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--shadow:rgba(0,0,0,.18);--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:#256abf;--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:#e4e3df;--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
@@ -220,7 +220,7 @@ button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
       <button type="button" data-m="dev" aria-pressed="false">Απόκλιση από μέσο όρο</button>
       <button type="button" data-m="votes" aria-pressed="false">Σταυροί</button>
     </div>
-    <button class="pdf" type="button" onclick="exportPdf()">Εξαγωγή PDF</button>
+    <button class="pdf" type="button">Εξαγωγή PDF</button>
   </div>
   <div class="stats" id="stats"></div>
   <div class="mapwrap">
@@ -231,7 +231,7 @@ button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
   <h2>Ανά περιοχή</h2>
   <div class="tablewrap"><table id="tbl"></table></div>
   <p class="note" id="note"></p>
-<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a><button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>
+<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector" rel="noopener">Κώδικας και δεδομένα στο GitHub</a><button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>
 </main>
 <script>// Pure helpers used by more than one page; inlined into pages by web.fill(). No DOM access at load time.
 // Search: accents and case folded, Greeklish read as Greek, case endings stripped.
@@ -572,6 +572,7 @@ const exportPdf = printSetup(map, tiles, () => layer.getBounds(), () => {
   const c = D.cands.find(x => x.k === sel.value);
   return `${T.num} ${c.name} - ${D.ep_name} - ${D.election.replace("/", "-")}`;
 });
+document.querySelector(".pdf").addEventListener("click", exportPdf);  // no inline handlers: the page's CSP forbids them
 
 $("note").textContent =
   `Πηγή: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα, ενωμένα ανά εκλογικό διαμέρισμα και όρια κοινοτήτων ΕΛΣΤΑΤ 2021. ` +

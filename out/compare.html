@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xdCxMT9F97GqIN7HI2p8TlD2pgbk9ERvKlInt7rJlTc=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-cepNMS+CED++WoVAiT8Rw+KNEA0fjsnTfLrpqlTzENs=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-64QgpI0JzBrSXL0C76mcLQPQ/3YWYCwQxW2P+FQ4TG8=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Σύγκριση εκλογών</title>
 <meta name="description" content="Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Σύγκριση εκλογών ανά κοινότητα"><meta property="og:description" content="Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024.">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
 (() => {
@@ -146,7 +146,7 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);bord
 </header>
 <div id="map" role="region" aria-label="Χάρτης"></div>
 <details id="ext"><summary>Οι 10 υψηλότερες και οι 10 χαμηλότερες περιοχές</summary><div class="lists" id="lists"></div></details>
-<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a><button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>
+<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector" rel="noopener">Κώδικας και δεδομένα στο GitHub</a><button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>
 <script>// Pure helpers used by more than one page; inlined into pages by web.fill(). No DOM access at load time.
 // Search: accents and case folded, Greeklish read as Greek, case endings stripped.
 const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();

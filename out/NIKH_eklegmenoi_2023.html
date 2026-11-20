@@ -1,11 +1,21 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xdCxMT9F97GqIN7HI2p8TlD2pgbk9ERvKlInt7rJlTc=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-A7g0weHjtH9tDa8Dq0LdB15LleeRF54KOeLAB6oj2/c=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ 2023</title><script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
 (() => {
   const root = document.documentElement, sys = matchMedia("(prefers-color-scheme: dark)");
-  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") root.dataset.theme = t; } catch {}
-  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : sys.matches;
+  // State "system" | "light" | "dark". A press flips the appearance; flipping to the system's own appearance
+  // means "follow the system again", so the choice never gets stuck.
+  const next = (state, sysDark) => {
+    const dark = state === "system" ? sysDark : state === "dark";
+    const want = dark ? "light" : "dark";
+    return (want === "dark") === sysDark ? "system" : want;
+  };
+  let state = "system";
+  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") state = t; } catch {}
+  const show = () => state === "system" ? root.removeAttribute("data-theme") : root.dataset.theme = state;
+  show();
+  const dark = () => state === "system" ? sys.matches : state === "dark";
   addEventListener("DOMContentLoaded", () => {
     const b = document.getElementById("theme");
     if (!b) return;
@@ -13,15 +23,16 @@
     sync();
     sys.addEventListener("change", sync);
     b.onclick = () => {
-      root.dataset.theme = dark() ? "light" : "dark";
-      try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+      state = next(state, sys.matches);
+      show();
+      try { state === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", state); } catch {}
       sync();
       dispatchEvent(new Event("themechange"));  // map pages redraw: their colours are read from CSS variables
     };
   });
 })();
 </script><style>
-:root{color-scheme:light;--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--shadow:rgba(0,0,0,.18);--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--link:#256abf;--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:#e4e3df;--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
+:root{color-scheme:light;--surface:#fcfcfb;--ink:#1d1d1b;--ink-2:#5c5b57;--line:#e4e3df;--chip:#f2f1ee;--shadow:rgba(0,0,0,.18);--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:#256abf;--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:#e4e3df;--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--shadow:rgba(0,0,0,.5);--d0:#5a5955;--link:#6da7ec}}
 :root[data-theme=dark]{color-scheme:dark;--surface:#1a1a19;--ink:#ecebe7;--ink-2:#a8a7a2;--line:#383835;--chip:#262624;--shadow:rgba(0,0,0,.5);--d0:#5a5955;--link:#6da7ec}
 
@@ -38,9 +49,19 @@
 .site p { margin: 0 0 4px; }
 .site a { color: inherit; text-underline-offset: 3px; }
 .site a + a { margin-left: 16px; }
+html, body { overflow-x: clip; }
+h1, h2 { text-wrap: balance; }
+#theme:active { transform: scale(.97); }
+.site .copy { margin-left: 16px; padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.site .copy:active { transform: scale(.97); }
+.copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
+@media (prefers-reduced-motion: reduce) { #theme:active, .site .copy:active { transform: none; } }
 @media (pointer: coarse) {
+  .site .copy { min-height: 44px; }
   #theme { min-height: 44px; }
-  .bar .home, .site a { display: inline-block; padding: 12px 0; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+  select, input[type=search] { min-height: 44px; }
+  .bar .home, .site a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 @media print { .bar, .site { display: none !important; } }
 
@@ -112,5 +133,5 @@ th{color:var(--ink-2);font-size:12px;font-weight:600} .n{text-align:right;white-
 <div class=tw><table><thead><tr><th>Δημ. ενότητα</th><th class=n>Μάιος %</th><th class=n>Ιούνιος %</th><th class=n>Δ</th><th class=n>Ψήφοι Ιουν.</th></tr></thead><tbody><tr><td>Πέτρας</td><td class=n>8.38</td><td class=n>12.84</td><td class=n>+4.46</td><td class=n>535</td></tr><tr><td>Κατερίνης</td><td class=n>9.36</td><td class=n>11.17</td><td class=n>+1.81</td><td class=n>3,043</td></tr><tr><td>Κορινού</td><td class=n>9.04</td><td class=n>11.04</td><td class=n>+2.00</td><td class=n>438</td></tr><tr><td>Ελαφίνας</td><td class=n>5.76</td><td class=n>9.98</td><td class=n>+4.22</td><td class=n>363</td></tr><tr><td>Παραλίας</td><td class=n>8.57</td><td class=n>9.40</td><td class=n>+0.83</td><td class=n>338</td></tr><tr><td>Δίου</td><td class=n>7.66</td><td class=n>9.12</td><td class=n>+1.46</td><td class=n>609</td></tr><tr><td>Πιερίων</td><td class=n>4.65</td><td class=n>7.28</td><td class=n>+2.63</td><td class=n>133</td></tr><tr><td>Πύδνας</td><td class=n>5.25</td><td class=n>6.40</td><td class=n>+1.15</td><td class=n>157</td></tr><tr><td>Ανατολικού Ολύμπου</td><td class=n>4.84</td><td class=n>6.25</td><td class=n>+1.41</td><td class=n>302</td></tr><tr><td>Κολινδρού</td><td class=n>5.18</td><td class=n>5.91</td><td class=n>+0.73</td><td class=n>149</td></tr><tr><td>Μεθώνης</td><td class=n>4.45</td><td class=n>5.37</td><td class=n>+0.92</td><td class=n>102</td></tr><tr><td>Λιτοχώρου</td><td class=n>4.13</td><td class=n>5.24</td><td class=n>+1.11</td><td class=n>200</td></tr><tr><td>Αιγινίου</td><td class=n>2.69</td><td class=n>3.40</td><td class=n>+0.71</td><td class=n>100</td></tr></tbody></table></div>
 <p>Κορυφαία τμήματα Ιουνίου (≥100 έγκυρα):</p>
 <div class=tw><table><thead><tr><th class=n>Τμ.</th><th>Δημ. ενότητα</th><th>Εκλ. διαμέρισμα</th><th>Κατάστημα</th><th class=n>Ψήφοι</th><th class=n>%</th></tr></thead><tbody><tr><td class=n>224</td><td>Πέτρας</td><td>Ε.Δ. ΜΟΣΧΟΧΩΡΙΟΥ</td><td>ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΜΟΣΧΟΧΩΡΙΟΥ</td><td class=n>191</td><td class=n>48.7</td></tr><tr><td class=n>171</td><td>Κατερίνης</td><td>Ε.Δ. ΝΕΟΚΑΙΣΑΡΕΙΑΣ</td><td>ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΝΕΟΚΑΙΣΑΡΕΙΑΣ</td><td class=n>46</td><td class=n>27.1</td></tr><tr><td class=n>194</td><td>Κορινού</td><td>Ε.Δ. ΣΕΒΑΣΤΗΣ</td><td>ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΣΕΒΑΣΤΗΣ</td><td class=n>30</td><td class=n>20.1</td></tr><tr><td class=n>33</td><td>Δίου</td><td>Ε.Δ. ΔΙΟΥ</td><td>ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΔΙΟΥ</td><td class=n>64</td><td class=n>19.9</td></tr><tr><td class=n>154</td><td>Κατερίνης</td><td>4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ</td><td>4ο ΓΥΜΝΑΣΙΟ-ΛΥΚΕΙΟ ΚΑΤΕΡΙΝΗΣ</td><td class=n>58</td><td class=n>19.2</td></tr><tr><td class=n>190</td><td>Κορινού</td><td>Ε.Δ. ΚΟΥΚΟΥ</td><td>ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΟΥΚΟΥ</td><td class=n>20</td><td class=n>19.0</td></tr><tr><td class=n>149</td><td>Κατερίνης</td><td>4 Ε.Δ. ΚΑΤΕΡΙΝΗΣ</td><td>4ο ΓΥΜΝΑΣΙΟ-ΛΥΚΕΙΟ ΚΑΤΕΡΙΝΗΣ</td><td class=n>54</td><td class=n>18.6</td></tr><tr><td class=n>66</td><td>Ελαφίνας</td><td>(ΜΕΛΙΑΔΙΟΥ)</td><td>ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΜΕΛΙΑΔΙΟΥ</td><td class=n>21</td><td class=n>17.9</td></tr><tr><td class=n>193</td><td>Κορινού</td><td>Ε.Δ. ΣΕΒΑΣΤΗΣ</td><td>ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΣΕΒΑΣΤΗΣ</td><td class=n>37</td><td class=n>17.1</td></tr><tr><td class=n>138</td><td>Κατερίνης</td><td>3 Ε.Δ. ΚΑΤΕΡΙΝΗΣ</td><td>1ο ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΚΑΤΕΡΙΝΗΣ</td><td class=n>46</td><td class=n>16.6</td></tr></tbody></table></div>
-<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector">Κώδικας και δεδομένα στο GitHub</a></p></footer>
+<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector" rel="noopener">Κώδικας και δεδομένα στο GitHub</a><button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>
 </main></body></html>

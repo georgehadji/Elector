@@ -18,7 +18,7 @@ import xlrd
 from config import DB, ELECTED, HERE
 from matching import norm
 from stations_map import XLS_EP, venue_parts
-from web import fill
+from web import fill, secure
 
 NIKH = 131
 MAY, JUN = "2023/may", "2023/june"
@@ -161,7 +161,7 @@ def to_html(lines):
         elif line:
             body.append(f"<p>{html.escape(line)}</p>")
     flush()
-    return fill(f"""<!doctype html>
+    return secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ 2023</title><script>/*THEME_JS*/</script><style>
 /*THEME_TOKENS*/
@@ -177,7 +177,7 @@ th{{color:var(--ink-2);font-size:12px;font-weight:600}} .n{{text-align:right;whi
 <!--HEADER-->
 {chr(10).join(body)}
 <!--FOOTER-->
-</main></body></html>""")
+</main></body></html>"""))
 
 
 if __name__ == "__main__":

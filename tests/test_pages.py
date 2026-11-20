@@ -52,6 +52,22 @@ class Pages(unittest.TestCase):
             s = read(p)
             self.assertNotIn("`${T.title} · ${D.ep_name}`", s, p.name)
 
+    def test_csp_matches_inline_blocks(self):
+        import base64
+        import hashlib
+        h = lambda t: "'sha256-" + base64.b64encode(hashlib.sha256(t.encode()).digest()).decode() + "'"
+        for p in APP + SPECIAL:
+            s = read(p)
+            csp = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', s)
+            self.assertTrue(csp, p.name)
+            for tag, body in re.findall(r"<(script|style)(?:\s[^>]*)?>(.*?)</>", s, re.S):
+                if tag == "script" and "src=" in s[s.find(body) - 200:s.find(body)]:
+                    continue
+                self.assertIn(h(body), csp.group(1), f"{p.name}: inline {tag} not allowed")
+            self.assertIsNone(re.search(r"\son[a-z]+=\"", s), f"{p.name}: inline handler")
+            for tag in re.findall(r"<(?:script|link)[^>]+leaflet[^>]+>", s):
+                self.assertIn("integrity=", tag, p.name)
+
 
 class Cards(HTMLParser):
     """Collects, per index card, whether it has a <details class=older> and how many election links it shows."""

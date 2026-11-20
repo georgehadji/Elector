@@ -7,8 +7,8 @@
 <title>Χάρτης ανά τμήμα</title>
 <!--META-->
 <!--FONTS-->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <style>
 /*COMMON_CSS*/
   #map { height: 66vh; min-height: 380px; }
@@ -38,7 +38,7 @@
       <button type="button" data-m="dev" aria-pressed="false">Απόκλιση από μέσο όρο</button>
       <button type="button" data-m="votes" aria-pressed="false">Σταυροί</button>
     </div>
-    <button class="pdf" type="button" onclick="exportPdf()">Εξαγωγή PDF</button>
+    <button class="pdf" type="button">Εξαγωγή PDF</button>
   </div>
   <div class="stats" id="stats"></div>
   <div class="mapwrap">
@@ -161,6 +161,7 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 addEventListener("themechange", render);
 const exportPdf = printSetup(map, tiles, () => layer.getBounds(),
   () => `${T.title} ανά τμήμα - ${T.scope} - ${D.election.replace("/", "-")}`);
+document.querySelector(".pdf").addEventListener("click", exportPdf);  // no inline handlers: the page's CSP forbids them
 
 $("note").textContent =
   `Πηγές: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα· καταστήματα ψηφοφορίας από το αρχείο ΥΠΕΣ «Εκλογικά τμήματα με κατάστημα ψηφοφορίας» (20.5.2023)· ` +

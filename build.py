@@ -26,6 +26,7 @@ from web import (  # noqa: E402
     FONTS,
     HEADER,
     common_css,
+    secure,
     entry,
     fill,
     footer,
@@ -234,7 +235,7 @@ def build_all(election):
         f'<td class="n">{r["map_areas"]}</td><td class="n">{r["unmatched"]}</td><td class="n">{r["seat"]}</td>'
         f'<td class="n">{r["coverage"]:.1%}</td></tr>' if r.get("file") else
         f'<tr><td>{r["name"]}</td><td colspan="5">σφάλμα: {r["error"]}</td></tr>' for r in rows)
-    (OUT / f"index_{slug(election)}.html").write_text(fill(f"""<!doctype html>
+    (OUT / f"index_{slug(election)}.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Κάλυψη χαρτών · {ELECTION_NAMES.get(election, election)}</title>
 {FONTS}
@@ -248,7 +249,7 @@ main{{max-width:900px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}
 χωρίς αντιστοίχιση ονόματος · Κάλυψη: σταυροί στον χάρτη ως ποσοστό του συνόλου.</p>
 <div class="wrap"><table><thead><tr><th>Περιφέρεια</th><th class="n">Ε.Δ.</th><th class="n">Περιοχές</th><th class="n">Χωρίς χάρτη</th>
 <th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody>{tr}</tbody></table></div>
-{footer()}</main></body></html>"""),
+{footer()}</main></body></html>""")),
                                                                                           encoding="utf-8")
     ok = [r for r in rows if r.get("file")]
     print(f"\n{len(ok)}/{len(rows)} built; unmatched Ε.Δ.: {sum(r['unmatched'] for r in ok)}, "
