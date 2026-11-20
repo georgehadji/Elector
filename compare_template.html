@@ -6,16 +6,17 @@
 <title>Σύγκριση εκλογών</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>/*THEME_JS*/</script>
 <style>
-:root{--bg:#f6f7f9;--ink:#13233d;--ink-2:#55627a;--line:#dde2ea;--panel:#ffffffee;--field:#fff}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171c24;--ink:#e8edf5;--ink-2:#9aa6b8;--line:#2b3442;--panel:#1d2430ee;--field:#1d2430}}
-:root[data-theme="dark"]{--bg:#171c24;--ink:#e8edf5;--ink-2:#9aa6b8;--line:#2b3442;--panel:#1d2430ee;--field:#1d2430}
+/*THEME_TOKENS*/
+/*SITE_CSS*/
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
-header{padding:10px 16px 8px;border-bottom:1px solid var(--line)}
+body{background:var(--paper);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+.head{padding:10px 16px 8px;border-bottom:1px solid var(--line)}
+.bar{margin:0;padding:8px 16px 0}
+.site{margin:0;padding:6px 16px 8px}
 h1{font-size:17px;margin:0 0 2px}
-h1 a{color:inherit;text-decoration:none;color:var(--ink-2);font-weight:400}
 .sub{color:var(--ink-2);font-size:12.5px;margin:0}
 .note{color:var(--ink-2);font-size:11.5px;line-height:1.35;margin:2px 0 0}
 .ctl{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:8px}
@@ -40,8 +41,9 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);bord
 </style>
 </head>
 <body>
-<header>
-  <h1>Σύγκριση εκλογών ανά κοινότητα <a href="index.html">· όλοι οι χάρτες</a></h1>
+<!--HEADER-->
+<header class="head">
+  <h1>Σύγκριση εκλογών ανά κοινότητα</h1>
   <div class="ctl">
     <label>Κόμμα <select id="party"></select></label>
     <label>Προβολή <select id="view"></select></label>
@@ -50,6 +52,7 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);bord
   <p class="note" id="note"></p>
 </header>
 <div id="map" role="region" aria-label="Χάρτης"></div>
+<!--FOOTER-->
 <script>
 const D = /*DATA*/null;
 const E = Object.keys(D.elections);  // chronological

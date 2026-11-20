@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/*THEME_JS*/</script>
 <title>Χάρτης ανά τμήμα</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
+<!--FONTS-->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -27,6 +27,7 @@
 </head>
 <body>
 <main>
+<!--HEADER-->
   <h1 id="title"></h1>
   <p class="sub" id="sub"></p>
   <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
@@ -51,6 +52,7 @@
     <h2>Αναλυτικά ανά εκλογικό τμήμα</h2>
     <table id="dtbl"></table>
   </section>
+<!--FOOTER-->
 </main>
 <script>
 const D = /*DATA*/null;
@@ -65,13 +67,11 @@ let metric = "share";
   const p = v.venue.split(/\s{2,}/).reduce((a, s) => (/^\d+[Α-Ω]?$/.test(s) && a.length ? a[a.length - 1] += " " + s : a.push(s), a), []);
   [v.name, v.street, v.town] = p.length > 3 ? [p.slice(0, -2).join(" "), ...p.slice(-2)] : p;
 });
-const MONTHS = {may: "Μαΐου", june: "Ιουνίου"};
-const [yr, mo] = D.election.split("/");
 // Labels differ by mode: a candidate's crosses over party votes, or a party's votes over valid votes.
 const T = D.labels;
 $("title").textContent = T.title;
 $("sub").textContent =
-  `${T.num} ανά εκλογικό τμήμα · ${T.scope} · Βουλευτικές ${mo ? MONTHS[mo] + " " : ""}${yr} · κάθε κύκλος = ένα εκλογικό κατάστημα`;
+  `${T.num} ανά εκλογικό τμήμα · ${T.scope} · ${D.election_title} · κάθε κύκλος = ένα εκλογικό κατάστημα`;
 document.querySelector('[data-m="share"]').textContent = T.share;
 document.querySelector('[data-m="votes"]').textContent = T.num;
 
@@ -90,9 +90,7 @@ $("stats").innerHTML =
   `<div><b>${D.venues.length} / ${all.length}</b><span>καταστήματα στον χάρτη</span></div>`;
 
 const map = L.map("map", {scrollWheelZoom: false, zoomSnap: 0.25});  // fractional fit: whole zoom levels leave a small constituency at ~half the map
-const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: '&copy; OpenStreetMap · Καταστήματα & αποτελέσματα: ΥΠΕΣ (ανεπίσημα)', maxZoom: 19, opacity: 0.6
-}).addTo(map);
+const tiles = baseTiles(map, "Καταστήματα & αποτελέσματα: ΥΠΕΣ (ανεπίσημα)", 19);
 touchMap(map);
 
 const share = v => v.pv ? v.cv / v.pv : 0;
@@ -158,31 +156,9 @@ document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
   render();
 });
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
-// PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
-// The document title becomes the suggested file name.
-let saved;
-function fitForPrint() {
-  document.title = `${T.title} ανά τμήμα - ${T.scope} - ${D.election.replace("/", "-")}`;
-  saved = saved || [map.getCenter(), map.getZoom()];
-  document.body.classList.add("printing");
-  map.invalidateSize();
-  map.fitBounds(layer.getBounds(), {padding: [8, 8]});
-}
-function exportPdf() {
-  fitForPrint();
-  let done = false;
-  const go = () => { if (!done) { done = true; window.print(); } };
-  tiles.once("load", go);
-  setTimeout(go, 1500);
-}
-addEventListener("beforeprint", fitForPrint);  // also covers Ctrl+P
-addEventListener("afterprint", () => {
-  document.body.classList.remove("printing");
-  document.title = "Χάρτης ανά τμήμα";
-  map.invalidateSize();
-  if (saved) map.setView(...saved);
-  saved = null;
-});
+addEventListener("themechange", render);
+const exportPdf = printSetup(map, tiles, () => layer.getBounds(),
+  () => `${T.title} ανά τμήμα - ${T.scope} - ${D.election.replace("/", "-")}`);
 
 $("note").textContent =
   `Πηγές: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα· καταστήματα ψηφοφορίας από το αρχείο ΥΠΕΣ «Εκλογικά τμήματα με κατάστημα ψηφοφορίας» (20.5.2023)· ` +

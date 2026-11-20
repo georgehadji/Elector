@@ -1,21 +1,13 @@
 /* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
-:root {
-  color-scheme: light;
-  --surface: #fcfcfb; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --shadow: rgba(0,0,0,.18);
-  --s0: #eef4fc; --s1: #cde2fb; --s2: #9ec5f4; --s3: #6da7ec; --s4: #3987e5; --s5: #256abf; --s6: #104281;
-  /* diverging: below the average (red), near it (gray), above it (blue) */
-  --link: #256abf;
-  --d-3: #a8302e; --d-2: #e0736b; --d-1: #f6c4c0; --d0: #e4e3df; --d1: #9ec5f4; --d2: #3987e5; --d3: #104281;
+/*THEME_TOKENS*/
 }
-@media (prefers-color-scheme: dark) {
-  :root { color-scheme: dark; --surface: #1a1a19; --ink: #ecebe7; --ink-2: #a8a7a2; --line: #383835; --chip: #262624;
-          --shadow: rgba(0,0,0,.5); --d0: #5a5955; --link: #6da7ec; }
-}
+:root[data-theme="dark"] { color-scheme: dark; --surface: #1a1a19; --ink: #ecebe7; --ink-2: #a8a7a2; --line: #383835; --chip: #262624;
+        --shadow: rgba(0,0,0,.5); --d0: #5a5955; --link: #6da7ec; }
 * { box-sizing: border-box; }
 body { margin: 0; font: 15px/1.5 "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
 main { max-width: 1200px; margin: 0 auto; padding: 16px; }
 h1 { font: 400 28px/1.15 "GFS Didot", Georgia, serif; margin: 0 0 4px; }
-.views a[href="index.html"] { font-weight: 600; }
+/*SITE_CSS*/
 h2 { font-size: 16px; margin: 0 0 8px; }
 a { color: var(--link); }
 .sub { color: var(--ink-2); margin: 0 0 8px; }
@@ -81,6 +73,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
   main { padding: 12px; display: flex; flex-direction: column; }
   main > .stats { order: 1; margin-top: 4px; }
   main > h2, main > .tablewrap, main > .note, main > #detail { order: 2; }
+  main > .site { order: 3; }
   h1 { font-size: 23px; }
   .sub { font-size: 13px; margin-bottom: 4px; }
   .views { margin-bottom: 4px; }
@@ -113,7 +106,6 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
 /* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
 @page { size: A4; margin: 12mm; }
 @media print {
-  :root { color-scheme: light; --link: #256abf; --surface: #fff; --ink: #1d1d1b; --ink-2: #5c5b57; --line: #e4e3df; --chip: #f2f1ee; --d0: #e4e3df; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   main { max-width: none; padding: 0; }
   .seg, .pdf, .views, .leaflet-control-zoom, #panel, .hint, input, .controls label { display: none !important; }

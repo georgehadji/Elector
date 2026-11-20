@@ -38,8 +38,41 @@ const devLegend = () => `<span class="lbl" style="margin-left:0">Σε σχέση
   divSteps().map((c, i) => `<i style="background:${c}"></i><span class="lbl">${DEV_LBL[i]}</span>`).join("");
 
 // Links to the other maps of this constituency, and to the index of all maps.
-$("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("") +
-  `<a href="index.html">Όλοι οι χάρτες</a>`;
+$("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("");
+
+// OpenStreetMap base tiles, faded under the data. `attribution` names the page's own sources.
+const baseTiles = (m, attribution, maxZoom) => L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap · " + attribution, maxZoom, opacity: 0.6
+}).addTo(m);
+
+// PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
+// pdfTitle() becomes the document title, i.e. the suggested file name. Returns the PDF button's handler.
+function printSetup(m, tiles, bounds, pdfTitle) {
+  const screenTitle = document.title;
+  let saved;
+  const fit = () => {
+    document.title = pdfTitle();
+    saved = saved || [m.getCenter(), m.getZoom()];
+    document.body.classList.add("printing");
+    m.invalidateSize();
+    m.fitBounds(bounds(), {padding: [8, 8]});
+  };
+  addEventListener("beforeprint", fit);  // also covers Ctrl+P
+  addEventListener("afterprint", () => {
+    document.body.classList.remove("printing");
+    document.title = screenTitle;
+    m.invalidateSize();
+    if (saved) m.setView(...saved);
+    saved = null;
+  });
+  return () => {
+    fit();
+    let done = false;
+    const go = () => { if (!done) { done = true; window.print(); } };
+    tiles.once("load", go);
+    setTimeout(go, 1500);
+  };
+}
 
 // The first fit waits for a real container size: a page opened in a hidden tab or pane lays out at 0×0,
 // where fitBounds falls back to zoom 0 (the whole world). onFit runs once, right after that fit.

@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/*THEME_JS*/</script>
 <title>Χάρτης σταυρών</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
+<!--FONTS-->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -16,6 +16,7 @@
 </head>
 <body>
 <main>
+<!--HEADER-->
   <h1 id="title"></h1>
   <p class="sub" id="sub"></p>
   <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
@@ -41,6 +42,7 @@
   <h2>Ανά περιοχή</h2>
   <div class="tablewrap"><table id="tbl"></table></div>
   <p class="note" id="note"></p>
+<!--FOOTER-->
 </main>
 <script>
 const D = /*DATA*/null;
@@ -64,10 +66,7 @@ if (PARTY) {
 }
 
 $("title").textContent = `${T.title} · ${D.ep_name}`;
-const MONTHS = {may: "Μαΐου", june: "Ιουνίου"};
-const [yr, mo] = D.election.split("/");
-$("sub").textContent = (mo === "euro" ? `Ευρωεκλογές ${yr}` : `Βουλευτικές εκλογές ${mo ? MONTHS[mo] + " " : ""}${yr}`) +
-  " · ανά εκλογικό διαμέρισμα";
+$("sub").textContent = `${D.election_title} · ανά εκλογικό διαμέρισμα`;
 
 // Party, then candidate; the search box looks across all parties. Deep link: #party=131&cand=8.
 const partySel = $("party"), sel = $("cand"), q = $("q");
@@ -97,9 +96,7 @@ partySel.value = start.party;
 fillCands(start.k);
 
 const map = L.map("map", {scrollWheelZoom: false, zoomSnap: 0.25});  // fractional fit: whole zoom levels leave a small constituency at ~half the map
-const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: '&copy; OpenStreetMap · Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)', maxZoom: 18, opacity: 0.6
-}).addTo(map);
+const tiles = baseTiles(map, "Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)", 18);
 touchMap(map);
 
 const share = (p, c) => den(p, c) ? num(p, c) / den(p, c) : 0;
@@ -175,32 +172,11 @@ partySel.onchange = () => { q.value = ""; fillCands(); render(); };
 q.oninput = () => { fillCands(sel.value); render(); };
 sel.onchange = render;
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+addEventListener("themechange", render);
 
-// PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
-// The document title becomes the suggested file name.
-let saved;
-function fitForPrint() {
+const exportPdf = printSetup(map, tiles, () => layer.getBounds(), () => {
   const c = D.cands.find(x => x.k === sel.value);
-  document.title = `${T.num} ${c.name} - ${D.ep_name} - ${D.election.replace("/", "-")}`;
-  saved = saved || [map.getCenter(), map.getZoom()];
-  document.body.classList.add("printing");
-  map.invalidateSize();
-  map.fitBounds(layer.getBounds(), {padding: [8, 8]});
-}
-function exportPdf() {
-  fitForPrint();
-  let done = false;
-  const go = () => { if (!done) { done = true; window.print(); } };
-  tiles.once("load", go);
-  setTimeout(go, 1500);
-}
-addEventListener("beforeprint", fitForPrint);  // also covers Ctrl+P
-addEventListener("afterprint", () => {
-  document.body.classList.remove("printing");
-  document.title = "Χάρτης σταυρών";
-  map.invalidateSize();
-  if (saved) map.setView(...saved);
-  saved = null;
+  return `${T.num} ${c.name} - ${D.ep_name} - ${D.election.replace("/", "-")}`;
 });
 
 $("note").textContent =
