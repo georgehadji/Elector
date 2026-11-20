@@ -48,8 +48,8 @@ def header(current="maps", ctx="", skip="#main"):
     cur = {"index": ("index", "page"), "compare": ("compare", "page"), "maps": ("index", "true")}.get(current)
     nav = "".join(f'<a href="{href}"' + (f' aria-current="{cur[1]}"' if cur and cur[0] == key else "") + f">{label}</a>"
                   for key, href, label in NAV)
-    to = "τον χάρτη" if skip == "#map" else "το περιεχόμενο"
-    return (f'<a class="skip" href="{skip}">Μετάβαση στ{to}</a>'
+    to = "στον χάρτη" if skip == "#map" else "στο περιεχόμενο"
+    return (f'<a class="skip" href="{skip}">Μετάβαση {to}</a>'
             f'<header class="bar{" with-ctx" if ctx else ""}"><a class="home" href="index.html">{MARK}Χάρτες σταυρών</a>'
             f'<nav aria-label="Κύριο μενού">{nav}</nav>{THEME_BTN}</header>{ctx}')
 
