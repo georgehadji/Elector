@@ -84,15 +84,15 @@ def context_row(data):
 
 
 def theme_css(light, dark, print_=None):
-    """Colour tokens: light; dark (the system setting unless the toggle chose light, or the toggle chose dark);
-    print (always light). CSS needs the dark block twice, a media query and an attribute selector: here it is written once."""
+    """Colour tokens, each written once with light-dark(): the system setting decides unless the toggle set
+    data-theme; print is always light, with `print_` overriding single tokens."""
     def decl(t):
         return ";".join(f"--{k}:{v}" for k, v in t.items())
-    d = f"color-scheme:dark;{decl(dark)}"
-    out = (f":root{{color-scheme:light;{decl(light)}}}\n"
-           f"@media (prefers-color-scheme:dark){{:root:not([data-theme=light]){{{d}}}}}\n:root[data-theme=dark]{{{d}}}\n")
-    if print_ is not None:  # undo every dark override
-        out += f"@media print{{:root:not([data-theme]),:root[data-theme]{{color-scheme:light;{decl({k: light[k] for k in dark} | print_)}}}}}\n"
+    both = {k: f"light-dark({v},{dark[k]})" if dark.get(k, v) != v else v for k, v in light.items()}
+    out = (f":root{{color-scheme:light dark;{decl(both)}}}\n"
+           ":root[data-theme=light]{color-scheme:light}\n:root[data-theme=dark]{color-scheme:dark}\n")
+    if print_ is not None:
+        out += f"@media print{{:root,:root[data-theme]{{color-scheme:light;{decl(print_)}}}}}\n"
     return out
 
 
@@ -188,12 +188,14 @@ INDEX_CSS = """
 /*THEME_TOKENS*/
 /*SITE_CSS*/
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "Fira Sans",system-ui,sans-serif}
+html{scrollbar-gutter:stable}
+:root{accent-color:var(--pen)}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 "Fira Sans",system-ui,sans-serif}
 main{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
 a{color:var(--pen)}
 :focus-visible{outline:2px solid var(--pen);outline-offset:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-h1{font:400 clamp(44px,9vw,84px)/1 "GFS Didot",Georgia,serif;letter-spacing:-.01em;margin:0;display:flex;align-items:center;gap:.18em}
+h1{font:400 clamp(2.75rem,9vw,5.25rem)/1 "GFS Didot",Georgia,serif;letter-spacing:-.01em;margin:0;display:flex;align-items:center;gap:.18em}
 h1 .x{width:.72em;height:.72em;flex:none}
 h1 .x path{stroke-width:4.4}
 .x path,.x rect{fill:none;stroke:var(--pen);stroke-width:3.2;stroke-linecap:round}
@@ -202,16 +204,16 @@ h1 .x path{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s ease-out
 h1 .x path+path{animation-delay:.3s}
 @keyframes draw{to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){h1 .x path{animation:none;stroke-dashoffset:0}}
-.lede{max-width:34em;margin:16px 0 28px;color:var(--ink-2);font-size:18px}
-#f{width:100%;max-width:560px;font:inherit;font-size:19px;color:var(--ink);background:transparent;border:0;
+.lede{max-width:34em;margin:16px 0 28px;color:var(--ink-2);font-size:1.125rem}
+#f{width:100%;max-width:560px;font:inherit;font-size:1.1875rem;color:var(--ink);background:transparent;border:0;
    border-bottom:2px solid var(--ink);padding:10px 2px;border-radius:0}
 #f::placeholder{color:var(--ink-2)}
 #f:focus-visible{outline:none;border-bottom-color:var(--pen)}
-#n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:14px}
+#n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:.875rem}
 .eps{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));column-gap:36px}
 .eps li{border-top:1px solid var(--line);padding:14px 0 16px}
-.eps h4{font:400 23px/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
-.top{display:flex;gap:8px;align-items:baseline;margin:0 0 10px;font-size:14px;color:var(--ink-2);line-height:1.4}
+.eps h4{font:400 1.4375rem/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
+.top{display:flex;gap:8px;align-items:baseline;margin:0 0 10px;font-size:.875rem;color:var(--ink-2);line-height:1.4}
 .top .x{width:14px;height:14px;flex:none;align-self:center}
 .top b{color:var(--ink);font-weight:600}
 .country a:active,.eps li a:active,.older summary:active,.fold summary:active{background:var(--wash)}
@@ -219,12 +221,12 @@ h1 .x path+path{animation-delay:.3s}
 @keyframes fade{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.older[open]>:not(summary),.fold[open]>:not(summary){animation:none}}
 .acts{display:flex;flex-wrap:wrap;align-items:center;gap:0 14px}
-.older summary,.fold summary{display:flex;align-items:center;min-height:32px;cursor:pointer;color:var(--ink-2);font-size:14px}
+.older summary,.fold summary{display:flex;align-items:center;min-height:32px;cursor:pointer;color:var(--ink-2);font-size:.875rem}
 .older[open]{flex:1 1 100%}
 .older[open] summary{margin-bottom:4px}
 .dhm{margin:4px 0 0}
 .el{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0}
-.el a{display:inline-flex;align-items:center;min-height:32px;color:var(--ink-2);font-size:14px;white-space:nowrap;
+.el a{display:inline-flex;align-items:center;min-height:32px;color:var(--ink-2);font-size:.875rem;white-space:nowrap;
       text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .el a:hover{color:var(--pen);text-decoration-color:var(--pen)}
 .el a.now{padding:0 12px;border:1px solid var(--pen);border-radius:16px;color:var(--pen);background:var(--wash);
@@ -232,43 +234,44 @@ h1 .x path+path{animation-delay:.3s}
 .el a.now:hover{background:var(--pen);color:var(--paper)}
 .sil{position:absolute;right:0;top:12px;width:48px;height:48px;color:var(--ink-2)}
 .sil path{fill:currentColor;fill-opacity:.22;stroke:currentColor;stroke-width:1;stroke-linejoin:round}
-.eps li{position:relative}
+.eps li{position:relative;container-type:inline-size;overflow-wrap:anywhere}
+@container (width < 280px){.sil{display:none}.eps li>h4,.eps li>.top{margin-right:0}}
 .eps li>h4,.eps li>.top{margin-right:60px}
-.reg{font:600 13px/1.2 "Fira Sans",system-ui,sans-serif;letter-spacing:0;color:var(--ink-2);margin:28px 0 0}
-.grp[hidden]{display:none}
+.reg{font:600 .8125rem/1.2 "Fira Sans",system-ui,sans-serif;letter-spacing:0;color:var(--ink-2);margin:28px 0 0}
+.grp:not(:has(li:not([hidden]))){display:none}  /* a region head goes with its cards */
 .eps{margin-top:6px}
-.key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:14px;color:var(--ink-2)}
+.key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
 .key .x{width:14px;height:14px;flex:none}
 .gr{margin:20px 0 0;max-width:380px}
 .gr a:first-child{display:block}
 .gr svg{display:block;width:100%;height:auto;max-height:260px}
-.gr figcaption{margin:6px 0 0;font-size:13px;color:var(--ink-2)}
+.gr figcaption{margin:6px 0 0;font-size:.8125rem;color:var(--ink-2)}
 .gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
 .gr .k{display:inline-flex;align-items:center;white-space:nowrap}
 .gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
 @media (min-width:900px){main{position:relative}.gr{position:absolute;right:24px;top:56px;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.cover{max-width:calc(100% - 380px)}}
-.dhm{margin:0 0 8px;color:var(--ink-2);font-size:13px;line-height:1.45}
-.cover{margin:14px 0 0;font-size:14px;color:var(--ink-2)}
+.dhm{margin:0 0 8px;color:var(--ink-2);font-size:.8125rem;line-height:1.45}
+.cover{margin:14px 0 0;font-size:.875rem;color:var(--ink-2)}
 .country,#regions{margin-top:96px}
-.country h2,#regions>h2{font:400 28px/1.2 "GFS Didot",Georgia,serif;margin:0 0 16px}
+.country h2,#regions>h2{font:400 1.75rem/1.2 "GFS Didot",Georgia,serif;margin:0 0 16px}
 .cg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 36px}
 .cg>div{border-top:2px solid var(--ink);padding-top:12px}
-.cg h3{font:400 20px/1.25 "GFS Didot",Georgia,serif;margin:0 0 6px}
+.cg h3{font:400 1.25rem/1.25 "GFS Didot",Georgia,serif;margin:0 0 6px}
 .cg h3 a{color:var(--ink);text-underline-offset:4px}
-.cg p{color:var(--ink-2);margin:0 0 8px;font-size:15px}
+.cg p{color:var(--ink-2);margin:0 0 8px;font-size:.9375rem}
 .cg ul{margin:0;padding:0;list-style:none}
 .cg li{padding:3px 0}
 .jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;overflow-x:auto;white-space:nowrap;
-      scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:14px}
+      scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:.875rem}
 .jump a{color:var(--ink-2);text-decoration:none}
 .jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .reg{scroll-margin-top:64px}
-.searching .country,.searching .jump{display:none}
-.searching #regions{margin-top:40px}
+body:has(#f:not(:placeholder-shown)) :is(.country,.jump){display:none}  /* results start right under the search */
+body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 @media (max-width:1023px){.cg{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:639px){.cg{grid-template-columns:1fr}.country,#regions{margin-top:64px}}
-@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h4{margin:0 0 2px}.top{margin:0 0 4px;font-size:13px;line-height:1.3}.lede{font-size:16px}#f{font-size:17px}}
+@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h4{margin:0 0 2px}.top{margin:0 0 4px;font-size:.8125rem;line-height:1.3}.lede{font-size:1rem}#f{font-size:1.0625rem}}
 @media (pointer:coarse){.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
@@ -278,13 +281,11 @@ const words = new Map(items.map(li => [li, li.dataset.k.split(" ").map(w => [w, 
 const own = li => words.get(li).slice(0, +li.dataset.n);  // the constituency's own name, ahead of its towns
 f.addEventListener("input", () => {
   const qs = queryWords(f.value);
-  document.body.classList.toggle("searching", qs.length > 0);  // results start right under the search
   let shown = 0;
   for (const li of items) {
     const hit = qs.every(q => hits(words.get(li), q)); li.hidden = !hit; shown += hit;
     li.style.order = hit && qs.length && !qs.every(q => hits(own(li), q)) ? 1 : "";  // name matches first
   }
-  document.querySelectorAll(".grp").forEach(g => { g.hidden = !g.querySelector("li:not([hidden])"); });  // a region head goes with its cards
   for (const li of items) { const d = li.querySelector("details"); if (d) d.open = shown === 1 && !li.hidden; }  // the one match shows its older maps
   n.textContent = !qs.length ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του δήμου ή του νομού.`
     : shown === 1 ? "1 περιφέρεια. Enter για τον πιο πρόσφατο χάρτη." : `${shown} περιφέρειες`;

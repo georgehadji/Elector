@@ -4,13 +4,13 @@
 .skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: 8px 12px; color: var(--ink); background: var(--paper, var(--surface)); border: 1px solid var(--ink); border-radius: 6px; }
 .skip:focus { top: 8px; }
 .bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
-.bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 20px/1.2 "GFS Didot", Georgia, serif; text-decoration: none; }
+.bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 1.25rem/1.2 "GFS Didot", Georgia, serif; text-decoration: none; }
 .bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mark { width: 20px; height: 20px; flex: none; }
 .mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
 .mark rect { stroke-width: 2.4; }
 .mark path { stroke-width: 3.2; }
-.bar nav { display: flex; gap: 20px; font-size: 14px; }
+.bar nav { display: flex; gap: 20px; font-size: .875rem; }
 .bar nav a { color: var(--ink-2); text-decoration: none; padding: 4px 0; }
 .bar nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; }
 .bar nav a[aria-current] { color: var(--ink); }
@@ -30,24 +30,26 @@
   .ctx { margin-bottom: 8px; padding-bottom: 4px; }
 }
 /* Map pages: constituency and its other elections */
-.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: .875rem; }
 .ctx nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .ctx nav a { color: var(--ink-2); text-underline-offset: 4px; }
 .ctx nav a[aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
 /* Colophon */
-.site { margin-top: 64px; padding: 24px 0 32px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+.site { margin-top: 64px; padding: 24px 0 32px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: .8125rem; line-height: 1.55; }
 .site .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.site h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.site h3 { margin: 0 0 6px; font-size: .8125rem; font-weight: 600; color: var(--ink); }
 .site p { margin: 0 0 4px; }
 .site ul { margin: 0; padding: 0; list-style: none; }
 .site a { color: inherit; text-underline-offset: 3px; }
 .site .built { display: flex; align-items: center; justify-content: space-between; margin: 24px 0 0; }
 .site .built .mark { width: 16px; height: 16px; }
-.site.compact { margin: 0; padding: 6px 16px 8px; }
-.site.compact .cols { display: flex; flex-wrap: wrap; gap: 0 20px; }
-.site.compact h3, .site.compact .built { display: none; }
-.site.compact ul { display: flex; flex-wrap: wrap; gap: 0 12px; }
-.site.compact .cols > div:nth-child(3) li:not(:has(.copy)) { display: none; }  /* the nav above has these */
+.site.compact {
+  margin: 0; padding: 6px 16px 8px;
+  .cols { display: flex; flex-wrap: wrap; gap: 0 20px; }
+  h3, .built { display: none; }
+  ul { display: flex; flex-wrap: wrap; gap: 0 12px; }
+  .cols > div:nth-child(3) li:not(:has(.copy)) { display: none; }  /* the nav above has these */
+}
 @media (max-width: 639px) { .site .cols { grid-template-columns: 1fr; gap: 16px; } .site.compact .cols { display: flex; gap: 0 12px; } }
 html, body { overflow-x: clip; }
 h1, h2 { text-wrap: balance; }
@@ -62,7 +64,7 @@ h1, h2 { text-wrap: balance; }
 @media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none; } }
 /* higher contrast on request: darker lines and secondary ink, solid borders on swatches */
 @media (prefers-contrast: more) {
-  :root:root:root { --line: color-mix(in srgb, var(--ink) 60%, var(--paper)); --ink-2: color-mix(in srgb, var(--ink) 88%, var(--paper)); }
+  :root { --line: color-mix(in srgb, var(--ink) 60%, var(--paper, var(--surface))); --ink-2: color-mix(in srgb, var(--ink) 88%, var(--paper, var(--surface))); }
   .legend i { border: 1px solid var(--ink); }
 }
 @media (pointer: coarse) {
