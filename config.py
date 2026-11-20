@@ -70,6 +70,23 @@ PARTY_ARTIFACTS = [  # published static map pages, one per party (June share + M
     ("Πλεύση Ελευθερίας", "https://claude.ai/artifact/9YkgFraGBABMQtheiVBUMQ"),
 ]
 
+# Administrative regions (περιφέρειες) north to south, with the constituency ids (ep_id) of each: the index groups by them.
+REGIONS = [
+    ("Ανατολική Μακεδονία και Θράκη", [1, 2, 3, 4, 5]),
+    ("Κεντρική Μακεδονία", [6, 7, 8, 9, 10, 11, 12, 13]),
+    ("Δυτική Μακεδονία", [14, 15, 16, 17]),
+    ("Ήπειρος", [18, 19, 20, 21]),
+    ("Θεσσαλία", [22, 23, 24, 25]),
+    ("Ιόνια Νησιά", [26, 27, 28, 29]),
+    ("Δυτική Ελλάδα", [30, 31, 32]),
+    ("Στερεά Ελλάδα", [33, 34, 35, 36, 37]),
+    ("Αττική", [38, 40, 41, 60, 61, 62, 63, 64]),
+    ("Πελοπόννησος", [43, 44, 45, 46, 47]),
+    ("Βόρειο Αιγαίο", [48, 49, 50]),
+    ("Νότιο Αιγαίο", [51, 52]),
+    ("Κρήτη", [53, 54, 55, 56]),
+]
+
 # NIKH (party 131) MPs elected 25 June 2023 per constituency (iefimerida.gr, 97.75% counted);
 # 10th seat: Apostolakis, Επικρατείας.
 ELECTED = {60: "Κουρουπάκη", 61: "Βορύλλας", 62: "Βρεττός", 63: "Οικονομόπουλος", 31: "Τσιρώνης",

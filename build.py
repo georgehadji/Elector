@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
 from config import DB, ELECTION_NAMES, OUT, SCHEMA, slug  # noqa: E402
+from geo import silhouette  # noqa: E402
 from matching import boundaries, ep_label, label, match_areas, norm  # noqa: E402
 from web import (  # noqa: E402
     FONTS,
@@ -153,7 +154,7 @@ def main(election, ep):
     label_ = "Ανά περιοχή · κόμματα (% εγκύρων)" if party_mode else "Ανά περιοχή · όλοι οι υποψήφιοι"
     return {"ep": ep, "name": ep_name, "file": out.name, "areas": len(areas), "map_areas": len(features),
             "unmatched": len(unmatched), "seat": seat_fallbacks, "coverage": coverage,
-            "entry": {out.name: entry(election, ep, ep_name, label_)},
+            "entry": {out.name: entry(election, ep, ep_name, label_, silhouette([f["geometry"] for f in features]))},
             "matches": [(tm, hit_of[k]) for tm, k in area_of.items() if k in hit_of]}
 
 

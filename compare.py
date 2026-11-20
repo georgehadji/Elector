@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
 from build import communities, parties  # noqa: E402
 from config import ELECTION_NAMES, HERE, OUT, PARTY_SHORT, slug  # noqa: E402
-from web import INDEX_DARK, INDEX_LIGHT, fill  # noqa: E402
+from web import INDEX_DARK, INDEX_LIGHT, fill, greece_figure, meta  # noqa: E402
 
 ELECTIONS = {slug(k): name for k, name in ELECTION_NAMES.items()}  # file-name form of the keys
 MIN_SHARE = 1.0  # % of valid votes on the map, in at least one election, for a party to be listed
@@ -47,8 +47,29 @@ data = {"elections": ELECTIONS, "totals": totals,
         "parties": [{"id": str(pid), "name": PARTY_SHORT.get(pid, parties[pid]["name"]), "color": parties[pid]["color"]} for pid in order],
         "geo": {"type": "FeatureCollection", "features": features}}
 template = fill((HERE / "compare_template.html").read_text(encoding="utf-8"),
-                INDEX_LIGHT | {"panel": "#ffffffee", "field": "#fff"}, INDEX_DARK | {"panel": "#1d2430ee", "field": "#1d2430"})
+                INDEX_LIGHT | {"panel": "#ffffffee", "field": "#fff", "shadow": "rgba(0,0,0,.2)"},
+                INDEX_DARK | {"panel": "#1d2430ee", "field": "#1d2430", "shadow": "rgba(0,0,0,.5)"})
+template = template.replace("<!--META-->", meta("Σύγκριση εκλογών ανά κοινότητα",
+    "Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024."))
 out = OUT / "compare.html"
 out.write_text(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))),
                encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB, {len(features)} areas, {len(order)} parties)")
+
+# Static map for the index: the party that came first in each community, June 2023.
+WON = "2023-june"
+won = {}
+for a in props.values():
+    if WON in a["e"] and a["e"][WON][1]:
+        votes = a["e"][WON][1]
+        won[id(a)] = max(votes, key=votes.get)
+tally = {}
+for pid in won.values():
+    tally[pid] = tally.get(pid, 0) + 1
+shown = [pid for pid, n in sorted(tally.items(), key=lambda kv: -kv[1]) if n >= 0.02 * len(won)]
+OTHER = "#9a9a94"
+areas = [(a["geometry"], parties[won[id(a)]]["color"] if won[id(a)] in shown else OTHER) for a in props.values() if id(a) in won]
+key = [(PARTY_SHORT.get(pid, parties[pid]["name"]), parties[pid]["color"]) for pid in shown] + [("Άλλο", OTHER)]
+fig = OUT / "greece_map.html"
+fig.write_text(greece_figure(areas, key, f"Πρώτο κόμμα ανά κοινότητα, {ELECTION_NAMES['2023/june']}"), encoding="utf-8")
+print(f"wrote {fig} ({fig.stat().st_size / 1e3:.0f} KB)")
