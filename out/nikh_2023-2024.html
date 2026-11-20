@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-98UP8GdcQGf3Y9crwLDuzbZlOSMdLp0M7YF7r1Qmfqs=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-ULCn/KmPbsx2yU9MSTs8l6BjJDurkkgEQgezCCHoqCU=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-98UP8GdcQGf3Y9crwLDuzbZlOSMdLp0M7YF7r1Qmfqs=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-TQhBRKiQfy8ByXxhnUZzErFpFxEoNvjKODoLvRERsbM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ ανά διαμέρισμα</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
 (() => {
@@ -47,7 +48,7 @@
 /* Site bar: wordmark, nav, theme toggle. Skip link first in tab order. */
 .skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: 8px 12px; color: var(--ink); background: var(--paper, var(--surface)); border: 1px solid var(--ink); border-radius: 6px; }
 .skip:focus { top: 8px; }
-.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
+.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
 .bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 20px/1.2 "GFS Didot", Georgia, serif; text-decoration: none; }
 .bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mark { width: 20px; height: 20px; flex: none; }
@@ -71,8 +72,7 @@
   /* map pages: the election switcher is the wayfinding; the footer has the other pages, the map gets the height */
   .bar.with-ctx { min-height: 44px; margin-bottom: 4px; }
   .bar.with-ctx nav { display: none; }
-  body .ctx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; white-space: nowrap; margin-bottom: 8px; padding-bottom: 4px; align-items: center; }
-  body .ctx nav { flex-wrap: nowrap; }
+  .ctx { margin-bottom: 8px; padding-bottom: 4px; }
 }
 /* Map pages: constituency and its other elections */
 .ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
@@ -130,7 +130,7 @@ h1{font-size:17px;margin:0 0 2px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .tabs button{font:inherit;font-size:13px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:32px}
 .tabs button[aria-pressed="true"]{background:var(--on);color:var(--on-ink);border-color:var(--on)}
-#map{flex:1;min-height:300px}
+#map{flex:1;min-height:220px}
 .legend{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.3;box-shadow:0 1px 4px #0003}
 .legend b{display:block;margin-bottom:4px}
 .legend i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid #0002}
