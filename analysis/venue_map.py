@@ -1,12 +1,16 @@
 """Nationwide map of polling venues: leading party, and each political bloc's share and leading party.
 
-Usage: python -I -X utf8 analysis/venue_map.py   (after analysis/venue_parties.py)
+Usage: python -I -X utf8 analysis/venue_map.py [--geocode]   (after analysis/venue_parties.py)
 Reads analysis/venue_parties/venues.csv and venue_parties_long.csv; writes analysis/venue_parties/venue_map.html.
 
 Venue position, best first: the geocode cache (data/venues_geo.json, via venues.csv); the ELSTAT 2021
 settlement point named by a village venue (stations_map.settlement, offline); otherwise the centre of the
 venue's ELSTAT community, shown as approximate (urban venues without a geocode pile up there, so they
 are spread on a small spiral).
+
+--geocode asks Nominatim (stations_map.geocode: 1 request/s, kept only inside the municipal unit) for every venue
+that would otherwise sit on a community centre. Results go to analysis/venue_parties/venues_geo_extra.json, not to
+data/venues_geo.json (the repo's cache); a rerun resumes from it, and without --geocode the page uses it as it is.
 """
 import csv
 import json
@@ -20,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I dro
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from venue_parties import BLOCS, short
 
+import stations_map
 from config import DB, ELECTION_NAMES, HERE
 from matching import boundaries, centroid, match_units
 from stations_map import settlement, venue_parts
@@ -27,6 +32,7 @@ from web import common_css, fill
 
 SRC = Path(__file__).resolve().parent / "venue_parties"
 TEMPLATE = Path(__file__).resolve().parent / "venue_map_template.html"
+GEO = SRC / "venues_geo_extra.json"
 MIN_SHARE = 0.5  # % of valid votes; smaller parties outside every bloc are left out of the page
 
 
@@ -57,6 +63,9 @@ def main():
     for ep, dens in by_ep.items():
         unit_of.update({(ep, d): u for d, u in match_units(dens, units).items()})
 
+    stations_map.CACHE = GEO  # geocode() saves its cache there after every venue
+    geo = json.loads(GEO.read_text(encoding="utf-8")) if GEO.exists() else {}
+    fetch, errors = "--geocode" in sys.argv, 0
     placed, spiral = {}, defaultdict(int)  # spiral: venues already put on one community centre
     how = defaultdict(int)
     for i, m in sorted(meta.items()):
@@ -73,6 +82,22 @@ def main():
         if hit:
             placed[i] = (hit[1], hit[0], 1)
             how["settlement"] += 1
+            continue
+        text = m["κατάστημα"]
+        if fetch and unit and text.strip() and text not in geo:
+            try:
+                stations_map.geocode(text, unit, m["δημ. ενότητα"], geo)
+                errors = 0
+            except OSError as e:  # timeouts, 429/403: skip this venue (not cached, so a rerun retries it)
+                errors += 1
+                print(f"nominatim error ({errors}): {e}", flush=True)
+                if errors >= 5:
+                    sys.exit("5 Nominatim errors in a row: stopping; rerun later to resume")
+            if len(geo) % 50 == 0:
+                print(f"geocoded {len(geo)} venues", flush=True)
+        if geo.get(text):
+            placed[i] = (geo[text]["lat"], geo[text]["lon"], 0)
+            how["nominatim"] += 1
             continue
         code = m["κοινότητα κωδ."]
         geom = comm_by_code[code]["geometry"] if code in comm_by_code else unit["geometry"] if unit else None
@@ -106,7 +131,7 @@ def main():
                    for i, (lat, lon, q) in sorted(placed.items())],
     }
     page = TEMPLATE.read_text(encoding="utf-8").replace("/*COMMON_CSS*/", common_css())
-    page = fill(page.replace("/*COMMON_JS*/", (HERE / "common.js").read_text(encoding="utf-8")))
+    page = fill(page.replace("/*COMMON_JS*/", (HERE / "common.js").read_text(encoding="utf-8")), skip="#map", compact=True)
     out = SRC / "venue_map.html"
     out.write_text(page.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))),
                    encoding="utf-8")

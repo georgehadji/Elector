@@ -173,7 +173,7 @@ p{{color:var(--ink-2)}} a{{color:var(--link)}}
 th,td{{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}}
 th{{color:var(--ink-2);font-size:12px;font-weight:600}} .n{{text-align:right;white-space:nowrap}} tbody tr:hover{{background:var(--chip)}}
 @media print{{h2{{break-after:avoid}} tr{{break-inside:avoid}} a{{color:inherit}}}}
-</style></head><body><main>
+</style></head><body><main id="main">
 <!--HEADER-->
 {chr(10).join(body)}
 <!--FOOTER-->

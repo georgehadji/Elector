@@ -4,6 +4,7 @@ fill() puts the shared parts into a page; render_page() also inlines common.css/
 record() keeps out/maps.json, the list of built pages; write_index() turns it into out/index.html.
 """
 import base64
+import datetime
 import hashlib
 import html
 import json
@@ -24,24 +25,61 @@ from config import (
     PARTY_ARTIFACTS,
     PARTY_SHORT,
     REGIONS,
+    slug,
 )
 from geo import exteriors, frame, path
 from matching import ep_label
 
 # Site header and footer of every page. The toggle's pressed state means dark; theme.js keeps it in sync.
-THEME_BTN = ('<button id="theme" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true">'
-             '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg>Σκούρο θέμα</button>')
-HEADER = f'<header class="bar"><a class="home" href="index.html">Χάρτες σταυρών</a>{THEME_BTN}</header>'
+THEME_BTN = ('<button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true">'
+             '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button>')
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">')
+MARK = ('<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
+        '<path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>')
+NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"), ("party", "index.html#party", "Ανά κόμμα"))
+MONTHS = ("Ιανουαρίου", "Φεβρουαρίου", "Μαρτίου", "Απριλίου", "Μαΐου", "Ιουνίου",
+          "Ιουλίου", "Αυγούστου", "Σεπτεμβρίου", "Οκτωβρίου", "Νοεμβρίου", "Δεκεμβρίου")
 
 
-def footer(note="", home=True):
-    """Site footer; `note` adds page-specific caveats, `home` links back to the index."""
-    return ('<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.'
-            f'{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p>'
-            + ('<a href="index.html">Όλοι οι χάρτες</a>' if home else "")
-            + '<button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>')
+def header(current="maps", ctx="", skip="#main"):
+    """Site bar: wordmark, three-item nav, theme toggle, skip link; `ctx` is the wayfinding row of map pages.
+    `current`: "index" and "compare" are those pages, "maps" is a page under Περιφέρειες (aria-current="true")."""
+    cur = {"index": ("index", "page"), "compare": ("compare", "page"), "maps": ("index", "true")}.get(current)
+    nav = "".join(f'<a href="{href}"' + (f' aria-current="{cur[1]}"' if cur and cur[0] == key else "") + f">{label}</a>"
+                  for key, href, label in NAV)
+    to = "τον χάρτη" if skip == "#map" else "το περιεχόμενο"
+    return (f'<a class="skip" href="{skip}">Μετάβαση στ{to}</a>'
+            f'<header class="bar"><a class="home" href="index.html">{MARK}Χάρτες σταυρών</a>'
+            f'<nav aria-label="Κύριο μενού">{nav}</nav>{THEME_BTN}</header>{ctx}')
+
+
+def footer(note="", home=True, compact=False):
+    """Site colophon: sources, notes (`note` adds page-specific caveats), links. `compact` keeps it to a few lines
+    on pages where the map needs the height. `home` is kept for callers; the Χάρτες column always links the index."""
+    today = datetime.date.today()
+    return (f'<footer class="site{" compact" if compact else ""}"><div class="cols">'
+            '<div><h3>Πηγές</h3><ul>'
+            '<li>Αποτελέσματα: <a href="https://ekloges.ypes.gr/" rel="noopener">Υπουργείο Εσωτερικών</a></li>'
+            '<li>Όρια: <a href="https://www.statistics.gr/" rel="noopener">ΕΛΣΤΑΤ 2021</a></li>'
+            '<li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li></ul></div>'
+            f'<div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα.{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div>'
+            '<div><h3>Χάρτες</h3><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li>'
+            '<li><a href="index.html#party">Ανά κόμμα</a></li><li><a href="nikh_2023-2024.html">ΝΙΚΗ 2023–2024</a></li>'
+            '<li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div></div>'
+            f'<p class="built">Ενημέρωση: {today.day} {MONTHS[today.month - 1]} {today.year}{MARK}</p></footer>')
+
+
+def context_row(data):
+    """Wayfinding row of a map page: the constituency and its other elections (from maps.json)."""
+    name = html.escape(data["ep_name"])
+    if "venues" in data or "ep" not in data:
+        return f'<div class="ctx"><b>{name}</b></div>'
+    sib = {m["election"]: f for f, m in load_maps().items() if m["ep"] == data["ep"] and "_tm_" not in f}
+    sib.setdefault(data["election"], f"{slug(data['election'])}_{data['ep']}.html")
+    links = "".join((f'<a href="{sib[e]}" aria-current="page">{ELECTION_NAMES[e]}</a>' if e == data["election"]
+                     else f'<a href="{sib[e]}">{ELECTION_NAMES[e]}</a>') for e in reversed(list(ELECTIONS)) if e in sib)
+    return f'<div class="ctx"><b>{name}</b><nav aria-label="Εκλογές αυτής της περιφέρειας">{links}</nav></div>'
 
 
 def theme_css(light, dark, print_=None):
@@ -70,13 +108,13 @@ INDEX_LIGHT = {"paper": "#f6f7f9", "ink": "#13233d", "ink-2": "#55627a", "line":
 INDEX_DARK = {"paper": "#171c24", "ink": "#e8edf5", "ink-2": "#9aa6b8", "line": "#2b3442", "pen": "#6da7ec", "wash": "#1f2a3a"}
 
 
-def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None):
+def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx="", skip="#main", compact=False):
     """Shared parts of every page: colour tokens, site CSS and theme script, fonts, header, footer."""
     for placeholder, text in (("/*THEME_TOKENS*/", theme_css(light, dark, print_)),
                               ("/*SITE_CSS*/", (HERE / "site.css").read_text(encoding="utf-8")),
                               ("/*THEME_JS*/", (HERE / "theme.js").read_text(encoding="utf-8")),
                               ("/*SHARED_JS*/", (HERE / "shared.js").read_text(encoding="utf-8")),
-                              ("<!--FONTS-->", FONTS), ("<!--HEADER-->", HEADER), ("<!--FOOTER-->", footer())):
+                              ("<!--FONTS-->", FONTS), ("<!--HEADER-->", header(current, ctx, skip)), ("<!--FOOTER-->", footer(compact=compact))):
         page = page.replace(placeholder, text)
     return page
 
@@ -115,7 +153,8 @@ def common_css():
 def render_page(template, data):
     """Template with the shared UI (common.css/js, theme, header, footer) and the page data inlined: one self-contained file."""
     page = (HERE / template).read_text(encoding="utf-8")
-    page = fill(page.replace("/*COMMON_CSS*/", common_css()).replace("/*COMMON_JS*/", (HERE / "common.js").read_text(encoding="utf-8")))
+    page = fill(page.replace("/*COMMON_CSS*/", common_css()).replace("/*COMMON_JS*/", (HERE / "common.js").read_text(encoding="utf-8")),
+                ctx=context_row(data), skip="#map")
     data = {**data, "election_title": ELECTIONS[data["election"]][1]}
     kind = "Ψήφοι κομμάτων" if data.get("mode") == "party" else "Σταυροί προτίμησης"
     unit = "εκλογικό τμήμα" if "venues" in data else "εκλογικό διαμέρισμα"
@@ -147,7 +186,6 @@ def greece_figure(areas, key, caption, size=440):
 INDEX_CSS = """
 /*THEME_TOKENS*/
 /*SITE_CSS*/
-.bar{justify-content:flex-end;margin:-24px 0 16px}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "Fira Sans",system-ui,sans-serif}
 main{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
@@ -218,8 +256,8 @@ h1 .x path+path{animation-delay:.3s}
 .more ul{margin:0;padding:0;list-style:none}
 .more li{padding:3px 0}
 .more li span{color:var(--ink-2);font-size:14px}
-footer{margin-top:48px;font-size:14px;max-width:40em}
-@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h2{margin:0 0 2px}.top{margin:0 0 4px;font-size:13px;line-height:1.3}.bar{margin:-12px 0 12px}.lede{font-size:16px}#f{font-size:17px}}
+
+@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h2{margin:0 0 2px}.top{margin:0 0 4px;font-size:13px;line-height:1.3}.lede{font-size:16px}#f{font-size:17px}}
 @media (pointer:coarse){.nation a{display:inline-flex;align-items:center;min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.more li a{display:inline-block;padding:10px 0}}
 """
 INDEX_JS = """
@@ -334,9 +372,9 @@ def _write_index(order, nikh, elected):
 <meta name="description" content="Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.">
 {FONTS}
 <script>/*THEME_JS*/</script>
-<style>{INDEX_CSS}</style></head><body><main>
+<style>{INDEX_CSS}</style></head><body><main id="main">
+<!--HEADER-->
 <header>
-<div class="bar">{THEME_BTN}</div>
 <h1>{CROSS_SVG}Χάρτες σταυρών</h1>
 <p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και ανά εκλογικό τμήμα, σε όλες τις εκλογικές περιφέρειες.</p>
 <div id="s" hidden><label class="sr" for="f">Αναζήτηση περιφέρειας</label>
@@ -355,7 +393,7 @@ def _write_index(order, nikh, elected):
 <section id="party"><h2>Χάρτες ανά κόμμα</h2><p>Στατικοί χάρτες στο claude.ai, ανοίγουν μόνο για όσους έχουν πρόσβαση.</p><details class="fold"><summary>Όλα τα κόμματα ({len(PARTY_ARTIFACTS)})</summary><ul>{artifacts}</ul></details></section>
 </div>
 {footer(" Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.", home=False)}
-</main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK)), encoding="utf-8")
+</main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK, current="index")), encoding="utf-8")
 
 
 MAPS = OUT / "maps.json"

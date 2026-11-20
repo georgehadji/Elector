@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-ClTKiLOxUunEFKplqFJ6OMdNOg4wADW9a80EMmgbPpg=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-7auszAkKqQcm9k5U+/O3sr1oSbhEotV0ED/2n+G96ms=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-ClTKiLOxUunEFKplqFJ6OMdNOg4wADW9a80EMmgbPpg=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-CPY1B+VDICfgYTz9G4ZYZDItTSYYs0eb5l/IdJXwnqo=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
@@ -55,22 +55,55 @@ main { max-width: 1200px; margin: 0 auto; padding: 16px; }
 h1 { font: 400 28px/1.15 "GFS Didot", Georgia, serif; margin: 0 0 4px; }
 /* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
    Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
-.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
-.bar .home { color: var(--ink); font-weight: 600; text-decoration: none; }
+/* Site bar: wordmark, nav, theme toggle. Skip link first in tab order. */
+.skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: 8px 12px; color: var(--ink); background: var(--paper, var(--surface)); border: 1px solid var(--ink); border-radius: 6px; }
+.skip:focus { top: 8px; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
+.bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 20px/1.2 "GFS Didot", Georgia, serif; text-decoration: none; }
 .bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
-#theme { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 12px; font: inherit; font-size: 13px;
-         color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 16px; cursor: pointer; }
+.mark { width: 20px; height: 20px; flex: none; }
+.mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
+.mark rect { stroke-width: 2.4; }
+.mark path { stroke-width: 3.2; }
+.bar nav { display: flex; gap: 20px; font-size: 14px; }
+.bar nav a { color: var(--ink-2); text-decoration: none; padding: 4px 0; }
+.bar nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; }
+.bar nav a[aria-current] { color: var(--ink); }
+.bar nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+#theme { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 36px; height: 36px; padding: 0;
+         color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 50%; cursor: pointer; }
 #theme:hover, #theme[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); }
 #theme svg { width: 16px; height: 16px; fill: currentColor; }
-.site { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+@media (max-width: 639px) {
+  .bar { gap: 0 12px; }
+  .bar .home { order: 1; }
+  #theme { order: 2; }
+  .bar nav { order: 3; flex: 1 0 100%; gap: 16px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+}
+/* Map pages: constituency and its other elections */
+.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.ctx nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.ctx nav a { color: var(--ink-2); text-underline-offset: 4px; }
+.ctx nav a[aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
+/* Colophon */
+.site { margin-top: 64px; padding: 24px 0 32px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+.site .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.site h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
 .site p { margin: 0 0 4px; }
+.site ul { margin: 0; padding: 0; list-style: none; }
 .site a { color: inherit; text-underline-offset: 3px; }
-.site a + a { margin-left: 16px; }
+.site .built { display: flex; align-items: center; justify-content: space-between; margin: 24px 0 0; }
+.site .built .mark { width: 16px; height: 16px; }
+.site.compact { margin: 0; padding: 6px 16px 8px; }
+.site.compact .cols { display: flex; flex-wrap: wrap; gap: 0 20px; }
+.site.compact h3, .site.compact .built { display: none; }
+.site.compact ul { display: flex; flex-wrap: wrap; gap: 0 12px; }
+@media (max-width: 639px) { .site .cols { grid-template-columns: 1fr; gap: 16px; } .site.compact .cols { display: flex; gap: 0 12px; } }
 html, body { overflow-x: clip; }
 h1, h2 { text-wrap: balance; }
 #theme, .site .copy { transition: transform 100ms ease-out; }
 #theme:active { transform: scale(.97); }
-.site .copy { margin-left: 16px; padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.site .copy { padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .site .copy:active { transform: scale(.97); }
 .copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
 @media (prefers-reduced-motion: reduce) { #theme, .site .copy { transition: none; } #theme:active, .site .copy:active { transform: none; } }
@@ -84,12 +117,12 @@ h1, h2 { text-wrap: balance; }
 }
 @media (pointer: coarse) {
   .site .copy { min-height: 44px; }
-  #theme { min-height: 44px; }
+  #theme { width: 44px; height: 44px; }
   .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
   select, input[type=search] { min-height: 44px; }
-  .bar .home, .site a { display: inline-flex; align-items: center; min-height: 44px; }
+  .bar .home, .bar nav a, .site a, .ctx nav a { display: inline-flex; align-items: center; min-height: 44px; }
 }
-@media print { .bar, .site { display: none !important; } }
+@media print { .bar, .site, .skip, .ctx { display: none !important; } }
 
 h2 { font-size: 16px; margin: 0 0 8px; }
 a { color: var(--link); }
@@ -214,7 +247,7 @@ button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
 </head>
 <body>
 <main>
-<header class="bar"><a class="home" href="index.html">Χάρτες σταυρών</a><button id="theme" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg>Σκούρο θέμα</button></header>
+<a class="skip" href="#map">Μετάβαση σττον χάρτη</a><header class="bar"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες σταυρών</a><nav aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="index.html#party">Ανά κόμμα</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header><div class="ctx"><b>Έβρου</b><nav aria-label="Εκλογές αυτής της περιφέρειας"><a href="2024-euro_1.html">Ευρωεκλογές 2024</a><a href="2023-june_1.html">Ιούνιος 2023</a><a href="2023-may_1.html" aria-current="page">Μάιος 2023</a><a href="2019_1.html">2019</a></nav></div>
   <h1 id="title"></h1>
   <p class="sub" id="sub"></p>
   <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
@@ -240,7 +273,7 @@ button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
   <h2>Ανά περιοχή</h2>
   <div class="tablewrap"><table id="tbl"></table></div>
   <p class="note" id="note"></p>
-<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>
+<footer class="site"><div class="cols"><div><h3>Πηγές</h3><ul><li>Αποτελέσματα: <a href="https://ekloges.ypes.gr/" rel="noopener">Υπουργείο Εσωτερικών</a></li><li>Όρια: <a href="https://www.statistics.gr/" rel="noopener">ΕΛΣΤΑΤ 2021</a></li><li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li></ul></div><div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div><div><h3>Χάρτες</h3><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li><li><a href="index.html#party">Ανά κόμμα</a></li><li><a href="nikh_2023-2024.html">ΝΙΚΗ 2023–2024</a></li><li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div></div><p class="built">Ενημέρωση: 20 Νοεμβρίου 2026<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg></p></footer>
 </main>
 <script>// Pure helpers used by more than one page; inlined into pages by web.fill(). No DOM access at load time.
 // Search: accents and case folded, Greeklish read as Greek, case endings stripped.
