@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xdCxMT9F97GqIN7HI2p8TlD2pgbk9ERvKlInt7rJlTc=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-4yL8/vMrmur/a1XjD0+v9oNi4hj/7hku1pY66HZ8Iyo=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-7lcLVZlDOJ6gAs+6vxiSyF/hdpOB6CCM8R2JjxmpqPI=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mx2HoAB81mudFHEc0tDoRV65epDYF4hXIETBgnQpF3E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-4yL8/vMrmur/a1XjD0+v9oNi4hj/7hku1pY66HZ8Iyo=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-7auszAkKqQcm9k5U+/O3sr1oSbhEotV0ED/2n+G96ms=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
@@ -27,11 +27,10 @@
     sys.addEventListener("change", sync);
     b.onclick = () => {
       state = next(state, sys.matches);
-      show();
+      const go = () => { show(); sync(); dispatchEvent(new Event("themechange")); };
+      if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) document.startViewTransition(go); else go();
       try { state === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", state); } catch {}
-      sync();
-      dispatchEvent(new Event("themechange"));  // map pages redraw: their colours are read from CSS variables
-    };
+    };  // themechange: map pages redraw, their colours are read from CSS variables
   });
 })();
 </script>
@@ -69,11 +68,20 @@ h1 { font: 400 28px/1.15 "GFS Didot", Georgia, serif; margin: 0 0 4px; }
 .site a + a { margin-left: 16px; }
 html, body { overflow-x: clip; }
 h1, h2 { text-wrap: balance; }
+#theme, .site .copy { transition: transform 100ms ease-out; }
 #theme:active { transform: scale(.97); }
 .site .copy { margin-left: 16px; padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .site .copy:active { transform: scale(.97); }
 .copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
-@media (prefers-reduced-motion: reduce) { #theme:active, .site .copy:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { #theme, .site .copy { transition: none; } #theme:active, .site .copy:active { transform: none; } }
+/* theme switch: short cross-fade instead of a brightness jump (View Transitions, where supported) */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none; } }
+/* higher contrast on request: darker lines and secondary ink, solid borders on swatches */
+@media (prefers-contrast: more) {
+  :root:root:root { --line: color-mix(in srgb, var(--ink) 60%, var(--paper)); --ink-2: color-mix(in srgb, var(--ink) 88%, var(--paper)); }
+  .legend i { border: 1px solid var(--ink); }
+}
 @media (pointer: coarse) {
   .site .copy { min-height: 44px; }
   #theme { min-height: 44px; }
@@ -181,8 +189,9 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
   th.n button { justify-content: flex-end; }
   .rowlink { display: inline-flex; align-items: center; min-height: 44px; }
 }
+button, .rowlink { transition: transform 100ms ease-out; }
 button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
-@media (prefers-reduced-motion: reduce) { .hint { transition: none; } button:active:not(:disabled), .rowlink:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } button, .rowlink { transition: none; } button:active:not(:disabled), .rowlink:active { transform: none; } }
 /* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
 @page { size: A4; margin: 12mm; }
 @media print {
@@ -213,7 +222,7 @@ button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
     <label for="party">Κόμμα</label>
     <select id="party"></select>
     <label for="q">Υποψήφιος</label>
-    <input id="q" type="search" placeholder="Αναζήτηση υποψηφίου" autocomplete="off">
+    <input id="q" type="search" placeholder="Αναζήτηση υποψηφίου" autocomplete="off" enterkeyhint="search" spellcheck="false">
     <select id="cand" aria-label="Επιλογή υποψηφίου"></select>
     <div class="seg" role="group" aria-label="Μέτρο">
       <button type="button" data-m="share" aria-pressed="true">% ψήφων κόμματος</button>

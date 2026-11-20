@@ -106,8 +106,9 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
   th.n button { justify-content: flex-end; }
   .rowlink { display: inline-flex; align-items: center; min-height: 44px; }
 }
+button, .rowlink { transition: transform 100ms ease-out; }
 button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
-@media (prefers-reduced-motion: reduce) { .hint { transition: none; } button:active:not(:disabled), .rowlink:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } button, .rowlink { transition: none; } button:active:not(:disabled), .rowlink:active { transform: none; } }
 /* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
 @page { size: A4; margin: 12mm; }
 @media print {
