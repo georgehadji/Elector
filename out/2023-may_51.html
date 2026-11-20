@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mx2HoAB81mudFHEc0tDoRV65epDYF4hXIETBgnQpF3E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-e2sYbEdnpbV0qK/r3wRKB66Xj+BpxQEr9StejHATHTE=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-7auszAkKqQcm9k5U+/O3sr1oSbhEotV0ED/2n+G96ms=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-e2sYbEdnpbV0qK/r3wRKB66Xj+BpxQEr9StejHATHTE=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-7auszAkKqQcm9k5U+/O3sr1oSbhEotV0ED/2n+G96ms=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
@@ -28,7 +28,7 @@
     b.onclick = () => {
       state = next(state, sys.matches);
       const go = () => { show(); sync(); dispatchEvent(new Event("themechange")); };
-      if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) document.startViewTransition(go); else go();
+      if (document.startViewTransition && !document.hidden && !matchMedia("(prefers-reduced-motion: reduce)").matches) { const vt = document.startViewTransition(go); vt.ready.catch(() => {}); vt.finished.catch(() => {}); } else go();
       try { state === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", state); } catch {}
     };  // themechange: map pages redraw, their colours are read from CSS variables
   });
@@ -240,7 +240,7 @@ button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
   <h2>Ανά περιοχή</h2>
   <div class="tablewrap"><table id="tbl"></table></div>
   <p class="note" id="note"></p>
-<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><a href="https://github.com/georgehadji/Elector" rel="noopener">Κώδικας και δεδομένα στο GitHub</a><button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>
+<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p><a href="index.html">Όλοι οι χάρτες</a><button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>
 </main>
 <script>// Pure helpers used by more than one page; inlined into pages by web.fill(). No DOM access at load time.
 // Search: accents and case folded, Greeklish read as Greek, case endings stripped.

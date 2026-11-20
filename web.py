@@ -41,8 +41,7 @@ def footer(note="", home=True):
     return ('<footer class="site"><p>Ανεπίσημα αποτελέσματα του Υπουργείου Εσωτερικών, ενωμένα με τα όρια κοινοτήτων της ΕΛΣΤΑΤ 2021.'
             f'{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p><p>'
             + ('<a href="index.html">Όλοι οι χάρτες</a>' if home else "")
-            + '<a href="https://github.com/georgehadji/Elector" rel="noopener">Κώδικας και δεδομένα στο GitHub</a>'
-            '<button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>')
+            + '<button type="button" class="copy">Αντιγραφή συνδέσμου</button></p></footer>')
 
 
 def theme_css(light, dark, print_=None):
