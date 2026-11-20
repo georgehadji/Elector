@@ -210,17 +210,27 @@ h1 .x path+path{animation-delay:.3s}
 #f::placeholder{color:var(--ink-2)}
 #f:focus-visible{outline:none;border-bottom-color:var(--pen)}
 #n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:.875rem}
-.eps{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));column-gap:36px}
-.eps li{border-top:1px solid var(--line);padding:14px 0 16px}
-.eps h4{font:400 1.4375rem/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
-.top{display:flex;gap:8px;align-items:baseline;margin:0 0 10px;font-size:.875rem;color:var(--ink-2);line-height:1.4}
-.top .x{width:14px;height:14px;flex:none;align-self:center}
+/* Ledger: one row per constituency; the columns are shared by every row (subgrid) and by the .lh caption */
+.lh,.eps{display:grid;grid-template-columns:44px minmax(0,1.3fr) minmax(0,1.1fr) 5.5rem;column-gap:20px}
+.lh{margin:20px 0 0;padding-bottom:6px;font-size:.8125rem;color:var(--ink-2)}
+.lh :nth-child(1){grid-column:2}.lh :nth-child(2){grid-column:3}.lh :nth-child(3){grid-column:4;text-align:right}
+.eps{list-style:none;margin:0;padding:0}
+.eps li{grid-column:1/-1;display:grid;grid-template-columns:subgrid;align-items:center;position:relative;border-top:1px solid var(--line);padding:12px 0;overflow-wrap:anywhere}
+.eps li:hover{background:var(--wash)}
+.eps h4{grid-column:2;grid-row:1;font:400 1.4375rem/1.2 "GFS Didot",Georgia,serif;margin:0}
+.eps h4 a{color:var(--ink);text-decoration:none}
+.eps h4 a:hover{text-decoration:underline;text-underline-offset:4px}
+.eps h4 a::after{content:"";position:absolute;inset:0}  /* the whole row opens the map */
+.top{display:contents;font-size:.875rem;color:var(--ink-2);line-height:1.4}
+.who{grid-column:3;grid-row:1;font-size:.875rem;color:var(--ink-2);line-height:1.4}
+.vt{grid-column:4;grid-row:1;font-size:.875rem;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
 .top b{color:var(--ink);font-weight:600}
 .country a:active,.eps li a:active,.older summary:active,.fold summary:active{background:var(--wash)}
 .older[open]>:not(summary),.fold[open]>:not(summary){animation:fade .15s ease-out}
 @keyframes fade{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.older[open]>:not(summary),.fold[open]>:not(summary){animation:none}}
-.acts{display:flex;flex-wrap:wrap;align-items:center;gap:0 14px}
+.acts{grid-column:2/-1;grid-row:3;position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:0 14px;margin-top:6px}  /* every election, until the switcher takes over */
+body.pick .acts{display:none}
 .older summary,.fold summary{display:flex;align-items:center;min-height:32px;cursor:pointer;color:var(--ink-2);font-size:.875rem}
 .older[open]{flex:1 1 100%}
 .older[open] summary{margin-bottom:4px}
@@ -232,14 +242,10 @@ h1 .x path+path{animation-delay:.3s}
 .el a.now{padding:0 12px;border:1px solid var(--pen);border-radius:16px;color:var(--pen);background:var(--wash);
           text-decoration:none;font-weight:600}
 .el a.now:hover{background:var(--pen);color:var(--paper)}
-.sil{position:absolute;right:0;top:12px;width:48px;height:48px;color:var(--ink-2)}
+.sil{grid-column:1;grid-row:1;width:44px;height:44px;color:var(--ink-2)}
 .sil path{fill:currentColor;fill-opacity:.22;stroke:currentColor;stroke-width:1;stroke-linejoin:round}
-.eps li{position:relative;container-type:inline-size;overflow-wrap:anywhere}
-@container (width < 280px){.sil{display:none}.eps li>h4,.eps li>.top{margin-right:0}}
-.eps li>h4,.eps li>.top{margin-right:60px}
-.reg{font:600 .8125rem/1.2 "Fira Sans",system-ui,sans-serif;letter-spacing:0;color:var(--ink-2);margin:28px 0 0}
+.reg{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0}  /* the selected tab names the region; this stays as the heading and the scroll target */
 .grp:not(:has(li:not([hidden]))){display:none}  /* a region head goes with its cards */
-.eps{margin-top:6px}
 .key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
 .key .x{width:14px;height:14px;flex:none}
 .gr{margin:20px 0 0;max-width:380px}
@@ -251,11 +257,19 @@ h1 .x path+path{animation-delay:.3s}
 .gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
 @media (min-width:900px){main{position:relative}.gr{position:absolute;right:24px;top:56px;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.cover{max-width:calc(100% - 380px)}}
 .dhm{margin:0 0 8px;color:var(--ink-2);font-size:.8125rem;line-height:1.45}
+.eps .dhm{grid-column:2/-1;grid-row:2;margin:4px 0 0;position:relative}
+.sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
+.sw[hidden]{display:none}
+.sw .swl{margin-right:6px}
+.sw button{font:inherit;color:var(--ink-2);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
+.sw button:hover{color:var(--pen)}
+.sw button:active{background:var(--wash)}
+.sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
 .cover{margin:14px 0 0;font-size:.875rem;color:var(--ink-2)}
 .country,#regions{margin-top:96px}
 .country h2,#regions>h2{font:400 1.75rem/1.2 "GFS Didot",Georgia,serif;margin:0 0 16px}
-.cg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 36px}
-.cg>div{border-top:2px solid var(--ink);padding-top:12px}
+.cg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 36px}  /* title, text and link rows line up across the four entries */
+.cg>div{display:grid;grid-template-rows:subgrid;grid-row:span 3;border-top:2px solid var(--ink);padding:12px 0 28px}
 .cg h3{font:400 1.25rem/1.25 "GFS Didot",Georgia,serif;margin:0 0 6px}
 .cg h3 a{color:var(--ink);text-underline-offset:4px}
 .cg p{color:var(--ink-2);margin:0 0 8px;font-size:.9375rem}
@@ -274,8 +288,20 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 @media (max-width:1023px){.cg{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:639px){.cg{grid-template-columns:1fr}.country,#regions{margin-top:64px}}
-@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h4{margin:0 0 2px}.top{margin:0 0 4px;font-size:.8125rem;line-height:1.3}.lede{font-size:1rem}#f{font-size:1.0625rem}}
-@media (pointer:coarse){.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
+@media (max-width:759px){
+  .lh{display:none}
+  .eps{grid-template-columns:44px minmax(0,1fr);column-gap:14px}
+  .eps li{padding:10px 0}
+  .sil{grid-row:1/3;align-self:start}
+  .eps h4{grid-row:1}
+  .top{display:block;grid-column:2;grid-row:2;margin:2px 0 0}
+  .who,.vt{display:inline;font-size:.8125rem}
+  .vt::before{content:" · "}
+  .eps .dhm{grid-row:3}
+  .acts{grid-row:4}
+}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem}#f{font-size:1.0625rem}}
+@media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
 document.getElementById("s").hidden = false;
@@ -293,6 +319,16 @@ f.addEventListener("input", () => {
   n.textContent = !qs.length ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του δήμου ή του νομού.`
     : shown === 1 ? "1 περιφέρεια. Enter για τον πιο πρόσφατο χάρτη." : `${shown} περιφέρειες`;
 });
+// Election switcher: every row's name opens the chosen election. Without script each row lists all its elections.
+const sw = document.querySelector(".sw");
+const open = e => {
+  sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.e === e));
+  for (const li of items) li.querySelector("h4 a").href = (li.querySelector(`.el a[data-e="${e}"]`) || li.querySelector(".el a")).href;
+};
+sw.addEventListener("click", ev => { const b = ev.target.closest("button"); if (b) open(b.dataset.e); });
+sw.hidden = false;
+document.body.classList.add("pick");
+open(sw.querySelector("button").dataset.e);
 // Region tabs: the jump row shows one region at a time. Without script every region stays listed.
 const groups = [...document.querySelectorAll(".grp")], tabs = [...document.querySelectorAll(".jump a")];
 const pick = g => {
@@ -312,19 +348,20 @@ document.querySelector(".jump").addEventListener("click", e => {
 });
 f.addEventListener("keydown", e => {
   const shown = items.filter(li => !li.hidden).sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
-  if (e.key === "Enter" && f.value.trim() && (shown.length === 1 || +shown[1].style.order > +shown[0].style.order)) location.href = shown[0].querySelector("a.now").href;
+  if (e.key === "Enter" && f.value.trim() && (shown.length === 1 || +shown[1].style.order > +shown[0].style.order)) location.href = shown[0].querySelector("h4 a").href;
 });
 """
 
 
-def card(ep, name, keys, n_own, lead, note, chips, sil=""):
-    """One constituency: the newest election is the default link, the older ones fold into a <details>.
-    `chips` are link markup, newest first; `note` is the optional list of municipalities."""
+def card(ep, name, keys, n_own, lead, note, chips, href, sil=""):
+    """One ledger row. The name opens the newest election (the switcher retargets it); `chips` are the
+    election links, newest first: without script they show in the row, the older ones folded into a <details>.
+    `note` is the optional list of municipalities."""
     now, *older = chips
     folded = (f'<details class="older"><summary>Παλαιότερες εκλογές ({len(older)})</summary>'
-              f'<p class="el">{"".join(older)}</p>{note}</details>') if older else note
-    return (f'<li id="ep-{ep}" data-k="{html.escape(keys)}" data-n="{n_own}"><h4>{html.escape(name)}</h4>'
-            f'{sil}{lead}<div class="acts"><p class="el">{now}</p>{folded}</div></li>')
+              f'<p class="el">{"".join(older)}</p></details>') if older else ""
+    return (f'<li id="ep-{ep}" data-k="{html.escape(keys)}" data-n="{n_own}"><h4><a href="{href}">{html.escape(name)}</a></h4>'
+            f'{sil}{lead}{note}<div class="acts"><p class="el">{now}</p>{folded}</div></li>')
 
 def _write_index(order, nikh, elected):
     """out/index.html: a searchable list of constituencies, each with one link per election."""
@@ -360,7 +397,7 @@ def _write_index(order, nikh, elected):
         latest = links[-1][1]
         # The newest election is the default map; the others are quieter. The name in each link is for screen readers.
         chips = [
-            f'<a{" class=now" if i == 0 else ""} href="{urllib.parse.quote(f)}">'
+            f'<a{" class=now" if i == 0 else ""} data-e="{m["election"]}" href="{urllib.parse.quote(f)}">'
             f'{ELECTION_NAMES.get(m["election"], m["election"])}<span class="sr">, {html.escape(name)}</span></a>'
             for i, (f, m) in enumerate(reversed(links))]
         towns = list(dhm[latest["election"], latest["ep"]])
@@ -373,10 +410,10 @@ def _write_index(order, nikh, elected):
                 if re.search(r"Αθηνών|Πειραιώς|Αττικής", name) and len(towns) > 1 else "")
         t = top.get(name)
         # The cross marks the candidate with the most crosses: the one mark on the page that carries data.
-        lead = (f'<p class="top">{CROSS_SVG}<span><span class="sr">{TOP_KEY}: </span><b>{html.escape(t[0])}</b> '
-                f'({html.escape(t[1])}), {f"{t[2]:,}".replace(",", ".")}</span></p>' if t else "")
+        lead = (f'<p class="top"><span class="sr">{TOP_KEY}: </span><span class="who"><b>{html.escape(t[0])}</b> '
+                f'({html.escape(t[1])})</span> <span class="vt">{f"{t[2]:,}".replace(",", ".")}</span></p>' if t else "")
         by_region.setdefault(region_of.get(latest["ep"], "Λοιπές"), []).append(
-            card(latest["ep"], name, k, len(own), lead, note, chips, latest.get("sil", "")))
+            card(latest["ep"], name, k, len(own), lead, note, chips, urllib.parse.quote(links[-1][0]), latest.get("sil", "")))
     nikh_rows = "".join(
         f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>'
         f'{ELECTION_NAMES.get(m["election"], m["election"])}'
@@ -384,9 +421,10 @@ def _write_index(order, nikh, elected):
         for f, m in nikh)
     nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
                          for f, m in tm if "_tm_131-" not in f)
-    groups = "".join(f'<section class="grp"><h3 class="reg" id="reg-{i}">{html.escape(region)}</h3><ul class="eps">{"".join(lis)}</ul></section>'
+    groups = "".join(f'<section class="grp"><h3 class="reg" id="reg-{i}">{html.escape(region)}</h3><div class="lh" aria-hidden="true"><span>Περιφέρεια</span><span>{TOP_KEY}</span><span>Σταυροί</span></div><ul class="eps">{"".join(lis)}</ul></section>'
                      for i, (region, lis) in enumerate(by_region.items()) if lis)
     jump = "".join(f'<a href="#reg-{i}">{html.escape(region)}</a>' for i, (region, lis) in enumerate(by_region.items()) if lis)
+    switch = "".join(f'<button type="button" data-e="{e}" aria-pressed="false">{n}</button>' for e, n in reversed(ELECTION_NAMES.items()))
     gr = HERE / "out" / "greece_map.html"
     greece = gr.read_text(encoding="utf-8") if gr.exists() else ""  # written by compare.py
     nikh_n = nikh_rows.count("<li>")
@@ -428,7 +466,7 @@ def _write_index(order, nikh, elected):
 <div id="cov"><h3>Κάλυψη ανά νομό</h3><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><details class="fold"><summary>Ανά εκλογή</summary><ul>{coverage}</ul></details></div>
 </div></section>
 <section id="regions" aria-labelledby="rt"><h2 id="rt">Εκλογικές περιφέρειες</h2>
-<p class="key">{CROSS_SVG}<span>{TOP_KEY}</span></p>
+<div class="sw" role="group" aria-label="Άνοιγμα στην εκλογή" hidden><span class="swl">Άνοιγμα στην εκλογή</span>{switch}</div>
 <nav class="jump" aria-label="Περιφέρειες">{jump}</nav>
 {groups}
 </section>
