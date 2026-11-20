@@ -210,13 +210,11 @@ h1 .x path+path{animation-delay:.3s}
 #n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:14px}
 .eps{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));column-gap:36px}
 .eps li{border-top:1px solid var(--line);padding:14px 0 16px}
-.eps h2{font:400 23px/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
+.eps h4{font:400 23px/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
 .top{display:flex;gap:8px;align-items:baseline;margin:0 0 10px;font-size:14px;color:var(--ink-2);line-height:1.4}
 .top .x{width:14px;height:14px;flex:none;align-self:center}
 .top b{color:var(--ink);font-weight:600}
-.nation{display:flex;flex-wrap:wrap;gap:4px 20px;margin:6px 0 0;font-size:14px}
-.nation a{color:var(--ink-2);text-underline-offset:3px}
-.nation a:active,.eps li a:active,.older summary:active,.fold summary:active{background:var(--wash)}
+.country a:active,.eps li a:active,.older summary:active,.fold summary:active{background:var(--wash)}
 .older[open]>:not(summary),.fold[open]>:not(summary){animation:fade .15s ease-out}
 @keyframes fade{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.older[open]>:not(summary),.fold[open]>:not(summary){animation:none}}
@@ -235,7 +233,7 @@ h1 .x path+path{animation-delay:.3s}
 .sil{position:absolute;right:0;top:12px;width:48px;height:48px;color:var(--ink-2)}
 .sil path{fill:currentColor;fill-opacity:.22;stroke:currentColor;stroke-width:1;stroke-linejoin:round}
 .eps li{position:relative}
-.eps li>h2,.eps li>.top{margin-right:60px}
+.eps li>h4,.eps li>.top{margin-right:60px}
 .reg{font:600 13px/1.2 "Fira Sans",system-ui,sans-serif;letter-spacing:0;color:var(--ink-2);margin:28px 0 0}
 .grp[hidden]{display:none}
 .eps{margin-top:6px}
@@ -248,18 +246,30 @@ h1 .x path+path{animation-delay:.3s}
 .gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
 .gr .k{display:inline-flex;align-items:center;white-space:nowrap}
 .gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
-@media (min-width:900px){main{position:relative}.gr{position:absolute;right:24px;top:56px;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.nation,.key{max-width:calc(100% - 380px)}}
+@media (min-width:900px){main{position:relative}.gr{position:absolute;right:24px;top:56px;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.cover{max-width:calc(100% - 380px)}}
 .dhm{margin:0 0 8px;color:var(--ink-2);font-size:13px;line-height:1.45}
-.more{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 36px}
-.more section{border-top:2px solid var(--ink);padding-top:12px}
-.more h2{font:400 24px/1.2 "GFS Didot",Georgia,serif;margin:0 0 6px}
-.more p{color:var(--ink-2);margin:0 0 10px;font-size:15px}
-.more ul{margin:0;padding:0;list-style:none}
-.more li{padding:3px 0}
-.more li span{color:var(--ink-2);font-size:14px}
-
-@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h2{margin:0 0 2px}.top{margin:0 0 4px;font-size:13px;line-height:1.3}.lede{font-size:16px}#f{font-size:17px}}
-@media (pointer:coarse){.nation a{display:inline-flex;align-items:center;min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.more li a{display:inline-block;padding:10px 0}}
+.cover{margin:14px 0 0;font-size:14px;color:var(--ink-2)}
+.country,#regions{margin-top:96px}
+.country h2,#regions>h2{font:400 28px/1.2 "GFS Didot",Georgia,serif;margin:0 0 16px}
+.cg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 36px}
+.cg>div{border-top:2px solid var(--ink);padding-top:12px}
+.cg h3{font:400 20px/1.25 "GFS Didot",Georgia,serif;margin:0 0 6px}
+.cg h3 a{color:var(--ink);text-underline-offset:4px}
+.cg p{color:var(--ink-2);margin:0 0 8px;font-size:15px}
+.cg ul{margin:0;padding:0;list-style:none}
+.cg li{padding:3px 0}
+.jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;overflow-x:auto;white-space:nowrap;
+      scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:14px}
+.jump a{color:var(--ink-2);text-decoration:none}
+.jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.reg{scroll-margin-top:64px}
+.searching .country,.searching .jump{display:none}
+.searching #regions{margin-top:40px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+@media (max-width:1023px){.cg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:639px){.cg{grid-template-columns:1fr}.country,#regions{margin-top:64px}}
+@media (max-width:599px){main{padding:24px 16px 48px}.eps li{padding:8px 0 6px}.eps h4{margin:0 0 2px}.top{margin:0 0 4px;font-size:13px;line-height:1.3}.lede{font-size:16px}#f{font-size:17px}}
+@media (pointer:coarse){.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
 document.getElementById("s").hidden = false;
@@ -268,6 +278,7 @@ const words = new Map(items.map(li => [li, li.dataset.k.split(" ").map(w => [w, 
 const own = li => words.get(li).slice(0, +li.dataset.n);  // the constituency's own name, ahead of its towns
 f.addEventListener("input", () => {
   const qs = queryWords(f.value);
+  document.body.classList.toggle("searching", qs.length > 0);  // results start right under the search
   let shown = 0;
   for (const li of items) {
     const hit = qs.every(q => hits(words.get(li), q)); li.hidden = !hit; shown += hit;
@@ -291,14 +302,8 @@ def card(ep, name, keys, n_own, lead, note, chips, sil=""):
     now, *older = chips
     folded = (f'<details class="older"><summary>Παλαιότερες εκλογές ({len(older)})</summary>'
               f'<p class="el">{"".join(older)}</p>{note}</details>') if older else note
-    return (f'<li id="ep-{ep}" data-k="{html.escape(keys)}" data-n="{n_own}"><h2>{html.escape(name)}</h2>'
+    return (f'<li id="ep-{ep}" data-k="{html.escape(keys)}" data-n="{n_own}"><h4>{html.escape(name)}</h4>'
             f'{sil}{lead}<div class="acts"><p class="el">{now}</p>{folded}</div></li>')
-
-def nationwide():
-    """Pages that cover the whole country, ahead of the constituency list."""
-    links = (("#tm", "Ανά εκλογικό κατάστημα"), ("#cov", "Κάλυψη ανά νομό"))
-    return ('<nav class="nation" aria-label="Χάρτες όλης της χώρας">' + "".join(f'<a href="{h}">{t}</a>' for h, t in links) + '</nav>')
-
 
 def _write_index(order, nikh, elected):
     """out/index.html: a searchable list of constituencies, each with one link per election."""
@@ -358,8 +363,9 @@ def _write_index(order, nikh, elected):
         for f, m in nikh)
     nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
                          for f, m in tm if "_tm_131-" not in f)
-    groups = "".join(f'<section class="grp"><h2 class="reg">{html.escape(region)}</h2><ul class="eps">{"".join(lis)}</ul></section>'
-                     for region, lis in by_region.items() if lis)
+    groups = "".join(f'<section class="grp"><h3 class="reg" id="reg-{i}">{html.escape(region)}</h3><ul class="eps">{"".join(lis)}</ul></section>'
+                     for i, (region, lis) in enumerate(by_region.items()) if lis)
+    jump = "".join(f'<a href="#reg-{i}">{html.escape(region)}</a>' for i, (region, lis) in enumerate(by_region.items()) if lis)
     gr = HERE / "out" / "greece_map.html"
     greece = gr.read_text(encoding="utf-8") if gr.exists() else ""  # written by compare.py
     nikh_n = nikh_rows.count("<li>")
@@ -367,6 +373,13 @@ def _write_index(order, nikh, elected):
         f'<li><a href="index_{e.replace("/", "-")}.html">{name}</a></li>' for e, name in reversed(ELECTION_NAMES.items())
         if (OUT / f'index_{e.replace("/", "-")}.html').exists())
     artifacts = "".join(f'<li><a href="{u}" rel="noopener">{html.escape(n)}</a></li>' for n, u in PARTY_ARTIFACTS)
+    last = list(ELECTIONS)[-1]
+    n_tm = None
+    if DB.exists():
+        with sqlite3.connect(DB) as con:
+            n_tm = con.execute("SELECT COUNT(*) FROM station WHERE election=? AND kind='Κ'", (last,)).fetchone()[0]
+    cover = (f"{len(eps)} εκλογικές περιφέρειες, {len(ELECTIONS)} αναμετρήσεις από το {list(ELECTIONS)[0][:4]} έως το {last[:4]}"
+             + (f", {n_tm:,} εκλογικά τμήματα στις {ELECTION_NAMES[last]}".replace(",", ".") if n_tm else ""))
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
@@ -381,18 +394,23 @@ def _write_index(order, nikh, elected):
 <div id="s" hidden><label class="sr" for="f">Αναζήτηση περιφέρειας</label>
 <input id="f" type="search" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
 <p id="n" aria-live="polite"></p></div>
-{nationwide()}
+<p class="cover">{cover}</p>
 {greece}
-<p class="key">{CROSS_SVG}<span>{TOP_KEY}</span></p>
 </header>
+<section class="country" aria-labelledby="ct"><h2 id="ct">Όλη η χώρα</h2><div class="cg">
+<div><h3><a href="compare.html">Σύγκριση εκλογών</a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p></div>
+<div id="party"><h3>Χάρτες ανά κόμμα</h3><p>Ένας χάρτης για κάθε κόμμα.</p><details class="fold"><summary>Όλα τα κόμματα ({len(PARTY_ARTIFACTS)})</summary><ul>{artifacts}</ul></details></div>
+<div id="tm"><h3>Ανά εκλογικό κατάστημα</h3><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.</p>
+<details class="fold"><summary>Αναφορές και χάρτες ({nikh_n + 3})</summary><ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
+<li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></li>
+<li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>{nikh_rows}</ul></details></div>
+<div id="cov"><h3>Κάλυψη ανά νομό</h3><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><details class="fold"><summary>Ανά εκλογή</summary><ul>{coverage}</ul></details></div>
+</div></section>
+<section id="regions" aria-labelledby="rt"><h2 id="rt">Εκλογικές περιφέρειες</h2>
+<p class="key">{CROSS_SVG}<span>{TOP_KEY}</span></p>
+<nav class="jump" aria-label="Περιφέρειες">{jump}</nav>
 {groups}
-<div class="more">
-<section id="cov"><h2>Κάλυψη ανά νομό</h2><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><ul>{coverage}</ul></section>
-<section id="tm"><h2>Ανά εκλογικό κατάστημα</h2><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.
-<a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a>, <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a>,
-<a href="nikh_2023-2024.html">χάρτης όλης της χώρας: ποσοστά και μεταβολές 2019–2024</a>.</p><details class="fold"><summary>Όλοι οι χάρτες ({nikh_n})</summary><ul>{nikh_rows}</ul></details></section>
-<section id="party"><h2>Χάρτες ανά κόμμα</h2><details class="fold"><summary>Όλα τα κόμματα ({len(PARTY_ARTIFACTS)})</summary><ul>{artifacts}</ul></details></section>
-</div>
+</section>
 {footer(" Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.", home=False)}
 </main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK, current="index")), encoding="utf-8")
 
