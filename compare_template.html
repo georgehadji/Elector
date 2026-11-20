@@ -60,6 +60,7 @@ select{font:inherit;font-size:.875rem;color:var(--ink);background:var(--field);b
 .t .m{color:var(--ink-2)}
 .t td{padding:0 4px}
 @media (max-width:600px){
+  #map{min-height:360px;min-height:max(360px,55svh)}  /* the map keeps over half the screen; the rest scrolls below it */
   h1{font-size:.9375rem}
   .sub{font-size:.75rem}
   .ctl label{flex:1 1 0;min-width:0}  /* Κόμμα and Προβολή share a row; their text stays for screen readers */
