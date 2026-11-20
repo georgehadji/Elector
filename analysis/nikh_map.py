@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 from build import communities  # noqa: E402
 from config import ELECTION_NAMES, HERE, OUT, slug  # noqa: E402
-from web import INDEX_DARK, INDEX_LIGHT, fill  # noqa: E402
+from web import INDEX_DARK, INDEX_LIGHT, fill, secure  # noqa: E402
 
 NIKH = 131
 # NIKH first ran in 2023; 2019 appears only through BLOCS.
@@ -55,6 +55,6 @@ template = fill((HERE / "analysis" / "nikh_map_template.html").read_text(encodin
                 INDEX_DARK | {"panel": "#1d2430ee", "on": "#e8edf5", "on-ink": "#171c24"},
                 skip="#map", compact=True)
 out = OUT / "nikh_2023-2024.html"
-out.write_text(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))),
+out.write_text(secure(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":")))),
                encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB, {len(features)} areas)")
