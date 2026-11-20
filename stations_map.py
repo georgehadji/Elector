@@ -14,18 +14,20 @@ station's ELSTAT municipal unit.
 import csv
 import json
 import re
+import sqlite3
 import sys
 import time
 import urllib.parse
 import urllib.request
-import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
 import xlrd
 
 sys.path.insert(0, str(Path(__file__).parent))  # run with python -I, which drops the script dir
-from build import DB, HERE, ep_label, match_units, norm, register, render_page, stems
+from config import DB, HERE, OUT, slug
+from matching import ep_label, match_units, norm, stems
+from web import entry, links, record, render_page, write_index
 
 CACHE = HERE / "data" / "venues_geo.json"
 UA = "stavroi-map/0.1 (polling venue geocoding; low volume)"
@@ -237,10 +239,11 @@ def main(election, ep, party, cand, xls, dhm=None):
             "labels": labels,
             "venues": [{"venue": k, **v} for k, v in venues.items() if "lat" in v],
             "missing": [{"venue": k, **venues[k]} for k in missing]}
-    out = HERE / "out" / f"{election.replace('/', '-')}_{ep}_tm_{party}-{cand}{'_' + dhm if dhm else ''}.html"
-    data["links"] = register(out.name, election, ep, ep_name,
-                             f"Ανά τμήμα · {labels['title']}" + (f" · Δήμος {dhm}" if dhm else ""))
+    out = OUT / f"{slug(election)}_{ep}_tm_{party}-{cand}{'_' + dhm if dhm else ''}.html"
+    data["links"] = links(out.name, election, ep)
     out.write_text(render_page("stations_template.html", data), encoding="utf-8")
+    record({out.name: entry(election, ep, ep_name, f"Ανά τμήμα · {labels['title']}" + (f" · Δήμος {dhm}" if dhm else ""))})
+    write_index()
     on_map = sum(s[3] for v in data["venues"] for s in v["st"])
     print(f"venues {len(venues)}, located {len(located)}, missing {len(missing)}; "
           f"votes on map {on_map} of {sum(r[6] for r in rows)}\nwrote {out}")

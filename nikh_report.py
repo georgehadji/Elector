@@ -14,16 +14,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))  # python -I drops the script dir
 import xlrd
-from build import fill, norm
-from stations_map import XLS_EP, venue_parts
 
-HERE = Path(__file__).parent
-DB = HERE / "data" / "stavroi.sqlite"
+from config import DB, ELECTED, HERE
+from matching import norm
+from stations_map import XLS_EP, venue_parts
+from web import fill
+
 NIKH = 131
 MAY, JUN = "2023/may", "2023/june"
-# Elected 25 June 2023 (iefimerida.gr, 97.75% counted); 10th seat: Apostolakis, Επικρατείας.
-ELECTED = {60: "Κουρουπάκη", 61: "Βορύλλας", 62: "Βρεττός", 63: "Οικονομόπουλος", 31: "Τσιρώνης",
-           6: "Νατσιός", 7: "Παπαδόπουλος", 22: "Ρούντας", 13: "Δελβερούδης"}
 
 
 def strip(s):

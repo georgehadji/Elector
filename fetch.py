@@ -16,33 +16,10 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-BASE = "https://ekloges-prev.singularlogic.eu/{election}"
-# shortcut: Euro 2024 still lives under /current; move to its ekloges-prev path once the site archives it.
-SOURCES = {"2024/euro": ("https://ekloges.ypes.gr/current", "e")}
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
+from config import DB, SCHEMA, source  # noqa: E402
 
-
-def source(election):
-    """(site base, data kind): 'v' = parliamentary, 'e' = European Parliament."""
-    return SOURCES.get(election, (BASE.format(election=election), "v"))
-DB = Path(__file__).parent / "data" / "stavroi.sqlite"
 WORKERS = 4  # keep the load on a public site low
-
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS ep(election TEXT, ep_id INT, name TEXT, PRIMARY KEY(election, ep_id));
-CREATE TABLE IF NOT EXISTS party(election TEXT, party_id INT, name TEXT, color TEXT,
-    PRIMARY KEY(election, party_id));
-CREATE TABLE IF NOT EXISTS candidate(election TEXT, ep_id INT, party_id INT, cand_id INT, name TEXT,
-    PRIMARY KEY(election, ep_id, party_id, cand_id));
-CREATE TABLE IF NOT EXISTS ep_total(election TEXT, ep_id INT, party_id INT, cand_id INT, votes INT,
-    PRIMARY KEY(election, ep_id, party_id, cand_id));
-CREATE TABLE IF NOT EXISTS station(election TEXT, tm_id INT, ep_id INT, ep_geo INT, kind TEXT,
-    ekd_id INT, ekd_descr TEXT, den_id INT, den_descr TEXT, dhm_id INT, dhm_descr TEXT,
-    descr TEXT, registered INT, valid INT, PRIMARY KEY(election, tm_id));
-CREATE TABLE IF NOT EXISTS party_votes(election TEXT, tm_id INT, party_id INT, votes INT,
-    PRIMARY KEY(election, tm_id, party_id));
-CREATE TABLE IF NOT EXISTS cand_votes(election TEXT, tm_id INT, party_id INT, cand_id INT, votes INT,
-    PRIMARY KEY(election, tm_id, party_id, cand_id));
-"""
 
 
 def get(url, as_json=True):
