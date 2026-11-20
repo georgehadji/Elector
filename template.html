@@ -24,7 +24,7 @@
     <label for="party">Κόμμα</label>
     <select id="party"></select>
     <label for="q">Υποψήφιος</label>
-    <input id="q" type="search" placeholder="Αναζήτηση ονόματος" autocomplete="off">
+    <input id="q" type="search" placeholder="Αναζήτηση υποψηφίου" autocomplete="off">
     <select id="cand" aria-label="Επιλογή υποψηφίου"></select>
     <div class="seg" role="group" aria-label="Μέτρο">
       <button type="button" data-m="share" aria-pressed="true">% ψήφων κόμματος</button>
@@ -44,6 +44,7 @@
   <p class="note" id="note"></p>
 <!--FOOTER-->
 </main>
+<script>/*SHARED_JS*/</script>
 <script>
 const D = /*DATA*/null;
 /*COMMON_JS*/
@@ -65,8 +66,8 @@ if (PARTY) {
   $("map").setAttribute("aria-label", "Χάρτης ψήφων κόμματος ανά περιοχή");
 }
 
-$("title").textContent = `${T.title} · ${D.ep_name}`;
-$("sub").textContent = `${D.election_title} · ανά εκλογικό διαμέρισμα`;
+$("title").textContent = `Εκλογική περιφέρεια ${D.ep_name}`;
+$("sub").textContent = `${T.title}, ${D.election_title[0].toLowerCase() + D.election_title.slice(1)}, ανά εκλογικό διαμέρισμα`;
 
 // Party, then candidate; the search box looks across all parties. Deep link: #party=131&cand=8.
 const partySel = $("party"), sel = $("cand"), q = $("q");
@@ -95,7 +96,7 @@ const start = fromHash || (D.parties[h.get("party")] ? topCand(D.cands.filter(c 
 partySel.value = start.party;
 fillCands(start.k);
 
-const map = L.map("map", {scrollWheelZoom: false, zoomSnap: 0.25});  // fractional fit: whole zoom levels leave a small constituency at ~half the map
+const map = L.map("map", mapOptions({scrollWheelZoom: false}));  // fractional fit: whole zoom levels leave a small constituency at ~half the map
 const tiles = baseTiles(map, "Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)", 18);
 touchMap(map);
 

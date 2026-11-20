@@ -54,6 +54,7 @@
   </section>
 <!--FOOTER-->
 </main>
+<script>/*SHARED_JS*/</script>
 <script>
 const D = /*DATA*/null;
 /*COMMON_JS*/
@@ -71,7 +72,7 @@ let metric = "share";
 const T = D.labels;
 $("title").textContent = T.title;
 $("sub").textContent =
-  `${T.num} ανά εκλογικό τμήμα · ${T.scope} · ${D.election_title} · κάθε κύκλος = ένα εκλογικό κατάστημα`;
+  `${T.num} ανά εκλογικό τμήμα, ${T.scope}, ${D.election_title}. Κάθε κύκλος είναι ένα εκλογικό κατάστημα.`;
 document.querySelector('[data-m="share"]').textContent = T.share;
 document.querySelector('[data-m="votes"]').textContent = T.num;
 
@@ -89,7 +90,7 @@ $("stats").innerHTML =
     : `<div><b>${fmt(first)}</b><span>τμήματα όπου βγήκε 1ος στο κόμμα</span></div>`) +
   `<div><b>${D.venues.length} / ${all.length}</b><span>καταστήματα στον χάρτη</span></div>`;
 
-const map = L.map("map", {scrollWheelZoom: false, zoomSnap: 0.25});  // fractional fit: whole zoom levels leave a small constituency at ~half the map
+const map = L.map("map", mapOptions({scrollWheelZoom: false}));  // fractional fit: whole zoom levels leave a small constituency at ~half the map
 const tiles = baseTiles(map, "Καταστήματα & αποτελέσματα: ΥΠΕΣ (ανεπίσημα)", 19);
 touchMap(map);
 

@@ -6,8 +6,18 @@
 // Without a saved choice the page follows the system setting.
 (() => {
   const root = document.documentElement, sys = matchMedia("(prefers-color-scheme: dark)");
-  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") root.dataset.theme = t; } catch {}
-  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : sys.matches;
+  // State "system" | "light" | "dark". A press flips the appearance; flipping to the system's own appearance
+  // means "follow the system again", so the choice never gets stuck.
+  const next = (state, sysDark) => {
+    const dark = state === "system" ? sysDark : state === "dark";
+    const want = dark ? "light" : "dark";
+    return (want === "dark") === sysDark ? "system" : want;
+  };
+  let state = "system";
+  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") state = t; } catch {}
+  const show = () => state === "system" ? root.removeAttribute("data-theme") : root.dataset.theme = state;
+  show();
+  const dark = () => state === "system" ? sys.matches : state === "dark";
   addEventListener("DOMContentLoaded", () => {
     const b = document.getElementById("theme");
     if (!b) return;
@@ -15,8 +25,9 @@
     sync();
     sys.addEventListener("change", sync);
     b.onclick = () => {
-      root.dataset.theme = dark() ? "light" : "dark";
-      try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+      state = next(state, sys.matches);
+      show();
+      try { state === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", state); } catch {}
       sync();
       dispatchEvent(new Event("themechange"));  // map pages redraw: their colours are read from CSS variables
     };
@@ -50,7 +61,9 @@ h1 { font: 400 28px/1.15 "GFS Didot", Georgia, serif; margin: 0 0 4px; }
 .site a + a { margin-left: 16px; }
 @media (pointer: coarse) {
   #theme { min-height: 44px; }
-  .bar .home, .site a { display: inline-block; padding: 12px 0; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+  select, input[type=search] { min-height: 44px; }
+  .bar .home, .site a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 @media print { .bar, .site { display: none !important; } }
 
@@ -81,6 +94,7 @@ button { cursor: pointer; }
 .legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 8px 0 20px; font-size: 12px; color: var(--ink-2); }
 .legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; }
 .legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
+.legend .k { display: inline-flex; align-items: center; white-space: nowrap; }
 table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--ink-2); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--surface); z-index: 1; }
@@ -138,12 +152,15 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
   #tbl tbody tr:hover td:first-child, #tbl tr.sel td:first-child { background: var(--chip); }
   th, td { padding: 6px; }
 }
+/* Narrow phones: the name field and the candidate list get a full row each, so nothing is clipped. */
+@media (max-width: 420px) {
+  .controls > #q, .controls > #cand { flex: 1 1 100%; }
+}
 /* Touch: 44px targets */
 @media (pointer: coarse) {
   select, button, input { min-height: 44px; }
   select, input { font-size: 16px; }  /* iOS zooms into fields under 16px */
   .views a { display: inline-block; padding: 12px 0; }
-  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
   th button { display: flex; align-items: center; min-height: 44px; width: 100%; }
   th.n button { justify-content: flex-end; }
   .rowlink { display: inline-flex; align-items: center; min-height: 44px; }

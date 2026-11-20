@@ -21,11 +21,30 @@ h1{font-size:17px;margin:0 0 2px}
 .note{color:var(--ink-2);font-size:11.5px;line-height:1.35;margin:2px 0 0}
 .ctl{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:8px}
 .ctl label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)}
-select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:5px 8px;min-height:36px;max-width:100%}
+select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:5px 8px;max-width:100%}
 #map{flex:1;min-height:300px}
 .legend{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.3;box-shadow:0 1px 4px #0003}
 .legend b{display:block;margin-bottom:4px}
 .legend i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid #0002}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.ctl .find{position:relative;flex-wrap:wrap}
+.ctl input{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:14em;max-width:100%}
+.hits{position:absolute;left:0;right:0;top:100%;z-index:1000;margin:2px 0 0;padding:4px;list-style:none;background:var(--panel);
+  border:1px solid var(--line);border-radius:6px;box-shadow:0 2px 8px #0003;max-height:50vh;overflow:auto}
+.hits[hidden]{display:none}
+.hits button,#ext button{all:unset;display:block;box-sizing:border-box;width:100%;padding:6px 8px;cursor:pointer;color:var(--ink)}
+.hits button:hover,#ext button:hover{background:var(--wash)}
+.hits button:focus-visible,#ext button:focus-visible,#ext summary:focus-visible{outline:2px solid var(--pen);outline-offset:-2px}
+.hits .m,#ext .m{color:var(--ink-2);font-size:12px}
+#ext{border-top:1px solid var(--line);padding:0 16px}
+#ext summary{cursor:pointer;display:flex;align-items:center;min-height:36px;color:var(--ink-2)}
+#ext .lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 24px;max-height:40vh;overflow:auto;padding-bottom:8px}
+#ext h2{font-size:13px;margin:8px 0 2px}
+#ext ol{margin:0;padding:0;list-style:none}
+#ext li{display:flex;justify-content:space-between;gap:8px}
+#ext li b{font-variant-numeric:tabular-nums;white-space:nowrap;padding:6px 8px 6px 0}
+#ext li button{flex:1}
+@media (pointer:coarse){.hits button,#ext li button{min-height:44px;display:flex;align-items:center;flex-wrap:wrap;gap:0 6px}#ext summary{min-height:44px}.ctl input{min-height:44px;font-size:16px}}
 .leaflet-tooltip.t{font:12.5px/1.4 system-ui,sans-serif}
 .t b{font-size:13px}
 .t .m{color:#55627a}
@@ -34,7 +53,8 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);bord
   h1{font-size:15px}
   .sub{font-size:12px}
   .ctl label{flex:1 1 100%}
-  .ctl select{flex:1}
+  .ctl select,.ctl input{flex:1;min-width:0;width:auto}
+  .ctl .find{flex:1 1 100%}
   .legend{font-size:11px;padding:6px 8px}
   .legend i{width:11px;height:10px;margin-right:4px}
   .site{padding:2px 16px 0;font-size:11px;line-height:1.3}  /* map gets the height; links keep their touch padding */
@@ -49,12 +69,17 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);bord
   <div class="ctl">
     <label>Κόμμα <select id="party"></select></label>
     <label>Προβολή <select id="view"></select></label>
+    <div class="find"><label>Αναζήτηση <input id="q" type="search" placeholder="π.χ. Πάτρα" autocomplete="off" aria-controls="hits" aria-label="Αναζήτηση περιοχής"></label>
+      <ul id="hits" class="hits" hidden></ul></div>
   </div>
   <p class="sub" id="sub" aria-live="polite"></p>
+  <p class="sr" id="hitsN" role="status"></p>
   <p class="note" id="note"></p>
 </header>
 <div id="map" role="region" aria-label="Χάρτης"></div>
+<details id="ext"><summary>Οι 10 υψηλότερες και οι 10 χαμηλότερες περιοχές</summary><div class="lists" id="lists"></div></details>
 <!--FOOTER-->
+<script>/*SHARED_JS*/</script>
 <script>
 const D = /*DATA*/null;
 const E = Object.keys(D.elections);  // chronological
@@ -129,7 +154,7 @@ function tip(f) {
   return `<b>${a.n}</b><div class="m">${a.u} · ${a.ep}</div><div class="m">${D.parties[pi].name}</div><table>${rows}${d}</table>`;
 }
 
-const map = L.map("map", {preferCanvas: true, zoomSnap: 0.25}).setView([38.6, 23.8], 6.5);
+const map = L.map("map", mapOptions({preferCanvas: true})).setView([38.6, 23.8], 6.5);
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 14, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 const layer = L.geoJSON(D.geo, {style: () => ({}), onEachFeature: (f, l) => {
@@ -150,12 +175,69 @@ function drawLegend() {
   }).join("");
 }
 
+// Search and the extremes list reach every area by keyboard: canvas paths cannot take focus.
+const AREAS = [];  // built once: the folded words of each area's name, then of its unit and constituency
+const words = s => fold(s).split(/[^\p{L}\d]+/u).filter(Boolean).map(w => [w, key(w)]);
+layer.eachLayer(l => { const p = l.feature.properties; AREAS.push({l, name: words(p.n), rest: words(`${p.u} ${p.ep}`)}); });
+const hitsEl = document.getElementById("hits"), qEl = document.getElementById("q"), hitsN = document.getElementById("hitsN");
+const areaBtn = (i, extra) => `<button type="button" data-i="${i}">${AREAS[i].l.feature.properties.n}` +
+  ` <span class="m">${AREAS[i].l.feature.properties.u}, ${AREAS[i].l.feature.properties.ep}</span>${extra || ""}</button>`;
+function pick(i) {
+  const l = AREAS[i].l;
+  map.fitBounds(l.getBounds(), {maxZoom: 11, animate: MOTION});
+  l.openTooltip();
+}
+let found = [];
+function search() {
+  const qs = queryWords(qEl.value);
+  const ks = qs.map(key);  // per query, not per area
+  found = [];
+  if (qs.length) AREAS.forEach((a, i) => {
+    if (qs.every((q, j) => hitsK(a.name, q, ks[j]) || hitsK(a.rest, q, ks[j])))
+      found.push([qs.every((q, j) => hitsK(a.name, q, ks[j])) ? 0 : 1, i]);  // a town-name match ranks above a unit match
+  });
+  found.sort((x, y) => x[0] - y[0] || x[1] - y[1]);
+  hitsEl.hidden = !found.length;
+  hitsEl.innerHTML = found.slice(0, 8).map(([, i]) => `<li>${areaBtn(i)}</li>`).join("");
+  hitsN.textContent = !qs.length ? "" : !found.length ? "Καμία περιοχή." : `${found.length} περιοχές${found.length > 8 ? ", εμφανίζονται οι 8 πρώτες" : ""}.`;
+}
+qEl.addEventListener("input", search);
+qEl.addEventListener("keydown", e => {
+  if (e.key === "Escape") { qEl.value = ""; search(); }
+  else if (e.key === "Enter" && found.length === 1) pick(found[0][1]);
+  else if (e.key === "ArrowDown" && !hitsEl.hidden) { e.preventDefault(); hitsEl.querySelector("button").focus(); }
+});
+hitsEl.addEventListener("keydown", e => {
+  const bs = [...hitsEl.querySelectorAll("button")], i = bs.indexOf(document.activeElement);
+  if (e.key === "ArrowDown" && bs[i + 1]) { e.preventDefault(); bs[i + 1].focus(); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); (bs[i - 1] || qEl).focus(); }
+  else if (e.key === "Escape") { qEl.value = ""; search(); qEl.focus(); }
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("button[data-i]");
+  if (b) { pick(+b.dataset.i); if (hitsEl.contains(b)) { hitsEl.hidden = true; } }
+  else if (!e.target.closest(".find")) hitsEl.hidden = true;
+});
+qEl.addEventListener("focus", () => { hitsEl.hidden = !found.length; });
+
+// Highest and lowest areas of the current view, without areas under the 50-valid-votes threshold.
+const extremes = (rows, n) => { const s = rows.slice().sort((a, b) => b[1] - a[1]); return [s.slice(0, n), s.slice(-n).reverse()]; };
+function drawExtremes() {
+  const rows = AREAS.map((a, i) => [i, valueOf(a.l.feature)]).filter(([i, v]) => v !== null && !thin(AREAS[i].l.feature));
+  const delta = Boolean(VIEWS[view].from), show = v => delta ? signed(v) + " μον." : pctf(v);
+  const list = (title, rs) => `<div><h2>${title}</h2><ol>` + rs.map(([i, v]) => `<li>${areaBtn(i)}<b>${show(v)}</b></li>`).join("") + `</ol></div>`;
+  const [hi, lo] = extremes(rows, 10);
+  document.getElementById("lists").innerHTML = rows.length ? list(delta ? "Μεγαλύτερη αύξηση" : "Υψηλότερα ποσοστά", hi) +
+    list(delta ? "Μεγαλύτερη μείωση" : "Χαμηλότερα ποσοστά", lo) : "<p class=m>Καμία περιοχή με αρκετά έγκυρα.</p>";
+}
+
 function total(e) { const t = D.totals[e]; return t[pi + 1] === null ? null : [t[pi + 1], t[0]]; }
 function render() {
   const V = VIEWS[view], name = D.parties[pi].name;
   makeBins();
   layer.setStyle(style);
   drawLegend();
+  drawExtremes();
   const sub = document.getElementById("sub");
   if (V.from) {
     const a = total(V.from), b = total(V.to);
@@ -195,7 +277,7 @@ const fitOnce = () => {
   if (fitted || !map.getContainer().clientWidth) return;
   fitted = true;
   map.invalidateSize({animate: false});
-  map.fitBounds(layer.getBounds());
+  map.fitBounds(layer.getBounds(), {animate: false});
 };
 new ResizeObserver(fitOnce).observe(map.getContainer());
 document.addEventListener("visibilitychange", fitOnce);

@@ -13,6 +13,8 @@
 .site a + a { margin-left: 16px; }
 @media (pointer: coarse) {
   #theme { min-height: 44px; }
-  .bar .home, .site a { display: inline-block; padding: 12px 0; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+  select, input[type=search] { min-height: 44px; }
+  .bar .home, .site a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 @media print { .bar, .site { display: none !important; } }
