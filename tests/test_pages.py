@@ -52,6 +52,17 @@ class Pages(unittest.TestCase):
             s = read(p)
             self.assertNotIn("`${T.title} · ${D.ep_name}`", s, p.name)
 
+    def test_header_and_footer(self):
+        for p in APP + SPECIAL:
+            s = read(p)
+            self.assertEqual(len(re.findall(r'<nav aria-label="Κύριο μενού">', s)), 1, p.name)
+            self.assertIn("aria-current=", s, p.name)
+            self.assertIn('class="skip"', s, p.name)
+            self.assertRegex(s, r"Ενημέρωση: \d{1,2} \S+ \d{4}", p.name)
+            self.assertNotIn("github.com", s, p.name)
+        # a map page can switch to its constituency's other elections
+        self.assertIn('class="ctx"', read(APP[0]))
+
     def test_csp_matches_inline_blocks(self):
         import base64
         import hashlib

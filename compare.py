@@ -48,7 +48,8 @@ data = {"elections": ELECTIONS, "totals": totals,
         "geo": {"type": "FeatureCollection", "features": features}}
 template = fill((HERE / "compare_template.html").read_text(encoding="utf-8"),
                 INDEX_LIGHT | {"panel": "#ffffffee", "field": "#fff", "shadow": "rgba(0,0,0,.2)"},
-                INDEX_DARK | {"panel": "#1d2430ee", "field": "#1d2430", "shadow": "rgba(0,0,0,.5)"})
+                INDEX_DARK | {"panel": "#1d2430ee", "field": "#1d2430", "shadow": "rgba(0,0,0,.5)"},
+                current="compare", skip="#map", compact=True)
 template = template.replace("<!--META-->", meta("Σύγκριση εκλογών ανά κοινότητα",
     "Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024."))
 out = OUT / "compare.html"

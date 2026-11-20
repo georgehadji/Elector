@@ -1,21 +1,55 @@
 /* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
    Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
-.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
-.bar .home { color: var(--ink); font-weight: 600; text-decoration: none; }
+/* Site bar: wordmark, nav, theme toggle. Skip link first in tab order. */
+.skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: 8px 12px; color: var(--ink); background: var(--paper, var(--surface)); border: 1px solid var(--ink); border-radius: 6px; }
+.skip:focus { top: 8px; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
+.bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 20px/1.2 "GFS Didot", Georgia, serif; text-decoration: none; }
 .bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
-#theme { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 12px; font: inherit; font-size: 13px;
-         color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 16px; cursor: pointer; }
+.mark { width: 20px; height: 20px; flex: none; }
+.mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
+.mark rect { stroke-width: 2.4; }
+.mark path { stroke-width: 3.2; }
+.bar nav { display: flex; gap: 20px; font-size: 14px; }
+.bar nav a { color: var(--ink-2); text-decoration: none; padding: 4px 0; }
+.bar nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; }
+.bar nav a[aria-current] { color: var(--ink); }
+.bar nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+#theme { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 36px; height: 36px; padding: 0;
+         color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 50%; cursor: pointer; }
 #theme:hover, #theme[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); }
 #theme svg { width: 16px; height: 16px; fill: currentColor; }
-.site { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+@media (max-width: 639px) {
+  .bar { gap: 0 12px; }
+  .bar .home { order: 1; }
+  #theme { order: 2; }
+  .bar nav { order: 3; flex: 1 0 100%; gap: 16px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+}
+/* Map pages: constituency and its other elections */
+.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.ctx nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.ctx nav a { color: var(--ink-2); text-underline-offset: 4px; }
+.ctx nav a[aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
+/* Colophon */
+.site { margin-top: 64px; padding: 24px 0 32px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+.site .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.site h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
 .site p { margin: 0 0 4px; }
+.site ul { margin: 0; padding: 0; list-style: none; }
 .site a { color: inherit; text-underline-offset: 3px; }
-.site a + a { margin-left: 16px; }
+.site .built { display: flex; align-items: center; justify-content: space-between; margin: 24px 0 0; }
+.site .built .mark { width: 16px; height: 16px; }
+.site.compact { margin: 0; padding: 6px 16px 8px; }
+.site.compact .cols { display: flex; flex-wrap: wrap; gap: 0 20px; }
+.site.compact h3, .site.compact .built { display: none; }
+.site.compact ul { display: flex; flex-wrap: wrap; gap: 0 12px; }
+.site.compact .cols > div:nth-child(3) li:not(:has(.copy)) { display: none; }  /* the nav above has these */
+@media (max-width: 639px) { .site .cols { grid-template-columns: 1fr; gap: 16px; } .site.compact .cols { display: flex; gap: 0 12px; } }
 html, body { overflow-x: clip; }
 h1, h2 { text-wrap: balance; }
 #theme, .site .copy { transition: transform 100ms ease-out; }
 #theme:active { transform: scale(.97); }
-.site .copy { margin-left: 16px; padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.site .copy { padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .site .copy:active { transform: scale(.97); }
 .copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
 @media (prefers-reduced-motion: reduce) { #theme, .site .copy { transition: none; } #theme:active, .site .copy:active { transform: none; } }
@@ -29,9 +63,9 @@ h1, h2 { text-wrap: balance; }
 }
 @media (pointer: coarse) {
   .site .copy { min-height: 44px; }
-  #theme { min-height: 44px; }
+  #theme { width: 44px; height: 44px; }
   .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
   select, input[type=search] { min-height: 44px; }
-  .bar .home, .site a { display: inline-flex; align-items: center; min-height: 44px; }
+  .bar .home, .bar nav a, .site a, .ctx nav a { display: inline-flex; align-items: center; min-height: 44px; }
 }
-@media print { .bar, .site { display: none !important; } }
+@media print { .bar, .site, .skip, .ctx { display: none !important; } }

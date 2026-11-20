@@ -24,7 +24,7 @@ from geo import silhouette  # noqa: E402
 from matching import boundaries, ep_label, label, match_areas, norm  # noqa: E402
 from web import (  # noqa: E402
     FONTS,
-    HEADER,
+    header,
     common_css,
     secure,
     entry,
@@ -242,8 +242,8 @@ def build_all(election):
 <script>/*THEME_JS*/</script><style>{common_css()}
 main{{max-width:900px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}
 @media (max-width:599px){{th,td{{padding:6px 4px}} th{{font-size:11px}} td{{font-size:13px}}}}
-@media (pointer:coarse){{td a{{display:inline-block;padding:13px 0}}}}</style></head><body><main>
-{HEADER}
+@media (pointer:coarse){{td a{{display:inline-block;padding:13px 0}}}}</style></head><body><main id="main">
+{header()}
 <h1>Κάλυψη χαρτών · {ELECTION_NAMES.get(election, election)}</h1>
 <p>Ε.Δ.: εκλογικά διαμερίσματα · Περιοχές: κοινότητες στον χάρτη · Έδρα: διαμερίσματα που μπήκαν στην κοινότητα-έδρα
 χωρίς αντιστοίχιση ονόματος · Κάλυψη: σταυροί στον χάρτη ως ποσοστό του συνόλου.</p>
