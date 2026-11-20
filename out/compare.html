@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xdCxMT9F97GqIN7HI2p8TlD2pgbk9ERvKlInt7rJlTc=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-cepNMS+CED++WoVAiT8Rw+KNEA0fjsnTfLrpqlTzENs=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-64QgpI0JzBrSXL0C76mcLQPQ/3YWYCwQxW2P+FQ4TG8=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-o2q03TlQSIU7jxRvHliZwd9nvDNB/QdKRdL/UGXwP5k=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-AwgiYJ6KuwUl5iuzxjZIQmcK8OxR5SVakpJzcS+v3/A=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Σύγκριση εκλογών</title>
 <meta name="description" content="Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Σύγκριση εκλογών ανά κοινότητα"><meta property="og:description" content="Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024.">
@@ -31,11 +31,10 @@
     sys.addEventListener("change", sync);
     b.onclick = () => {
       state = next(state, sys.matches);
-      show();
+      const go = () => { show(); sync(); dispatchEvent(new Event("themechange")); };
+      if (document.startViewTransition && !document.hidden && !matchMedia("(prefers-reduced-motion: reduce)").matches) { const vt = document.startViewTransition(go); vt.ready.catch(() => {}); vt.finished.catch(() => {}); } else go();
       try { state === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", state); } catch {}
-      sync();
-      dispatchEvent(new Event("themechange"));  // map pages redraw: their colours are read from CSS variables
-    };
+    };  // themechange: map pages redraw, their colours are read from CSS variables
   });
 })();
 </script>
@@ -59,11 +58,20 @@
 .site a + a { margin-left: 16px; }
 html, body { overflow-x: clip; }
 h1, h2 { text-wrap: balance; }
+#theme, .site .copy { transition: transform 100ms ease-out; }
 #theme:active { transform: scale(.97); }
 .site .copy { margin-left: 16px; padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .site .copy:active { transform: scale(.97); }
 .copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
-@media (prefers-reduced-motion: reduce) { #theme:active, .site .copy:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { #theme, .site .copy { transition: none; } #theme:active, .site .copy:active { transform: none; } }
+/* theme switch: short cross-fade instead of a brightness jump (View Transitions, where supported) */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none; } }
+/* higher contrast on request: darker lines and secondary ink, solid borders on swatches */
+@media (prefers-contrast: more) {
+  :root:root:root { --line: color-mix(in srgb, var(--ink) 60%, var(--paper)); --ink-2: color-mix(in srgb, var(--ink) 88%, var(--paper)); }
+  .legend i { border: 1px solid var(--ink); }
+}
 @media (pointer: coarse) {
   .site .copy { min-height: 44px; }
   #theme { min-height: 44px; }
@@ -86,7 +94,8 @@ h1{font-size:17px;margin:0 0 2px}
 .ctl label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)}
 select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:5px 8px;max-width:100%}
 #map{flex:1;min-height:300px}
-.legend{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.3;box-shadow:0 1px 4px var(--shadow)}
+.legend{background:color-mix(in srgb,var(--panel) 82%,transparent);-webkit-backdrop-filter:blur(12px) saturate(160%);backdrop-filter:blur(12px) saturate(160%);color:var(--ink);padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.3;box-shadow:0 1px 4px var(--shadow)}
+@media (prefers-reduced-transparency:reduce){.legend{background:var(--panel);backdrop-filter:none;-webkit-backdrop-filter:none}}
 .legend b{display:block;margin-bottom:4px}
 .legend i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid var(--line)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -107,8 +116,9 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);bord
 #ext li{display:flex;justify-content:space-between;gap:8px}
 #ext li b{font-variant-numeric:tabular-nums;white-space:nowrap;padding:6px 8px 6px 0}
 #ext li button{flex:1}
+.hits button,#ext button,select{transition:transform 100ms ease-out}
 .hits button:active,#ext button:active,select:active{transform:scale(.97)}
-@media (prefers-reduced-motion:reduce){.hits button:active,#ext button:active,select:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.hits button,#ext button,select{transition:none}.hits button:active,#ext button:active,select:active{transform:none}}
 @media (pointer:coarse){.hits button,#ext li button{min-height:44px;display:flex;align-items:center;flex-wrap:wrap;gap:0 6px}#ext summary{min-height:44px}.ctl input{min-height:44px;font-size:16px}}
 .leaflet-tooltip.t{font:12.5px/1.4 system-ui,sans-serif}
 .t b{font-size:13px}
@@ -137,7 +147,7 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);bord
   <div class="ctl">
     <label><span class="lt">Κόμμα</span> <select id="party"></select></label>
     <label><span class="lt">Προβολή</span> <select id="view"></select></label>
-    <div class="find"><label>Αναζήτηση <input id="q" type="search" placeholder="π.χ. Πάτρα" autocomplete="off" aria-controls="hits" aria-label="Αναζήτηση περιοχής"></label>
+    <div class="find"><label>Αναζήτηση <input id="q" type="search" placeholder="π.χ. Πάτρα" autocomplete="off" enterkeyhint="search" spellcheck="false" aria-controls="hits" aria-label="Αναζήτηση περιοχής"></label>
       <ul id="hits" class="hits" hidden></ul></div>
   </div>
   <p class="sub" id="sub" aria-live="polite"></p>
@@ -288,7 +298,8 @@ const areaBtn = (i, extra) => `<button type="button" data-i="${i}">${AREAS[i].l.
   ` <span class="m">${AREAS[i].l.feature.properties.u}, ${AREAS[i].l.feature.properties.ep}</span>${extra || ""}</button>`;
 function pick(i) {
   const l = AREAS[i].l;
-  map.fitBounds(l.getBounds(), {maxZoom: 11, animate: MOTION});
+  if (MOTION) map.flyToBounds(l.getBounds(), {maxZoom: 11, duration: .6});
+  else map.fitBounds(l.getBounds(), {maxZoom: 11, animate: false});
   l.openTooltip();
 }
 let found = [];

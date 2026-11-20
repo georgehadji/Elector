@@ -22,10 +22,9 @@
     sys.addEventListener("change", sync);
     b.onclick = () => {
       state = next(state, sys.matches);
-      show();
+      const go = () => { show(); sync(); dispatchEvent(new Event("themechange")); };
+      if (document.startViewTransition && !document.hidden && !matchMedia("(prefers-reduced-motion: reduce)").matches) { const vt = document.startViewTransition(go); vt.ready.catch(() => {}); vt.finished.catch(() => {}); } else go();
       try { state === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", state); } catch {}
-      sync();
-      dispatchEvent(new Event("themechange"));  // map pages redraw: their colours are read from CSS variables
-    };
+    };  // themechange: map pages redraw, their colours are read from CSS variables
   });
 })();

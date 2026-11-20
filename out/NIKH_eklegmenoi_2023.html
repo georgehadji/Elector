@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xdCxMT9F97GqIN7HI2p8TlD2pgbk9ERvKlInt7rJlTc=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-A7g0weHjtH9tDa8Dq0LdB15LleeRF54KOeLAB6oj2/c=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mx2HoAB81mudFHEc0tDoRV65epDYF4hXIETBgnQpF3E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-AcKmPgNCCbTJL9mFN47NLl+U/KP1TMN/cqMeNwaFkI8=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ 2023</title><script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
 (() => {
@@ -24,11 +24,10 @@
     sys.addEventListener("change", sync);
     b.onclick = () => {
       state = next(state, sys.matches);
-      show();
+      const go = () => { show(); sync(); dispatchEvent(new Event("themechange")); };
+      if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) document.startViewTransition(go); else go();
       try { state === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", state); } catch {}
-      sync();
-      dispatchEvent(new Event("themechange"));  // map pages redraw: their colours are read from CSS variables
-    };
+    };  // themechange: map pages redraw, their colours are read from CSS variables
   });
 })();
 </script><style>
@@ -51,11 +50,20 @@
 .site a + a { margin-left: 16px; }
 html, body { overflow-x: clip; }
 h1, h2 { text-wrap: balance; }
+#theme, .site .copy { transition: transform 100ms ease-out; }
 #theme:active { transform: scale(.97); }
 .site .copy { margin-left: 16px; padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .site .copy:active { transform: scale(.97); }
 .copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
-@media (prefers-reduced-motion: reduce) { #theme:active, .site .copy:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { #theme, .site .copy { transition: none; } #theme:active, .site .copy:active { transform: none; } }
+/* theme switch: short cross-fade instead of a brightness jump (View Transitions, where supported) */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none; } }
+/* higher contrast on request: darker lines and secondary ink, solid borders on swatches */
+@media (prefers-contrast: more) {
+  :root:root:root { --line: color-mix(in srgb, var(--ink) 60%, var(--paper)); --ink-2: color-mix(in srgb, var(--ink) 88%, var(--paper)); }
+  .legend i { border: 1px solid var(--ink); }
+}
 @media (pointer: coarse) {
   .site .copy { min-height: 44px; }
   #theme { min-height: 44px; }

@@ -178,6 +178,10 @@ h1 .x path+path{animation-delay:.3s}
 .top b{color:var(--ink);font-weight:600}
 .nation{display:flex;flex-wrap:wrap;gap:4px 20px;margin:6px 0 0;font-size:14px}
 .nation a{color:var(--ink-2);text-underline-offset:3px}
+.nation a:active,.eps li a:active,.older summary:active,.fold summary:active{background:var(--wash)}
+.older[open]>:not(summary),.fold[open]>:not(summary){animation:fade .15s ease-out}
+@keyframes fade{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.older[open]>:not(summary),.fold[open]>:not(summary){animation:none}}
 .acts{display:flex;flex-wrap:wrap;align-items:center;gap:0 14px}
 .older summary,.fold summary{display:flex;align-items:center;min-height:32px;cursor:pointer;color:var(--ink-2);font-size:14px}
 .older[open]{flex:1 1 100%}
@@ -194,7 +198,7 @@ h1 .x path+path{animation-delay:.3s}
 .sil path{fill:currentColor;fill-opacity:.22;stroke:currentColor;stroke-width:1;stroke-linejoin:round}
 .eps li{position:relative}
 .eps li>h2,.eps li>.top{margin-right:60px}
-.reg{font:600 13px/1.2 "Fira Sans",system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin:28px 0 0}
+.reg{font:600 13px/1.2 "Fira Sans",system-ui,sans-serif;letter-spacing:0;color:var(--ink-2);margin:28px 0 0}
 .grp[hidden]{display:none}
 .eps{margin-top:6px}
 .key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:14px;color:var(--ink-2)}
@@ -337,7 +341,7 @@ def _write_index(order, nikh, elected):
 <h1>{CROSS_SVG}Χάρτες σταυρών</h1>
 <p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και ανά εκλογικό τμήμα, σε όλες τις εκλογικές περιφέρειες.</p>
 <div id="s" hidden><label class="sr" for="f">Αναζήτηση περιφέρειας</label>
-<input id="f" type="search" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off">
+<input id="f" type="search" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
 <p id="n" aria-live="polite"></p></div>
 {nationwide()}
 {greece}
