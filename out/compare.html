@@ -229,10 +229,18 @@ partySel.value = pi; viewSel.value = view;
 partySel.onchange = () => { pi = +partySel.value; render(); };
 viewSel.onchange = () => { view = viewSel.value; render(); };
 render();
-if (map.getSize().x) map.fitBounds(layer.getBounds());
-// Pages opened in hidden panes lay out at 0x0: fit once the map has a real size.
-new ResizeObserver((_, o) => { if (map.getSize().x) { map.invalidateSize(); map.fitBounds(layer.getBounds()); o.disconnect(); } })
-  .observe(document.getElementById("map"));
+// Pages opened in hidden panes lay out at 0x0, and map.getSize() caches that size: fit once the container
+// has a real width (hidden pages may skip ResizeObserver callbacks, hence also visibilitychange).
+let fitted = false;
+const fitOnce = () => {
+  if (fitted || !map.getContainer().clientWidth) return;
+  fitted = true;
+  map.invalidateSize({animate: false});
+  map.fitBounds(layer.getBounds());
+};
+new ResizeObserver(fitOnce).observe(map.getContainer());
+document.addEventListener("visibilitychange", fitOnce);
+fitOnce();
 </script>
 </body>
 </html>
