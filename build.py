@@ -141,7 +141,7 @@ def main(election, ep):
 
     ep_name = ep_label((q("SELECT name FROM ep WHERE election=? AND ep_id=?", ep) or [[str(ep)]])[0][0])
     data = {
-        "election": election, "ep": ep, "ep_name": ep_name, "mode": "party" if party_mode else "cand",
+        "election": election, "election_name": ELECTION_NAMES[election], "ep": ep, "ep_name": ep_name, "mode": "party" if party_mode else "cand",
         "parties": {pid: {"name": parties[pid][0], "color": parties[pid][1]} for pid in {c["party"] for c in cand_list}},
         "cands": cand_list, "unmatched": [{"name": u["name"], "unit": u["unit"]} for u in unmatched],
         "coverage": coverage, "geo": {"type": "FeatureCollection", "features": features},

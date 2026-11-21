@@ -51,7 +51,7 @@ for e, t in totals.items():
 
 data = {"elections": ELECTIONS, "blocs": {k: v[2] for k, v in BLOCS.items()}, "totals": totals, "geo": {"type": "FeatureCollection", "features": features}}
 template = fill((HERE / "analysis" / "nikh_map_template.html").read_text(encoding="utf-8"),
-                INDEX_LIGHT | {"panel": "#ffffffee", "on": "#13233d", "on-ink": "#fff"},
+                INDEX_LIGHT | {"panel": "#ffffffee", "on": "#1d1d1b", "on-ink": "#fff"},
                 INDEX_DARK | {"panel": "#1d2430ee", "on": "#e8edf5", "on-ink": "#171c24"},
                 skip="#map", compact=True)
 out = OUT / "nikh_2023-2024.html"

@@ -41,9 +41,14 @@ const devLegend = () => `<span class="lbl" style="margin-left:0">Σε σχέση
 $("views").innerHTML = (D.links || []).map(l => `<a href="${encodeURI(l.href)}">${l.label}</a>`).join("");
 
 // OpenStreetMap base tiles, faded under the data. `attribution` names the page's own sources.
-const baseTiles = (m, attribution, maxZoom) => L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+const baseTiles = (m, attribution, maxZoom) => (m.getContainer().classList.add("muted"), L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap · " + attribution, maxZoom, opacity: 0.6
-}).addTo(m);
+}).addTo(m));
+// (the .muted class greys the tiles, see common.css)
+
+// No base map at all: the choropleth is the only colour on the paper-coloured #map. Used by the pages that map areas
+// (polling-venue pages keep grey tiles: dots need streets to mean anything). Returns null: there are no tiles to wait for.
+const blankBase = (m, attribution) => { m.attributionControl.addAttribution(attribution); return null; };
 
 // PDF export: refit the map to the A4 print width, wait for its tiles, then open the print dialog.
 // pdfTitle() becomes the document title, i.e. the suggested file name. Returns the PDF button's handler.
@@ -69,8 +74,8 @@ function printSetup(m, tiles, bounds, pdfTitle) {
     fit();
     let done = false;
     const go = () => { if (!done) { done = true; window.print(); } };
-    tiles.once("load", go);
-    setTimeout(go, 1500);
+    if (tiles) tiles.once("load", go);
+    setTimeout(go, tiles ? 1500 : 0);
   };
 }
 
