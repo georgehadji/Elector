@@ -303,9 +303,9 @@ body.pick .acts{display:none}
 .cg p{color:var(--ink-2);margin:0 0 8px;font-size:var(--t-base)}
 .cg ul{margin:0;padding:0;list-style:none}
 .cg li{padding:3px 0}
-.jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;overflow-x:auto;white-space:nowrap;
-      scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:var(--t-sm)}
-.jump a{color:var(--ink-2);text-decoration:none;display:inline-block;min-height:24px}
+.jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;flex-wrap:wrap;
+      background:var(--paper);border-bottom:1px solid var(--line);font-size:var(--t-sm)}
+.jump a{color:var(--ink-2);text-decoration:none;display:inline-block;min-height:24px;white-space:nowrap}
 .jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .jump a[aria-current]{color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
 body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* one region at a time; a search looks in all */
@@ -314,7 +314,7 @@ body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* 
 .rsel select:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
 @media (max-width:639px){body.tabs .jump a{display:none}body.tabs .rsel{display:flex}.jump{overflow:visible}}  /* phones: one native select instead of a 13-tab row */
 .eps li{scroll-margin-top:64px}
-.reg{scroll-margin-top:64px}
+.reg{scroll-margin-top:calc(var(--jh,64px) + 8px)}  /* --jh: the sticky jump row's height, set by script (it wraps to two lines) */
 body:has(#f:not(:placeholder-shown)) :is(.country,.jump){display:none}  /* results start right under the search */
 body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
@@ -401,9 +401,11 @@ const pick = g => {
   const id = g.querySelector(".reg").id; if (rsel.value !== id) rsel.value = id;
   tabs.forEach(a => a.hash === "#" + g.querySelector(".reg").id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
 };
+const jump = document.querySelector(".jump"), setJh = () => document.documentElement.style.setProperty("--jh", jump.offsetHeight + "px");
+setJh(); addEventListener("resize", setJh);
 const show = id => {
   const el = document.getElementById(id), g = el && el.closest(".grp");
-  if (g) { pick(g); el.scrollIntoView({behavior: "instant"}); } else if (!location.hash || !document.querySelector(".grp.on")) pick(groups[0]);  // back to the bare address = the first region
+  if (g) { pick(g); if (jump.offsetHeight) setJh(); el.scrollIntoView({behavior: "instant"}); } else if (!location.hash || !document.querySelector(".grp.on")) pick(groups[0]);  // back to the bare address = the first region
 };
 const fromHash = () => show(location.hash.slice(1));
 document.body.classList.add("tabs");
