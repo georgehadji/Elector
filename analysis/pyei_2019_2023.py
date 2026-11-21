@@ -9,18 +9,24 @@ Needs pyei (pymc). Run:
   target: 2023/may | 2023/june | 2024/euro; base: 2019 (default) | 2023/may | 2023/june
   Default: compact rows/columns (small parties in "Λοιπά") and longer sampling, so the chains converge.
   --full: the first runs' larger tables (analysis/pyei_*.txt, which did not converge).
+  --region=N: only the constituencies of config.REGIONS[N] (separate model per region, analysis/pyei_regions/).
 """
 import os
 import sqlite3
 import sys
+from pathlib import Path
 
 os.environ.setdefault("XLA_FLAGS", "--xla_force_host_platform_device_count=4")  # 4 CPU devices -> parallel chains
 
 import numpy as np
 from pyei.r_by_c import RowByColumnEI
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
+from config import REGIONS
+
 FULL = "--full" in sys.argv
-args = [a for a in sys.argv[1:] if a != "--full"]
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+REGION = next((REGIONS[int(a.split("=")[1])] for a in sys.argv if a.startswith("--region=")), None)
 DB, ELECTION = args[0], args[1]
 BASE = args[2] if len(args) > 2 else "2019"
 MAX_UNITS = int(args[3]) if len(args) > 3 else None
@@ -77,11 +83,11 @@ def fractions(tot, votes, keys, parties):
 
 tb, vb = load(BASE)
 tt, vt = load(ELECTION)
-keys = sorted(k for k in tt if k in tb and tb[k][0] >= 100 and tt[k][0] >= 100)
+keys = sorted(k for k in tt if k in tb and tb[k][0] >= 100 and tt[k][0] >= 100 and (REGION is None or k[0] in REGION[1]))
 if MAX_UNITS:  # quick runtime test on a random subset
     pick = np.random.default_rng(0).choice(len(keys), MAX_UNITS, replace=False)
     keys = [keys[i] for i in sorted(pick)]
-print(f"{BASE} → {ELECTION}: {len(keys)} δημοτικές ενότητες σε {len({k[0] for k in keys})} περιφέρειες")
+print(f"{REGION[0] + ': ' if REGION else ''}{BASE} → {ELECTION}: {len(keys)} δημοτικές ενότητες σε {len({k[0] for k in keys})} περιφέρειες")
 
 row_names = list(ROWS) + ["Λοιπά", "Αποχή/άκυρα"]
 col_names = list(COLS) + ["Λοιπά", "Αποχή/άκυρα"]
