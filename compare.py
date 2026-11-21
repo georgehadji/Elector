@@ -68,7 +68,7 @@ tally = {}
 for pid in won.values():
     tally[pid] = tally.get(pid, 0) + 1
 shown = [pid for pid, n in sorted(tally.items(), key=lambda kv: -kv[1]) if n >= 0.02 * len(won)]
-OTHER = "#9a9a94"
+OTHER = "#8a8a84"
 areas = [(a["geometry"], parties[won[id(a)]]["color"] if won[id(a)] in shown else OTHER) for a in props.values() if id(a) in won]
 key = [(PARTY_SHORT.get(pid, parties[pid]["name"]), parties[pid]["color"]) for pid in shown] + [("Άλλο", OTHER)]
 fig = OUT / "greece_map.html"

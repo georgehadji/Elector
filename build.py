@@ -18,7 +18,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
-from config import DB, ELECTION_NAMES, OUT, SCHEMA, accented, slug  # noqa: E402
+from config import DB, ELECTION_NAMES, OUT, PARTY_COLOR, SCHEMA, accented, slug  # noqa: E402
 from geo import silhouette  # noqa: E402
 from matching import boundaries, ep_label, label, match_areas, norm  # noqa: E402
 from web import (  # noqa: E402
@@ -201,7 +201,7 @@ def parties(elections):
     with sqlite3.connect(DB) as db:
         for e in elections:
             for pid, name, color in db.execute("SELECT party_id, name, color FROM party WHERE election=?", (e,)):
-                out[pid] = {"name": name, "color": "#" + color[2:] if color else "#888"}
+                out[pid] = {"name": name, "color": PARTY_COLOR.get(pid) or ("#" + color[2:] if color else "#888")}
     return out
 
 

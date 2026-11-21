@@ -96,9 +96,9 @@ def theme_css(light, dark, print_=None):
     return out
 
 
-# Map pages: warm grays, a blue sequential ramp (s0-s6) and a red-gray-blue diverging one (d-3..d3).
+# Map pages: warm grays, a purple sequential ramp (s0-s6; blue is ND's colour, so no ramp uses it) and a red-gray-blue diverging one (d-3..d3).
 MAP_LIGHT = {"surface": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#46453f", "line": "#d9d6cc", "chip": "#f1efe6", "shadow": "rgba(0,0,0,.18)",
-             "s0": "#eef4fc", "s1": "#cde2fb", "s2": "#9ec5f4", "s3": "#6da7ec", "s4": "#3987e5", "s5": "#256abf", "s6": "#104281",
+             "s0": "#f3eef8", "s1": "#dccbea", "s2": "#bda0d6", "s3": "#9c78bf", "s4": "#7a4fa8", "s5": "#5a2f8a", "s6": "#3a1866",
              "scrim": "rgba(0,0,0,.5)", "on-scrim": "#fff",
              "link": "#1f4e9c", "d-3": "#a8302e", "d-2": "#e0736b", "d-1": "#f6c4c0", "d0": "#d9d6cc", "d1": "#9ec5f4", "d2": "#3987e5",
              "d3": "#104281"}
