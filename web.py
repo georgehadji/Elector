@@ -84,12 +84,12 @@ def context_row(data):
 
 
 def theme_css(light, dark, print_=None):
-    """Colour tokens, each written once with light-dark(): the system setting decides unless the toggle set
+    """Colour tokens, each written once with light-dark(): light is the default; the toggle sets
     data-theme; print is always light, with `print_` overriding single tokens."""
     def decl(t):
         return ";".join(f"--{k}:{v}" for k, v in t.items())
     both = {k: f"light-dark({v},{dark[k]})" if dark.get(k, v) != v else v for k, v in light.items()}
-    out = (f":root{{color-scheme:light dark;{decl(both)}}}\n"
+    out = (f":root{{color-scheme:light;{decl(both)}}}\n"
            ":root[data-theme=light]{color-scheme:light}\n:root[data-theme=dark]{color-scheme:dark}\n")
     if print_ is not None:
         out += f"@media print{{:root,:root[data-theme]{{color-scheme:light;{decl(print_)}}}}}\n"
@@ -97,16 +97,16 @@ def theme_css(light, dark, print_=None):
 
 
 # Map pages: warm grays, a blue sequential ramp (s0-s6) and a red-gray-blue diverging one (d-3..d3).
-MAP_LIGHT = {"surface": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#5c5b57", "line": "#d9d6cc", "chip": "#f1efe6", "shadow": "rgba(0,0,0,.18)",
+MAP_LIGHT = {"surface": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#46453f", "line": "#d9d6cc", "chip": "#f1efe6", "shadow": "rgba(0,0,0,.18)",
              "s0": "#eef4fc", "s1": "#cde2fb", "s2": "#9ec5f4", "s3": "#6da7ec", "s4": "#3987e5", "s5": "#256abf", "s6": "#104281",
              "scrim": "rgba(0,0,0,.5)", "on-scrim": "#fff",
              "link": "#1f4e9c", "d-3": "#a8302e", "d-2": "#e0736b", "d-1": "#f6c4c0", "d0": "#d9d6cc", "d1": "#9ec5f4", "d2": "#3987e5",
              "d3": "#104281"}
-MAP_DARK = {"surface": "#15171b", "ink": "#ecebe7", "ink-2": "#a8a7a2", "line": "#33363c", "chip": "#1e2128",
+MAP_DARK = {"surface": "#15171b", "ink": "#ecebe7", "ink-2": "#c2c1bc", "line": "#33363c", "chip": "#1e2128",
             "shadow": "rgba(0,0,0,.5)", "d0": "#5a5955", "link": "#8fb0f0"}  # dark: scrim and on-scrim stay as in light
 # Index: cool paper and ink, one blue pen.
-INDEX_LIGHT = {"paper": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#5c5b57", "line": "#d9d6cc", "pen": "#1f4e9c", "wash": "#f1efe6"}
-INDEX_DARK = {"paper": "#15171b", "ink": "#ecebe7", "ink-2": "#a8a7a2", "line": "#33363c", "pen": "#8fb0f0", "wash": "#1e2128"}
+INDEX_LIGHT = {"paper": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#46453f", "line": "#d9d6cc", "pen": "#1f4e9c", "wash": "#f1efe6"}
+INDEX_DARK = {"paper": "#15171b", "ink": "#ecebe7", "ink-2": "#c2c1bc", "line": "#33363c", "pen": "#8fb0f0", "wash": "#1e2128"}
 
 
 def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx="", skip="#main", compact=False):
