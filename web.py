@@ -285,8 +285,8 @@ body.pick .acts{display:none}
 .sug a.more{min-height:36px;padding:8px 12px;color:var(--pen);font-size:var(--t-sm)}
 .country,#regions{margin-top:96px}
 .country h2,#regions>h2{font:600 1.5rem/1.2 "IBM Plex Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0 0 16px}
-.cg{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:0 48px}  /* title, text and link rows line up across the entries */
-.cg>div{position:relative;display:grid;grid-template-rows:subgrid;grid-row:span 3;border-top:2px solid var(--ink);padding:12px 0 28px}
+.cg{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:0 48px;align-items:start}
+.cg>div{position:relative;border-top:2px solid var(--ink);padding:12px 0 28px}
 .cg .main h3{font-size:var(--t-xl)}
 .cg .main h3 a{text-decoration:none}
 .cg .main h3 a::after{content:"";position:absolute;inset:0}  /* whole card is the link */
@@ -294,11 +294,11 @@ body.pick .acts{display:none}
 .cg h3 span{display:inline-block;transition:transform .15s}
 .fold summary::before{content:"+";display:inline-block;width:1.25em;font-size:var(--t-lg);line-height:1;transition:transform .15s}
 .fold[open]>summary::before{transform:rotate(45deg)}
-.cov{margin-top:8px;max-width:65ch}
 @media (prefers-reduced-motion:reduce){.cg h3 span,.fold summary::before{transition:none}}
-.cg h3{font:600 1.125rem/1.25 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 6px}
+.cg h3{font:600 1.25rem/1.25 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 6px}
 .cg h3 a{color:var(--ink);text-underline-offset:4px}
 .cg p{color:var(--ink-2);margin:0 0 8px;font-size:var(--t-base)}
+.cg .els{font-size:var(--t-sm);margin:0}
 .cg ul{margin:0;padding:0;list-style:none}
 .cg li{padding:3px 0}
 .jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;flex-wrap:wrap;
@@ -533,14 +533,14 @@ def _write_index(order, nikh, elected):
 {greece}
 </header>
 <section class="country" aria-labelledby="ct"><h2 id="ct">Χάρτες και εργαλεία για όλη τη χώρα</h2><div class="cg">
-<div class="main"><h3><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p></div>
+<div class="main"><h3><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p><p class="els">{" · ".join(ELECTION_NAMES.values())}</p></div>
 <div id="tm"><h3>Αναφορές και εξαγωγές</h3><p>Αναλυτικές αναφορές ανά κόμμα και εκλογή, με δεδομένα για λήψη.</p>
-<details class="fold"><summary>Όλες οι αναφορές ({nikh_n + 4})</summary><ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
-<li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></li>
+<ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
 <li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>
-<li><a href="nikh_targets.html">Χάρτης στόχευσης: κάστρα, φθορά, δεξαμενές, έδρες</a></li>{nikh_rows}</ul></details></div>
-</div>
-<details class="fold cov" id="cov"><summary>Πόσο πλήρεις είναι οι χάρτες: κάλυψη ανά νομό και εκλογή</summary><ul>{coverage}</ul></details></section>
+<li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></li></ul>
+<details class="fold"><summary>Περισσότερες αναφορές ({nikh_n + 1})</summary><ul><li><a href="nikh_targets.html">Χάρτης στόχευσης: κάστρα, φθορά, δεξαμενές, έδρες</a></li>{nikh_rows}</ul></details></div>
+<div id="cov"><h3>Κάλυψη χαρτών</h3><p>Πόσοι ψήφοι αποδίδονται στον χάρτη, ανά νομό και εκλογή.</p><ul>{coverage}</ul></div>
+</div></section>
 <section id="regions" aria-labelledby="rt"><h2 id="rt">Εκλογικές περιφέρειες</h2>
 <div class="sw" role="group" aria-label="Άνοιγμα στην εκλογή" hidden><span class="swl">Άνοιγμα στην εκλογή</span>{switch}</div>
 <nav class="jump" aria-label="Περιφέρειες">{jump}<label class="rsel">Περιφέρεια <select></select></label></nav>
