@@ -520,7 +520,7 @@ def _write_index(order, nikh, elected):
 <!--HEADER-->
 <header>
 <h1>Χάρτες σταυρών</h1>
-<p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και εκλογικό τμήμα.</p>
+<p class="lede">Πού ψηφίστηκε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και εκλογικό τμήμα.</p>
 <div id="s" hidden><label class="fl" for="f">Αναζήτηση περιφέρειας</label>
 <div class="sf"><input id="f" type="search" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
 <ul id="sug" class="sug" role="listbox" aria-label="Προτάσεις" hidden></ul></div>
