@@ -49,6 +49,11 @@ for ep, cid in ((7, 8), (62, 2)):
     mine = sum(x.values())
     print(f"\n{name}, {ep_name}: {mine:,} σταυροί τον Μάιο 2023 = {100 * mine / tot[M][1]:.0f}% των ψήφων της ΝΙΚΗΣ")
     print("  ΝΙΚΗ στην περιφέρεια: " + ", ".join(f"{e} {100 * tot[e][1] / tot[e][0]:.2f}% ({tot[e][1]:,})" for e in (M, J, U)))
+    others = sorted((v for k, v in c.execute(
+        "SELECT p.cand_id, SUM(p.votes) FROM station s JOIN cand_votes p ON p.election=s.election AND p.tm_id=s.tm_id "
+        "AND p.party_id=? WHERE s.election=? AND s.ep_id=? AND s.kind='Κ' GROUP BY 1", (NIKH, M, ep)) if k != cid), reverse=True)
+    print(f"  Υπεροχή: {mine - others[0]:,} σταυροί πάνω από τον δεύτερο, {mine - round(np.mean(others)):,} πάνω από τον μέσο "
+          f"άλλο υποψήφιο ({len(others)} άλλοι· {(mine + sum(others)) / tot[M][1]:.2f} σταυροί ανά ψηφοδέλτιο ΝΙΚΗΣ)")
     print(f"  {'δημοτική ενότητα':<24}{'σταυροί':>8}{'ανά ψήφο':>10}{'Μάιος':>8}{'Ιούνιος':>9}{'Ευρ. 24':>9}")
     for k in sorted(x, key=lambda k: -x[k])[:8]:
         print(f"  {k[0][:23]:<24}{x[k]:>8,}{x[k] / unit[M][k][1]:>10.2f}" +
@@ -62,6 +67,10 @@ for ep, cid in ((7, 8), (62, 2)):
     pm, pj, pu = (np.array([100 * d[e][k][1] / d[e][k][0] for k in ks]) for e in (M, J, U))
     print(f"  {len(ks)} εκλογικά διαμερίσματα. Συσχέτιση του ποσοστού σταυρών του με: ΝΙΚΗ Μαΐου {wcorr(rate, pm, w):+.2f}, "
           f"μεταβολή Μάιος→Ιούνιος {wcorr(rate, pj - pm, w):+.2f}, Ιούνιος→Ευρωεκλογές {wcorr(rate, pu - pj, w):+.2f}")
+    n_may = np.array([d[M][k][1] for k in ks], float)
+    # local excess: crosses above his own constituency-wide rate, summed over districts where he beat it
+    excess = np.clip(rate - mine / tot[M][1], 0, None) * n_may
+    print(f"  Τοπική υπεροχή (σταυροί πάνω από τον μέσο ρυθμό του στην περιφέρεια): {excess.sum():,.0f}")
     top = rate >= np.quantile(rate, 0.75)
     for label, m in (("25% με τους περισσότερους σταυρούς του", top), ("υπόλοιπα", ~top)):
         print(f"    {label:<40} {np.average(rate[m], weights=w[m]):.2f} ανά ψήφο· ΝΙΚΗ "
