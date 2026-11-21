@@ -14,3 +14,5 @@ analysis/field_ops_plan.md
 # Rebuilt by analysis/venue_parties.py; ministry venue spreadsheets are downloaded inputs
 analysis/venue_parties/*.csv
 analysis/venues_xls/
+.vercel
+.env*
