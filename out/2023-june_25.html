@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-mP0eWBURRGQXqt+55tFPG6/WbuLGsYaZnTznF/tJojQ=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-1y2WzJFWiucyF0tnHFOsdJp23P1/V8wMphHDJ59RcBI=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-mP0eWBURRGQXqt+55tFPG6/WbuLGsYaZnTznF/tJojQ=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-wreIc8Fxualr9/7E16zUM3mWVYG0R+4atBfHKs806wY=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
@@ -161,6 +161,10 @@ button { cursor: pointer; }
 .mapwrap { position: relative; }
 .leaflet-container.muted .leaflet-tile-pane { filter: grayscale(1) contrast(.85) brightness(1.06); }
 :root[data-theme=dark] .leaflet-container.muted .leaflet-tile-pane { filter: grayscale(1) invert(1) contrast(.8) brightness(.7); }  /* dark base tiles, not a light slab under dark data */
+:root[data-theme=dark] .leaflet-bar a, :root[data-theme=dark] .leaflet-bar a:hover { background-color: var(--surface); color: var(--ink); border-color: var(--line); }
+:root[data-theme=dark] .leaflet-bar a.leaflet-disabled { color: var(--ink-2); }
+:root[data-theme=dark] .leaflet-container .leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 80%, transparent); color: var(--ink-2); }
+:root[data-theme=dark] .leaflet-control-attribution a { color: var(--link); }
 #map { height: 62vh; height: 62svh; min-height: 360px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); }
 .hint { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; z-index: 1000;
         background: var(--scrim); color: var(--on-scrim); font-weight: 600; border-radius: 8px; pointer-events: none;
