@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-w00zLdlIYeszF2bpzXVsYzYCFe151QeKN4H9XjuORiI=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-aT71NP3dD0sm15gBmUta7Gw2VWiSN2jU1caE1obfiVg=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-9jutQK9XpeAU/GEasR6Jq7p/29zY6bmkFTDiC09ThHs=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-K0hX+4y2nAdQHF4XVq4arjnrx5eA0RbKGWY6Q9SatIU=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ: χάρτης στόχευσης</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
@@ -144,6 +144,10 @@ h1{font-size:1.0625rem;margin:0 0 2px}
 .t .m{color:#55627a}
 .note{color:var(--ink-2);font-size:.71875rem;line-height:1.35;margin:2px 0 0}
 .rel{font-size:.78125rem;margin:4px 0 0}.rel a{color:var(--link)}
+.how{margin:4px 0 0;font-size:.78125rem}.how summary{cursor:pointer;color:var(--link);min-height:24px}
+.how div{max-height:45vh;overflow:auto;margin-top:6px;color:var(--ink-2);max-width:70ch}
+.how p{margin:0 0 6px}.how ul{list-style:none;margin:6px 0;padding:0}.how li{margin:4px 0}
+.how i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid #0002}
 @media (max-width:600px){
   #map{min-height:360px;min-height:max(360px,55svh)}
   h1{font-size:.9375rem}
@@ -165,6 +169,7 @@ h1{font-size:1.0625rem;margin:0 0 2px}
   <p class="sub" id="sub"></p>
   <p class="note" id="note"></p>
   <p class="rel">Δες και: <a href="nikh_2023-2024.html">χάρτης ανά εκλογικό διαμέρισμα, 2019–2024</a> · <a href="NIKH_eklegmenoi_2023.html">αναφορά Μαΐου–Ιουνίου</a></p>
+  <details class="how"><summary>Πώς διαβάζεται ο χάρτης</summary><div id="how"></div></details>
   <div class="tabs" id="tabs" role="group" aria-label="Προβολή"></div>
 </header>
 <div id="map" role="region" aria-label="Χάρτης"></div>
@@ -281,6 +286,11 @@ for (const [k, name] of Object.entries(VIEWS)) {
   b.textContent = name; b.dataset.k = k; b.onclick = () => setView(k);
   document.getElementById("tabs").append(b);
 }
+const total = D.summary.reduce((t, x) => t + x.votes, 0);
+document.getElementById("how").innerHTML =
+  "<p>Κάθε κοινότητα ΕΛΣΤΑΤ παίρνει μία κατηγορία από το ποσοστό της ΝΙΚΗΣ τον Ιούνιο 2023 και στις ευρωεκλογές 2024. Το ποσοστό δίπλα σε κάθε κατηγορία είναι το μερίδιο των ψήφων της ΝΙΚΗΣ (Ιούνιος 2023) που βρίσκονταν σε κοινότητες αυτής της κατηγορίας.</p><ul>" +
+  CLASSES.map(([name, c, rule], k) => `<li><i style="background:${c}"></i><b>${name}</b> ${Math.round(100 * D.summary[k].votes / total)}%<br>${rule}</li>`).join("") +
+  "</ul><p>«Σε φθορά»: το ποσοστό στις ευρωεκλογές ήταν χαμηλότερο, έστω και κατά 0,1 μονάδα· το μέγεθος της πτώσης φαίνεται στην προβολή «Μεταβολή». Περιοχές με λιγότερους από 50 έγκυρους ψήφους είναι αχνές.</p>";
 setView(current);
 let fitted = false;
 const fitOnce = () => {
