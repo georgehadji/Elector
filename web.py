@@ -34,7 +34,7 @@ from matching import ep_label
 THEME_BTN = ('<button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true">'
              '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button>')
 FONTS = "".join(f'<link rel="preload" href="fonts/{f}.woff2" as="font" type="font/woff2" crossorigin>'
-                for f in ("fira-sans-400-greek", "fira-sans-400-latin", "gfs-didot-400-greek"))  # the @font-face rules are in fonts.css
+                for f in ("ibm-plex-sans-greek", "ibm-plex-sans-latin"))  # the @font-face rules are in fonts.css
 MARK = ('<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
         '<path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>')
 NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"), ("party", "index.html#party", "Ανά κόμμα"))
@@ -187,40 +187,40 @@ INDEX_CSS = """
 *{box-sizing:border-box}
 html{scrollbar-gutter:stable}
 :root{accent-color:var(--pen)}
-body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 "Fira Sans",system-ui,sans-serif}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 "IBM Plex Sans",system-ui,sans-serif}
 main{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
 a{color:var(--pen)}
 :focus-visible{outline:2px solid var(--pen);outline-offset:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-h1{font:400 clamp(2.75rem,9vw,5.25rem)/1 "GFS Didot",Georgia,serif;letter-spacing:-.01em;margin:0}
+h1{font:600 clamp(2.5rem,8vw,4.5rem)/1.05 "IBM Plex Sans",system-ui,sans-serif;letter-spacing:-.025em;margin:0}
 :root{--xm:polygon(14% 0,50% 36%,86% 0,100% 14%,64% 50%,100% 86%,86% 100%,50% 64%,14% 100%,0 86%,36% 50%,0 14%)}
 /* the cross marks what is chosen: the open election, the open region, the leading candidate of a row */
 :is(.sw button[aria-pressed=true],.jump a[aria-current],.eps .who b)::before{content:"";display:inline-block;width:.6em;height:.6em;margin-right:.35em;background:currentColor;clip-path:var(--xm)}
-.lede{max-width:34em;margin:16px 0 28px;color:var(--ink-2);font-size:1.125rem}
-.fl{display:block;margin:0 0 6px;font-size:.875rem;font-weight:600;color:var(--ink)}
-#f{width:100%;max-width:560px;min-height:48px;font:inherit;font-size:1.1875rem;color:var(--ink);background:var(--paper) no-repeat 14px 50% / 20px;
+.lede{max-width:34em;margin:16px 0 28px;color:var(--ink-2);font-size:var(--t-lg)}
+.fl{display:block;margin:0 0 6px;font-size:var(--t-sm);font-weight:600;color:var(--ink)}
+#f{width:100%;max-width:560px;min-height:48px;font:inherit;font-size:var(--t-lg);color:var(--ink);background:var(--paper) no-repeat 14px 50% / 20px;
    border:1.5px solid var(--ink-2);border-radius:8px;padding:10px 14px 10px 46px}
-.try{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:12px 0 0;font-size:.875rem;color:var(--ink-2)}
+.try{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:12px 0 0;font-size:var(--t-sm);color:var(--ink-2)}
 .try button{font:inherit;color:var(--pen);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
 .try button:hover{border-color:var(--pen);background:var(--wash)}
 .try .brw{margin-left:6px;color:var(--ink-2)}
 #f::placeholder{color:var(--ink-2)}
 #f:focus-visible{outline:2px solid var(--pen);outline-offset:2px;border-color:var(--pen)}
-#n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:.875rem}
+#n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:var(--t-sm)}
 /* Ledger: one row per constituency; the columns are shared by every row (subgrid) and by the .lh caption */
 .lh,.eps{display:grid;grid-template-columns:44px minmax(0,1.3fr) minmax(0,1.1fr) 5.5rem;column-gap:20px}
-.lh{margin:20px 0 0;padding-bottom:6px;font-size:.8125rem;color:var(--ink-2)}
+.lh{margin:20px 0 0;padding-bottom:6px;font-size:var(--t-xs);color:var(--ink-2)}
 .lh :nth-child(1){grid-column:2}.lh :nth-child(2){grid-column:3}.lh :nth-child(3){grid-column:4;text-align:right}
 .eps{list-style:none;margin:0;padding:0}
 .eps li{grid-column:1/-1;display:grid;grid-template-columns:subgrid;align-items:center;position:relative;border-top:1px solid var(--line);padding:12px 0;overflow-wrap:anywhere}
 .eps li:hover{background:var(--wash)}
-.eps h4{grid-column:2;grid-row:1;font:400 1.4375rem/1.2 "GFS Didot",Georgia,serif;margin:0}
+.eps h4{grid-column:2;grid-row:1;font:600 1.25rem/1.25 "IBM Plex Sans",system-ui,sans-serif;margin:0}
 .eps h4 a{color:var(--ink);text-decoration:none}
 .eps h4 a:hover{text-decoration:underline;text-underline-offset:4px}
 .eps h4 a::after{content:"";position:absolute;inset:0}  /* the whole row opens the map */
-.top{display:contents;font-size:.875rem;color:var(--ink-2);line-height:1.4}
-.who{grid-column:3;grid-row:1;font-size:.875rem;color:var(--ink-2);line-height:1.4}
-.vt{grid-column:4;grid-row:1;font-size:.875rem;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+.top{display:contents;font-size:var(--t-sm);color:var(--ink-2);line-height:1.4}
+.who{grid-column:3;grid-row:1;font-size:var(--t-sm);color:var(--ink-2);line-height:1.4}
+.vt{grid-column:4;grid-row:1;font-size:var(--t-sm);color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
 .top b{color:var(--ink);font-weight:600}
 .country a:active,.eps li a:active,.older summary:active,.fold summary:active{background:var(--wash)}
 .older[open]>:not(summary),.fold[open]>:not(summary){animation:fade .15s ease-out}
@@ -228,12 +228,12 @@ h1{font:400 clamp(2.75rem,9vw,5.25rem)/1 "GFS Didot",Georgia,serif;letter-spacin
 @media (prefers-reduced-motion:reduce){.older[open]>:not(summary),.fold[open]>:not(summary){animation:none}}
 .acts{grid-column:2/-1;grid-row:3;position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:0 14px;margin-top:6px}  /* every election, until the switcher takes over */
 body.pick .acts{display:none}
-.older summary,.fold summary{display:flex;align-items:center;min-height:32px;cursor:pointer;color:var(--ink-2);font-size:.875rem}
+.older summary,.fold summary{display:flex;align-items:center;min-height:32px;cursor:pointer;color:var(--ink-2);font-size:var(--t-sm)}
 .older[open]{flex:1 1 100%}
 .older[open] summary{margin-bottom:4px}
 .dhm{margin:4px 0 0}
 .el{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0}
-.el a{display:inline-flex;align-items:center;min-height:32px;color:var(--ink-2);font-size:.875rem;white-space:nowrap;
+.el a{display:inline-flex;align-items:center;min-height:32px;color:var(--ink-2);font-size:var(--t-sm);white-space:nowrap;
       text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .el a:hover{color:var(--pen);text-decoration-color:var(--pen)}
 .el a.now{padding:0 12px;border:1px solid var(--pen);border-radius:16px;color:var(--pen);background:var(--wash);
@@ -243,14 +243,14 @@ body.pick .acts{display:none}
 .sil path{fill:currentColor;fill-opacity:.22;stroke:currentColor;stroke-width:1;stroke-linejoin:round}
 .reg{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0}  /* the selected tab names the region; this stays as the heading and the scroll target */
 .grp:not(:has(li:not([hidden]))){display:none}  /* a region head goes with its cards */
-.key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
+.key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:var(--t-sm);color:var(--ink-2)}
 .gr{margin:20px 0 0;max-width:380px}
 .gr a:first-child{display:block;border-radius:8px}
 .gr a:first-child:hover svg{opacity:.88}
 .gr .go{display:inline-flex;align-items:center;min-height:36px;margin:8px 0 0;padding:0 14px;border:1px solid var(--pen);border-radius:16px;background:var(--wash);color:var(--pen);text-decoration:none;font-weight:600}
 .gr .go:hover{background:var(--pen);color:var(--paper)}
 .gr svg{display:block;width:100%;height:auto;max-height:260px}
-.gr figcaption{margin:6px 0 0;font-size:.8125rem;color:var(--ink-2)}
+.gr figcaption{margin:6px 0 0;font-size:var(--t-xs);color:var(--ink-2)}
 .gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
 .gr .k{display:inline-flex;align-items:center;white-space:nowrap}
 .gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink-2) 75%,var(--paper))}
@@ -261,16 +261,16 @@ body.pick .acts{display:none}
   .gr{grid-column:2;grid-row:1/span 5;align-self:center;margin:0;max-width:none}
   .gr svg{max-height:min(68svh,640px);margin:0 auto}
 }
-.dhm{margin:0 0 8px;color:var(--ink-2);font-size:.8125rem;line-height:1.45}
+.dhm{margin:0 0 8px;color:var(--ink-2);font-size:var(--t-xs);line-height:1.45}
 .eps .dhm{grid-column:2/-1;grid-row:2;margin:4px 0 0;position:relative}
-.sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
+.sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:20px 0 0;font-size:var(--t-sm);color:var(--ink-2)}
 .sw[hidden]{display:none}
 .sw .swl{margin-right:6px}
 .sw button{font:inherit;color:var(--ink-2);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
 .sw button:hover{color:var(--pen)}
 .sw button:active{background:var(--wash)}
 .sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
-.cap{margin:24px 0 0;max-width:34em;font-size:.875rem;color:var(--ink-2)}
+.cap{margin:24px 0 0;max-width:34em;font-size:var(--t-sm);color:var(--ink-2)}
 .cap b{color:var(--ink);font-weight:600}
 .nb{white-space:nowrap}
 .sf{position:relative;max-width:560px}
@@ -278,36 +278,36 @@ body.pick .acts{display:none}
 .sug{position:absolute;left:0;right:0;top:100%;z-index:20;list-style:none;margin:4px 0 0;padding:4px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 18%,transparent)}
 .sug[hidden]{display:none}
 .sug a{display:grid;gap:1px;padding:10px 12px;min-height:44px;color:var(--ink);text-decoration:none;border-radius:6px}
-.sug a b{font:400 1.25rem/1.2 "GFS Didot",Georgia,serif}
-.sug a span{color:var(--ink-2);font-size:.875rem}
+.sug a b{font:600 1.0625rem/1.25 "IBM Plex Sans",system-ui,sans-serif}
+.sug a span{color:var(--ink-2);font-size:var(--t-sm)}
 .sug a.act,.sug a:hover{background:var(--wash)}
-.sug a.more{min-height:36px;padding:8px 12px;color:var(--pen);font-size:.875rem}
+.sug a.more{min-height:36px;padding:8px 12px;color:var(--pen);font-size:var(--t-sm)}
 .country,#regions{margin-top:96px}
-.country h2,#regions>h2{font:400 1.75rem/1.2 "GFS Didot",Georgia,serif;margin:0 0 16px}
+.country h2,#regions>h2{font:600 1.5rem/1.2 "IBM Plex Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0 0 16px}
 .cg{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:0 48px}  /* title, text and link rows line up across the entries */
 .cg>div{position:relative;display:grid;grid-template-rows:subgrid;grid-row:span 3;border-top:2px solid var(--ink);padding:12px 0 28px}
-.cg .main h3{font-size:1.75rem}
+.cg .main h3{font-size:var(--t-xl)}
 .cg .main h3 a{text-decoration:none}
 .cg .main h3 a::after{content:"";position:absolute;inset:0}  /* whole card is the link */
 .cg .main:hover h3 span{transform:translateX(4px)}
 .cg h3 span{display:inline-block;transition:transform .15s}
-.fold summary::before{content:"+";display:inline-block;width:1.25em;font-size:1.125rem;line-height:1;transition:transform .15s}
+.fold summary::before{content:"+";display:inline-block;width:1.25em;font-size:var(--t-lg);line-height:1;transition:transform .15s}
 .fold[open]>summary::before{transform:rotate(45deg)}
 .cov{margin-top:8px;max-width:65ch}
 @media (prefers-reduced-motion:reduce){.cg h3 span,.fold summary::before{transition:none}}
-.cg h3{font:400 1.25rem/1.25 "GFS Didot",Georgia,serif;margin:0 0 6px}
+.cg h3{font:600 1.125rem/1.25 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 6px}
 .cg h3 a{color:var(--ink);text-underline-offset:4px}
-.cg p{color:var(--ink-2);margin:0 0 8px;font-size:.9375rem}
+.cg p{color:var(--ink-2);margin:0 0 8px;font-size:var(--t-base)}
 .cg ul{margin:0;padding:0;list-style:none}
 .cg li{padding:3px 0}
 .jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;overflow-x:auto;white-space:nowrap;
-      scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:.875rem}
+      scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:var(--t-sm)}
 .jump a{color:var(--ink-2);text-decoration:none}
 .jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .jump a[aria-current]{color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
 body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* one region at a time; a search looks in all */
 .rsel{display:none;align-items:center;gap:10px;width:100%;color:var(--ink-2)}
-.rsel select{flex:1;min-width:0;min-height:44px;font:inherit;font-size:1rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:0 10px}
+.rsel select{flex:1;min-width:0;min-height:44px;font:inherit;font-size:var(--t-base);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:0 10px}
 .rsel select:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
 @media (max-width:639px){body.tabs .jump a{display:none}body.tabs .rsel{display:flex}.jump{overflow:visible}}  /* phones: one native select instead of a 13-tab row */
 .eps li{scroll-margin-top:64px}
@@ -324,12 +324,12 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
   .sil{grid-row:1/3;align-self:start}
   .eps h4{grid-row:1}
   .top{display:block;grid-column:2;grid-row:2;margin:2px 0 0}
-  .who,.vt{display:inline;font-size:.8125rem}
+  .who,.vt{display:inline;font-size:var(--t-xs)}
   .vt::before{content:" · "}
   .eps .dhm{grid-row:3}
   .acts{grid-row:4}
 }
-@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.cap{margin-top:16px}}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:var(--t-base);margin-bottom:20px}#f{font-size:var(--t-base)}.cap{margin-top:16px}}
 @media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
