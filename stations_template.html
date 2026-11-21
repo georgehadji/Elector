@@ -47,11 +47,11 @@
   <div class="stats" id="stats"></div>
   <div class="legend" id="legend"></div>
   <h2>Ανά εκλογικό κατάστημα</h2>
-  <div class="tablewrap"><table id="tbl"></table></div>
+  <div class="tablewrap" role="region" aria-label="Πίνακας εκλογικών καταστημάτων" tabindex="0"><table id="tbl" aria-label="Πίνακας εκλογικών καταστημάτων"></table></div>
   <p class="note" id="note"></p>
   <section id="detail">
     <h2>Αναλυτικά ανά εκλογικό τμήμα</h2>
-    <table id="dtbl"></table>
+    <table id="dtbl" aria-label="Αναλυτικά ανά εκλογικό τμήμα"></table>
   </section>
 <!--FOOTER-->
 </main>
@@ -139,8 +139,8 @@ function render() {
 
   const tbl = $("tbl");
   tbl.innerHTML =
-    `<thead><tr><th>Κατάστημα</th><th>Δημ. ενότητα</th><th>Τμήματα</th><th class="n">${T.num}</th><th class="n">${T.den}</th>` +
-    `<th class="n">%</th><th class="n">Απόκλιση</th></tr></thead><tbody>` +
+    `<thead><tr><th scope="col">Κατάστημα</th><th scope="col">Δημ. ενότητα</th><th scope="col">Τμήματα</th><th scope="col" class="n">${T.num}</th><th scope="col" class="n">${T.den}</th>` +
+    `<th scope="col" class="n">%</th><th scope="col" class="n">Απόκλιση</th></tr></thead><tbody>` +
     all.map((v, i) => {
       const r = mean ? share(v) / mean : 0;
       return `<tr data-i="${i}"><td>${v.lat ? `<button type="button" class="rowlink" data-i="${i}">${v.name}</button>` : `${v.name} <span class="m">(εκτός χάρτη)</span>`}</td>` +
@@ -172,8 +172,8 @@ $("note").textContent =
 
 // Per-station table for the PDF, by station number; independent of the colour metric.
 $("dtbl").innerHTML =
-  `<thead><tr><th>Τμ.</th><th>Εκλ. διαμέρισμα</th><th>Κατάστημα</th>` +
-  `<th class="n">${T.num}</th><th class="n">${T.den}</th><th class="n">%</th><th class="n">${T.rank}</th>` +
+  `<thead><tr><th scope="col">Τμ.</th><th scope="col">Εκλ. διαμέρισμα</th><th scope="col">Κατάστημα</th>` +
+  `<th scope="col" class="n">${T.num}</th><th scope="col" class="n">${T.den}</th><th scope="col" class="n">%</th><th scope="col" class="n">${T.rank}</th>` +
   (D.mode === "party" ? `<th>Πρώτος σε σταυρούς</th>` : "") + `</tr></thead><tbody>` +
   all.flatMap(v => v.st.map(x => ({x, v}))).sort((a, b) => a.x[0] - b.x[0]).map(({x, v}) =>
     `<tr><td>${x[0]}</td><td>${x[1].replace(/^\d*\s*Ε\.Δ\.\s*/, "")}</td><td>${v.name}</td>` +
