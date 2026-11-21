@@ -65,17 +65,6 @@ PARTY_SHORT = {2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΠΑΣΟΚ-ΚΙΝΑΛ", 3: "�
                123: "Πλεύση Ελευθερίας", 131: "ΝΙΚΗ", 157: "Σπαρτιάτες", 41: "Χρυσή Αυγή", 158: "Φωνή Λογικής",
                15: "Ένωση Κεντρώων", 28: "Οικολόγοι Πράσινοι", 100: "Λαϊκή Ενότητα", 113: "Ελλήνων Συνέλευσις"}
 
-PARTY_ARTIFACTS = [  # published static map pages, one per party (June share + May top crosses)
-    ("ΝΔ", "https://claude.ai/artifact/AA8ahMFs93axFWPMqjE89K"),
-    ("ΣΥΡΙΖΑ", "https://claude.ai/artifact/6T4E54QLvdcgcEoarXMzQ3"),
-    ("ΠΑΣΟΚ-ΚΙΝΑΛ", "https://claude.ai/artifact/H55tMGJdo7mGiVpks9veRT"),
-    ("ΚΚΕ", "https://claude.ai/artifact/7QEvCY57DX38fXR3RKMcw3"),
-    ("Σπαρτιάτες", "https://claude.ai/artifact/U9ZYzdXc5TAx3c4NZ5pWoE"),
-    ("Ελληνική Λύση", "https://claude.ai/artifact/9FCakTKkFzEJp4jTPbaKkR"),
-    ("ΝΙΚΗ", "https://claude.ai/artifact/DkDUaRmft4CLwX5uToXgSM"),
-    ("Πλεύση Ελευθερίας", "https://claude.ai/artifact/9YkgFraGBABMQtheiVBUMQ"),
-]
-
 # Administrative regions (περιφέρειες) north to south, with the constituency ids (ep_id) of each: the index groups by them.
 REGIONS = [
     ("Ανατολική Μακεδονία και Θράκη", [1, 2, 3, 4, 5]),
