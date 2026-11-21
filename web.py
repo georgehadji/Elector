@@ -284,8 +284,17 @@ body.pick .acts{display:none}
 .sug a.more{min-height:36px;padding:8px 12px;color:var(--pen);font-size:.875rem}
 .country,#regions{margin-top:96px}
 .country h2,#regions>h2{font:400 1.75rem/1.2 "GFS Didot",Georgia,serif;margin:0 0 16px}
-.cg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 36px}  /* title, text and link rows line up across the four entries */
-.cg>div{display:grid;grid-template-rows:subgrid;grid-row:span 3;border-top:2px solid var(--ink);padding:12px 0 28px}
+.cg{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:0 48px}  /* title, text and link rows line up across the entries */
+.cg>div{position:relative;display:grid;grid-template-rows:subgrid;grid-row:span 3;border-top:2px solid var(--ink);padding:12px 0 28px}
+.cg .main h3{font-size:1.75rem}
+.cg .main h3 a{text-decoration:none}
+.cg .main h3 a::after{content:"";position:absolute;inset:0}  /* whole card is the link */
+.cg .main:hover h3 span{transform:translateX(4px)}
+.cg h3 span{display:inline-block;transition:transform .15s}
+.fold summary::before{content:"+";display:inline-block;width:1.25em;font-size:1.125rem;line-height:1;transition:transform .15s}
+.fold[open]>summary::before{transform:rotate(45deg)}
+.cov{margin-top:8px;max-width:65ch}
+@media (prefers-reduced-motion:reduce){.cg h3 span,.fold summary::before{transition:none}}
 .cg h3{font:400 1.25rem/1.25 "GFS Didot",Georgia,serif;margin:0 0 6px}
 .cg h3 a{color:var(--ink);text-underline-offset:4px}
 .cg p{color:var(--ink-2);margin:0 0 8px;font-size:.9375rem}
@@ -306,7 +315,7 @@ body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* 
 body:has(#f:not(:placeholder-shown)) :is(.country,.jump){display:none}  /* results start right under the search */
 body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
-@media (max-width:1023px){.cg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1023px){.cg{grid-template-columns:repeat(2,minmax(0,1fr))}.cg .main{grid-column:1/-1}}
 @media (max-width:639px){.cg{grid-template-columns:1fr}.country,#regions{margin-top:64px}}
 @media (max-width:759px){
   .lh{display:none}
@@ -520,15 +529,15 @@ def _write_index(order, nikh, elected):
 <p class="cap">{nums}</p>
 {greece}
 </header>
-<section class="country" aria-labelledby="ct"><h2 id="ct">Όλη η χώρα</h2><div class="cg">
-<div><h3><a href="compare.html">Σύγκριση εκλογών</a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p></div>
+<section class="country" aria-labelledby="ct"><h2 id="ct">Χάρτες και εργαλεία για όλη τη χώρα</h2><div class="cg">
+<div class="main"><h3><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p></div>
 <div id="party"><h3>Χάρτες ανά κόμμα</h3><p>Ένας χάρτης για κάθε κόμμα.</p><details class="fold"><summary>Όλα τα κόμματα ({len(PARTY_ARTIFACTS)})</summary><ul>{artifacts}</ul></details></div>
-<div id="tm"><h3>Ανά εκλογικό κατάστημα</h3><p>ΝΙΚΗ: οι 9 περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο του 2023.</p>
-<details class="fold"><summary>Αναφορές και χάρτες ({nikh_n + 3})</summary><ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
+<div id="tm"><h3>Αναφορές και εξαγωγές</h3><p>Αναλυτικές αναφορές ανά κόμμα και εκλογή, με δεδομένα για λήψη.</p>
+<details class="fold"><summary>Όλες οι αναφορές ({nikh_n + 3})</summary><ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
 <li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></li>
 <li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>{nikh_rows}</ul></details></div>
-<div id="cov"><h3>Κάλυψη ανά νομό</h3><p>Πόσοι σταυροί και ψήφοι φαίνονται στους χάρτες κάθε εκλογής.</p><details class="fold"><summary>Ανά εκλογή</summary><ul>{coverage}</ul></details></div>
-</div></section>
+</div>
+<details class="fold cov" id="cov"><summary>Πόσο πλήρεις είναι οι χάρτες: κάλυψη ανά νομό και εκλογή</summary><ul>{coverage}</ul></details></section>
 <section id="regions" aria-labelledby="rt"><h2 id="rt">Εκλογικές περιφέρειες</h2>
 <div class="sw" role="group" aria-label="Άνοιγμα στην εκλογή" hidden><span class="swl">Άνοιγμα στην εκλογή</span>{switch}</div>
 <nav class="jump" aria-label="Περιφέρειες">{jump}<label class="rsel">Περιφέρεια <select></select></label></nav>
