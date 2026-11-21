@@ -30,7 +30,7 @@ Election keys: `2019`, `2023/may`, `2023/june`, `2024/euro`, all defined once in
 **Pipeline:** `fetch.py` → SQLite (`data/stavroi.sqlite`, git-ignored, ~150 MB) → `build.py` / `stations_map.py` → `out/*.html`; `build.py` also writes `area_match`, which `compare.py` and `analysis/nikh_map.py` read for the nationwide pages.
 
 **Modules** (no cycles: config ← matching ← web ← build ← compare/stations_map/nikh_report):
-- **config.py**: paths, `ELECTIONS`, `source()` (results site per election), the SQLite `SCHEMA`, `PARTY_SHORT` (by party id; ids are stable across elections), `PARTY_ARTIFACTS`, `ELECTED`. New elections and parties go here.
+- **config.py**: paths, `ELECTIONS`, `source()` (results site per election), the SQLite `SCHEMA`, `PARTY_SHORT` (by party id; ids are stable across elections), `ELECTED`. New elections and parties go here.
 - **matching.py**: name matching and `boundaries()` (ELSTAT files, loaded once per process via `functools.cache`). `match_areas()` returns `{(den, ekd): community code}` for one constituency.
 - **geo.py**: stdlib geometry for build-time SVG (Douglas-Peucker, union outline by cancelling shared edges). `build.py` stores each constituency's silhouette in `maps.json` (`sil`); `compare.py` writes `out/greece_map.html` (first party per community) that the index embeds, so run `compare.py` before `build.py index`. `config.REGIONS` groups the index cards.
 - **shared.js**: pure helpers every page inlines through `fill()` (`/*SHARED_JS*/`): search folding (`fold`, `key`, `hits`, `queryWords`), `binLabel` (one legend wording) and `mapOptions` (reduced motion). `theme.js` defaults to light whatever the system says; the toggle flips light and dark and only "dark" is remembered.

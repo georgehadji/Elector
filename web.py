@@ -22,7 +22,6 @@ from config import (
     ELECTIONS,
     HERE,
     OUT,
-    PARTY_ARTIFACTS,
     PARTY_SHORT,
     REGIONS,
     slug,
@@ -37,7 +36,7 @@ FONTS = "".join(f'<link rel="preload" href="fonts/{f}.woff2" as="font" type="fon
                 for f in ("ibm-plex-sans-greek", "ibm-plex-sans-latin"))  # the @font-face rules are in fonts.css
 MARK = ('<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
         '<path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>')
-NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"), ("party", "index.html#party", "Ανά κόμμα"))
+NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"))
 MONTHS = ("Ιανουαρίου", "Φεβρουαρίου", "Μαρτίου", "Απριλίου", "Μαΐου", "Ιουνίου",
           "Ιουλίου", "Αυγούστου", "Σεπτεμβρίου", "Οκτωβρίου", "Νοεμβρίου", "Δεκεμβρίου")
 
@@ -66,7 +65,6 @@ def footer(note="", home=True, compact=False):
             '<li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li></ul></div>'
             f'<div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα.{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div>'
             '<div><h3>Χάρτες</h3><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li>'
-            '<li><a href="index.html#party">Ανά κόμμα</a></li>'
             '<li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div></div>'
             f'<p class="built">Ενημέρωση: {today.day} {MONTHS[today.month - 1]} {today.year}{MARK}</p></footer>')
 
@@ -287,7 +285,7 @@ body.pick .acts{display:none}
 .sug a.more{min-height:36px;padding:8px 12px;color:var(--pen);font-size:var(--t-sm)}
 .country,#regions{margin-top:96px}
 .country h2,#regions>h2{font:600 1.5rem/1.2 "IBM Plex Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0 0 16px}
-.cg{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:0 48px}  /* title, text and link rows line up across the entries */
+.cg{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:0 48px}  /* title, text and link rows line up across the entries */
 .cg>div{position:relative;display:grid;grid-template-rows:subgrid;grid-row:span 3;border-top:2px solid var(--ink);padding:12px 0 28px}
 .cg .main h3{font-size:var(--t-xl)}
 .cg .main h3 a{text-decoration:none}
@@ -506,7 +504,6 @@ def _write_index(order, nikh, elected):
     coverage = "".join(
         f'<li><a href="index_{e.replace("/", "-")}.html">{name}</a></li>' for e, name in reversed(ELECTION_NAMES.items())
         if (OUT / f'index_{e.replace("/", "-")}.html').exists())
-    artifacts = "".join(f'<li><a href="{u}" rel="noopener">{html.escape(n)}</a></li>' for n, u in PARTY_ARTIFACTS)
     last = list(ELECTIONS)[-1]
     n_tm = None
     if DB.exists():
@@ -537,11 +534,11 @@ def _write_index(order, nikh, elected):
 </header>
 <section class="country" aria-labelledby="ct"><h2 id="ct">Χάρτες και εργαλεία για όλη τη χώρα</h2><div class="cg">
 <div class="main"><h3><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p></div>
-<div id="party"><h3>Χάρτες ανά κόμμα</h3><p>Ένας χάρτης για κάθε κόμμα.</p><details class="fold"><summary>Όλα τα κόμματα ({len(PARTY_ARTIFACTS)})</summary><ul>{artifacts}</ul></details></div>
 <div id="tm"><h3>Αναφορές και εξαγωγές</h3><p>Αναλυτικές αναφορές ανά κόμμα και εκλογή, με δεδομένα για λήψη.</p>
-<details class="fold"><summary>Όλες οι αναφορές ({nikh_n + 3})</summary><ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
+<details class="fold"><summary>Όλες οι αναφορές ({nikh_n + 4})</summary><ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
 <li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></li>
-<li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>{nikh_rows}</ul></details></div>
+<li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>
+<li><a href="nikh_targets.html">Χάρτης στόχευσης: κάστρα, φθορά, δεξαμενές, έδρες</a></li>{nikh_rows}</ul></details></div>
 </div>
 <details class="fold cov" id="cov"><summary>Πόσο πλήρεις είναι οι χάρτες: κάλυψη ανά νομό και εκλογή</summary><ul>{coverage}</ul></details></section>
 <section id="regions" aria-labelledby="rt"><h2 id="rt">Εκλογικές περιφέρειες</h2>

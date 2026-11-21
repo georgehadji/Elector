@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ΝΙΚΗ: χάρτης στόχευσης</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
+<!--FONTS-->
+<script>/*THEME_JS*/</script>
+<style>
+/*THEME_TOKENS*/
+/*SITE_CSS*/
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;min-height:100dvh}
+body{background:var(--paper);color:var(--ink);font:.875rem/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto auto 1fr auto}
+:root{accent-color:var(--pen)}
+.head{padding:10px 16px 8px;border-bottom:1px solid var(--line)}
+.site{margin:0;padding:6px 16px 8px}
+h1{font-size:1.0625rem;margin:0 0 2px}
+.sub{color:var(--ink-2);font-size:.78125rem;margin:0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tabs button{font:inherit;font-size:.8125rem;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:32px}
+.tabs button[aria-pressed="true"]{background:var(--on);color:var(--on-ink);border-color:var(--on)}
+#map{flex:1;min-height:220px}
+.legend{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:8px;font-size:.75rem;line-height:1.3;box-shadow:0 1px 4px #0003;max-width:260px}
+.legend b{display:block;margin-bottom:4px}
+.legend,.t{overflow-wrap:anywhere}
+.legend i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid #0002}
+.legend .s{color:var(--ink-2)}
+.leaflet-tooltip.t{font:.78125rem/1.4 system-ui,sans-serif}
+.t b{font-size:.8125rem}
+.t .m{color:#55627a}
+.note{color:var(--ink-2);font-size:.71875rem;line-height:1.35;margin:2px 0 0}
+@media (max-width:600px){
+  #map{min-height:360px;min-height:max(360px,55svh)}
+  h1{font-size:.9375rem}
+  .sub{font-size:.75rem}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:none}
+  .legend{font-size:.6875rem;padding:6px 8px;max-width:200px}
+  .legend i{width:11px;height:10px;margin-right:4px}
+  .site{padding:2px 16px 0;font-size:.6875rem;line-height:1.3}
+  .site p{margin:0}
+}
+</style>
+</head>
+<body>
+<!--HEADER-->
+<header class="head">
+  <h1>ΝΙΚΗ: χάρτης στόχευσης ανά κοινότητα</h1>
+  <p class="sub" id="sub"></p>
+  <p class="note" id="note"></p>
+  <div class="tabs" id="tabs" role="group" aria-label="Προβολή"></div>
+</header>
+<div id="map" role="region" aria-label="Χάρτης"></div>
+<!--FOOTER-->
+<script>
+const D = /*DATA*/null;
+const CLASSES = [
+  ["Κάστρο σε φθορά", "#b2182b", "ΝΙΚΗ ≥ 6% τον Ιούνιο 2023, αλλά πιο χαμηλά στις ευρωεκλογές"],
+  ["Κάστρο", "#542788", "ΝΙΚΗ ≥ 6% τον Ιούνιο 2023, ίδια ή πιο ψηλά στις ευρωεκλογές"],
+  ["Βάση σε φθορά", "#f4a582", "ΝΙΚΗ 3–6%, πιο χαμηλά στις ευρωεκλογές"],
+  ["Βάση", "#b2abd2", "ΝΙΚΗ 3–6%, ίδια ή πιο ψηλά στις ευρωεκλογές"],
+  ["Δεξαμενή", "#1b9e77", "ΝΙΚΗ < 3%, Ελλ. Λύση + Σπαρτιάτες ≥ 9% (περίπου ο εθνικός μέσος όρος)"],
+  ["Υπόλοιπα", "#e8e6e1", "ΝΙΚΗ < 3% και μικρή δεξαμενή, ή < 50 έγκυρα"],
+];
+const TIERS = [["Σίγουρη έδρα αν περάσει το 3%", "#542788"], ["Οριακή έδρα (4–5%)", "#b2abd2"], ["Χωρίς έδρα ως το 5%", "#e8e6e1"]];
+const POOL_BINS = [0, 6, 9, 12, 15, 18, 22], POOL_COLORS = ["#f7fcf5", "#d9f0d3", "#a6dba0", "#5aae61", "#1b7837", "#0f5a28", "#00441b"];
+const DBINS = [-Infinity, -2, -0.5, 0.5, 2, 4], DCOLORS = ["#b35806", "#fdb863", "#f2f0ee", "#b2abd2", "#8073ac", "#542788"];
+const VIEWS = {
+  target: "Στόχευση",
+  votes: "Ψήφοι ΝΙΚΗΣ (Ιούνιος 2023)",
+  pool: "Δεξαμενή Ελλ. Λύσης + Σπαρτιατών",
+  change: "Μεταβολή Ιούνιος → Ευρωεκλογές",
+  seats: "Έδρες",
+};
+const NOTE = "Ανεπίσημα αποτελέσματα ΥΠΕΣ· διαμερίσματα που δεν αντιστοιχίστηκαν σε κοινότητα ΕΛΣΤΑΤ λείπουν. " +
+  "Μόνο συγκεντρωτικά αποτελέσματα, κανένα προσωπικό στοιχείο. Η «δεξαμενή» είναι υπόθεση: δεν μετρά πόσοι ψηφοφόροι θα άλλαζαν κόμμα.";
+const NOTES = {
+  target: "Οι ευρωεκλογές είχαν πολύ χαμηλότερη συμμετοχή, που ανέβασε τα ποσοστά των μικρών κομμάτων (ΝΙΚΗ 3,7% → 4,4%). " +
+          "Όπου το ποσοστό έπεσε, η ΝΙΚΗ κράτησε λιγότερους ψηφοφόρους απ' όσους εξηγεί η συμμετοχή. ",
+  votes: "Εμβαδόν κύκλου ανάλογο με τις ψήφους της ΝΙΚΗΣ τον Ιούνιο 2023· για το όριο του 3% μετρά ο αριθμός, όχι το ποσοστό. ",
+  pool: "Ποσοστό Ελληνικής Λύσης + Σπαρτιατών τον Ιούνιο 2023, των κομμάτων πιο κοντά στη ΝΙΚΗ. ",
+  change: "Διαφορά ποσοστού της ΝΙΚΗΣ, ευρωεκλογές 2024 μείον Ιούνιος 2023, σε ποσοστιαίες μονάδες. Η χαμηλή συμμετοχή του 2024 ανεβάζει τα ποσοστά. ",
+  seats: "Προσομοίωση κατανομής εδρών (άρθρα 99–100, analysis/nikh_seats.py) με τη γεωγραφία του Ιουνίου 2023: " +
+         "σίγουρη = εκλέγει σε κάθε σενάριο 3,1–5%, οριακή = εκλέγει μόνο με 4–5%. Οι έδρες κρίνονται ανά εκλογική περιφέρεια. ",
+};
+const share = v => v && v[1] ? 100 * v[0] / v[1] : null;
+const bin = (p, bins, colors) => { let i = 0; while (i + 1 < bins.length && p >= bins[i + 1]) i++; return colors[i]; };
+const fmt = n => n.toLocaleString("el-GR");
+const pctf = p => p === null ? "—" : p.toLocaleString("el-GR", {minimumFractionDigits: 1, maximumFractionDigits: 1}) + "%";
+const signed = d => (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d).toLocaleString("el-GR", {minimumFractionDigits: 1, maximumFractionDigits: 1});
+
+let current = "target";
+const map = L.map("map", {preferCanvas: true, zoomSnap: 0.25}).setView([38.6, 23.8], 6.5);
+map.attributionControl.addAttribution("Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)");
+const FAINT = {weight: 0.3, color: "#888", fillColor: "#ccc", fillOpacity: 0.25};
+
+function style(f) {
+  const a = f.properties, s = share(a.j), op = a.j[1] < 50 ? 0.45 : 0.85;
+  if (current === "target") return {weight: 0.3, color: "#5553", fillColor: CLASSES[a.k][1], fillOpacity: a.k === 5 ? 0.5 : op};
+  if (current === "seats") return {weight: 0.3, color: "#5553", fillColor: TIERS[a.t][1], fillOpacity: 0.8};
+  if (current === "votes") return {weight: 0.2, color: "#5552", fillColor: "#e8e6e1", fillOpacity: 0.5};
+  if (current === "pool") return a.j[1] ? {weight: 0.3, color: "#5553", fillColor: bin(100 * a.p / a.j[1], POOL_BINS, POOL_COLORS), fillOpacity: op} : FAINT;
+  const e = share(a.e);
+  if (s === null || e === null) return FAINT;
+  return {weight: 0.3, color: "#5553", fillColor: bin(e - s, DBINS, DCOLORS), fillOpacity: Math.min(a.j[1], a.e[1]) < 50 ? 0.45 : 0.85};
+}
+function tip(f) {
+  const a = f.properties, row = (k, v) => `<tr><td>${k}</td><td style="text-align:right">${v}</td></tr>`;
+  const votes = v => v ? `${pctf(share(v))} <span class="m">(${fmt(v[0])})</span>` : "—";
+  const s = share(a.j), e = share(a.e);
+  return `<b>${a.n}</b><div class="m">${a.u} · ${a.ep}</div><table>` +
+    row("Κατηγορία", `<b>${CLASSES[a.k][0]}</b>`) +
+    row("ΝΙΚΗ Μάιος 2023", votes(a.m)) + row("ΝΙΚΗ Ιούνιος 2023", votes(a.j)) + row("ΝΙΚΗ Ευρωεκλογές 2024", votes(a.e)) +
+    (s !== null && e !== null ? row("Ιούνιος → Ευρωεκλογές", `${signed(e - s)} μον.`) : "") +
+    row("Ελλ. Λύση + Σπαρτιάτες (Ιούν.)", a.j[1] ? `${pctf(100 * a.p / a.j[1])} <span class="m">(${fmt(a.p)})</span>` : "—") +
+    row("Έγκυρα Ιουνίου", fmt(a.j[1])) + row("Περιφέρεια", TIERS[a.t][0]) + `</table>`;
+}
+const layer = L.geoJSON(D.geo, {style, onEachFeature: (f, l) => {
+  l.bindTooltip(() => tip(f), {sticky: true, className: "t"});
+  l.on("click", () => l.openTooltip());
+}}).addTo(map);
+// Circles for the votes view: area proportional to NIKH's June votes.
+const circles = L.layerGroup();
+layer.eachLayer(l => {
+  const v = l.feature.properties.j[0];
+  if (v < 20) return;
+  L.circleMarker(l.getBounds().getCenter(), {radius: 0.35 * Math.sqrt(v), weight: 0.6, color: "#3a1866", fillColor: "#6b3f9a", fillOpacity: 0.55, interactive: false}).addTo(circles);
+});
+
+const legend = L.control({position: "bottomright"});
+legend.onAdd = () => L.DomUtil.create("div", "legend");
+legend.addTo(map);
+const n = x => x.toLocaleString("el-GR");
+function drawLegend() {
+  const total = D.summary.reduce((t, s) => t + s.votes, 0);
+  const sw = (c, label, extra = "") => `<div><i style="background:${c}"></i>${label}${extra}</div>`;
+  const ranges = (bins, colors) => bins.map((b, i) => sw(colors[i], b === -Infinity ? `&lt; ${n(bins[1])}` : i + 1 < bins.length ? `${n(b)} έως ${n(bins[i + 1])}` : `≥ ${n(b)}`)).join("");
+  const html = {
+    target: "<b>Κατηγορία (ψήφοι ΝΙΚΗΣ Ιουν.)</b>" + CLASSES.map(([name, c], k) =>
+      sw(c, name, ` <span class="s">${Math.round(100 * D.summary[k].votes / total)}%</span>`)).join(""),
+    votes: `<b>Ψήφοι ΝΙΚΗΣ, Ιούνιος 2023</b><div class="s">κύκλοι: 100, 1.000, 5.000 ψήφοι ≈ ακτίνα ${[100, 1000, 5000].map(v => Math.round(0.35 * Math.sqrt(v))).join(", ")} px</div>`,
+    pool: "<b>Ελλ. Λύση + Σπαρτιάτες, % εγκύρων</b>" + ranges(POOL_BINS, POOL_COLORS),
+    change: "<b>Μεταβολή ΝΙΚΗΣ (μον.)</b>" + ranges(DBINS, DCOLORS),
+    seats: "<b>Εκλογική περιφέρεια</b>" + TIERS.map(([name, c]) => sw(c, name)).join(""),
+  }[current];
+  legend.getContainer().innerHTML = html + (current === "target" || current === "pool" || current === "change"
+    ? `<div class="s" style="margin-top:4px">αχνό: &lt; 50 έγκυρα</div>` : "");
+}
+function setView(k) {
+  current = k;
+  const s = D.summary, total = s.reduce((t, x) => t + x.votes, 0), pc = x => Math.round(100 * x / total) + "%";
+  document.getElementById("sub").textContent = k === "target"
+    ? `Το ${pc(s[0].votes + s[1].votes)} των ψήφων της ΝΙΚΗΣ (Ιούνιος 2023) ήταν σε κάστρα (≥ 6%) και το ${pc(s[2].votes + s[3].votes)} σε περιοχές βάσης (3–6%). ` +
+      `Σε φθορά από το 2023 στο 2024: ${pc(s[0].votes + s[2].votes)} των ψήφων της.`
+    : VIEWS[k] + ".";
+  document.getElementById("note").textContent = NOTES[k] + NOTE;
+  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
+  layer.setStyle(style);
+  if (k === "votes") circles.addTo(map); else circles.remove();
+  drawLegend();
+}
+for (const [k, name] of Object.entries(VIEWS)) {
+  const b = document.createElement("button");
+  b.textContent = name; b.dataset.k = k; b.onclick = () => setView(k);
+  document.getElementById("tabs").append(b);
+}
+setView(current);
+let fitted = false;
+const fitOnce = () => {
+  if (fitted || !map.getContainer().clientWidth) return;
+  fitted = true;
+  map.invalidateSize({animate: false});
+  map.fitBounds(layer.getBounds());
+};
+new ResizeObserver(fitOnce).observe(map.getContainer());
+document.addEventListener("visibilitychange", fitOnce);
+fitOnce();
+</script>
+</body>
+</html>
