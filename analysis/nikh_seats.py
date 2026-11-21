@@ -8,7 +8,8 @@ Rules implemented (June 2023 version: 285 constituency + 15 State seats):
   seats to the top qualifying party; 2-3 seat leftovers to the largest unused remainders, excess removed;
   then, from the smallest qualifying party up, one seat per constituency in descending order of its unused
   remainder until it reaches its national total; anything left is the first party's.
-Simplifications: candidate caps are ignored; ties are broken arbitrarily.
+- A party never gets more seats in a constituency than it has candidates there (art. 100 §5).
+Simplification: ties are broken arbitrarily.
 
   python -I -X utf8 analysis/nikh_seats.py data/stavroi.sqlite
 """
@@ -26,6 +27,9 @@ c = sqlite3.connect(sys.argv[1])
 seats = {e[0]: e[4] for e in statics(*source("2023/june"), "ep") if e[4] > 0}
 ep_name = dict(c.execute("SELECT ep_id, name FROM ep WHERE election='2023/june'"))
 assert sum(seats.values()) == 300 - STATE, sum(seats.values())
+cands = {}  # {(ep, party): candidates on the June 2023 constituency list}
+for ep, p, n in c.execute("SELECT ep_id, party_id, COUNT(*) FROM candidate WHERE election='2023/june' GROUP BY 1, 2"):
+    cands[ep, p] = n
 
 
 def ep_votes(e):
@@ -71,11 +75,11 @@ def allocate(ep_v):
     for ep, pv in ep_v.items():
         s = seats[ep]
         if s == 1:
-            won[ep][max(qual, key=lambda p: pv.get(p, 0))] = 1
+            won[ep][max((p for p in qual if cands.get((ep, p))), key=lambda p: pv.get(p, 0))] = 1
             continue
         q = sum(pv.values()) // s
         for p in qual:
-            won[ep][p] = pv.get(p, 0) // q
+            won[ep][p] = min(pv.get(p, 0) // q, cands.get((ep, p), 0))
         rem[ep] = {p: pv.get(p, 0) - won[ep][p] * q for p in qual}
 
     def free(ep):
@@ -84,18 +88,21 @@ def allocate(ep_v):
     def have(p):
         return sum(w[p] for w in won.values())
 
+    def room(ep, p):
+        return won[ep][p] < cands.get((ep, p), 0)
+
     for ep in rem:  # 2-3 seat constituencies: leftovers to the largest remainders
         if seats[ep] <= 3:
-            for p in sorted(qual, key=lambda p: -rem[ep][p])[:free(ep)]:
+            for p in sorted((p for p in qual if room(ep, p)), key=lambda p: -rem[ep][p])[:free(ep)]:
                 won[ep][p] += 1
     for p in qual:  # remove excess where the remainder is smallest, 3-seat before 2-seat
         while have(p) > target[p]:
-            cands = [ep for ep in rem if seats[ep] in (2, 3) and won[ep][p] > 0]
-            ep = min(cands, key=lambda ep: (-seats[ep], rem[ep][p]))
+            eps = [ep for ep in rem if seats[ep] in (2, 3) and won[ep][p] > 0]
+            ep = min(eps, key=lambda ep: (-seats[ep], rem[ep][p]))
             won[ep][p] -= 1
     for p in sorted(qual, key=qual.get):  # smallest party first
-        while have(p) < target[p] and any(free(ep) for ep in rem):
-            for ep in sorted((ep for ep in rem if free(ep)), key=lambda ep: -rem[ep][p]):
+        while have(p) < target[p] and any(free(ep) and room(ep, p) for ep in rem):
+            for ep in sorted((ep for ep in rem if free(ep) and room(ep, p)), key=lambda ep: -rem[ep][p]):
                 if have(p) >= target[p]:
                     break
                 won[ep][p] += 1
