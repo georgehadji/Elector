@@ -66,7 +66,7 @@ def footer(note="", home=True, compact=False):
             '<li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li></ul></div>'
             f'<div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα.{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div>'
             '<div><h3>Χάρτες</h3><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li>'
-            '<li><a href="index.html#party">Ανά κόμμα</a></li><li><a href="nikh_2023-2024.html">ΝΙΚΗ 2023–2024</a></li>'
+            '<li><a href="index.html#party">Ανά κόμμα</a></li>'
             '<li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div></div>'
             f'<p class="built">Ενημέρωση: {today.day} {MONTHS[today.month - 1]} {today.year}{MARK}</p></footer>')
 
