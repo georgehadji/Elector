@@ -6,6 +6,9 @@
 - Size bands: NIKH share in each election by community size (registered voters).
 - Stability: weighted correlations between May 2023, June 2023 and Euro 2024 shares; votes in communities >= 3% in all.
 - Turnout: registered includes emigrants and the dead, so turnout here is a relative measure, not the official one.
+- Residuals of the full model per municipal unit (δημοτική ενότητα): NIKH votes above or below the prediction.
+- Friends and neighbours (May 2023 preference votes): each NIKH candidate's home unit is where their crosses per NIKH
+  vote are highest relative to their constituency rate; is NIKH above the model there?
 
 Run build.py <election> all first (area_match), then:
   python -I -X utf8 analysis/nikh_drivers.py data/stavroi.sqlite
@@ -28,12 +31,12 @@ c = sqlite3.connect(sys.argv[1])
 
 
 def load(e):
-    """{community: [registered, valid, {party: votes}, ep]} over stations matched to a community."""
+    """{community: [registered, valid, {party: votes}, ep, municipal unit]} over stations matched to a community."""
     out = {}
-    for code, reg, val, ep in c.execute(
-            "SELECT a.comm_code, SUM(s.registered), SUM(s.valid), MIN(s.ep_id) FROM station s JOIN area_match a "
-            "ON a.election=s.election AND a.tm_id=s.tm_id WHERE s.election=? GROUP BY 1", (e,)):
-        out[code] = [reg, val, {}, ep]
+    for code, reg, val, ep, den in c.execute(
+            "SELECT a.comm_code, SUM(s.registered), SUM(s.valid), MIN(s.ep_id), MIN(s.den_descr) FROM station s "
+            "JOIN area_match a ON a.election=s.election AND a.tm_id=s.tm_id WHERE s.election=? GROUP BY 1", (e,)):
+        out[code] = [reg, val, {}, ep, den]
     for code, pid, v in c.execute(
             "SELECT a.comm_code, pv.party_id, SUM(pv.votes) FROM party_votes pv JOIN area_match a "
             "ON a.election=pv.election AND a.tm_id=pv.tm_id WHERE pv.election=? GROUP BY 1, 2", (e,)):
@@ -69,7 +72,7 @@ def wls(cols, names):
     # shortcut: plain WLS SE ignore spatial correlation, fine for ranking effects, not for significance tests
     sigma2 = np.sum(w * res ** 2) / (len(codes) - X.shape[1])
     se = np.sqrt(np.diag(sigma2 * np.linalg.inv((X * w[:, None]).T @ X)))
-    return beta, se, r2, names
+    return beta, se, r2, names, res
 
 
 xs = {n: np.array([share("2019", k, p) for k in codes]) for p, n in X2019.items()}
@@ -82,9 +85,9 @@ models = {
     "όλα": wls([*xs.values(), north, turn, size], [*xs, "Μακεδονία/Θράκη", "συμμετοχή Ιουν.", "log10 εγγεγραμμένων"]),
 }
 print("\nΠαλινδρόμηση (WLS): ποσοστό ΝΙΚΗΣ Ιουνίου 2023 ανά κοινότητα")
-for label, (beta, se, r2, names) in models.items():
+for label, (beta, se, r2, names, _) in models.items():
     print(f"  {label}: R² = {r2:.2f}")
-beta, se, r2, names = models["όλα"]
+beta, se, r2, names, res = models["όλα"]
 for n, b, s in zip(["σταθερά", *names], beta, se, strict=True):
     print(f"    {n:<22}{b:+7.3f}  (±{s:.3f})")
 
@@ -134,3 +137,55 @@ for e in ("2023/june", "2024/euro"):
 for pct in (0.6, 1.0, 1.7):
     print(f"  δημοσκόπηση {pct}% με έγκυρα Ιουνίου: {pct / 100 * nat['2023/june']:,.0f} ψήφοι, "
           f"λείπουν {(0.03 - pct / 100) * nat['2023/june']:,.0f}")
+
+print("\nΥπόλοιπα του πλήρους μοντέλου ανά δημοτική ενότητα (ψήφοι ΝΙΚΗΣ Ιουνίου πάνω ή κάτω από την πρόβλεψη)")
+unit = {}  # {(ep, unit): [excess votes, valid, NIKH votes]}
+for k, r, wk in zip(codes, res, w, strict=True):
+    u = unit.setdefault((D["2023/june"][k][3], D["2023/june"][k][4]), [0.0, 0, 0])
+    u[0] += r / 100 * wk
+    u[1] += wk
+    u[2] += D["2023/june"][k][2].get(NIKH, 0)
+ep_name = dict(c.execute("SELECT ep_id, name FROM ep WHERE election='2023/june'"))
+big = {key: u for key, u in unit.items() if u[1] >= 2000}
+for title, sign in (("Πάνω από την πρόβλεψη:", -1), ("Κάτω από την πρόβλεψη:", 1)):
+    print(f"  {title}")
+    for (ep, den), u in sorted(big.items(), key=lambda x: sign * x[1][0])[:12]:
+        print(f"    {den} ({ep_name[ep]}): {u[0]:+,.0f} ψήφοι ({100 * u[0] / u[1]:+.1f} μον.), ΝΙΚΗ {100 * u[2] / u[1]:.1f}%")
+
+print("\nFriends and neighbours: υποψήφιοι ΝΙΚΗΣ, Μάιος 2023 (σταυροί ανά τμήμα)")
+nv_unit, cr = {}, {}  # {(ep, unit): NIKH votes}, {(ep, cand): {unit: crosses}}
+for ep, den, v in c.execute(
+        "SELECT s.ep_id, s.den_descr, SUM(pv.votes) FROM station s JOIN party_votes pv ON pv.election=s.election "
+        "AND pv.tm_id=s.tm_id WHERE s.election='2023/may' AND pv.party_id=? GROUP BY 1, 2", (NIKH,)):
+    nv_unit[ep, den] = v
+for ep, cand, den, v in c.execute(
+        "SELECT s.ep_id, cv.cand_id, s.den_descr, SUM(cv.votes) FROM station s JOIN cand_votes cv "
+        "ON cv.election=s.election AND cv.tm_id=s.tm_id WHERE s.election='2023/may' AND cv.party_id=? "
+        "GROUP BY 1, 2, 3", (NIKH,)):
+    cr.setdefault((ep, cand), {})[den] = v
+names_c = {(ep, cid): n for ep, cid, n in c.execute(
+    "SELECT ep_id, cand_id, name FROM candidate WHERE election='2023/may' AND party_id=?", (NIKH,))}
+ep_nv = {}
+for (ep, _), v in nv_unit.items():
+    ep_nv[ep] = ep_nv.get(ep, 0) + v
+homes = []  # (localism, ep, cand, home unit, crosses, crosses there)
+for (ep, cand), by in cr.items():
+    tot = sum(by.values())
+    if tot < 300 or len([d for d in by if nv_unit.get((ep, d), 0) >= 30]) < 2:
+        continue  # shortcut: one-unit constituencies and tiny candidates have no home to compare with
+    rate = tot / ep_nv[ep]
+    loc, home = max(((by[d] / nv_unit[ep, d]) / rate, d) for d in by if nv_unit.get((ep, d), 0) >= 30 and by[d] >= 50)
+    homes.append((loc, ep, cand, home, tot, by[home]))
+strong = {(ep, h) for loc, ep, _, h, _, _ in homes if loc >= 2}
+print(f"  {len(homes)} υποψήφιοι με ≥300 σταυρούς· {sum(loc >= 2 for loc, *_ in homes)} με τοπικότητα ≥2 "
+      f"(σταυροί ανά ψήφο ΝΙΚΗΣ στην ενότητα-έδρα τους ≥ 2× του μέσου όρου της περιφέρειας)")
+for label, keys in (("ενότητες-έδρες τοπικών υποψηφίων", [k for k in unit if k in strong]),
+                    ("υπόλοιπες ενότητες", [k for k in unit if k not in strong])):
+    ex, val, n = (sum(unit[k][i] for k in keys) for i in range(3))
+    print(f"  {label}: {len(keys)} ενότητες, υπόλοιπο {ex:+,.0f} ψήφοι ({100 * ex / val:+.2f} μον.), ΝΙΚΗ {100 * n / val:.2f}%")
+print("  Οι 15 πιο τοπικοί υποψήφιοι (ψήφοι ≥ 300):")
+for loc, ep, cand, home, tot, there in sorted(homes, reverse=True)[:15]:
+    u = unit.get((ep, home))
+    resid = f", υπόλοιπο Ιουνίου {100 * u[0] / u[1]:+.1f} μον." if u else ""
+    print(f"    {names_c.get((ep, cand), cand)} ({ep_name[ep]}): {tot:,} σταυροί, {100 * there / tot:.0f}% από {home}, "
+          f"τοπικότητα {loc:.1f}{resid}")
