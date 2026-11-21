@@ -103,7 +103,10 @@ MAP_LIGHT = {"surface": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#46453f", "line":
              "link": "#1f4e9c", "d-3": "#a8302e", "d-2": "#e0736b", "d-1": "#f6c4c0", "d0": "#d9d6cc", "d1": "#9ec5f4", "d2": "#3987e5",
              "d3": "#104281"}
 MAP_DARK = {"surface": "#15171b", "ink": "#ecebe7", "ink-2": "#c2c1bc", "line": "#33363c", "chip": "#1e2128",
-            "shadow": "rgba(0,0,0,.5)", "d0": "#5a5955", "link": "#8fb0f0"}  # dark: scrim and on-scrim stay as in light
+            "shadow": "rgba(0,0,0,.5)", "d0": "#5a5955", "link": "#8fb0f0",
+            # dark: more votes is lighter, so the strongest areas stand out from the dark surface (3:1 or better from s3 up)
+            "s0": "#2b2437", "s1": "#4a3870", "s2": "#6b4f9e", "s3": "#8d6dc4", "s4": "#ab8ddc", "s5": "#c8b2ee", "s6": "#e6dbf8",
+            "d-3": "#ff9a92", "d-2": "#e0736b", "d-1": "#a45a56", "d1": "#4f7dbd", "d2": "#6aa3ee", "d3": "#a8cdfb"}  # dark: scrim and on-scrim stay as in light
 # Index: cool paper and ink, one blue pen.
 INDEX_LIGHT = {"paper": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#46453f", "line": "#d9d6cc", "pen": "#1f4e9c", "wash": "#f1efe6"}
 INDEX_DARK = {"paper": "#15171b", "ink": "#ecebe7", "ink-2": "#c2c1bc", "line": "#33363c", "pen": "#8fb0f0", "wash": "#1e2128"}

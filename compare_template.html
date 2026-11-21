@@ -103,8 +103,13 @@ const VIEWS = {};
 for (const e of E) VIEWS[e] = {label: D.elections[e]};
 for (let i = 0; i < E.length; i++) for (let j = i + 1; j < E.length; j++)
   VIEWS[`${E[i]}~${E[j]}`] = {from: E[i], to: E[j], label: `Μεταβολή ${D.elections[E[i]]} → ${D.elections[E[j]]}`};
-const COLORS = ["#f3eef8", "#e0d3ec", "#cbb5de", "#b497cf", "#9c78bf", "#845bae", "#6b3f9a", "#532a82", "#3a1866"];
-const DCOLORS = ["#b35806", "#e08214", "#fdb863", "#fee0b6", "#f2f0ee", "#d8daeb", "#b2abd2", "#8073ac", "#542788"];
+const COLORS_L = ["#f3eef8", "#e0d3ec", "#cbb5de", "#b497cf", "#9c78bf", "#845bae", "#6b3f9a", "#532a82", "#3a1866"];
+const DCOLORS_L = ["#b35806", "#e08214", "#fdb863", "#fee0b6", "#f2f0ee", "#d8daeb", "#b2abd2", "#8073ac", "#542788"];
+// dark: more is lighter, so the strongest areas stand out from the dark surface
+const COLORS_D = ["#2b2437", "#3b2d5a", "#4f3d80", "#6b4f9e", "#8467b8", "#9c80cf", "#b79cdf", "#d0bdee", "#e9def9"];
+const DCOLORS_D = ["#ffb36b", "#f09a45", "#b8814f", "#7a634f", "#3f3f44", "#5f5a8a", "#8479b8", "#aba0dc", "#d4cbf5"];
+const dk = () => document.documentElement.dataset.theme === "dark";
+const COLORS = () => dk() ? COLORS_D : COLORS_L, DCOLORS = () => dk() ? DCOLORS_D : DCOLORS_L;
 const EURO_NOTE = "Οι ευρωεκλογές είχαν πολύ χαμηλότερη συμμετοχή και ενιαία εθνική λίστα· ανεβάζουν τα ποσοστά των μικρότερων κομμάτων. ";
 const NOTE = "Ανεπίσημα αποτελέσματα ΥΠΕΣ, κανονικά τμήματα· διαμερίσματα που δεν αντιστοιχίστηκαν σε κοινότητα ΕΛΣΤΑΤ λείπουν. Αχνό: λιγότερα από 50 έγκυρα.";
 
@@ -116,7 +121,7 @@ const bin = (p, bins, colors) => { let i = 0; while (i + 1 < bins.length && p >=
 // round a positive step to 1, 2, 2.5 or 5 x 10^k
 const nice = x => { const p = 10 ** Math.floor(Math.log10(x)), m = x / p; return p * (m < 1.5 ? 1 : m < 2.25 ? 2 : m < 3.5 ? 2.5 : m < 7.5 ? 5 : 10); };
 
-let pi = 0, view = "2023-june", bins = [], colors = COLORS;
+let pi = 0, view = "2023-june", bins = [], colors = COLORS();
 // share of party index pi in election e for row r = [valid, votes...]; null when the party did not run or no votes
 const share = (r, e) => { const v = r && r[e]; return v && v[0] && v[pi + 1] !== null ? 100 * v[pi + 1] / v[0] : null; };
 const valueOf = f => {
@@ -137,11 +142,11 @@ function makeBins() {
   const q = t => vals.length ? vals[Math.min(vals.length - 1, Math.floor(t * vals.length))] : 0;
   if (VIEWS[view].from) {  // symmetric diverging bins around 0, step from the spread of changes
     const s = nice(Math.max(0.1, Math.max(Math.abs(q(0.05)), Math.abs(q(0.95))) / 3));
-    bins = [-Infinity, -3 * s, -2 * s, -s, -s / 4, s / 4, s, 2 * s, 3 * s]; colors = DCOLORS;
+    bins = [-Infinity, -3 * s, -2 * s, -s, -s / 4, s / 4, s, 2 * s, 3 * s]; colors = DCOLORS();
   } else {  // sequential: rounded ninths of the distribution
     const step = nice(Math.max(0.1, (q(0.97) - q(0.03)) / 8));
     const lo = Math.max(0, Math.floor(q(0.03) / step) * step);
-    bins = [0, ...Array.from({length: 8}, (_, i) => lo + (i + 1) * step)]; colors = COLORS;
+    bins = [0, ...Array.from({length: 8}, (_, i) => lo + (i + 1) * step)]; colors = COLORS();
   }
 }
 
@@ -285,6 +290,7 @@ partySel.value = pi; viewSel.value = view;
 partySel.onchange = () => { pi = +partySel.value; render(); };
 viewSel.onchange = () => { view = viewSel.value; render(); };
 render();
+addEventListener("themechange", render);
 // Pages opened in hidden panes lay out at 0x0, and map.getSize() caches that size: fit once the container
 // has a real width (hidden pages may skip ResizeObserver callbacks, hence also visibilitychange).
 let fitted = false;
