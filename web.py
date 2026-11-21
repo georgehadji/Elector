@@ -166,9 +166,6 @@ def render_page(template, data):
 
 
 # A ballpoint cross in a ballot box, the mark a voter puts next to a candidate: the one decorative element of the site.
-CROSS_SVG = ('<svg class="x" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
-             '<path d="M11 12 C16 17 22 24 29 29"/>'
-             '<path d="M28 11 C23 16 17 23 12 30"/></svg>')
 TOP_KEY = "Πρώτος σε σταυρούς, Μάιος 2023"  # said once above the list, and as a screen-reader prefix on each card
 
 def greece_figure(areas, key, caption, size=440):
@@ -182,7 +179,7 @@ def greece_figure(areas, key, caption, size=440):
     swatches = "".join(f'<span class="k"><i style="background:{c}"></i>{html.escape(n)}</span>' for n, c in key)
     return (f'<figure class="gr"><a href="compare.html"><svg viewBox="0 0 {w} {h}" role="img" aria-label="{html.escape(caption)}">'
             f'<g stroke-width=".6" stroke-linejoin="round">{paths}</g></svg></a>'
-            f'<figcaption>{html.escape(caption)}. <a href="compare.html">Σύγκριση εκλογών</a><span class="keys">{swatches}</span></figcaption></figure>')
+            f'<figcaption>{html.escape(caption)}.<span class="keys">{swatches}</span><a class="go" href="compare.html">Σύγκριση εκλογών &rarr;</a></figcaption></figure>')
 
 INDEX_CSS = """
 /*THEME_TOKENS*/
@@ -195,23 +192,20 @@ main{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
 a{color:var(--pen)}
 :focus-visible{outline:2px solid var(--pen);outline-offset:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-h1{font:400 clamp(2.75rem,9vw,5.25rem)/1 "GFS Didot",Georgia,serif;letter-spacing:-.01em;margin:0;display:flex;align-items:center;gap:.18em}
-h1 .x{width:.72em;height:.72em;flex:none}
-h1 .x path{stroke-width:4.4}
-.x path,.x rect{fill:none;stroke:var(--pen);stroke-width:3.2;stroke-linecap:round}
-.x rect{stroke-width:2.4}
+h1{font:400 clamp(2.75rem,9vw,5.25rem)/1 "GFS Didot",Georgia,serif;letter-spacing:-.01em;margin:0}
 :root{--xm:polygon(14% 0,50% 36%,86% 0,100% 14%,64% 50%,100% 86%,86% 100%,50% 64%,14% 100%,0 86%,36% 50%,0 14%)}
 /* the cross marks what is chosen: the open election, the open region, the leading candidate of a row */
 :is(.sw button[aria-pressed=true],.jump a[aria-current],.eps .who b)::before{content:"";display:inline-block;width:.6em;height:.6em;margin-right:.35em;background:currentColor;clip-path:var(--xm)}
-h1 .x path{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s ease-out forwards}
-h1 .x path+path{animation-delay:.3s}
-@keyframes draw{to{stroke-dashoffset:0}}
-@media (prefers-reduced-motion:reduce){h1 .x path{animation:none;stroke-dashoffset:0}}
 .lede{max-width:34em;margin:16px 0 28px;color:var(--ink-2);font-size:1.125rem}
-#f{width:100%;max-width:560px;font:inherit;font-size:1.1875rem;color:var(--ink);background:transparent;border:0;
-   border-bottom:2px solid var(--ink);padding:10px 2px;border-radius:0}
+.fl{display:block;margin:0 0 6px;font-size:.875rem;font-weight:600;color:var(--ink)}
+#f{width:100%;max-width:560px;min-height:48px;font:inherit;font-size:1.1875rem;color:var(--ink);background:var(--paper) no-repeat 14px 50% / 20px;
+   border:1.5px solid var(--ink-2);border-radius:8px;padding:10px 14px 10px 46px}
+.try{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:12px 0 0;font-size:.875rem;color:var(--ink-2)}
+.try button{font:inherit;color:var(--pen);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
+.try button:hover{border-color:var(--pen);background:var(--wash)}
+.try .brw{margin-left:6px;color:var(--ink-2)}
 #f::placeholder{color:var(--ink-2)}
-#f:focus-visible{outline:none;border-bottom-color:var(--pen)}
+#f:focus-visible{outline:2px solid var(--pen);outline-offset:2px;border-color:var(--pen)}
 #n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:.875rem}
 /* Ledger: one row per constituency; the columns are shared by every row (subgrid) and by the .lh caption */
 .lh,.eps{display:grid;grid-template-columns:44px minmax(0,1.3fr) minmax(0,1.1fr) 5.5rem;column-gap:20px}
@@ -250,9 +244,11 @@ body.pick .acts{display:none}
 .reg{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0}  /* the selected tab names the region; this stays as the heading and the scroll target */
 .grp:not(:has(li:not([hidden]))){display:none}  /* a region head goes with its cards */
 .key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
-.key .x{width:14px;height:14px;flex:none}
 .gr{margin:20px 0 0;max-width:380px}
-.gr a:first-child{display:block}
+.gr a:first-child{display:block;border-radius:8px}
+.gr a:first-child:hover svg{opacity:.88}
+.gr .go{display:inline-flex;align-items:center;min-height:36px;margin:8px 0 0;padding:0 14px;border:1px solid var(--pen);border-radius:16px;background:var(--wash);color:var(--pen);text-decoration:none;font-weight:600}
+.gr .go:hover{background:var(--pen);color:var(--paper)}
 .gr svg{display:block;width:100%;height:auto;max-height:260px}
 .gr figcaption{margin:6px 0 0;font-size:.8125rem;color:var(--ink-2)}
 .gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
@@ -262,9 +258,8 @@ body.pick .acts{display:none}
   /* one focal point: title and search on the left, the map as tall as the first screen on the right */
   main>header:not(.bar){display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,540px);column-gap:48px;align-content:center;min-height:calc(100svh - 190px)}
   main>header:not(.bar)>:not(.gr){grid-column:1}
-  .gr{grid-column:2;grid-row:1/span 5;display:flex;flex-direction:column;margin:0;max-width:none}
-  .gr a:first-child{flex:1;min-height:0}
-  .gr svg{height:100%;max-height:none}
+  .gr{grid-column:2;grid-row:1/span 5;align-self:center;margin:0;max-width:none}
+  .gr svg{max-height:min(68svh,640px);margin:0 auto}
 }
 .dhm{margin:0 0 8px;color:var(--ink-2);font-size:.8125rem;line-height:1.45}
 .eps .dhm{grid-column:2/-1;grid-row:2;margin:4px 0 0;position:relative}
@@ -277,7 +272,9 @@ body.pick .acts{display:none}
 .sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
 .cap{margin:24px 0 0;max-width:34em;font-size:.875rem;color:var(--ink-2)}
 .cap b{color:var(--ink);font-weight:600}
+.nb{white-space:nowrap}
 .sf{position:relative;max-width:560px}
+.sf::before{content:"";position:absolute;left:14px;top:14px;width:20px;height:20px;background:var(--ink-2);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8.5' cy='8.5' r='5.5'/%3E%3Cpath d='M13 13l4.5 4.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8.5' cy='8.5' r='5.5'/%3E%3Cpath d='M13 13l4.5 4.5'/%3E%3C/svg%3E") center/contain no-repeat;pointer-events:none;z-index:1}
 .sug{position:absolute;left:0;right:0;top:100%;z-index:20;list-style:none;margin:4px 0 0;padding:4px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 18%,transparent)}
 .sug[hidden]{display:none}
 .sug a{display:grid;gap:1px;padding:10px 12px;min-height:44px;color:var(--ink);text-decoration:none;border-radius:6px}
@@ -327,6 +324,7 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
 @media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
+document.querySelectorAll(".try button").forEach(b => b.addEventListener("click", () => { const f = document.getElementById("f"); f.value = b.textContent; f.dispatchEvent(new Event("input")); f.focus(); }));
 document.getElementById("s").hidden = false;
 const f = document.getElementById("f"), n = document.getElementById("n"), items = [...document.querySelectorAll(".eps li")];
 const words = new Map(items.map(li => [li, li.dataset.k.split(" ").map(w => [w, key(w)])]));
@@ -499,15 +497,10 @@ def _write_index(order, nikh, elected):
     if DB.exists():
         with sqlite3.connect(DB) as con:
             n_tm = con.execute("SELECT COUNT(*) FROM station WHERE election=? AND kind='Κ'", (last,)).fetchone()[0]
-    n_comm = None
-    if DB.exists():
-        with sqlite3.connect(DB) as con:
-            n_comm = con.execute("SELECT COUNT(DISTINCT comm_code) FROM area_match WHERE election=?", (last,)).fetchone()[0]
     dots = lambda n: f"{n:,}".replace(",", ".")
-    figs = [(len(eps), "εκλογικές περιφέρειες"), (len(ELECTIONS), f"αναμετρήσεις, {list(ELECTIONS)[0][:4]} έως {last[:4]}")]
-    figs += [(n_tm, f"εκλογικά τμήματα, {ELECTION_NAMES[last]}")] if n_tm else []
-    figs += [(n_comm, "κοινότητες στους χάρτες")] if n_comm else []
-    nums = " · ".join(f"<b>{dots(n)}</b>&nbsp;{label}" for n, label in figs)
+    figs = [(len(eps), "εκλογικές περιφέρειες"), (len(ELECTIONS), f"εκλογές ({list(ELECTIONS)[0][:4]}–{last[:4]})")]
+    figs += [(n_tm, "εκλογικά τμήματα")] if n_tm else []
+    nums = " · ".join(f'<span class="nb"><b>{dots(n)}</b>&nbsp;{label}</span>' for n, label in figs)
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
@@ -517,12 +510,13 @@ def _write_index(order, nikh, elected):
 <style>{INDEX_CSS}</style></head><body><main id="main">
 <!--HEADER-->
 <header>
-<h1>{CROSS_SVG}Χάρτες σταυρών</h1>
-<p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και ανά εκλογικό τμήμα, σε όλες τις εκλογικές περιφέρειες.</p>
-<div id="s" hidden><label class="sr" for="f">Αναζήτηση περιφέρειας</label>
+<h1>Χάρτες σταυρών</h1>
+<p class="lede">Πού ψήφισε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και εκλογικό τμήμα.</p>
+<div id="s" hidden><label class="fl" for="f">Αναζήτηση περιφέρειας</label>
 <div class="sf"><input id="f" type="search" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
 <ul id="sug" class="sug" role="listbox" aria-label="Προτάσεις" hidden></ul></div>
-<p id="n" aria-live="polite"></p></div>
+<p id="n" aria-live="polite"></p>
+<p class="try">Δοκίμασε: <button type="button">Αθήνα</button><button type="button">Θεσσαλονίκη</button><button type="button">Πάτρα</button><a class="brw" href="#regions">ή περιήγηση ανά περιφέρεια &darr;</a></p></div>
 <p class="cap">{nums}</p>
 {greece}
 </header>
