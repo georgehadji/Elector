@@ -33,8 +33,8 @@ from matching import ep_label
 # Site header and footer of every page. The toggle's pressed state means dark; theme.js keeps it in sync.
 THEME_BTN = ('<button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true">'
              '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button>')
-FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">')
+FONTS = "".join(f'<link rel="preload" href="fonts/{f}.woff2" as="font" type="font/woff2" crossorigin>'
+                for f in ("fira-sans-400-greek", "fira-sans-400-latin", "gfs-didot-400-greek"))  # the @font-face rules are in fonts.css
 MARK = ('<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
         '<path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>')
 NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"), ("party", "index.html#party", "Ανά κόμμα"))
@@ -112,7 +112,7 @@ INDEX_DARK = {"paper": "#15171b", "ink": "#ecebe7", "ink-2": "#a8a7a2", "line": 
 def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx="", skip="#main", compact=False):
     """Shared parts of every page: colour tokens, site CSS and theme script, fonts, header, footer."""
     for placeholder, text in (("/*THEME_TOKENS*/", theme_css(light, dark, print_)),
-                              ("/*SITE_CSS*/", (HERE / "site.css").read_text(encoding="utf-8")),
+                              ("/*SITE_CSS*/", (HERE / "fonts.css").read_text(encoding="utf-8") + (HERE / "site.css").read_text(encoding="utf-8")),
                               ("/*THEME_JS*/", (HERE / "theme.js").read_text(encoding="utf-8")),
                               ("/*SHARED_JS*/", (HERE / "shared.js").read_text(encoding="utf-8")),
                               ("<!--FONTS-->", FONTS), ("<!--HEADER-->", header(current, ctx, skip)), ("<!--FOOTER-->", footer(compact=compact))):
@@ -132,16 +132,16 @@ LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/"
 def secure(page):
     """Content-Security-Policy (as a <meta>: GitHub Pages sets no headers) and referrer policy. Call it last, on the
     finished page: the inline scripts and styles are allowed by their SHA-256 hash, so injected markup cannot run.
-    Leaflet (cdnjs, also pinned by integrity=) and the OSM tiles are the only outside sources besides the fonts."""
+    Leaflet (cdnjs, also pinned by integrity=) and the OSM tiles are the only outside sources; the fonts are self-hosted (fonts.css, out/fonts/)."""
     def hashes(tag):
         return [f"'sha256-{base64.b64encode(hashlib.sha256(m.encode()).digest()).decode()}'"
                 for m in re.findall(rf"<{tag}>(.*?)</{tag}>", page, re.S)]
     csp = "; ".join([
         "default-src 'none'",
         " ".join(["script-src", *hashes("script"), LEAFLET + "leaflet.min.js"]),
-        " ".join(["style-src-elem", *hashes("style"), LEAFLET + "leaflet.min.css", "https://fonts.googleapis.com"]),
+        " ".join(["style-src-elem", *hashes("style"), LEAFLET + "leaflet.min.css"]),
         "style-src-attr 'unsafe-inline'",  # style="" in markup the pages build (legend swatches, table cells)
-        "font-src https://fonts.gstatic.com",
+        "font-src 'self'",
         f"img-src 'self' data: https://tile.openstreetmap.org {LEAFLET}",
         "connect-src 'none'", "base-uri 'none'", "form-action 'none'", "object-src 'none'", "frame-src 'none'"])
     tags = f'<meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="referrer" content="strict-origin-when-cross-origin">'
@@ -507,7 +507,7 @@ def _write_index(order, nikh, elected):
     figs = [(len(eps), "εκλογικές περιφέρειες"), (len(ELECTIONS), f"αναμετρήσεις, {list(ELECTIONS)[0][:4]} έως {last[:4]}")]
     figs += [(n_tm, f"εκλογικά τμήματα, {ELECTION_NAMES[last]}")] if n_tm else []
     figs += [(n_comm, "κοινότητες στους χάρτες")] if n_comm else []
-    nums = " · ".join(f"<b>{dots(n)}</b> {label}" for n, label in figs)
+    nums = " · ".join(f"<b>{dots(n)}</b>&nbsp;{label}" for n, label in figs)
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>

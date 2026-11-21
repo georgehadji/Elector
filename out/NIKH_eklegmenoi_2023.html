@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-Mtpdar7Z1cuTNDTv3EAzO7MhZ2GBO5Wzk82I93FYzqk=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-bf55ZofRoBHZL7sG9lxdV6vZH5o5U3UmwWQHnRAe+v4=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ 2023</title><script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // Without a saved choice the page follows the system setting.
 (() => {
@@ -35,6 +35,16 @@
 :root[data-theme=light]{color-scheme:light}
 :root[data-theme=dark]{color-scheme:dark}
 
+/* Self-hosted subsets (Greek, Greek extended, Latin) of Fira Sans 400/600 and GFS Didot 400, SIL OFL. fonts/ sits next to the pages. */
+@font-face { font-family: "Fira Sans"; font-weight: 400; font-style: normal; font-display: swap; src: url(fonts/fira-sans-400-greek-ext.woff2) format("woff2"); unicode-range: U+1F00-1FFF; }
+@font-face { font-family: "Fira Sans"; font-weight: 400; font-style: normal; font-display: swap; src: url(fonts/fira-sans-400-greek.woff2) format("woff2"); unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF; }
+@font-face { font-family: "Fira Sans"; font-weight: 400; font-style: normal; font-display: swap; src: url(fonts/fira-sans-400-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Fira Sans"; font-weight: 600; font-style: normal; font-display: swap; src: url(fonts/fira-sans-600-greek-ext.woff2) format("woff2"); unicode-range: U+1F00-1FFF; }
+@font-face { font-family: "Fira Sans"; font-weight: 600; font-style: normal; font-display: swap; src: url(fonts/fira-sans-600-greek.woff2) format("woff2"); unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF; }
+@font-face { font-family: "Fira Sans"; font-weight: 600; font-style: normal; font-display: swap; src: url(fonts/fira-sans-600-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "GFS Didot"; font-weight: 400; font-style: normal; font-display: swap; src: url(fonts/gfs-didot-400-greek-ext.woff2) format("woff2"); unicode-range: U+1F00-1FFF; }
+@font-face { font-family: "GFS Didot"; font-weight: 400; font-style: normal; font-display: swap; src: url(fonts/gfs-didot-400-greek.woff2) format("woff2"); unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF; }
+@font-face { font-family: "GFS Didot"; font-weight: 400; font-style: normal; font-display: swap; src: url(fonts/gfs-didot-400-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 /* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
    Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
 /* Site bar: wordmark, nav, theme toggle. Skip link first in tab order. */

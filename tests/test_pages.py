@@ -70,6 +70,16 @@ class Pages(unittest.TestCase):
             self.assertNotIn("@media (prefers-color-scheme:dark){:root:not", s, p.name)
             self.assertEqual(s.count(":root[data-theme=dark]{color-scheme:dark}"), 1, p.name)
 
+    def test_fonts_self_hosted(self):
+        for p in APP + SPECIAL:
+            s = read(p)
+            self.assertNotIn("fonts.googleapis.com", s, p.name)
+            self.assertNotIn("fonts.gstatic.com", s, p.name)
+            self.assertIn("font-src 'self'", s, p.name)
+        files = set(re.findall(r"url\(fonts/([^)]+\.woff2)\)", read(SPECIAL[0])))
+        self.assertTrue(files)
+        self.assertTrue(all((OUT / "fonts" / f).exists() for f in files), files)
+
     def test_skip_link_text(self):
         bad = [p.name for p in OUT.glob("*.html") if "σττ" in read(p)]
         self.assertFalse(bad, bad[:5])
