@@ -1,0 +1,5 @@
+# Vercel serves only the published site; code, data and analyses stay out of the deployment
+/*
+!/index.html
+!/out
+!/exports
