@@ -116,7 +116,7 @@ function render() {
   const c = D.cands.find(x => x.k === sel.value);
   if (!c) return;
   partySel.value = c.party;
-  history.replaceState(null, "", `#party=${c.party}&cand=${c.k.split(":")[1]}`);
+  try { history.replaceState(null, "", `#party=${c.party}&cand=${c.k.split(":")[1]}`); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ }
   const feats = D.geo.features, props = feats.map(f => f.properties);
   const sumPv = props.reduce((s, p) => s + den(p, c), 0);
   const mean = sumPv ? c.mapped / sumPv : 0;

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-QWCmukVZc6DHhlC16Hr+nqAukAJ0/JvpihfYUJHgj5E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-J09cuL6SE4dfRNu2Me4DXZw1zGm+xZ6p0Hmg7hQF1u4=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-NpvxR7VS5M5XgFCB4bMJgLqum0xoXypursdpGCSFAzM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-J09cuL6SE4dfRNu2Me4DXZw1zGm+xZ6p0Hmg7hQF1u4=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
 <meta name="description" content="Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
@@ -369,22 +369,23 @@ open(sw.querySelector("button").dataset.e);
 const groups = [...document.querySelectorAll(".grp")], tabs = [...document.querySelectorAll(".jump a")];
 const rsel = document.querySelector(".rsel select");
 rsel.replaceChildren(...tabs.map(a => new Option(a.textContent, a.hash.slice(1))));
-rsel.addEventListener("change", () => { history.pushState(null, "", "#" + rsel.value); fromHash(); });
+rsel.addEventListener("change", () => { try { history.pushState(null, "", "#" + rsel.value); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ } show(rsel.value); });
 const pick = g => {
   groups.forEach(x => x.classList.toggle("on", x === g));
   const id = g.querySelector(".reg").id; if (rsel.value !== id) rsel.value = id;
   tabs.forEach(a => a.hash === "#" + g.querySelector(".reg").id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
 };
-const fromHash = () => {
-  const el = document.getElementById(location.hash.slice(1)), g = el && el.closest(".grp");
+const show = id => {
+  const el = document.getElementById(id), g = el && el.closest(".grp");
   if (g) { pick(g); el.scrollIntoView({behavior: "instant"}); } else if (!location.hash || !document.querySelector(".grp.on")) pick(groups[0]);  // back to the bare address = the first region
 };
+const fromHash = () => show(location.hash.slice(1));
 document.body.classList.add("tabs");
 fromHash();
 addEventListener("hashchange", fromHash);
 document.querySelector(".jump").addEventListener("click", e => {
   const a = e.target.closest("a");
-  if (a) { e.preventDefault(); history.pushState(null, "", a.hash); fromHash(); }
+  if (a) { e.preventDefault(); try { history.pushState(null, "", a.hash); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ } show(a.hash.slice(1)); }
 });
 document.addEventListener("click", e => { if (!e.target.closest(".sf")) closeSug(); });
 f.addEventListener("focus", () => { if (f.value.trim()) f.dispatchEvent(new Event("input")); });

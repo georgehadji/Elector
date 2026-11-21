@@ -266,7 +266,7 @@ function render() {
   document.getElementById("note").textContent =
     (V.from ? "Χρώμα = διαφορά ποσοστού σε ποσοστιαίες μονάδες· η μεταβολή δεν δείχνει από πού ήρθαν οι ψηφοφόροι. " : "") +
     (euro && V.from ? EURO_NOTE : "") + NOTE;
-  history.replaceState(null, "", `#party=${D.parties[pi].id}&view=${view}`);
+  try { history.replaceState(null, "", `#party=${D.parties[pi].id}&view=${view}`); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ }
 }
 
 const partySel = document.getElementById("party"), viewSel = document.getElementById("view");
