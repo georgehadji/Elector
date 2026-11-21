@@ -7,3 +7,10 @@ __pycache__/
 
 # Karagiannakidis analyses: kept local only
 analysis/*[Kk][Aa][Rr][Aa][Gg][Ii][Aa][Nn][Nn][Aa][Kk][Ii][Dd][Ii][Ss]*
+
+# Field-ops commercial plan: kept local only
+analysis/field_ops_plan.md
+
+# Rebuilt by analysis/venue_parties.py; ministry venue spreadsheets are downloaded inputs
+analysis/venue_parties/*.csv
+analysis/venues_xls/

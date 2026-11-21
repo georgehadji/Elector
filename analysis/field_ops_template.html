@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/*THEME_JS*/</script>
+<title>Περιοδεία</title>
+<!--FONTS-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
+<style>
+/*COMMON_CSS*/
+  #map { height: 62vh; min-height: 380px; }
+  .controls input[type="number"] { width: 5em; }
+  .route { margin: 0 0 20px; }
+  .route ol { margin: 8px 0; padding-left: 28px; font-variant-numeric: tabular-nums; }
+  .route li { margin: 2px 0; }
+  .route .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .route:empty { display: none; }
+  td.c, th.c { text-align: center; }
+  .q { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
+  .stopn { font: 600 11px/1 "Fira Sans", sans-serif; color: #fff; background: var(--ink); border-radius: 9px; padding: 3px 5px; border: 0; }
+  @media print { .route .actions, #tbl input { display: none; } }
+</style>
+</head>
+<body>
+<main>
+<!--HEADER-->
+  <h1>Περιοδεία: πού και με ποια σειρά</h1>
+  <p class="sub" id="sub"></p>
+  <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
+  <div class="controls">
+    <label for="ep">Περιφέρεια</label><select id="ep"></select>
+    <label for="party">Κόμμα</label><select id="party"></select>
+    <div class="seg" id="elections" role="group" aria-label="Εκλογές"></div>
+  </div>
+  <div class="controls">
+    <div class="seg" id="modes" role="group" aria-label="Χρώμα"></div>
+    <label for="wa">Βάρος κινητοποίησης</label><input type="number" id="wa" min="0" max="5" step="0.1" value="1">
+    <label for="wb">Βάρος πειθούς</label><input type="number" id="wb" min="0" max="5" step="0.1" value="0.5">
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="mapwrap">
+    <div id="map" role="region" aria-label="Χάρτης καταστημάτων της περιφέρειας"></div>
+    <div class="hint" id="hint" aria-hidden="true">Χρησιμοποιήστε δύο δάχτυλα για να μετακινήσετε τον χάρτη</div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <h2>Δρομολόγιο</h2>
+  <div class="controls">
+    <button type="button" id="top">Οι 10 με το μεγαλύτερο δυναμικό</button>
+    <button type="button" id="clear">Καθαρισμός στάσεων</button>
+  </div>
+  <section class="route" id="route" aria-live="polite"></section>
+  <h2>Καταστήματα κατά δυναμικό</h2>
+  <div class="tablewrap"><table id="tbl"></table></div>
+  <p class="note" id="note"></p>
+<!--FOOTER-->
+</main>
+<script>/*SHARED_JS*/</script>
+<script>
+const D = /*DATA*/null;
+/*COMMON_JS*/
+// D.venues: [lat, lon, placement (0 address, 1 settlement point, 2 community centre), constituency index,
+//            municipal unit, community, venue text, per election: null | [valid, stations, [party, votes, ...], registered]]
+const K = 200;  // shrinkage: a venue's share is pulled towards the constituency share as if it had K more valid votes at that share
+const V = D.venues.map(([lat, lon, q, ep, den, comm, text], i) => {
+  const p = text.split(/\s{2,}/).reduce((a, s) => (/^\d+[Α-Ω]?$/.test(s) && a.length ? a[a.length - 1] += " " + s : a.push(s), a), []);
+  return {i, lat, lon, q, ep, den, comm, name: p[0] || "(χωρίς όνομα)", town: p.length > 1 ? p[p.length - 1] : ""};
+});
+const pname = p => D.parties[p]?.[0] ?? p;
+const pcol = p => D.parties[p]?.[1] ?? "#8a8a85";
+const votes = (r, p) => { for (let j = 0; j < r[2].length; j += 2) if (r[2][j] === p) return r[2][j + 1]; return 0; };
+
+const MODES = [["idx", "Δείκτης ισχύος"], ["quad", "Τεταρτημόρια"], ["swing", "Swing"], ["score", "Δυναμικό"]];
+const QUAD = {mob: ["Κινητοποίηση", "#e07b00"], def: ["Υπεράσπιση", "#256abf"], pers: ["Πειθώ", "#8e44ad"],
+              low: ["Χαμηλή απόδοση", "#9a9893"], mid: ["Κοντά στον μέσο όρο", "#cde2fb"]};
+$("ep").innerHTML = D.eps.map((e, i) => `<option value="${i}">${e}</option>`).join("");
+$("elections").innerHTML = D.elections.map((e, i) => `<button type="button" data-e="${i}">${e}</button>`).join("");
+$("modes").innerHTML = MODES.map(([k, t]) => `<button type="button" data-m="${k}">${t}</button>`).join("");
+
+const st = {ep: 0, e: D.elections.length - 1, p: 2, m: "idx", stops: []};
+const h = new URLSearchParams(location.hash.slice(1));
+if (h.has("ep") && D.eps[+h.get("ep")]) st.ep = +h.get("ep");
+if (h.has("e") && D.elections[+h.get("e")]) st.e = +h.get("e");  // +null is 0: without the check a bare URL opens 2019
+if (D.parties[h.get("p")]) st.p = +h.get("p");
+if (MODES.some(([k]) => k === h.get("m"))) st.m = h.get("m");
+st.stops = (h.get("stops") || "").split(",").filter(Boolean).map(Number).filter(i => V[i]);
+const saveHash = () => { try { history.replaceState(null, "", "#" + new URLSearchParams({ep: st.ep, e: st.e, p: st.p, m: st.m, ...(st.stops.length ? {stops: st.stops.join(",")} : {})})); } catch { /* sandboxed srcdoc viewers forbid it: the page works, only the link does not follow the state */ } };
+
+// Metrics for one constituency, election and party. Shares are of valid votes; turnout is valid / registered.
+function metrics() {
+  const rows = V.filter(v => v.ep === st.ep && D.venues[v.i][7][st.e]);
+  const sum = (e, f) => rows.reduce((t, v) => { const r = D.venues[v.i][7][e]; return t + (r ? f(r) : 0); }, 0);
+  const epShare = e => { const val = sum(e, r => r[0]); return val ? sum(e, r => votes(r, st.p)) / val : 0; };
+  const s0 = epShare(st.e), sPrev = st.e > 0 ? epShare(st.e - 1) : 0;
+  const t0 = sum(st.e, r => r[0]) / Math.max(1, sum(st.e, r => r[3]));
+  const shrunk = (r, s) => (votes(r, st.p) + K * s) / (r[0] + K);
+  const wa = +$("wa").value || 0, wb = +$("wb").value || 0;
+  rows.forEach(v => {
+    const r = D.venues[v.i][7][st.e], prev = st.e > 0 ? D.venues[v.i][7][st.e - 1] : null;
+    v.valid = r[0]; v.reg = r[3]; v.stations = r[1]; v.v = votes(r, st.p);
+    v.share = r[0] ? v.v / r[0] : 0;
+    v.s = shrunk(r, s0);
+    v.idx = s0 ? 100 * v.s / s0 : 0;
+    v.turn = v.reg ? v.valid / v.reg : 0;
+    v.swing = prev && sPrev ? v.s - shrunk(prev, sPrev) : null;
+    v.M = v.reg * Math.max(0, 1 - v.turn) * v.s;   // abstainers who would vote like the venue's voters
+    v.P = v.valid * Math.max(0, s0 - v.s);          // votes to the constituency average
+    v.score = wa * v.M + wb * v.P;
+    v.quad = v.idx > 115 ? (v.turn < t0 ? "mob" : "def") : v.idx < 85 ? (v.turn < t0 ? "pers" : "low") : "mid";
+  });
+  return {rows, s0, t0, sPrev};
+}
+
+const map = L.map("map", mapOptions({preferCanvas: true, scrollWheelZoom: false})).setView([38.6, 23.8], 6.5);
+baseTiles(map, "Αποτελέσματα & καταστήματα: ΥΠΕΣ (ανεπίσημα) · όρια: ΕΛΣΤΑΤ", 18);
+touchMap(map);
+let layer, routeLayer, M0;
+const SW = [-0.06, -0.03, -0.01, 0.01, 0.03, 0.06];  // swing breaks, share points
+const swingColor = d => { let i = 0; while (i < SW.length && d >= SW[i]) i++; return divSteps()[i]; };
+const pp = d => (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d * 100).toLocaleString("el-GR", {maximumFractionDigits: 1});
+const PLACE = ["", "θέση: κέντρο οικισμού", "θέση κατά προσέγγιση (κέντρο κοινότητας)"];
+
+function tip(v) {
+  return `<div class="tip"><b>${v.name}</b><span class="m">${[v.town, v.den].filter(Boolean).join(" · ")}</span>` +
+    (v.q ? `<br><span class="m">${PLACE[v.q]}</span>` : "") +
+    `<table><tr><td>${pname(st.p)}</td><td class="n">${pct(v.share)}</td><td class="m">${fmt(v.v)} / ${fmt(v.valid)}</td></tr>` +
+    `<tr><td>Δείκτης ισχύος</td><td class="n"><b style="display:inline">${Math.round(v.idx)}</b></td><td class="m">100 = μέσος όρος περιφέρειας</td></tr>` +
+    `<tr><td>Συμμετοχή</td><td class="n">${pct(v.turn)}</td><td class="m">${fmt(v.reg)} εγγεγραμμένοι</td></tr>` +
+    (v.swing != null ? `<tr><td>Swing</td><td class="n">${pp(v.swing)}</td><td class="m">μον. από ${D.elections[st.e - 1]}</td></tr>` : "") +
+    `<tr><td>Τεταρτημόριο</td><td colspan="2"><span class="q" style="background:${QUAD[v.quad][1]}"></span>${QUAD[v.quad][0]}</td></tr>` +
+    `<tr><td>Δυναμικό</td><td class="n"><b style="display:inline">${fmt(Math.round(v.score))}</b></td><td class="m">κινητ. ${fmt(Math.round(v.M))} · πειθώ ${fmt(Math.round(v.P))}</td></tr></table>` +
+    `<p><button type="button" class="stopbtn" data-i="${v.i}">${st.stops.includes(v.i) ? "Αφαίρεση από τις στάσεις" : "Προσθήκη στις στάσεις"}</button></p></div>`;
+}
+panel.addEventListener("click", e => { const b = e.target.closest(".stopbtn"); if (b) toggle(+b.dataset.i); });
+
+function render(refit) {
+  saveHash();
+  $("ep").value = st.ep;
+  document.querySelectorAll("#elections button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.e === st.e));
+  document.querySelectorAll("#modes button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === st.m));
+  // Parties: those with at least 1% in this constituency and election, biggest first.
+  const all = V.filter(v => v.ep === st.ep && D.venues[v.i][7][st.e]);
+  const tot = {}; let val = 0;
+  all.forEach(v => { const r = D.venues[v.i][7][st.e]; val += r[0]; for (let j = 0; j < r[2].length; j += 2) tot[r[2][j]] = (tot[r[2][j]] || 0) + r[2][j + 1]; });
+  const ps = Object.entries(tot).filter(([, n]) => n >= 0.01 * val).sort((a, b) => b[1] - a[1]).map(([p]) => +p);
+  if (!ps.includes(st.p)) st.p = ps[0];
+  $("party").innerHTML = ps.map(p => `<option value="${p}">${pname(p)} ${pct(tot[p] / val)}</option>`).join("");
+  $("party").value = st.p;
+  M0 = metrics();
+  const {rows, s0, t0} = M0;
+  st.stops = st.stops.filter(i => rows.some(v => v.i === i));
+  saveHash();
+
+  let fill, legend;
+  if (st.m === "idx") { fill = v => devColor(v.idx / 100); legend = devLegend(); }
+  else if (st.m === "quad") {
+    fill = v => QUAD[v.quad][1];
+    legend = Object.entries(QUAD).map(([k, [t, c]]) => swatch(c, `${t} ${fmt(rows.filter(v => v.quad === k).length)}`)).join("");
+  } else if (st.m === "swing") {
+    fill = v => v.swing == null ? css("--d0") : swingColor(v.swing);
+    legend = st.e ? `<span class="lbl" style="margin-left:0">Μονάδες από ${D.elections[st.e - 1]}:</span>` +
+      divSteps().map((c, i) => swatch(c, binLabel([-Infinity, ...SW][i], SW[i], pp))).join("") : `<span class="lbl">Δεν υπάρχει προηγούμενη εκλογή.</span>`;
+  } else {
+    const br = breaks(rows.map(v => v.score));
+    fill = v => colorFor(v.score, br);
+    legend = `<span class="lbl" style="margin-left:0">Δυναμικό (εκτίμηση ψήφων):</span>` + seqLegend(br, x => fmt(Math.round(x)));
+  }
+  if (layer) layer.remove();
+  layers = [];
+  const maxV = Math.max(1, ...rows.map(v => v.valid));
+  const ms = rows.map(v => {
+    const l = L.circleMarker([v.lat, v.lon], {radius: 2.5 + 7 * Math.sqrt(v.valid / maxV), fillColor: fill(v), fillOpacity: v.q === 2 ? 0.55 : 0.85,
+      color: v.q === 2 ? css("--ink-2") : css("--surface"), weight: 1, dashArray: v.q === 2 ? "2 2" : null});
+    l.v = v; l.i = v.i; layers[v.i] = l; bindFeature(l, tip(v));
+    return l;
+  });
+  layer = L.featureGroup(ms.sort((a, b) => b.v.valid - a.v.valid)).addTo(map);
+  if (refit) fitOnceSized(map, () => layer.getBounds(), {padding: [16, 16]});
+  $("legend").innerHTML = legend + `<span class="lbl">· μέγεθος = έγκυρα · διακεκομμένο = θέση κατά προσέγγιση</span>`;
+
+  $("sub").textContent = `${D.eps[st.ep]}, ${D.elections[st.e]}, ${pname(st.p)}. Κάθε κύκλος είναι ένα εκλογικό κατάστημα. ` +
+    `Επιλέξτε στάσεις από τον πίνακα ή τον χάρτη· η σειρά υπολογίζεται στον browser.`;
+  $("stats").innerHTML =
+    `<div><b>${pct(s0)}</b><span>${pname(st.p)} στην περιφέρεια</span></div>` +
+    `<div><b>${pct(t0)}</b><span>συμμετοχή (έγκυρα / εγγεγραμμένοι)</span></div>` +
+    `<div><b>${fmt(rows.filter(v => v.quad === "mob").length)}</b><span>καταστήματα για κινητοποίηση</span></div>` +
+    `<div><b>${fmt(rows.length)}</b><span>καταστήματα (${fmt(rows.filter(v => v.q === 2).length)} κατά προσέγγιση)</span></div>`;
+
+  const tbl = $("tbl");
+  tbl.innerHTML = `<thead><tr><th class="c">Στάση</th><th>Κατάστημα</th><th>Δημ. ενότητα</th><th class="n">%</th><th class="n">Δείκτης</th>` +
+    `<th class="n">Συμμετοχή</th><th class="n">Swing</th><th>Τεταρτημόριο</th><th class="n">Δυναμικό</th></tr></thead><tbody>` +
+    rows.map(v => `<tr data-i="${v.i}"><td class="c"><input type="checkbox" data-s="${v.i}" aria-label="Στάση: ${v.name}"${st.stops.includes(v.i) ? " checked" : ""}></td>` +
+      `<td><button type="button" class="rowlink" data-i="${v.i}">${v.name}</button>${v.q === 2 ? ` <span class="m">(≈)</span>` : ""}</td><td>${v.den}</td>` +
+      `<td class="n" data-v="${v.share}">${pct(v.share)}</td><td class="n" data-v="${v.idx}">${Math.round(v.idx)}</td>` +
+      `<td class="n" data-v="${v.turn}">${pct(v.turn)}</td><td class="n" data-v="${v.swing ?? -9}">${v.swing == null ? "–" : pp(v.swing)}</td>` +
+      `<td><span class="q" style="background:${QUAD[v.quad][1]}"></span>${QUAD[v.quad][0]}</td><td class="n" data-v="${v.score}">${fmt(Math.round(v.score))}</td></tr>`).join("") + `</tbody>`;
+  sortable(tbl, 8, "descending");
+  route();
+  repick();
+}
+$("tbl").addEventListener("change", e => { const c = e.target.closest("[data-s]"); if (c) toggle(+c.dataset.s); });
+
+function toggle(i) {
+  st.stops = st.stops.includes(i) ? st.stops.filter(x => x !== i) : [...st.stops, i];
+  saveHash();
+  const c = document.querySelector(`[data-s="${i}"]`); if (c) c.checked = st.stops.includes(i);
+  if (layers[i]) { layers[i].html = tip(layers[i].v); layers[i].setTooltipContent?.(layers[i].html); if (picked === layers[i]) pick(layers[i]); }
+  route();
+}
+
+// Straight-line distance (km) and order: nearest neighbour from the first stop chosen, then 2-opt on an open path.
+const km = (a, b) => { const R = 6371, r = Math.PI / 180, dLa = (b.lat - a.lat) * r, dLo = (b.lon - a.lon) * r;
+  return 2 * R * Math.asin(Math.sqrt(Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2)); };
+function order(pts) {
+  const left = pts.slice(1), path = [pts[0]];
+  while (left.length) { const last = path[path.length - 1]; let b = 0;
+    left.forEach((p, j) => { if (km(last, p) < km(last, left[b])) b = j; }); path.push(left.splice(b, 1)[0]); }
+  for (let improved = true; improved;) {
+    improved = false;
+    for (let i = 1; i < path.length - 1; i++) for (let j = i + 1; j < path.length; j++) {
+      const a = path[i - 1], b = path[i], c = path[j], d = path[j + 1];
+      if (km(a, c) + (d ? km(b, d) : 0) < km(a, b) + (d ? km(c, d) : 0) - 1e-9) { path.splice(i, j - i + 1, ...path.slice(i, j + 1).reverse()); improved = true; }
+    }
+  }
+  return path;
+}
+function route() {
+  if (routeLayer) routeLayer.remove();
+  const pts = st.stops.map(i => M0.rows.find(v => v.i === i)).filter(Boolean);
+  if (!pts.length) { $("route").innerHTML = `<p class="m">Καμία στάση ακόμη.</p>`; return; }
+  const path = order(pts);
+  const legs = path.map((p, i) => i ? km(path[i - 1], p) : 0), total = legs.reduce((a, b) => a + b, 0);
+  routeLayer = L.layerGroup([L.polyline(path.map(p => [p.lat, p.lon]), {color: css("--ink"), weight: 3, dashArray: "6 6", opacity: 0.8}),
+    ...path.map((p, n) => L.marker([p.lat, p.lon], {icon: L.divIcon({className: "", html: `<span class="stopn">${n + 1}</span>`, iconSize: [20, 16]}), interactive: false, keyboard: false}))]).addTo(map);
+  route.path = path;
+  const gm = [];  // Google Maps directions take up to 10 points per link
+  for (let i = 0; i < path.length - 1; i += 9) gm.push(path.slice(i, i + 10));  // each link starts at the last stop of the one before
+  $("route").innerHTML = `<p>${path.length} στάσεις · περίπου ${fmt(Math.round(total))} km σε ευθεία (στον δρόμο συνήθως 1,3–1,5 φορές περισσότερα) · ` +
+    `δυναμικό ${fmt(Math.round(path.reduce((t, p) => t + p.score, 0)))}</p><ol>` +
+    path.map((p, n) => `<li>${p.name} <span class="m">· ${p.den}${n ? ` · +${legs[n].toLocaleString("el-GR", {maximumFractionDigits: 1})} km` : ""}${p.q === 2 ? " · θέση κατά προσέγγιση" : ""}</span></li>`).join("") +
+    `</ol><div class="actions"><button type="button" id="gpx">GPX</button><button type="button" id="csv">CSV</button><button type="button" id="printbtn">Εκτύπωση</button>` +
+    (path.length > 1 ? gm.filter(g => g.length > 1).map((g, k) => `<a href="https://www.google.com/maps/dir/${g.map(p => `${p.lat},${p.lon}`).join("/")}" target="_blank" rel="noopener">Google Maps${gm.length > 1 ? ` (${k + 1})` : ""}</a>`).join("") : "") + `</div>`;
+  $("gpx").onclick = () => save("periodeia.gpx", "application/gpx+xml",
+    `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="stavroi" xmlns="http://www.topografix.com/GPX/1/1"><rte><name>Περιοδεία ${esc(D.eps[st.ep])}</name>` +
+    path.map((p, n) => `<rtept lat="${p.lat}" lon="${p.lon}"><name>${n + 1}. ${esc(p.name)}</name></rtept>`).join("") + `</rte></gpx>\n`);
+  $("csv").onclick = () => save("periodeia.csv", "text/csv",
+    "﻿σειρά,κατάστημα,δημ. ενότητα,lat,lon,θέση κατά προσέγγιση,δείκτης,συμμετοχή,δυναμικό\n" +
+    path.map((p, n) => [n + 1, p.name, p.den, p.lat, p.lon, p.q === 2 ? "ναι" : "όχι", Math.round(p.idx), (100 * p.turn).toFixed(1), Math.round(p.score)]
+      .map(x => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n") + "\n");
+  $("printbtn").onclick = () => print();
+}
+const esc = s => String(s).replace(/[<>&"]/g, c => ({"<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;"})[c]);
+function save(name, type, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+$("ep").onchange = e => { st.ep = +e.target.value; st.stops = []; pick(null); render(true); };
+$("party").onchange = e => { st.p = +e.target.value; render(); };
+document.querySelectorAll("#elections button").forEach(b => b.onclick = () => { st.e = +b.dataset.e; render(); });
+document.querySelectorAll("#modes button").forEach(b => b.onclick = () => { st.m = b.dataset.m; render(); });
+$("wa").onchange = $("wb").onchange = () => render();
+$("top").onclick = () => { st.stops = [...M0.rows].sort((a, b) => b.score - a.score).slice(0, 10).map(v => v.i); render(); };
+$("clear").onclick = () => { st.stops = []; render(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => render());
+addEventListener("themechange", () => render());
+
+$("note").textContent =
+  "Μόνο δημόσια, συγκεντρωτικά, ανεπίσημα αποτελέσματα ΥΠΕΣ ανά κατάστημα· κανένα στοιχείο ψηφοφόρων ή εθελοντών. " +
+  `Δείκτης ισχύος: 100 × ποσοστό καταστήματος / ποσοστό περιφέρειας, με συρρίκνωση προς τον μέσο όρο (σαν το κατάστημα να είχε ${K} επιπλέον έγκυρα στο ποσοστό της περιφέρειας). ` +
+  "Συμμετοχή: έγκυρα / εγγεγραμμένοι (τα άκυρα και λευκά μετρούν ως αποχή). Τεταρτημόρια: ισχυρό > 115, αδύναμο < 85, χαμηλή/υψηλή συμμετοχή σε σχέση με την περιφέρεια. " +
+  "Swing: διαφορά του (συρρικνωμένου) ποσοστού από την προηγούμενη εκλογή, για το ίδιο κατάστημα. " +
+  "Δυναμικό (εκτίμηση, όχι πρόβλεψη): κινητοποίηση = εγγεγραμμένοι × αποχή × ποσοστό (υπόθεση: όσοι απείχαν μοιάζουν με όσους ψήφισαν εκεί)· " +
+  "πειθώ = έγκυρα × απόσταση από τον μέσο όρο της περιφέρειας· δυναμικό = βάρος × κινητοποίηση + βάρος × πειθώ. " +
+  "Κόμματα κάτω από 0,5% σε ένα κατάστημα μετρούν ως 0 εκεί. Δρομολόγιο: πλησιέστερος γείτονας και 2-opt σε ευθεία απόσταση, από την πρώτη στάση που επιλέξατε.";
+render(true);
+</script>
+</body>
+</html>

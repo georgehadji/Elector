@@ -15,8 +15,10 @@ data/venues_geo.json (the repo's cache); a rerun resumes from it, and without --
 import csv
 import json
 import math
+import re
 import sqlite3
 import sys
+import unicodedata
 from collections import defaultdict
 from pathlib import Path
 
@@ -36,18 +38,42 @@ GEO = SRC / "venues_geo_extra.json"
 MIN_SHARE = 0.5  # % of valid votes; smaller parties outside every bloc are left out of the page
 
 
+def saint(m):
+    """'ΑΓ. ΤΡΙΑΔΑΣ' -> 'ΑΓΙΑΣ ΤΡΙΑΔΑΣ': the ending agrees with the next word (Nominatim searches the words as written)."""
+    w = "".join(c for c in unicodedata.normalize("NFD", m[1].upper()) if not unicodedata.combining(c))
+    end = next((e for k, e in (("ΟΥ", "ΟΥ"), ("ΩΝ", "ΩΝ"), ("ΟΙ", "ΟΙ"), ("ΑΣ", "ΑΣ"), ("ΗΣ", "ΑΣ"), ("Α", "Α"), ("Η", "Α"))
+                if w.endswith(k)), "ΟΣ")
+    return f"ΑΓΙ{end} {m[1]}"
+
+
+def clean(venue):
+    """Drop room notes and asides ('(Ισόγειο-1η αίθουσα δεξιά)', '(πρώην ...)', an unclosed '(1ο χλμ ...' up to the
+    next part) and spell out 'ΑΓ.' so the settlement name matches ELSTAT ('ΑΓ.ΓΕΡΜΑΝΟΣ' -> 'ΑΓΙΟΣ ΓΕΡΜΑΝΟΣ')."""
+    s = re.sub(r"\([^()]*\)|\([^()]*?(?=\s{2,}|$)", "", venue)
+    s = re.sub(r"(?<![^\W\d_])ΑΓ\.\s*(\w+)", saint, s, flags=re.IGNORECASE)
+    return s.strip()
+
+
+assert venue_parts(clean("Δημοτικό Σχολείο Βεγόρας (Κεντρική είσοδος- 1η  αίθουσα αριστερά)    ΑΓ.ΓΕΡΜΑΝΟΣ")) == \
+    ("Δημοτικό Σχολείο Βεγόρας", "", "ΑΓΙΟΣ ΓΕΡΜΑΝΟΣ")
+assert clean("ΣΧΟΛΕΙΟ ΑΓ. ΤΡΙΑΔΑΣ  Αγ.Δημητρίου 3  ΑΓ.ΤΡΙΑΔΑ") == "ΣΧΟΛΕΙΟ ΑΓΙΑΣ ΤΡΙΑΔΑΣ  ΑΓΙΟΥ Δημητρίου 3  ΑΓΙΑ ΤΡΙΑΔΑ"
+assert venue_parts(clean("3ο ΛΥΚΕΙΟ  Μακρυγιάννη 26 (1ο χλμ ΚΟΖΑΝΗΣ - ΚΑΡ  ΚΟΖΑΝΗ")) == \
+    ("3ο ΛΥΚΕΙΟ", "Μακρυγιάννη 26", "ΚΟΖΑΝΗ")
+
+
 def read(name):
     with open(SRC / name, encoding="utf-8-sig", newline="") as f:
         yield from csv.DictReader(f)
 
 
-def main():
+def build():
+    """Page data: venues with position and per-election results; field_ops.py uses it too."""
     elections = list(ELECTION_NAMES.values())
-    meta, per = {}, defaultdict(dict)  # id -> venue fields; id -> {election index: [valid, stations, votes]}
+    meta, per = {}, defaultdict(dict)  # id -> venue fields; id -> {election index: [valid, stations, votes, registered]}
     for r in read("venues.csv"):
         i = int(r["id"])
         meta.setdefault(i, r)
-        per[i][elections.index(r["election"])] = [int(r["valid"]), int(r["τμήματα"]), []]
+        per[i][elections.index(r["election"])] = [int(r["valid"]), int(r["τμήματα"]), [], int(r["εγγεγραμμένοι"])]
     in_bloc = {p for ps in BLOCS.values() for p in ps}
     for r in read("venue_parties_long.csv"):
         slot = per[int(r["id"])][elections.index(r["election"])]
@@ -65,6 +91,7 @@ def main():
 
     stations_map.CACHE = GEO  # geocode() saves its cache there after every venue
     geo = json.loads(GEO.read_text(encoding="utf-8")) if GEO.exists() else {}
+    geo = {k: v for k, v in geo.items() if v or clean(k) == k}  # misses under raw text: retried with cleaned text
     fetch, errors = "--geocode" in sys.argv, 0
     placed, spiral = {}, defaultdict(int)  # spiral: venues already put on one community centre
     how = defaultdict(int)
@@ -74,7 +101,8 @@ def main():
             how["geocode"] += 1
             continue
         unit = unit_of.get((m["περιφέρεια"], m["δημ. ενότητα"]))
-        _, street, town = venue_parts(m["κατάστημα"]) if m["κατάστημα"].strip() else ("", "", "")
+        raw, text = m["κατάστημα"], clean(m["κατάστημα"])
+        _, street, town = venue_parts(text) if text.strip() else ("", "", "")
         village = street.split(",")[0] if street and not any(c.isdigit() for c in street) else ""
         hit = None
         if unit:
@@ -83,8 +111,9 @@ def main():
             placed[i] = (hit[1], hit[0], 1)
             how["settlement"] += 1
             continue
-        text = m["κατάστημα"]
-        if fetch and unit and text.strip() and text not in geo:
+        if geo.get(raw):  # placed before cleaning existed
+            text = raw
+        elif fetch and unit and text.strip() and text not in geo:
             try:
                 stations_map.geocode(text, unit, m["δημ. ενότητα"], geo)
                 errors = 0
@@ -130,12 +159,21 @@ def main():
                     meta[i]["κοινότητα"], meta[i]["κατάστημα"], [per[i].get(k) for k in range(len(elections))]]
                    for i, (lat, lon, q) in sorted(placed.items())],
     }
-    page = TEMPLATE.read_text(encoding="utf-8").replace("/*COMMON_CSS*/", common_css())
+    print(f"venues placed: {dict(how)}")
+    return data
+
+
+def write(data, template, out):
+    """Template + shared UI (common.css/js, theme, header, footer) + data -> one self-contained page."""
+    page = template.read_text(encoding="utf-8").replace("/*COMMON_CSS*/", common_css())
     page = fill(page.replace("/*COMMON_JS*/", (HERE / "common.js").read_text(encoding="utf-8")), skip="#map", compact=True)
-    out = SRC / "venue_map.html"
     out.write_text(page.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))),
                    encoding="utf-8")
-    print(f"venues placed: {dict(how)}\nwrote {out} ({out.stat().st_size / 1e6:.1f} MB)")
+    print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB)")
+
+
+def main():
+    write(build(), TEMPLATE, SRC / "venue_map.html")
 
 
 if __name__ == "__main__":

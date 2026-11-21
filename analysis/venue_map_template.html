@@ -83,7 +83,7 @@ for (const [k, v] of new URLSearchParams(location.hash.slice(1))) {
   if (k === "ep" && D.eps[+v]) st.ep = v;
   if (k === "approx") st.approx = v !== "0";
 }
-const saveHash = () => history.replaceState(null, "", "#" + new URLSearchParams({e: st.e, m: st.m, ...(st.ep ? {ep: st.ep} : {}), ...(st.approx ? {} : {approx: 0})}));
+const saveHash = () => { try { history.replaceState(null, "", "#" + new URLSearchParams({e: st.e, m: st.m, ...(st.ep ? {ep: st.ep} : {}), ...(st.approx ? {} : {approx: 0})})); } catch { /* sandboxed srcdoc viewers forbid it: the page works, only the link does not follow the state */ } };
 
 const map = L.map("map", mapOptions({preferCanvas: true, scrollWheelZoom: false})).setView([38.6, 23.8], 6.5);
 baseTiles(map, "Αποτελέσματα & καταστήματα: ΥΠΕΣ (ανεπίσημα) · όρια: ΕΛΣΤΑΤ", 17);
