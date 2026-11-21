@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-ewsW5/5ZTm3sIPVV1bvOXDdRnaJihSCQNsY1RIA+ig0=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-JqOpZwuFGwU+PuPaF0WDeD4Rey5ENLot6ZaGu711haM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-bVBMYn/9pJDZ8AGMCIUdC4u3JLtoWNs+0EKo44iu5wU=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-JqOpZwuFGwU+PuPaF0WDeD4Rey5ENLot6ZaGu711haM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Σύγκριση εκλογών</title>
 <meta name="description" content="Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Σύγκριση εκλογών ανά κοινότητα"><meta property="og:description" content="Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024.">
@@ -412,7 +412,7 @@ function render() {
   document.getElementById("note").textContent =
     (V.from ? "Χρώμα = διαφορά ποσοστού σε ποσοστιαίες μονάδες· η μεταβολή δεν δείχνει από πού ήρθαν οι ψηφοφόροι. " : "") +
     (euro && V.from ? EURO_NOTE : "") + NOTE;
-  history.replaceState(null, "", `#party=${D.parties[pi].id}&view=${view}`);
+  try { history.replaceState(null, "", `#party=${D.parties[pi].id}&view=${view}`); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ }
 }
 
 const partySel = document.getElementById("party"), viewSel = document.getElementById("view");

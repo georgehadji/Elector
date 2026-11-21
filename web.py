@@ -377,22 +377,23 @@ open(sw.querySelector("button").dataset.e);
 const groups = [...document.querySelectorAll(".grp")], tabs = [...document.querySelectorAll(".jump a")];
 const rsel = document.querySelector(".rsel select");
 rsel.replaceChildren(...tabs.map(a => new Option(a.textContent, a.hash.slice(1))));
-rsel.addEventListener("change", () => { history.pushState(null, "", "#" + rsel.value); fromHash(); });
+rsel.addEventListener("change", () => { try { history.pushState(null, "", "#" + rsel.value); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ } show(rsel.value); });
 const pick = g => {
   groups.forEach(x => x.classList.toggle("on", x === g));
   const id = g.querySelector(".reg").id; if (rsel.value !== id) rsel.value = id;
   tabs.forEach(a => a.hash === "#" + g.querySelector(".reg").id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
 };
-const fromHash = () => {
-  const el = document.getElementById(location.hash.slice(1)), g = el && el.closest(".grp");
+const show = id => {
+  const el = document.getElementById(id), g = el && el.closest(".grp");
   if (g) { pick(g); el.scrollIntoView({behavior: "instant"}); } else if (!location.hash || !document.querySelector(".grp.on")) pick(groups[0]);  // back to the bare address = the first region
 };
+const fromHash = () => show(location.hash.slice(1));
 document.body.classList.add("tabs");
 fromHash();
 addEventListener("hashchange", fromHash);
 document.querySelector(".jump").addEventListener("click", e => {
   const a = e.target.closest("a");
-  if (a) { e.preventDefault(); history.pushState(null, "", a.hash); fromHash(); }
+  if (a) { e.preventDefault(); try { history.pushState(null, "", a.hash); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ } show(a.hash.slice(1)); }
 });
 document.addEventListener("click", e => { if (!e.target.closest(".sf")) closeSug(); });
 f.addEventListener("focus", () => { if (f.value.trim()) f.dispatchEvent(new Event("input")); });
