@@ -1,0 +1,24 @@
+# Lint and tests on every push and pull request. The DB is not in the repo, so the tests check the committed out/ pages.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: pip install ruff==0.17.5 xlrd==2.0.1
+      # Syntax errors and pyflakes only: newer ruff defaults add style rules the code does not follow yet.
+      # E402: scripts put their own directory on sys.path before importing siblings. E731: named lambdas.
+      - run: ruff check --isolated --select E4,E7,E9,F --ignore E402,E731 .
+      - run: python -I -X utf8 -m unittest discover -s tests
