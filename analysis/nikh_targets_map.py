@@ -1,11 +1,11 @@
 """Targeting map for NIKH (party 131) per ELSTAT community -> out/nikh_targets.html.
 
-Classes (June 2023 share s, Euro 2024 share e, Ελλ. Λύση + Σπαρτιάτες June share pool):
+Classes (June 2023 share s, Euro 2024 share e, Ελλ. Λύση June share pool):
   0 κάστρο σε φθορά   s >= 6% and e < s
   1 κάστρο            s >= 6%
   2 βάση σε φθορά     3% <= s < 6% and e < s
   3 βάση              3% <= s < 6%
-  4 δεξαμενή          s < 3% and pool >= 9% (about its national share)
+  4 δεξαμενή          s < 3% and pool >= 4.5% (about its national share)
   5 υπόλοιπα
 Euro 2024 had far lower turnout, which raised small parties' shares nationally (NIKH 3.7% -> 4.4%), so a share
 that fell in a community means NIKH kept fewer voters there than turnout alone explains.
@@ -24,8 +24,8 @@ from config import HERE, OUT
 from matching import ep_label
 from web import INDEX_DARK, INDEX_LIGHT, fill, secure
 
-NIKH, POOL = 131, (108, 157)
-STRONG, BASE, POOL_MIN, MIN_VALID = 6.0, 3.0, 9.0, 50  # 9%: national June share of the pool
+NIKH, POOL = 131, (108,)  # Σπαρτιάτες left out: NIKH took almost none of their voters in 2024 (nikh_competition.py)
+STRONG, BASE, POOL_MIN, MIN_VALID = 6.0, 3.0, 4.5, 50  # 4.5%: national June share of the pool
 CORE = ["Α' Θεσσαλονίκης", "Β' Θεσσαλονίκης", "Β1' Βόρειου Τομέα Αθηνών", "Β3' Νότιου Τομέα Αθηνών",
         "Α' Ανατολικής Αττικής", "Αχαΐας", "Πιερίας"]
 MARGINAL = ["Α' Αθηνών", "Β2' Δυτικού Τομέα Αθηνών", "Λάρισας", "Πέλλας", "Κοζάνης", "Αιτωλοακαρνανίας"]
