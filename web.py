@@ -255,7 +255,7 @@ body.pick .acts{display:none}
 .gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
 .gr .k{display:inline-flex;align-items:center;white-space:nowrap}
 .gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
-@media (min-width:900px){main{position:relative}.gr{position:absolute;right:24px;top:56px;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.nums{max-width:calc(100% - 380px)}}
+@media (min-width:900px){main>header:not(.bar){position:relative}.gr{position:absolute;right:0;top:0;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.nums{max-width:calc(100% - 380px)}}
 .dhm{margin:0 0 8px;color:var(--ink-2);font-size:.8125rem;line-height:1.45}
 .eps .dhm{grid-column:2/-1;grid-row:2;margin:4px 0 0;position:relative}
 .sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
