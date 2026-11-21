@@ -93,6 +93,9 @@ REGIONS = [
     ("Κρήτη", [53, 54, 55, 56]),
 ]
 
+# Party colours the ministry data gets wrong for a map: ND and ΠΑΣΟΚ at 3:1 on paper (the ministry's are 2.9 and 2.1).
+PARTY_COLOR = {2: "#1f6fd1", 106: "#1a8f5a"}
+
 # NIKH (party 131) MPs elected 25 June 2023 per constituency (iefimerida.gr, 97.75% counted);
 # 10th seat: Apostolakis, Επικρατείας (resigned; replaced by Rakovalis). Vrettos and N. Papadopoulos were expelled from the party but kept their seats.
 ELECTED = {60: "Κουρουπάκη", 61: "Βορύλλας", 62: "Βρεττός", 63: "Οικονομόπουλος", 31: "Τσιρώνης",

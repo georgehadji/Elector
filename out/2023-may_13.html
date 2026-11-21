@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-Dymd8wOiXlu9bSsBfZvqfyIc84GPjsqad7R0EyRNTos=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-oNHbwys45yRsX+jqRzKVGV6naJLEpMR1lwEyh2ZVtQY=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-Dymd8wOiXlu9bSsBfZvqfyIc84GPjsqad7R0EyRNTos=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-eqXW4tHPWoNInTH1X7iP9gRnzyGJv3yzPKv86ZaD/qY=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
@@ -32,13 +32,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <style>
 /* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
-:root{color-scheme:light;--surface:light-dark(#fbfaf6,#15171b);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#46453f,#c2c1bc);--line:light-dark(#d9d6cc,#33363c);--chip:light-dark(#f1efe6,#1e2128);--shadow:light-dark(rgba(0,0,0,.18),rgba(0,0,0,.5));--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:light-dark(#1f4e9c,#8fb0f0);--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:light-dark(#d9d6cc,#5a5955);--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
+:root{color-scheme:light;--surface:light-dark(#fbfaf6,#15171b);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#46453f,#c2c1bc);--line:light-dark(#d9d6cc,#33363c);--chip:light-dark(#f1efe6,#1e2128);--shadow:light-dark(rgba(0,0,0,.18),rgba(0,0,0,.5));--s0:#f3eef8;--s1:#dccbea;--s2:#bda0d6;--s3:#9c78bf;--s4:#7a4fa8;--s5:#5a2f8a;--s6:#3a1866;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:light-dark(#1f4e9c,#8fb0f0);--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:light-dark(#d9d6cc,#5a5955);--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
 :root[data-theme=light]{color-scheme:light}
 :root[data-theme=dark]{color-scheme:dark}
 @media print{:root,:root[data-theme]{color-scheme:light;--surface:#fff}}
 
 * { box-sizing: border-box; }
-:root { accent-color: var(--s4); }
+:root { accent-color: var(--link); }
 .legend, .tip b { overflow-wrap: anywhere; }
 body { margin: 0; font: 1rem/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
 main { max-width: 1200px; margin: 0 auto; padding: 16px; }
@@ -143,7 +143,7 @@ select, button, input { font: inherit; color: var(--ink); background: var(--chip
 select { min-width: 0; max-width: 100%; }
 input[type="search"] { width: 14em; max-width: 100%; }
 button { cursor: pointer; }
-:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 .pdf { margin-left: auto; }
@@ -173,14 +173,14 @@ table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nu
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--ink-2); font-weight: 600; font-size: var(--t-xs); position: sticky; top: 0; background: var(--surface); z-index: 1; }
 th button { all: unset; cursor: pointer; display: inline-block; min-height: 24px; }
-th button:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+th button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 th[aria-sort="ascending"] button::after { content: " ▲"; font-size: var(--t-xs); }
 th[aria-sort="descending"] button::after { content: " ▼"; font-size: var(--t-xs); }
 td.n, th.n { text-align: right; }
 tbody tr:hover { background: var(--chip); }
-tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
+tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
 .rowlink { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
-.rowlink:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
+.rowlink:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .m { color: var(--ink-2); }
 .tablewrap { max-height: 520px; overflow: auto; }
 .note { color: var(--ink-2); font-size: var(--t-xs); margin-top: 16px; max-width: 65ch; }
