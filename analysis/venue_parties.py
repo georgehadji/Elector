@@ -219,7 +219,7 @@ def main():
     geo = json.loads((HERE / "data" / "venues_geo.json").read_text(encoding="utf-8"))
 
     def new():
-        return {"valid": 0, "v": Counter(), "n": 0}
+        return {"valid": 0, "reg": 0, "v": Counter(), "n": 0}
 
     venues, comms, dens = defaultdict(new), defaultdict(new), defaultdict(new)
     venue_text, venue_comm, venue_den, checks = defaultdict(Counter), defaultdict(Counter), {}, {}
@@ -230,8 +230,8 @@ def main():
     for e in ELECTIONS:
         v_of = v_of_all[e]
         meta = {}  # tm -> accumulators this station adds to
-        for tm, ep, den, valid, comm in db.execute("""
-                SELECT s.tm_id, s.ep_id, s.den_descr, s.valid, a.comm_code FROM station s
+        for tm, ep, den, valid, reg, comm in db.execute("""
+                SELECT s.tm_id, s.ep_id, s.den_descr, s.valid, s.registered, a.comm_code FROM station s
                 LEFT JOIN area_match a ON a.election = s.election AND a.tm_id = s.tm_id
                 WHERE s.election=? AND s.kind='Κ'""", (e,)):
             accs = [dens[e, ep, den]] + ([comms[e, ep, comm]] if comm else [])
@@ -245,6 +245,7 @@ def main():
                     venue_comm[key][comm] += 1
             for a in accs:
                 a["valid"] += valid or 0
+                a["reg"] += reg or 0
             meta[tm] = accs
         for tm, pid, n in db.execute("SELECT tm_id, party_id, votes FROM party_votes WHERE election=? AND votes > 0",
                                      (e,)):
@@ -265,7 +266,7 @@ def main():
     venue_rows, long_rows = [], []
     for (e, k), a in sorted(venues.items(), key=lambda x: (vid[x[0][1]], ELECTIONS.index(x[0][0]))):
         rows = ranked(a["v"], a["valid"], names)
-        venue_rows.append(summary_row({**venue_info[k], "τμήματα": a["n"]}, e, a["valid"], rows))
+        venue_rows.append(summary_row({**venue_info[k], "τμήματα": a["n"], "εγγεγραμμένοι": a["reg"]}, e, a["valid"], rows))
         long_rows += [{"id": vid[k], "election": ELECTION_NAMES[e], **r} for r in rows]
     comm_rows = [summary_row({"περιφέρεια": ep_name[ep], "κοινότητα": label(comm_by_code[c]), "κοινότητα κωδ.": c},
                              e, a["valid"], ranked(a["v"], a["valid"], names))
