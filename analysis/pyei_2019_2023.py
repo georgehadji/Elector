@@ -42,7 +42,7 @@ ROWS = {
 COLS = {"ΝΙΚΗ": 131, "ΝΔ": 2, "ΣΥΡΙΖΑ": 4, "ΠΑΣΟΚ": 106, "Ελλ. Λύση": 108} if FULL else     {"ΝΙΚΗ": 131, "ΝΔ": 2, "Ελλ. Λύση": 108}
 if ELECTION == "2024/euro":
     COLS["Φωνή Λογικής"] = 158
-TUNE, DRAWS = (1500, 1000) if FULL else (3000, 1500)
+TUNE, DRAWS, ACCEPT = (1500, 1000, 0.9) if FULL else (3000, 1500, 0.95)
 
 
 def load(e):
@@ -92,7 +92,7 @@ assert np.allclose(X.sum(0), 1) and np.allclose(Y.sum(0), 1)
 
 ei = RowByColumnEI(model_name="multinomial-dirichlet-modified", pareto_shape=100, pareto_scale=100)
 ei.fit(X, Y, pops, demographic_group_names=row_names, candidate_names=col_names,
-       draws=DRAWS, tune=TUNE, chains=4, target_accept=0.9, random_seed=0,  # PyEI samples with numpyro
+       draws=DRAWS, tune=TUNE, chains=4, target_accept=ACCEPT, random_seed=0,  # PyEI samples with numpyro
        nuts_sampler_kwargs={"chain_method": "parallel"})
 
 import arviz as az
@@ -103,6 +103,16 @@ ess = az.ess(ei.sim_trace, var_names=["b"]) if "b" in ei.sim_trace.posterior els
 print("min ess:", float(min(ess[v].min() for v in ess.data_vars)))
 
 prefs = ei.sampled_voting_prefs  # (samples, rows, cols), group-population weighted
+# The max above is over b per unit (units x rows x cols cells). What the tables report is the
+# population-weighted aggregate; check its convergence too. Samples are stacked chain-major.
+agg = az.convert_to_dataset(prefs.reshape(ei.sim_trace.posterior.sizes["chain"], -1, *prefs.shape[1:]))
+agg_rhat = az.rhat(agg).to_array().values[0]
+print("aggregate max rhat:", float(agg_rhat.max()), "min ess:", float(az.ess(agg).to_array().min()))
+chain_means = prefs.reshape(ei.sim_trace.posterior.sizes["chain"], -1, *prefs.shape[1:]).mean(1)
+for idx in np.argsort(agg_rhat, axis=None)[::-1][:8]:  # worst cells, with each chain's mean
+    i, j = np.unravel_index(idx, agg_rhat.shape)
+    print(f"  rhat {agg_rhat[i, j]:.2f} {row_names[i]} → {col_names[j]}, αλυσίδες:",
+          " ".join(f"{100 * x:.1f}%" for x in chain_means[:, i, j]))
 grp_pop = (X * pops).sum(1)  # people in each base group (on target registered base)
 col_pop = (Y * pops).sum(1)
 
