@@ -42,7 +42,7 @@
   <div class="stats" id="stats"></div>
   <div class="legend" id="legend"></div>
   <h2>Ανά περιοχή</h2>
-  <div class="tablewrap"><table id="tbl"></table></div>
+  <div class="tablewrap" role="region" aria-label="Πίνακας περιοχών" tabindex="0"><table id="tbl" aria-label="Πίνακας περιοχών"></table></div>
   <p class="note" id="note"></p>
 <!--FOOTER-->
 </main>
@@ -160,8 +160,8 @@ function render() {
 
   const tbl = $("tbl");
   tbl.innerHTML =
-    `<thead><tr><th>Περιοχή</th><th>Δημ. ενότητα</th><th class="n">${T.num}</th><th class="n">${T.den}</th>` +
-    `<th class="n">${T.share}</th><th class="n">Απόκλιση</th><th class="n">Θέση</th></tr></thead><tbody>` +
+    `<thead><tr><th scope="col">Περιοχή</th><th scope="col">Δημ. ενότητα</th><th scope="col" class="n">${T.num}</th><th scope="col" class="n">${T.den}</th>` +
+    `<th scope="col" class="n">${T.share}</th><th scope="col" class="n">Απόκλιση</th><th scope="col" class="n">Θέση</th></tr></thead><tbody>` +
     props.map((p, i) => {
       const pv = den(p, c), r = mean ? share(p, c) / mean : 0;
       return `<tr data-i="${i}"><td><button type="button" class="rowlink" data-i="${i}">${p.name}</button></td><td>${p.unit}</td>` +

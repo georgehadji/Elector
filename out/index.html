@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-kAmeW73OqgSlBkgD0CbZkBbe7Iss/tXXF5HEu3M4Jn0=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-tCI/fBGytlYa2SHgIbuk14oCIiKa/bor0PPktzDno94=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-kAmeW73OqgSlBkgD0CbZkBbe7Iss/tXXF5HEu3M4Jn0=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-uscb7SG9BKChPT2onsGwM3usDoD+Q08Z6IJ7GCWMUPM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
 <meta name="description" content="Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.">
 <link rel="preload" href="fonts/ibm-plex-sans-greek.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/ibm-plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -50,6 +50,9 @@
 .bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
 .bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 600 1.125rem/1.2 "IBM Plex Sans", system-ui, sans-serif; text-decoration: none; }
 .bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* WCAG 2.5.8: every pointer target is at least 24 by 24 CSS px */
+.bar .home { min-width: 24px; min-height: 24px; }
+.ctx nav a, .site .copy { display: inline-flex; align-items: center; min-height: 24px; }
 .mark { width: 20px; height: 20px; flex: none; }
 .mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
 .mark rect { stroke-width: 2.4; }
@@ -143,7 +146,7 @@ h1{font:600 clamp(2.5rem,8vw,4.5rem)/1.05 "IBM Plex Sans",system-ui,sans-serif;l
 .try{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:12px 0 0;font-size:var(--t-sm);color:var(--ink-2)}
 .try button{font:inherit;color:var(--pen);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
 .try button:hover{border-color:var(--pen);background:var(--wash)}
-.try .brw{margin-left:6px;color:var(--ink-2)}
+.try .brw{margin-left:6px;color:var(--ink-2);display:inline-block;min-height:24px;line-height:24px}
 #f::placeholder{color:var(--ink-2)}
 #f:focus-visible{outline:2px solid var(--pen);outline-offset:2px;border-color:var(--pen)}
 #n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:var(--t-sm)}
@@ -242,7 +245,7 @@ body.pick .acts{display:none}
 .cg li{padding:3px 0}
 .jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;overflow-x:auto;white-space:nowrap;
       scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:var(--t-sm)}
-.jump a{color:var(--ink-2);text-decoration:none}
+.jump a{color:var(--ink-2);text-decoration:none;display:inline-block;min-height:24px}
 .jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .jump a[aria-current]{color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
 body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* one region at a time; a search looks in all */
@@ -290,7 +293,7 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
 <div id="tm"><h3>Αναφορές και εξαγωγές</h3><p>Αναλυτικές αναφορές ανά κόμμα και εκλογή, με δεδομένα για λήψη.</p>
 <details class="fold"><summary>Όλες οι αναφορές (13)</summary><ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
 <li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></li>
-<li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li><li><a href="2023-june_63_tm_131-0.html">Α΄ Ανατολικής Αττικής</a> <span>Ιούνιος 2023, Οικονομόπουλος</span></li><li><a href="2023-june_6_tm_131-0.html">Α΄ Θεσσαλονίκης</a> <span>Ιούνιος 2023, Νατσιός</span></li><li><a href="2023-june_31_tm_131-0.html">Αχαΐας</a> <span>Ιούνιος 2023, Τσιρώνης</span></li><li><a href="2023-june_60_tm_131-0.html">Β1΄ Βορείου Τομέα Αθηνών</a> <span>Ιούνιος 2023, Κουρουπάκη</span></li><li><a href="2023-june_61_tm_131-0.html">Β2΄ Δυτικού Τομέα Αθηνών</a> <span>Ιούνιος 2023, Βορύλλας</span></li><li><a href="2023-june_62_tm_131-0.html">Β3΄ Νοτίου Τομέα Αθηνών</a> <span>Ιούνιος 2023, Βρεττός</span></li><li><a href="2023-june_7_tm_131-0.html">Β΄ Θεσσαλονίκης</a> <span>Ιούνιος 2023, Παπαδόπουλος</span></li><li><a href="2023-june_22_tm_131-0.html">Λάρισας</a> <span>Ιούνιος 2023, Ρούντας</span></li><li><a href="2023-june_13_tm_131-0.html">Πιερίας</a> <span>Ιούνιος 2023, Δελβερούδης</span></li><li><a href="2023-may_31_tm_131-0_%CE%A0%CE%B1%CF%84%CF%81%CE%AD%CF%89%CE%BD.html">Αχαΐας</a> <span>Μάιος 2023</span></li></ul></details></div>
+<li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li><li><a href="2023-june_63_tm_131-0.html" aria-label="Α΄ Ανατολικής Αττικής, Ιούνιος 2023, Οικονομόπουλος">Α΄ Ανατολικής Αττικής</a> <span>Ιούνιος 2023, Οικονομόπουλος</span></li><li><a href="2023-june_6_tm_131-0.html" aria-label="Α΄ Θεσσαλονίκης, Ιούνιος 2023, Νατσιός">Α΄ Θεσσαλονίκης</a> <span>Ιούνιος 2023, Νατσιός</span></li><li><a href="2023-june_31_tm_131-0.html" aria-label="Αχαΐας, Ιούνιος 2023, Τσιρώνης">Αχαΐας</a> <span>Ιούνιος 2023, Τσιρώνης</span></li><li><a href="2023-june_60_tm_131-0.html" aria-label="Β1΄ Βορείου Τομέα Αθηνών, Ιούνιος 2023, Κουρουπάκη">Β1΄ Βορείου Τομέα Αθηνών</a> <span>Ιούνιος 2023, Κουρουπάκη</span></li><li><a href="2023-june_61_tm_131-0.html" aria-label="Β2΄ Δυτικού Τομέα Αθηνών, Ιούνιος 2023, Βορύλλας">Β2΄ Δυτικού Τομέα Αθηνών</a> <span>Ιούνιος 2023, Βορύλλας</span></li><li><a href="2023-june_62_tm_131-0.html" aria-label="Β3΄ Νοτίου Τομέα Αθηνών, Ιούνιος 2023, Βρεττός">Β3΄ Νοτίου Τομέα Αθηνών</a> <span>Ιούνιος 2023, Βρεττός</span></li><li><a href="2023-june_7_tm_131-0.html" aria-label="Β΄ Θεσσαλονίκης, Ιούνιος 2023, Παπαδόπουλος">Β΄ Θεσσαλονίκης</a> <span>Ιούνιος 2023, Παπαδόπουλος</span></li><li><a href="2023-june_22_tm_131-0.html" aria-label="Λάρισας, Ιούνιος 2023, Ρούντας">Λάρισας</a> <span>Ιούνιος 2023, Ρούντας</span></li><li><a href="2023-june_13_tm_131-0.html" aria-label="Πιερίας, Ιούνιος 2023, Δελβερούδης">Πιερίας</a> <span>Ιούνιος 2023, Δελβερούδης</span></li><li><a href="2023-may_31_tm_131-0_%CE%A0%CE%B1%CF%84%CF%81%CE%AD%CF%89%CE%BD.html" aria-label="Αχαΐας, Μάιος 2023">Αχαΐας</a> <span>Μάιος 2023</span></li></ul></details></div>
 </div>
 <details class="fold cov" id="cov"><summary>Πόσο πλήρεις είναι οι χάρτες: κάλυψη ανά νομό και εκλογή</summary><ul><li><a href="index_2024-euro.html">Ευρωεκλογές 2024</a></li><li><a href="index_2023-june.html">Ιούνιος 2023</a></li><li><a href="index_2023-may.html">Μάιος 2023</a></li><li><a href="index_2019.html">2019</a></li></ul></details></section>
 <section id="regions" aria-labelledby="rt"><h2 id="rt">Εκλογικές περιφέρειες</h2>

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-7De8O3EOReNY3aph8z+/Ws8Nq4nZE5xEg5hy6YFmAJ4=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-JoIDHgDCqY3oJsn9gEXo7nICTCTOCDkpwM0uywGWvw4=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Κάλυψη χαρτών · Ιούνιος 2023</title>
 <link rel="preload" href="fonts/ibm-plex-sans-greek.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/ibm-plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
@@ -55,6 +55,9 @@ h1 { font: 600 clamp(1.375rem, 1.2rem + .8vw, 1.625rem)/1.2 "IBM Plex Sans", sys
 .bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
 .bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 600 1.125rem/1.2 "IBM Plex Sans", system-ui, sans-serif; text-decoration: none; }
 .bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* WCAG 2.5.8: every pointer target is at least 24 by 24 CSS px */
+.bar .home { min-width: 24px; min-height: 24px; }
+.ctx nav a, .site .copy { display: inline-flex; align-items: center; min-height: 24px; }
 .mark { width: 20px; height: 20px; flex: none; }
 .mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
 .mark rect { stroke-width: 2.4; }
@@ -133,6 +136,7 @@ h2 { font-size: var(--t-base); margin: 0 0 8px; }
 a { color: var(--link); }
 .sub { color: var(--ink-2); margin: 0 0 8px; max-width: 65ch; }  /* 45-90 characters a line */
 .views { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; font-size: var(--t-sm); }
+.views a { display: inline-flex; align-items: center; min-height: 24px; }
 .views:empty { display: none; }
 .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
 .controls label { color: var(--ink-2); font-size: var(--t-xs); }
@@ -169,7 +173,7 @@ button { cursor: pointer; }
 table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--ink-2); font-weight: 600; font-size: var(--t-xs); position: sticky; top: 0; background: var(--surface); z-index: 1; }
-th button { all: unset; cursor: pointer; }
+th button { all: unset; cursor: pointer; display: inline-block; min-height: 24px; }
 th button:focus-visible { outline: 2px solid var(--s4); outline-offset: 2px; }
 th[aria-sort="ascending"] button::after { content: " ▲"; font-size: var(--t-xs); }
 th[aria-sort="descending"] button::after { content: " ▼"; font-size: var(--t-xs); }

@@ -203,7 +203,7 @@ h1{font:600 clamp(2.5rem,8vw,4.5rem)/1.05 "IBM Plex Sans",system-ui,sans-serif;l
 .try{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:12px 0 0;font-size:var(--t-sm);color:var(--ink-2)}
 .try button{font:inherit;color:var(--pen);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
 .try button:hover{border-color:var(--pen);background:var(--wash)}
-.try .brw{margin-left:6px;color:var(--ink-2)}
+.try .brw{margin-left:6px;color:var(--ink-2);display:inline-block;min-height:24px;line-height:24px}
 #f::placeholder{color:var(--ink-2)}
 #f:focus-visible{outline:2px solid var(--pen);outline-offset:2px;border-color:var(--pen)}
 #n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:var(--t-sm)}
@@ -302,7 +302,7 @@ body.pick .acts{display:none}
 .cg li{padding:3px 0}
 .jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;overflow-x:auto;white-space:nowrap;
       scrollbar-width:none;background:var(--paper);border-bottom:1px solid var(--line);font-size:var(--t-sm)}
-.jump a{color:var(--ink-2);text-decoration:none}
+.jump a{color:var(--ink-2);text-decoration:none;display:inline-block;min-height:24px}
 .jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .jump a[aria-current]{color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
 body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* one region at a time; a search looks in all */
@@ -483,12 +483,13 @@ def _write_index(order, nikh, elected):
                 f'({html.escape(t[1])})</span> <span class="vt">{f"{t[2]:,}".replace(",", ".")}</span></p>' if t else "")
         by_region.setdefault(region_of.get(latest["ep"], "Λοιπές"), []).append(
             card(latest["ep"], name, k, len(own), lead, note, chips, urllib.parse.quote(links[-1][0]), latest.get("sil", "")))
+    # the link name carries the note beside it, so two links to the same constituency read differently in a list of links
     nikh_rows = "".join(
-        f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>'
-        f'{ELECTION_NAMES.get(m["election"], m["election"])}'
-        f'{", " + html.escape(elected[m["ep"]]) if m["election"] == "2023/june" and m["ep"] in elected else ""}</span></li>'
+        (lambda note: f'<li><a href="{urllib.parse.quote(f)}" aria-label="{html.escape(m["ep_name"])}, {note}">{html.escape(m["ep_name"])}</a> <span>{note}</span></li>')(
+            ELECTION_NAMES.get(m["election"], m["election"])
+            + (", " + html.escape(elected[m["ep"]]) if m["election"] == "2023/june" and m["ep"] in elected else ""))
         for f, m in nikh)
-    nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
+    nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}" aria-label="{html.escape(m["ep_name"])}, {html.escape(m["label"])}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
                          for f, m in tm if "_tm_131-" not in f)
     groups = "".join(f'<section class="grp"><h3 class="reg" id="reg-{i}">{html.escape(region)}</h3><div class="lh" aria-hidden="true"><span>Περιφέρεια</span><span>{TOP_KEY}</span><span>Σταυροί</span></div><ul class="eps">{"".join(lis)}</ul></section>'
                      for i, (region, lis) in enumerate(by_region.items()) if lis)

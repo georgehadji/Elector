@@ -16,6 +16,7 @@
 body{margin:0;min-height:100vh;min-height:100dvh}
 body{background:var(--paper);color:var(--ink);font:.875rem/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto auto 1fr auto auto}
 :root{accent-color:var(--pen)}
+main{display:contents}  /* landmark only; the grid rows stay the page's */
 .head{padding:10px 16px 8px;border-bottom:1px solid var(--line)}
 .bar{margin:0;padding:8px 16px 0}
 .site{margin:0;padding:6px 16px 8px}
@@ -76,6 +77,7 @@ select{font:inherit;font-size:var(--t-sm);color:var(--ink);background:var(--fiel
 </head>
 <body>
 <!--HEADER-->
+<main>
 <header class="head">
   <h1>Σύγκριση εκλογών ανά κοινότητα</h1>
   <div class="ctl">
@@ -90,6 +92,7 @@ select{font:inherit;font-size:var(--t-sm);color:var(--ink);background:var(--fiel
 </header>
 <div id="map" role="region" aria-label="Χάρτης"></div>
 <details id="ext"><summary>Οι 10 υψηλότερες και οι 10 χαμηλότερες περιοχές</summary><div class="lists" id="lists"></div></details>
+</main>
 <!--FOOTER-->
 <script>/*SHARED_JS*/</script>
 <script>
