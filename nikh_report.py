@@ -120,7 +120,7 @@ def main(xls):
     md += ["", "Σημ.: η 10η έδρα (Επικρατείας, χωρίς περιφέρεια) ανήκε στον Γ. Αποστολάκη. Παραιτήθηκε για πολιτικούς λόγους και "
            "την πήρε ο Αθανάσιος Ρακοβαλής. Οι βουλευτές Νικόλαος Βρεττός και Νικόλαος Παπαδόπουλος διαγράφηκαν από το κόμμα και κράτησαν τις έδρες τους.",
            '<p><a href="index.html">Όλοι οι χάρτες</a> · <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">'
-           'CSV ανά δημοτική ενότητα</a></p>', ""] + detail
+           'CSV ανά δημοτική ενότητα</a> · <a href="nikh_targets.html">Χάρτης στόχευσης</a> · <a href="nikh_2023-2024.html">Χάρτης 2019–2024</a></p>', ""] + detail
     report = HERE / "out" / "NIKH_eklegmenoi_2023.html"  # next to the maps it links to
     report.write_text(to_html(md), encoding="utf-8")
     with open(HERE / "exports" / "NIKH_2023_ana_dhm_enotita.csv", "w", newline="", encoding="utf-8-sig") as f:
