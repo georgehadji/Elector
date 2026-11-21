@@ -94,6 +94,6 @@ REGIONS = [
 ]
 
 # NIKH (party 131) MPs elected 25 June 2023 per constituency (iefimerida.gr, 97.75% counted);
-# 10th seat: Apostolakis, Επικρατείας.
+# 10th seat: Apostolakis, Επικρατείας (resigned; replaced by Rakovalis). Vrettos and N. Papadopoulos were expelled from the party but kept their seats.
 ELECTED = {60: "Κουρουπάκη", 61: "Βορύλλας", 62: "Βρεττός", 63: "Οικονομόπουλος", 31: "Τσιρώνης",
            6: "Νατσιός", 7: "Παπαδόπουλος", 22: "Ρούντας", 13: "Δελβερούδης"}
