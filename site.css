@@ -75,3 +75,6 @@ h1, h2 { text-wrap: balance; }
   .bar .home, .bar nav a, .site a, .ctx nav a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 @media print { .bar, .site, .skip, .ctx { display: none !important; } }
+
+/* Every number is set in tabular figures, so columns of crosses and percentages line up. */
+:root { font-variant-numeric: tabular-nums; }

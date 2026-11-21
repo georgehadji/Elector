@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-98UP8GdcQGf3Y9crwLDuzbZlOSMdLp0M7YF7r1Qmfqs=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-h4ivpNY4Exxfs6/g0fB/iRIhRf2hphehkl158HppVw8=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-5bXgcR1FZsNsdCaRn0gEyEbGFRnC1Rkzdhd3S4QiTsM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-dDIC8b1jo6egbAZWH7tqUkfabHJKPDryb2cWdSMuA9c=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ ανά διαμέρισμα</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
@@ -39,7 +39,7 @@
 })();
 </script>
 <style>
-:root{color-scheme:light dark;--paper:light-dark(#f6f7f9,#171c24);--ink:light-dark(#13233d,#e8edf5);--ink-2:light-dark(#55627a,#9aa6b8);--line:light-dark(#dde2ea,#2b3442);--pen:light-dark(#256abf,#6da7ec);--wash:light-dark(#eaf1fb,#1f2a3a);--panel:light-dark(#ffffffee,#1d2430ee);--on:light-dark(#13233d,#e8edf5);--on-ink:light-dark(#fff,#171c24)}
+:root{color-scheme:light dark;--paper:light-dark(#fbfaf6,#15171b);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#5c5b57,#a8a7a2);--line:light-dark(#d9d6cc,#33363c);--pen:light-dark(#1f4e9c,#8fb0f0);--wash:light-dark(#f1efe6,#1e2128);--panel:light-dark(#ffffffee,#1d2430ee);--on:light-dark(#1d1d1b,#e8edf5);--on-ink:light-dark(#fff,#171c24)}
 :root[data-theme=light]{color-scheme:light}
 :root[data-theme=dark]{color-scheme:dark}
 
@@ -120,6 +120,9 @@ h1, h2 { text-wrap: balance; }
   .bar .home, .bar nav a, .site a, .ctx nav a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 @media print { .bar, .site, .skip, .ctx { display: none !important; } }
+
+/* Every number is set in tabular figures, so columns of crosses and percentages line up. */
+:root { font-variant-numeric: tabular-nums; }
 
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;min-height:100dvh}
@@ -203,8 +206,7 @@ const pctf = p => p.toLocaleString("el-GR", {minimumFractionDigits: 1, maximumFr
 
 let current = Object.keys(D.elections)[1];
 const map = L.map("map", {preferCanvas: true, zoomSnap: 0.25}).setView([38.6, 23.8], 6.5);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 14, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+map.attributionControl.addAttribution("Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)");  // no base map: the choropleth is the only colour
 
 function style(f) {
   if (DELTAS[current]) {

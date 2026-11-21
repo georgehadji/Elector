@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-bVBMYn/9pJDZ8AGMCIUdC4u3JLtoWNs+0EKo44iu5wU=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-JqOpZwuFGwU+PuPaF0WDeD4Rey5ENLot6ZaGu711haM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-ayDvcKaBJV7pSNoh0dVp/zjgV/f98Bm2jYg0pMbBTZw=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-hMAkZDvf18tM7W6HoN13M3I22C7CDKqEOf16B5p2s1s=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Σύγκριση εκλογών</title>
 <meta name="description" content="Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Σύγκριση εκλογών ανά κοινότητα"><meta property="og:description" content="Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024.">
@@ -40,7 +40,7 @@
 })();
 </script>
 <style>
-:root{color-scheme:light dark;--paper:light-dark(#f6f7f9,#171c24);--ink:light-dark(#13233d,#e8edf5);--ink-2:light-dark(#55627a,#9aa6b8);--line:light-dark(#dde2ea,#2b3442);--pen:light-dark(#256abf,#6da7ec);--wash:light-dark(#eaf1fb,#1f2a3a);--panel:light-dark(#ffffffee,#1d2430ee);--field:light-dark(#fff,#1d2430);--shadow:light-dark(rgba(0,0,0,.2),rgba(0,0,0,.5))}
+:root{color-scheme:light dark;--paper:light-dark(#fbfaf6,#15171b);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#5c5b57,#a8a7a2);--line:light-dark(#d9d6cc,#33363c);--pen:light-dark(#1f4e9c,#8fb0f0);--wash:light-dark(#f1efe6,#1e2128);--panel:light-dark(#ffffffee,#1d2430ee);--field:light-dark(#fff,#1d2430);--shadow:light-dark(rgba(0,0,0,.2),rgba(0,0,0,.5))}
 :root[data-theme=light]{color-scheme:light}
 :root[data-theme=dark]{color-scheme:dark}
 
@@ -121,6 +121,9 @@ h1, h2 { text-wrap: balance; }
   .bar .home, .bar nav a, .site a, .ctx nav a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 @media print { .bar, .site, .skip, .ctx { display: none !important; } }
+
+/* Every number is set in tabular figures, so columns of crosses and percentages line up. */
+:root { font-variant-numeric: tabular-nums; }
 
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;min-height:100dvh}
@@ -313,8 +316,7 @@ function tip(f) {
 }
 
 const map = L.map("map", mapOptions({preferCanvas: true})).setView([38.6, 23.8], 6.5);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 14, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+map.attributionControl.addAttribution("Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)");  // no base map: the choropleth is the only colour
 const layer = L.geoJSON(D.geo, {style: () => ({}), onEachFeature: (f, l) => {
   l.bindTooltip(() => tip(f), {sticky: true, className: "t"});
   l.on("click", () => l.openTooltip());

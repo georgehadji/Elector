@@ -97,16 +97,16 @@ def theme_css(light, dark, print_=None):
 
 
 # Map pages: warm grays, a blue sequential ramp (s0-s6) and a red-gray-blue diverging one (d-3..d3).
-MAP_LIGHT = {"surface": "#fcfcfb", "ink": "#1d1d1b", "ink-2": "#5c5b57", "line": "#e4e3df", "chip": "#f2f1ee", "shadow": "rgba(0,0,0,.18)",
+MAP_LIGHT = {"surface": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#5c5b57", "line": "#d9d6cc", "chip": "#f1efe6", "shadow": "rgba(0,0,0,.18)",
              "s0": "#eef4fc", "s1": "#cde2fb", "s2": "#9ec5f4", "s3": "#6da7ec", "s4": "#3987e5", "s5": "#256abf", "s6": "#104281",
              "scrim": "rgba(0,0,0,.5)", "on-scrim": "#fff",
-             "link": "#256abf", "d-3": "#a8302e", "d-2": "#e0736b", "d-1": "#f6c4c0", "d0": "#e4e3df", "d1": "#9ec5f4", "d2": "#3987e5",
+             "link": "#1f4e9c", "d-3": "#a8302e", "d-2": "#e0736b", "d-1": "#f6c4c0", "d0": "#d9d6cc", "d1": "#9ec5f4", "d2": "#3987e5",
              "d3": "#104281"}
-MAP_DARK = {"surface": "#1a1a19", "ink": "#ecebe7", "ink-2": "#a8a7a2", "line": "#383835", "chip": "#262624",
-            "shadow": "rgba(0,0,0,.5)", "d0": "#5a5955", "link": "#6da7ec"}  # dark: scrim and on-scrim stay as in light
+MAP_DARK = {"surface": "#15171b", "ink": "#ecebe7", "ink-2": "#a8a7a2", "line": "#33363c", "chip": "#1e2128",
+            "shadow": "rgba(0,0,0,.5)", "d0": "#5a5955", "link": "#8fb0f0"}  # dark: scrim and on-scrim stay as in light
 # Index: cool paper and ink, one blue pen.
-INDEX_LIGHT = {"paper": "#f6f7f9", "ink": "#13233d", "ink-2": "#55627a", "line": "#dde2ea", "pen": "#256abf", "wash": "#eaf1fb"}
-INDEX_DARK = {"paper": "#171c24", "ink": "#e8edf5", "ink-2": "#9aa6b8", "line": "#2b3442", "pen": "#6da7ec", "wash": "#1f2a3a"}
+INDEX_LIGHT = {"paper": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#5c5b57", "line": "#d9d6cc", "pen": "#1f4e9c", "wash": "#f1efe6"}
+INDEX_DARK = {"paper": "#15171b", "ink": "#ecebe7", "ink-2": "#a8a7a2", "line": "#33363c", "pen": "#8fb0f0", "wash": "#1e2128"}
 
 
 def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx="", skip="#main", compact=False):
@@ -200,6 +200,9 @@ h1 .x{width:.72em;height:.72em;flex:none}
 h1 .x path{stroke-width:4.4}
 .x path,.x rect{fill:none;stroke:var(--pen);stroke-width:3.2;stroke-linecap:round}
 .x rect{stroke-width:2.4}
+:root{--xm:polygon(14% 0,50% 36%,86% 0,100% 14%,64% 50%,100% 86%,86% 100%,50% 64%,14% 100%,0 86%,36% 50%,0 14%)}
+/* the cross marks what is chosen: the open election, the open region, the leading candidate of a row */
+:is(.sw button[aria-pressed=true],.jump a[aria-current],.eps .who b)::before{content:"";display:inline-block;width:.6em;height:.6em;margin-right:.35em;background:currentColor;clip-path:var(--xm)}
 h1 .x path{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s ease-out forwards}
 h1 .x path+path{animation-delay:.3s}
 @keyframes draw{to{stroke-dashoffset:0}}
@@ -254,8 +257,15 @@ body.pick .acts{display:none}
 .gr figcaption{margin:6px 0 0;font-size:.8125rem;color:var(--ink-2)}
 .gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
 .gr .k{display:inline-flex;align-items:center;white-space:nowrap}
-.gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
-@media (min-width:900px){main>header:not(.bar){position:relative}.gr{position:absolute;right:0;top:0;width:340px;margin:0}.gr svg{max-height:none}h1,.lede,#s,.nums{max-width:calc(100% - 380px)}}
+.gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink-2) 75%,var(--paper))}
+@media (min-width:900px){
+  /* one focal point: title and search on the left, the map as tall as the first screen on the right */
+  main>header:not(.bar){display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,540px);column-gap:48px;align-content:center;min-height:calc(100svh - 190px)}
+  main>header:not(.bar)>:not(.gr){grid-column:1}
+  .gr{grid-column:2;grid-row:1/span 5;display:flex;flex-direction:column;margin:0;max-width:none}
+  .gr a:first-child{flex:1;min-height:0}
+  .gr svg{height:100%;max-height:none}
+}
 .dhm{margin:0 0 8px;color:var(--ink-2);font-size:.8125rem;line-height:1.45}
 .eps .dhm{grid-column:2/-1;grid-row:2;margin:4px 0 0;position:relative}
 .sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:20px 0 0;font-size:.875rem;color:var(--ink-2)}
@@ -265,10 +275,8 @@ body.pick .acts{display:none}
 .sw button:hover{color:var(--pen)}
 .sw button:active{background:var(--wash)}
 .sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
-.nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 24px;margin:32px 0 0;max-width:640px}
-.nums div{display:grid;grid-template-rows:subgrid;grid-row:span 2;row-gap:0;border-top:2px solid var(--ink);padding-top:8px}  /* numbers share one row, labels the next, whatever the label length */
-.nums dd{grid-row:1;margin:0;font:400 clamp(1.75rem,1.2rem + 2.4vw,2.5rem)/1.1 "GFS Didot",Georgia,serif;font-variant-numeric:tabular-nums}
-.nums dt{grid-row:2;font-size:.8125rem;color:var(--ink-2);line-height:1.3}
+.cap{margin:24px 0 0;max-width:34em;font-size:.875rem;color:var(--ink-2)}
+.cap b{color:var(--ink);font-weight:600}
 .sf{position:relative;max-width:560px}
 .sug{position:absolute;left:0;right:0;top:100%;z-index:20;list-style:none;margin:4px 0 0;padding:4px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 18%,transparent)}
 .sug[hidden]{display:none}
@@ -315,7 +323,7 @@ body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
   .eps .dhm{grid-row:3}
   .acts{grid-row:4}
 }
-@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.nums{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin-top:20px}.nums div{margin-bottom:16px}}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:1rem;margin-bottom:20px}#f{font-size:1.0625rem}.cap{margin-top:16px}}
 @media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
@@ -499,7 +507,7 @@ def _write_index(order, nikh, elected):
     figs = [(len(eps), "εκλογικές περιφέρειες"), (len(ELECTIONS), f"αναμετρήσεις, {list(ELECTIONS)[0][:4]} έως {last[:4]}")]
     figs += [(n_tm, f"εκλογικά τμήματα, {ELECTION_NAMES[last]}")] if n_tm else []
     figs += [(n_comm, "κοινότητες στους χάρτες")] if n_comm else []
-    nums = "".join(f"<div><dt>{label}</dt><dd>{dots(n)}</dd></div>" for n, label in figs)
+    nums = " · ".join(f"<b>{dots(n)}</b> {label}" for n, label in figs)
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
@@ -515,7 +523,7 @@ def _write_index(order, nikh, elected):
 <div class="sf"><input id="f" type="search" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
 <ul id="sug" class="sug" role="listbox" aria-label="Προτάσεις" hidden></ul></div>
 <p id="n" aria-live="polite"></p></div>
-<dl class="nums">{nums}</dl>
+<p class="cap">{nums}</p>
 {greece}
 </header>
 <section class="country" aria-labelledby="ct"><h2 id="ct">Όλη η χώρα</h2><div class="cg">

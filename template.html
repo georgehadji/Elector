@@ -19,6 +19,7 @@
 <main>
 <!--HEADER-->
   <h1 id="title"></h1>
+  <h2 class="who" id="who"></h2>
   <p class="sub" id="sub"></p>
   <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
   <div class="controls">
@@ -34,11 +35,11 @@
     </div>
     <button class="pdf" type="button">Εξαγωγή PDF</button>
   </div>
-  <div class="stats" id="stats"></div>
   <div class="mapwrap">
     <div id="map" role="region" aria-label="Χάρτης σταυρών ανά περιοχή"></div>
     <div class="hint" id="hint" aria-hidden="true">Χρησιμοποιήστε δύο δάχτυλα για να μετακινήσετε τον χάρτη</div>
   </div>
+  <div class="stats" id="stats"></div>
   <div class="legend" id="legend"></div>
   <h2>Ανά περιοχή</h2>
   <div class="tablewrap"><table id="tbl"></table></div>
@@ -67,7 +68,7 @@ if (PARTY) {
   $("map").setAttribute("aria-label", "Χάρτης ψήφων κόμματος ανά περιοχή");
 }
 
-$("title").textContent = `Εκλογική περιφέρεια ${D.ep_name}`;
+$("title").textContent = `${D.ep_name} · ${D.election_name}`;
 $("sub").textContent = `${T.title}, ${D.election_title[0].toLowerCase() + D.election_title.slice(1)}, ανά εκλογικό διαμέρισμα`;
 
 // Party, then candidate; the search box looks across all parties. Deep link: #party=131&cand=8.
@@ -98,7 +99,7 @@ partySel.value = start.party;
 fillCands(start.k);
 
 const map = L.map("map", mapOptions({scrollWheelZoom: false}));  // fractional fit: whole zoom levels leave a small constituency at ~half the map
-const tiles = baseTiles(map, "Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)", 18);
+const tiles = blankBase(map, "Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)");
 touchMap(map);
 
 const share = (p, c) => den(p, c) ? num(p, c) / den(p, c) : 0;
@@ -121,7 +122,7 @@ function render() {
   const sumPv = props.reduce((s, p) => s + den(p, c), 0);
   const mean = sumPv ? c.mapped / sumPv : 0;
   const br = breaks(props.map(p => value(p, c, mean)));
-  const fill = p => metric === "dev" ? (den(p, c) ? devColor(value(p, c, mean)) : css("--d0")) : colorFor(value(p, c, mean), br);
+  const fill = p => metric === "dev" ? (den(p, c) ? devColor(value(p, c, mean)) : "url(#nodata)") : colorFor(value(p, c, mean), br);
   const tip = p => `<div class="tip"><b>${p.name}</b><span class="m">${p.unit}</span><br>` +
     `${T.num}: <b style="display:inline">${fmt(num(p, c))}</b><br>` +
     `${T.den}: ${fmt(den(p, c))} · ${pct(share(p, c))}` +
@@ -135,12 +136,20 @@ function render() {
     style: f => ({fillColor: fill(f.properties), fillOpacity: 0.85, color: css("--surface"), weight: 1}),
     onEachFeature: (f, l) => { l.i = layers.length; layers.push(l); bindFeature(l, tip(f.properties)); }
   }).addTo(map);
+  // "No data" is a cross-hatch, not a flat grey: it cannot be read as a low value. Redrawn with the theme's colours each time.
+  const svg = map.getPane("overlayPane").querySelector("svg");
+  if (svg) {
+    svg.querySelector("defs")?.remove();
+    svg.insertAdjacentHTML("afterbegin", `<defs><pattern id="nodata" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">` +
+      `<rect width="6" height="6" fill="${css("--chip")}"/><line x1="0" y1="0" x2="0" y2="6" stroke="${css("--ink-2")}" stroke-width="1.2"/></pattern></defs>`);
+  }
   if (!render.fitted) { render.fitted = true; fitOnceSized(map, () => layer.getBounds()); }
 
   const show = v => metric === "share" ? pct(v) : fmt(Math.round(v));
   $("legend").innerHTML = metric === "dev" ? devLegend() : seqLegend(br, show);
 
   const party = D.parties[c.party].name;
+  $("who").textContent = PARTY ? party : `${c.name} · ${party}`;
   const best = props.slice().sort((a, b) => value(b, c, mean) - value(a, c, mean))[0];
   $("stats").innerHTML =
     `<div><b>${fmt(c.total)}</b><span>${T.total}</span></div>` +

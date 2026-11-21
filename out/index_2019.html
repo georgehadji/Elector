@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-8agvnCg8MI+6WanwwoSM9kUg+dIr99gWPknLC2wkC0I=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-7MWC6jVe35Q6ZYTuyP7xeOldXe6RCVOkqpMyL0P+NbE=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Κάλυψη χαρτών · 2019</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&family=GFS+Didot&display=swap">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
@@ -33,7 +33,7 @@
   });
 })();
 </script><style>/* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
-:root{color-scheme:light dark;--surface:light-dark(#fcfcfb,#1a1a19);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#5c5b57,#a8a7a2);--line:light-dark(#e4e3df,#383835);--chip:light-dark(#f2f1ee,#262624);--shadow:light-dark(rgba(0,0,0,.18),rgba(0,0,0,.5));--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:light-dark(#256abf,#6da7ec);--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:light-dark(#e4e3df,#5a5955);--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
+:root{color-scheme:light dark;--surface:light-dark(#fbfaf6,#15171b);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#5c5b57,#a8a7a2);--line:light-dark(#d9d6cc,#33363c);--chip:light-dark(#f1efe6,#1e2128);--shadow:light-dark(rgba(0,0,0,.18),rgba(0,0,0,.5));--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:light-dark(#1f4e9c,#8fb0f0);--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:light-dark(#d9d6cc,#5a5955);--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
 :root[data-theme=light]{color-scheme:light}
 :root[data-theme=dark]{color-scheme:dark}
 @media print{:root,:root[data-theme]{color-scheme:light;--surface:#fff}}
@@ -122,6 +122,9 @@ h1, h2 { text-wrap: balance; }
 }
 @media print { .bar, .site, .skip, .ctx { display: none !important; } }
 
+/* Every number is set in tabular figures, so columns of crosses and percentages line up. */
+:root { font-variant-numeric: tabular-nums; }
+
 h2 { font-size: 1rem; margin: 0 0 8px; }
 a { color: var(--link); }
 .sub { color: var(--ink-2); margin: 0 0 8px; }
@@ -137,17 +140,26 @@ button { cursor: pointer; }
 .seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 .pdf { margin-left: auto; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 24px; margin: 4px 0 12px; }
-.stats b { display: block; font-size: 1.25rem; line-height: 1.3; font-variant-numeric: tabular-nums; }
-.stats span { color: var(--ink-2); font-size: .75rem; }
+/* The four figures are a caption under the map, one flowing line of "value label" pairs. */
+.stats { display: flex; flex-wrap: wrap; gap: 2px 20px; margin: 8px 0 4px; font-size: .8125rem; color: var(--ink-2); }
+.stats b { font-weight: 600; color: var(--ink); }
+.stats b::after { content: " "; }
+.who { font: 400 clamp(1.375rem, 1.1rem + 1.2vw, 1.875rem)/1.2 "GFS Didot", Georgia, serif; margin: 0 0 6px; }
+.who::before { content: ""; display: inline-block; width: .6em; height: .6em; margin-right: .35em; background: var(--link);
+  clip-path: polygon(14% 0, 50% 36%, 86% 0, 100% 14%, 64% 50%, 100% 86%, 86% 100%, 50% 64%, 14% 100%, 0 86%, 36% 50%, 0 14%); }  /* the ✕ marks the candidate on show */
+.who:empty { display: none; }
+/* Controls are secondary: smaller type, no filled fields. */
+.controls { font-size: .875rem; }
+.controls select, .controls input { background: transparent; }
 .mapwrap { position: relative; }
+.leaflet-container.muted .leaflet-tile-pane { filter: grayscale(1) contrast(.85) brightness(1.06); }
 #map { height: 62vh; height: 62svh; min-height: 360px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); }
 .hint { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; z-index: 1000;
         background: var(--scrim); color: var(--on-scrim); font-weight: 600; border-radius: 8px; pointer-events: none;
         opacity: 0; transition: opacity .2s; }
 .hint.on { opacity: 1; }
 .legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 8px 0 20px; font-size: .75rem; color: var(--ink-2); }
-.legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; }
+.legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink-2) 75%, var(--surface)); }  /* border >= 3:1 on the paper, so the palest step still shows */
 .legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
 .legend .k { display: inline-flex; align-items: center; white-space: nowrap; }
 table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
@@ -191,7 +203,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--s4); }
   /* The whole map fits the first screen: stats go below it, labels are for screen readers only. */
   main { padding: 12px; display: flex; flex-direction: column; }
   main > .stats { order: 1; margin-top: 4px; }
-  main > h2, main > .tablewrap, main > .note, main > #detail { order: 2; }
+  main > h2:not(.who), main > .tablewrap, main > .note, main > #detail { order: 2; }
   main > .site { order: 3; }
   .sub { font-size: .8125rem; margin-bottom: 4px; }
   .views { margin-bottom: 4px; }
