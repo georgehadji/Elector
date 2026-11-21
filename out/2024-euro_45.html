@@ -1,35 +1,26 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IeErjjT/CrGlNCVee4FJtUdA/it0u3I6b+CVxid0O/E=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-scvc3E7vGYJD3Mr0MUr2lQ0P/ZwBPz1GhIhHvKcThF0=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-ZjAq+JqoLUI/QeXInlcg+aEESvWk0HBpCnPm2UmDaSU=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-scvc3E7vGYJD3Mr0MUr2lQ0P/ZwBPz1GhIhHvKcThF0=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-oNHbwys45yRsX+jqRzKVGV6naJLEpMR1lwEyh2ZVtQY=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
-// Without a saved choice the page follows the system setting.
+// The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
 (() => {
-  const root = document.documentElement, sys = matchMedia("(prefers-color-scheme: dark)");
-  // State "system" | "light" | "dark". A press flips the appearance; flipping to the system's own appearance
-  // means "follow the system again", so the choice never gets stuck.
-  const next = (state, sysDark) => {
-    const dark = state === "system" ? sysDark : state === "dark";
-    const want = dark ? "light" : "dark";
-    return (want === "dark") === sysDark ? "system" : want;
-  };
-  let state = "system";
-  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") state = t; } catch {}
-  const show = () => state === "system" ? root.removeAttribute("data-theme") : root.dataset.theme = state;
+  const root = document.documentElement;
+  let dark = false;
+  try { dark = localStorage.getItem("theme") === "dark"; } catch {}
+  const show = () => dark ? root.dataset.theme = "dark" : root.removeAttribute("data-theme");
   show();
-  const dark = () => state === "system" ? sys.matches : state === "dark";
   addEventListener("DOMContentLoaded", () => {
     const b = document.getElementById("theme");
     if (!b) return;
-    const sync = () => b.setAttribute("aria-pressed", dark());
+    const sync = () => b.setAttribute("aria-pressed", dark);
     sync();
-    sys.addEventListener("change", sync);
     b.onclick = () => {
-      state = next(state, sys.matches);
+      dark = !dark;
       const go = () => { show(); sync(); dispatchEvent(new Event("themechange")); };
       if (document.startViewTransition && !document.hidden && !matchMedia("(prefers-reduced-motion: reduce)").matches) { const vt = document.startViewTransition(go); vt.ready.catch(() => {}); vt.finished.catch(() => {}); } else go();
-      try { state === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", state); } catch {}
+      try { dark ? localStorage.setItem("theme", "dark") : localStorage.removeItem("theme"); } catch {}
     };  // themechange: map pages redraw, their colours are read from CSS variables
   });
 })();
@@ -41,7 +32,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <style>
 /* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
-:root{color-scheme:light dark;--surface:light-dark(#fbfaf6,#15171b);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#5c5b57,#a8a7a2);--line:light-dark(#d9d6cc,#33363c);--chip:light-dark(#f1efe6,#1e2128);--shadow:light-dark(rgba(0,0,0,.18),rgba(0,0,0,.5));--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:light-dark(#1f4e9c,#8fb0f0);--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:light-dark(#d9d6cc,#5a5955);--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
+:root{color-scheme:light;--surface:light-dark(#fbfaf6,#15171b);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#46453f,#c2c1bc);--line:light-dark(#d9d6cc,#33363c);--chip:light-dark(#f1efe6,#1e2128);--shadow:light-dark(rgba(0,0,0,.18),rgba(0,0,0,.5));--s0:#eef4fc;--s1:#cde2fb;--s2:#9ec5f4;--s3:#6da7ec;--s4:#3987e5;--s5:#256abf;--s6:#104281;--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:light-dark(#1f4e9c,#8fb0f0);--d-3:#a8302e;--d-2:#e0736b;--d-1:#f6c4c0;--d0:light-dark(#d9d6cc,#5a5955);--d1:#9ec5f4;--d2:#3987e5;--d3:#104281}
 :root[data-theme=light]{color-scheme:light}
 :root[data-theme=dark]{color-scheme:dark}
 @media print{:root,:root[data-theme]{color-scheme:light;--surface:#fff}}
