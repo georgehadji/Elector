@@ -147,3 +147,40 @@ for label, pat in (("γεωγραφία Ιουνίου 2023", None), ("γεωγ�
             continue
         eps = sorted((ep for ep in s if ep != "state"), key=lambda ep: ep_name[ep])
         print(f"  {pct:.1f}%: {sum(s.values())} έδρες (Επικρατείας {s['state']}): " + ", ".join(ep_name[e] for e in eps))
+
+
+def has_seat(base, ep, delta):
+    """Does NIKH hold a seat in ep after delta votes are added to (or taken from) it there, all else unchanged?"""
+    v = {e: dict(pv) for e, pv in base.items()}
+    v[ep][NIKH] = max(0, v[ep].get(NIKH, 0) + delta)
+    return ep in allocate(v)[0].get(NIKH, {})
+
+
+def margin(base, ep, sign, cap=40000):
+    """Smallest vote change (added if sign=1, removed if sign=-1) that flips NIKH's seat in ep; None above cap.
+    shortcut: bisection assumes one flip point, which holds because only ep's own remainder moves much."""
+    start = has_seat(base, ep, 0)
+    if has_seat(base, ep, sign * cap) == start:
+        return None
+    lo, hi = 0, cap
+    while hi - lo > 10:
+        mid = (lo + hi) // 2
+        lo, hi = (lo, mid) if has_seat(base, ep, sign * mid) != start else (mid, hi)
+    return hi
+
+
+for pct in (3.1, 3.5, 4.0):
+    base = scenario(june, pct)
+    held = {ep for ep in allocate(base)[0][NIKH] if ep != "state"}
+    print(f"\nΠεριθώρια εδρών στο {pct}% (γεωγραφία Ιουνίου 2023· ψήφοι ΝΙΚΗΣ μόνο σε αυτή την περιφέρεια, ±10):")
+    rows = [(margin(base, ep, -1), ep) for ep in held]
+    print("  Έδρες που έχει, και πόσες ψήφους αντέχει να χάσει εκεί:")
+    for m, ep in sorted(rows, key=lambda x: x[0] or 10 ** 9):
+        n = base[ep][NIKH]
+        print(f"    {ep_name[ep]:<32}{'>40.000' if m is None else f'{m:>7,}'}  ({n:,} ψήφοι ΝΙΚΗΣ"
+              + ("" if m is None else f", {100 * m / n:.0f}%") + ")")
+    gains = sorted((m, ep) for ep in base if ep not in held and seats[ep] > 1 if (m := margin(base, ep, 1)) is not None)
+    print("  Φθηνότερες επιπλέον έδρες, και πόσες ψήφους θέλει ακόμη εκεί:")
+    for m, ep in gains[:10]:
+        n = base[ep][NIKH]
+        print(f"    {ep_name[ep]:<32}{m:>7,}  ({n:,} ψήφοι ΝΙΚΗΣ, +{100 * m / n:.0f}%)")
