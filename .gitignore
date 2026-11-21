@@ -1,6 +1,8 @@
 # Rebuilt by fetch.py (151 MB+)
 data/stavroi.sqlite
 data/stavroi.sqlite-journal
+# Written by backup.py; uploaded as release assets, not committed
+data/backup/
 *.log
 __pycache__/
 .ruff_cache/
