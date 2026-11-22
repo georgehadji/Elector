@@ -95,6 +95,12 @@ north = np.array([float("Μακεδονία" in region[ep] or "Θράκη" in re
 beta, se, r2 = wls((ne - nj) / R, [dv, nd, el, north], R)
 print(f"\nΝΙΚΗ με ελέγχους (ποσοστά Ιουνίου ΝΔ, Ελλ. Λύση, Μακεδονία/Θράκη): b = {beta[1]:+.3f} ±{se[1]:.3f}, R² = {r2:.2f}")
 
+# check: each election's own registered voters instead of June's for both (the roll changed between them)
+RE = np.array([de[k][0] for k in codes], float)
+beta, se, r2 = wls(ne / RE - nj / R, [VE / RE - VJ / R], R)
+print(f"Έλεγχος, εγγεγραμμένοι κάθε εκλογής χωριστά (Ευρωεκλογών {RE.sum():,.0f}, {100 * (RE.sum() / R.sum() - 1):+.1f}%): "
+      f"b = {beta[1]:+.3f} ±{se[1]:.3f}, R² = {r2:.2f}")
+
 b_nat = B[NIKH]
 lost = VJ.sum() - VE.sum()
 print(f"\nΕθνικά: b × πτώση έγκυρων = {b_nat:.3f} × {lost:,.0f} = {b_nat * lost:,.0f} ψήφοι ΝΙΚΗΣ, "

@@ -3,7 +3,10 @@
 Unit: (constituency, municipal unit), ordinary stations, >= 200 registered (June), present in both elections.
 Group = June 2023 NIKH voters (as a fraction of June registered); tables are 2x2 so each flow is run separately:
 - kept: share of June NIKH voters who vote NIKH in Euro 2024 (votes / registered, registered of June for both);
-- abstain: share of June NIKH voters who do not cast a valid vote in Euro 2024 (registered - valid).
+- abstain: share of June NIKH voters who do not cast a valid vote in Euro 2024 (registered - valid);
+- ell_lysi: share of them who vote Ελληνική Λύση (party 108) in Euro 2024;
+- other: share of them who vote any party other than NIKH and Ελληνική Λύση in Euro 2024.
+The four shares of one method need not sum to 100%: each comes from its own 2x2 table.
 Methods:
 - Duncan-Davis bounds, summed over units (deterministic: the real national share must lie inside).
 - Goodman regression (WLS, weights = registered): t = b_other + (b_group - b_other) x.
@@ -34,10 +37,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I dro
 from config import REGIONS
 
 NIKH, J, E, TOL = 131, "2023/june", "2024/euro", 10
-# NIKH.md section 7, PyEI R x C per region: % of June NIKH voters who stayed / abstained (posterior means)
-RXC = {"Αττική": (72, 3), "Θεσσαλία": (68, 10), "Δυτική Ελλάδα": (67, 7), "Κρήτη": (66, 8), "Πελοπόννησος": (65, 12),
-       "Δυτική Μακεδονία": (64, 13), "Ήπειρος": (63, 8), "Κεντρική Μακεδονία": (62, 25), "Στερεά Ελλάδα": (57, 11),
-       "Βόρειο Αιγαίο": (57, 8), "Νότιο Αιγαίο": (55, 13), "Ανατολική Μακεδονία και Θράκη": (54, 5), "Ιόνια Νησιά": (22, 23)}
+# NIKH.md section 7, PyEI R x C per region: % of June NIKH voters who stayed / abstained / went to Ελλ. Λύση (posterior means)
+RXC = {"Αττική": (72, 3, 11), "Θεσσαλία": (68, 10, 5), "Δυτική Ελλάδα": (67, 7, 6), "Κρήτη": (66, 8, 8),
+       "Πελοπόννησος": (65, 12, 5), "Δυτική Μακεδονία": (64, 13, 11), "Ήπειρος": (63, 8, 9), "Κεντρική Μακεδονία": (62, 25, 2),
+       "Στερεά Ελλάδα": (57, 11, 8), "Βόρειο Αιγαίο": (57, 8, 14), "Νότιο Αιγαίο": (55, 13, 13),
+       "Ανατολική Μακεδονία και Θράκη": (54, 5, 26), "Ιόνια Νησιά": (22, 23, 11)}  # kept, abstained, to Ελλ. Λύση
 
 
 def bounds(x_n, t_n, r):
@@ -65,13 +69,13 @@ assert bounds(_x * _r, _t * _r, _r)[0] <= .6 <= bounds(_x * _r, _t * _r, _r)[1]
 c = sqlite3.connect(sys.argv[1])
 
 
-def load(e):
+def load(e, party=NIKH):
     reg = {(ep, den): (r, v) for ep, den, r, v in c.execute(
         "SELECT ep_id, den_descr, SUM(registered), SUM(valid) FROM station WHERE kind='Κ' AND election=? "
         "AND den_descr IS NOT NULL GROUP BY 1, 2", (e,))}
     nik = {(ep, den): n for ep, den, n in c.execute(
         "SELECT s.ep_id, s.den_descr, SUM(p.votes) FROM station s JOIN party_votes p ON p.election=s.election "
-        "AND p.tm_id=s.tm_id AND p.party_id=? WHERE s.kind='Κ' AND s.election=? AND s.den_descr IS NOT NULL GROUP BY 1, 2", (NIKH, e))}
+        "AND p.tm_id=s.tm_id AND p.party_id=? WHERE s.kind='Κ' AND s.election=? AND s.den_descr IS NOT NULL GROUP BY 1, 2", (party, e))}
     return reg, nik
 
 
@@ -80,10 +84,16 @@ re_, ne = load(E)
 keys = [k for k in rj if k in re_ and rj[k][0] >= 200 and re_[k][0] > 0]
 R = np.array([rj[k][0] for k in keys], float)
 NJ = np.array([nj.get(k, 0) for k in keys], float)
+_el = load(E, 108)[1]
+VE = np.array([re_[k][1] for k in keys], float)
 FLOW = {"kept": np.array([ne.get(k, 0) for k in keys], float),  # Euro NIKH votes
-        "abstain": R - np.array([re_[k][1] for k in keys], float)}  # registered - Euro valid
+        "abstain": R - VE,  # registered - Euro valid
+        "ell_lysi": np.array([_el.get(k, 0) for k in keys], float)}
+FLOW["other"] = VE - FLOW["kept"] - FLOW["ell_lysi"]
+if len(sys.argv) > 2:  # optional: only these flows, e.g. ell_lysi,other
+    FLOW = {f: FLOW[f] for f in sys.argv[2].split(",")}
 EP = np.array([k[0] for k in keys])
-print(f"{len(keys)} δημοτικές ενότητες, {R.sum():,.0f} εγγεγραμμένοι Ιουνίου, ΝΙΚΗ Ιούνιος {NJ.sum():,.0f}, Ευρωεκλογές {FLOW['kept'].sum():,.0f}")
+print(f"{len(keys)} δημοτικές ενότητες, {R.sum():,.0f} εγγεγραμμένοι Ιουνίου, ΝΙΚΗ Ιούνιος {NJ.sum():,.0f}, Ευρωεκλογές {sum(ne.get(k, 0) for k in keys):,.0f}")
 
 
 DRAWS = 600
@@ -124,7 +134,7 @@ def run(label, m, ref):
         lo, hi = bounds(NJ[m], cnt[m], R[m])
         g = goodman(x, t, R[m])[0]
         fits = [bayes(k, x, t, R[m]) for k in MODELS]
-        rx = ref[flow] if ref else None
+        rx = ref.get(flow) if ref else None
         agree = "" if rx is None else (" ✓" if all(abs(100 * f[0] - rx) <= TOL for f in fits) else " ✗")
         cells = "".join(f"{100 * f[0]:>6.0f}% ({100 * f[1][0]:.0f}-{100 * f[1][1]:.0f}) {f[2]:.2f}".ljust(24) for f in fits)
         print(f"  {label:<33}{flow:<9}{100 * lo:>4.0f}-{100 * hi:<4.0f}{100 * g:>6.0f}%{cells}{'' if rx is None else f'{rx:>5}%'}{agree}", flush=True)
@@ -138,7 +148,7 @@ for name, eps in REGIONS:
     if m.sum() < 15:
         print(f"  {name:<33}λίγες ενότητες ({m.sum()}), παραλείπεται")
         continue
-    kept, ab = RXC[name]
-    run(f"{name} ({m.sum()})", m, {"kept": kept, "abstain": ab})
+    kept, ab, el = RXC[name]
+    run(f"{name} ({m.sum()})", m, {"kept": kept, "abstain": ab, "ell_lysi": el})
 print()
 print(f"Κελί μοντέλου: μέσος (95%) rhat. ✓ = και τα τρία μοντέλα μέσα σε {TOL} μονάδες από το R×C της ενότητας 7, ✗ = όχι. rhat > 1,1: δεν συγκλίνει.")

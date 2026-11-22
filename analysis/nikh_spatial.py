@@ -8,11 +8,14 @@
   form a cluster. Clusters are ranked by NIKH June 2023 votes.
 - The 40 biggest zone A units of nikh_pareto.py (same tiers): how much of each unit's NIKH vote is in hot communities.
 - Cluster-robust (by municipal unit) standard errors for the abstention slope of nikh_abstention.py.
+- Checks at the end: hot spots under Benjamini-Hochberg FDR 5%; Moran's I of retention; Moran's I with the left-out
+  communities linked to their 3 nearest centroids.
 Shares of small communities are noisy: >= 50 valid votes in both elections. Unofficial results.
 
 Run build.py <election> all first (area_match), then:
   python -I -X utf8 analysis/nikh_spatial.py data/stavroi.sqlite
 """
+import math
 import sqlite3
 import sys
 from collections import defaultdict
@@ -192,3 +195,40 @@ for label, m in (("εθνικά", np.ones(n, bool)),
                  ("Κεντρική Μακεδονία", np.array([region[dj[k][3]] == "Κεντρική Μακεδονία" for k in codes]))):
     b, s1, s2 = robust(dn[m], dv[m], R[m], [g for g, f in zip(grp, m, strict=True) if f])
     print(f"  {label:<20}b = {b:+.3f}  ±{s1:.3f} → ±{s2:.3f}")
+
+# --- checks ---
+# 1. Gi* hot spots under Benjamini-Hochberg FDR 5% instead of the uncorrected z >= 2.58
+pv = np.array([0.5 * math.erfc(z / math.sqrt(2)) for z in gz])
+srt = np.sort(pv)
+passed = np.flatnonzero(srt <= 0.05 * np.arange(1, n + 1) / n)
+cut = srt[passed[-1]] if len(passed) else -1
+fdr = pv <= cut
+print(f"\nΈλεγχος πολλαπλών συγκρίσεων (Benjamini-Hochberg, FDR 5%): {fdr.sum()} θερμές κοινότητες (z ≥ {gz[fdr].min():.2f}), "
+      f"{nj[fdr].sum():,.0f} ψήφοι ΝΙΚΗΣ ({100 * nj[fdr].sum() / tot:.0f}% του συνόλου). Από τις {hot.sum()} με z ≥ {HOT} μένουν {(hot & fdr).sum()}.")
+
+# 2. Moran's I of retention (Euro votes / June votes, log, +1 so that zeros stay defined)
+ret = np.log((ne + 1) / (nj + 1))
+obs = moran(ret, ia, ja, w)
+sim = np.array([moran(rng.permutation(ret), ia, ja, w) for _ in range(999)])
+print(f"Συγκράτηση (log ψήφων Ευρ. / Ιουν.): I = {obs:+.3f}  (τυχαία: {sim.mean():+.3f} ± {sim.std():.3f}, p = {(1 + (sim >= obs).sum()) / 1000:.3f})")
+
+# 3. the communities left out (no neighbour by shared vertex): link each to its 3 nearest centroids and recompute
+cen = {}
+for k in ok:
+    g = comm[k]["geometry"]
+    pts = np.array([pt for poly in (g["coordinates"] if g["type"] == "MultiPolygon" else [g["coordinates"]]) for ring in poly for pt in ring])
+    cen[k] = pts.mean(0)
+allc = sorted(ok)
+P = np.array([cen[k] for k in allc])
+p2 = {k: i for i, k in enumerate(allc)}
+adj2 = {k: set(adj[k] & ok) for k in allc}
+for k in allc:
+    if not adj2[k]:
+        for j in np.argsort(((P - cen[k]) ** 2).sum(1))[1:4]:
+            adj2[k].add(allc[j])
+            adj2[allc[j]].add(k)
+pr = [(p2[a], p2[b]) for a in allc for b in adj2[a]]
+i2, j2 = np.array([p[0] for p in pr]), np.array([p[1] for p in pr])
+x2 = np.array([100 * dj[k][2] / dj[k][1] for k in allc])
+print(f"Με τις {island} απομονωμένες (3 πλησιέστερα κέντρα ως γείτονες), {len(allc)} κοινότητες: I ποσοστού Ιουνίου = "
+      f"{moran(x2, i2, j2, 1 / np.bincount(i2, minlength=len(allc))[i2]):+.3f}")

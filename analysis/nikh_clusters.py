@@ -103,6 +103,28 @@ k = max(fits, key=lambda k: silhouette(Z, fits[k], k))
 lab = fits[k]
 print(f"Επιλέγεται k = {k}.")
 
+
+
+def ari(a, b):
+    """Adjusted Rand index of two labelings (1 = identical partitions, 0 = chance)."""
+    t = np.zeros((a.max() + 1, b.max() + 1))
+    np.add.at(t, (a, b), 1)
+    c2 = lambda x: (x * (x - 1) / 2).sum()
+    exp = c2(t.sum(1)) * c2(t.sum(0)) / c2(np.array([len(a)]))
+    return (c2(t) - exp) / ((c2(t.sum(1)) + c2(t.sum(0))) / 2 - exp)
+
+
+assert ari(np.array([0, 0, 1, 1]), np.array([1, 1, 0, 0])) == 1
+# check: are the types stable? k-means again from 5 other seeds, and the "stronghold" type (highest NIKH share) each time
+print(f"\nΣταθερότητα των τύπων (k = {k}, 5 άλλοι σπόροι): ARI με την επιλεγμένη λύση, και ο τύπος με το υψηλότερο ποσοστό ΝΙΚΗΣ")
+for seed in range(1, 6):
+    rng = np.random.default_rng(seed)
+    l2, _ = kmeans(Z, k)
+    top = max(range(k), key=lambda i: nj[l2 == i].sum() / VJ[l2 == i].sum())
+    m = l2 == top
+    print(f"  σπόρος {seed}: ARI {ari(lab, l2):.2f}· κάστρα: {m.sum()} κοιν., {100 * nj[m].sum() / nj.sum():.0f}% των ψήφων ΝΙΚΗΣ, "
+          f"κράτησε {100 * ne[m].sum() / nj[m].sum():.0f}%, χαμένες ανά 1000 εγγ. {1000 * (nj[m] - ne[m]).sum() / R[m].sum():.1f}")
+
 tot_nj, tot_loss = nj.sum(), (nj - ne).sum()
 print(f"\nΤύποι κοινοτήτων (σταθμισμένοι με ψήφους Ιουνίου 2023). Σύνολο ΝΙΚΗ {tot_nj:,.0f} → {ne.sum():,.0f}, καθαρή απώλεια {tot_loss:,.0f}")
 print(f"  {'τύπος':<6}{'κοιν.':>6}{'ψήφοι ΝΙΚΗΣ':>12}{'%':>5}{'ΝΙΚΗ Ιούν.':>11}{'Ευρ.':>6}{'κράτησε':>9}{'Ελ.Λ.':>7}{'Σπαρτ.':>8}{'ΝΔ':>6}"

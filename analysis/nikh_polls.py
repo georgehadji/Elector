@@ -1,9 +1,11 @@
 """Poll average for NIKH (party 131): Kalman local-level model with a house effect per polling firm.
 
-Data: analysis/nikh_polls.csv (firm, end date of fieldwork, sample, NIKH %), 334 polls from 26 Sep 2023 to 19 Nov 2026, copied
+Data: analysis/nikh_polls.csv (firm, end date of fieldwork, sample, NIKH %), 335 polls from 26 Sep 2023 to 19 Nov 2026, copied
 on 22 Nov 2026 from the Wikipedia table "Opinion polling for the next Greek parliamentary election". The table does not say
 for every poll whether the figure is a vote estimate (undecided removed) or a raw intention, so firms differ in basis; the
 house effects absorb that. Rows of the table without a firm name, and polls with no NIKH figure, are left out.
+The csv was typed by hand and then compared row by row with the table by a script in the browser (firm, end date, sample,
+NIKH %): one missing poll was added, no other difference.
 Model (stdlib only):
 - true level x_t (% of valid votes) follows a random walk, daily variance q;
 - poll i of firm f: y_i = x_t + h_f + e_i, var(e_i) = p(1-p)/n * 10^4 + tau^2 (sampling + non-sampling noise, in %^2);
@@ -12,6 +14,9 @@ Model (stdlib only):
 - q and tau are chosen by maximum likelihood on a grid; the house effects and (q, tau) are iterated 6 times; a Rauch-Tung-Striebel
   smoother gives the residuals. The estimate at a date is the filter, using only polls up to that date.
 Calibration: the same model on polls up to 8 Jun 2024 vs the Euro 2024 result (4.37% with postal votes).
+For May and June 2023: analysis/nikh_polls_2023.csv, the polls with a NIKH figure in the Wikipedia tables "Opinion polling
+for the May 2023 / June 2023 Greek parliamentary election" (exit polls left out), ballot / plain mean of the polls of the
+last 14 days. No house effects there: 10 and 24 polls are too few.
 Unofficial results.
 
   python -I -X utf8 analysis/nikh_polls.py
@@ -25,6 +30,7 @@ CSV = Path(__file__).resolve().parent / "nikh_polls.csv"
 TODAY = date(2026, 11, 22)
 EURO = (date(2024, 6, 9), 4.37)  # Euro 2024 ballot, official with postal votes
 D0 = date(2023, 9, 26)
+BALLOT_2023 = {"2023/may": (date(2023, 5, 21), 2.92), "2023/june": (date(2023, 6, 25), 3.70)}  # NIKH % of valid votes
 
 
 def load():
@@ -99,6 +105,17 @@ def euro_miss(h, q, tau2, obs):
     return EURO[1] / x, sorted(EURO[1] / (y - h.get(f, 0)) for _, f, _, y in last)
 
 
+def miss_2023(days=14):
+    """{election: (ballot / mean of the polls of the last `days` days, sorted per-poll ratios, number of polls)}."""
+    with open(CSV.with_name("nikh_polls_2023.csv"), encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    out = {}
+    for e, (day, ballot) in BALLOT_2023.items():
+        ys = [float(r["niki"]) for r in rows if r["election"] == e and 0 < (day - date.fromisoformat(r["end"])).days <= days]
+        out[e] = (ballot / (sum(ys) / len(ys)), sorted(ballot / y for y in ys), len(ys))
+    return out
+
+
 if __name__ == "__main__":
     obs = load()
     # self-check: constant level 2% from one firm -> filter ends near 2
@@ -140,3 +157,7 @@ if __name__ == "__main__":
     k = len(per)
     print(f"\nΕυρωεκλογές 9.6.2024: κάλπη {EURO[1]}%. Μέσος όρος δημοσκοπήσεων μέχρι 8.6: {EURO[1] / m:.2f}% → κάλπη/δημοσκοπήσεις = {m:.2f}")
     print(f"  ανά δημοσκόπηση των τελευταίων 14 ημερών ({k}): {per[0]:.2f}–{per[-1]:.2f}, 10%-90%: {per[int(.1 * k)]:.2f}–{per[min(k - 1, int(.9 * k))]:.2f}")
+    for e, (m3, per3, k3) in miss_2023().items():
+        day, ballot = BALLOT_2023[e]
+        print(f"Εκλογές {day}: κάλπη {ballot}%. Απλός μέσος όρος των {k3} δημοσκοπήσεων των τελευταίων 14 ημερών: {ballot / m3:.2f}% "
+              f"→ κάλπη/δημοσκοπήσεις = {m3:.2f}· ανά δημοσκόπηση {per3[0]:.2f}–{per3[-1]:.2f}, 10%-90%: {per3[int(.1 * k3)]:.2f}–{per3[min(k3 - 1, int(.9 * k3))]:.2f}")

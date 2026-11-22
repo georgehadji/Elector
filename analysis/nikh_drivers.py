@@ -195,7 +195,7 @@ for loc, ep, cand, home, tot, there in sorted(homes, reverse=True)[:15]:
 
 CMP = {131: "ΝΙΚΗ", 2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΠΑΣΟΚ", 3: "ΚΚΕ", 108: "Ελλ. Λύση"}
 print("\nΣταυροί: συμμετοχή και συγκέντρωση (περιφέρειες με ≥3 υποψηφίους του κόμματος)")
-print(f"  {'':<9}{'':<10}{'ψήφοι κόμματος':>15}{'σταυροί/ψήφο':>14}{'πρώτος υποψ.':>14}{'ισοδ. υποψήφιοι':>17}{'περιφ.':>8}")
+print(f"  {'':<9}{'':<10}{'ψήφοι κόμματος':>15}{'σταυροί/ψήφο':>14}{'πρώτος υποψ.':>14}{'ισοδ. υποψήφιοι':>17}{'περιφ.':>8}{'μήκος λίστας':>14}{'ισοδ./λίστα':>13}")
 for e in ("2019", "2023/may"):
     for p, name in CMP.items():
         ncand = {ep: n for ep, n in c.execute("SELECT ep_id, COUNT(*) FROM candidate WHERE election=? AND party_id=? GROUP BY 1", (e, p))}
@@ -212,8 +212,10 @@ for e in ("2019", "2023/may"):
         tc = sum(sum(by_ep[ep].values()) for ep in eps)
         top = sum(max(by_ep[ep].values()) for ep in eps) / tc
         hhi = sum(sum(v * v for v in by_ep[ep].values()) / sum(by_ep[ep].values()) for ep in eps) / tc
+        # list length (candidates per list, weighted by crosses): a short list concentrates crosses by itself
+        ll = sum(ncand[ep] * sum(by_ep[ep].values()) for ep in eps) / tc
         print(f"  {e:<9}{name:<10}{sum(pv[ep] for ep in eps):>15,}{tc / sum(pv[ep] for ep in eps):>14.2f}{100 * top:>13.0f}%"
-              f"{1 / hhi:>17.1f}{len(eps):>8}")
+              f"{1 / hhi:>17.1f}{len(eps):>8}{ll:>14.1f}{1 / hhi / ll:>13.2f}")
 
 tot_cr = sum(sum(by.values()) for by in cr.values())
 loc_cr = sum(tot for loc, _, _, _, tot, _ in homes if loc >= 2)
