@@ -1,6 +1,6 @@
 """Poll average for NIKH (party 131): Kalman local-level model with a house effect per polling firm.
 
-Data: analysis/nikh_polls.csv (firm, end date of fieldwork, sample, NIKH %), 335 polls from 26 Sep 2023 to 19 Nov 2026, copied
+Data: analysis/nikh_polls.csv (firm, end date of fieldwork, sample, NIKH %), 337 polls from 26 Sep 2023 to 19 Nov 2026, copied
 on 22 Nov 2026 from the Wikipedia table "Opinion polling for the next Greek parliamentary election". The table does not say
 for every poll whether the figure is a vote estimate (undecided removed) or a raw intention, so firms differ in basis; the
 house effects absorb that. Rows of the table without a firm name, and polls with no NIKH figure, are left out.
@@ -11,6 +11,8 @@ Interview/Political 2026-02-09 2.2 -> 1.4, Metron Analysis/Mega 2025-12-16 2.6 -
 Marc/ANT1 2024-10-26 3.5 -> 3.1. So the csv no longer equals the Wikipedia table in those four rows.
 Good Affairs/Dailypost May 2024: end date and sample follow the pollster's PDF (2024-05-23, 3670), not Wikipedia (25 May, 1000).
 Real Polls/Protagon 2025-10-20 (1724, 2.8) is not in the Wikipedia table; added from the pollster's own page and chart.
+GPO/Parapolitika 2024-11-15 (1000, 3.5) is a row without a firm name in the Wikipedia table (15-16 Nov, 3.7); added from
+Ta Nea 16 Nov 2024: raw intention 3.1, undecided 12.4, so 3.1 / (1 - 0.124) = 3.5. Sample from Wikipedia.
 Model (stdlib only):
 - true level x_t (% of valid votes) follows a random walk, daily variance q;
 - poll i of firm f: y_i = x_t + h_f + e_i, var(e_i) = p(1-p)/n * 10^4 + tau^2 (sampling + non-sampling noise, in %^2);
