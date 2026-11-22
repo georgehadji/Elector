@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-5bXgcR1FZsNsdCaRn0gEyEbGFRnC1Rkzdhd3S4QiTsM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-i9YXZ49wsqg7zHrdfwMhy0Y5VcPB8Uk3U7r6HUME9mc=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-5bXgcR1FZsNsdCaRn0gEyEbGFRnC1Rkzdhd3S4QiTsM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-5g7FOOe5/c11KDfmVnPbwm1ZRBxO1jmrjqZiHGD+Ums=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ ανά διαμέρισμα</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
@@ -145,7 +145,7 @@ h1{font-size:1.0625rem;margin:0 0 2px}
 .t .m{color:#55627a}
 .note{color:var(--ink-2);font-size:.71875rem;line-height:1.35;margin:2px 0 0}
 .rel{font-size:.78125rem;margin:4px 0 0}.rel a{color:var(--link)}
-@media (max-width:600px){
+@media (max-width:600px),(max-height:500px) and (orientation:landscape){  /* phone portrait and landscape */
   #map{min-height:360px;min-height:max(360px,55svh)}  /* the map keeps over half the screen; the rest scrolls below it */
   h1{font-size:.9375rem}
   .sub{font-size:.75rem}

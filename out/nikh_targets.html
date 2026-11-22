@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-0JROW1qxt6pSdZB9TM9MynphVsc0dh1vduELW/hZIIY=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-4DcVdWe28O6UFQcZefX1gtUkn0XjM+otpilLLEz84TI=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-0JROW1qxt6pSdZB9TM9MynphVsc0dh1vduELW/hZIIY=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-ay1MCW6LS9vt/B2ZU4vTd1ie1yeWg/ymaBKDbh1ch4E=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ: χάρτης στόχευσης</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
@@ -150,7 +150,7 @@ h1{font-size:1.0625rem;margin:0 0 2px}
 .how div{max-height:45vh;overflow:auto;margin-top:6px;color:var(--ink-2);max-width:70ch}
 .how p{margin:0 0 6px}.how ul{list-style:none;margin:6px 0;padding:0}.how li{margin:4px 0}
 .how i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid #0002}
-@media (max-width:600px){
+@media (max-width:600px),(max-height:500px) and (orientation:landscape){  /* phone portrait and landscape */
   #map{min-height:360px;min-height:max(360px,55svh)}
   h1{font-size:.9375rem}
   .sub{font-size:.75rem}
