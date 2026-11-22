@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-5bXgcR1FZsNsdCaRn0gEyEbGFRnC1Rkzdhd3S4QiTsM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-6TWgOVBQfg07na0bWsegoIz3t2kBN/TyqOMm2wPRpU8=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-GGNqvLU7r9yafiQZw+cBWr9URZYxIjEoPnnF8lYwcY0=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-hn+pe1ucvws5UVJ9/EZAnhkAYUZp2OGU++iFG9/uhC8=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ ανά διαμέρισμα</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
@@ -141,8 +141,10 @@ h1{font-size:1.0625rem;margin:0 0 2px}
 .legend,.t{overflow-wrap:anywhere}
 .legend i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid #0002}
 .leaflet-tooltip.t{font:.78125rem/1.4 system-ui,sans-serif}
+.leaflet-container .leaflet-tooltip.t{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:0 1px 4px #0003}
+.leaflet-tooltip.t::before{display:none}  /* the arrow would point at the wrong place once the tooltip is shifted into the map */
 .t b{font-size:.8125rem}
-.t .m{color:#55627a}
+.t .m{color:var(--ink-2)}
 .note{color:var(--ink-2);font-size:.71875rem;line-height:1.35;margin:2px 0 0}
 .rel{font-size:.78125rem;margin:4px 0 0}.rel a{color:var(--link)}
 @media (max-width:600px),(max-height:500px) and (orientation:landscape){  /* phone portrait and landscape */
@@ -245,6 +247,13 @@ function tip(f) {
 const layer = L.geoJSON(D.geo, {style, onEachFeature: (f, l) => {
   l.bindTooltip(() => tip(f), {sticky: true, className: "t"});
   l.on("click", () => l.openTooltip());
+  l.on("mousemove", e => {  // a tall tooltip is centred on the cursor: shift it so it stays inside the map (one event behind)
+    const t = l.getTooltip(), el = t && t.getElement();
+    if (!el) return;
+    const h = el.offsetHeight, y = e.containerPoint.y, H = map.getSize().y;
+    const dy = Math.max(4 - (y - h / 2), Math.min(0, H - 4 - (y + h / 2)));
+    if (Math.abs(dy - L.point(t.options.offset).y) > 0.5) { t.options.offset = L.point(0, dy); t.update(); }
+  });
 }}).addTo(map);
 
 const legend = L.control({position: "bottomright"});
