@@ -31,7 +31,8 @@ h1{font-size:1.0625rem;margin:0 0 2px}
 .legend i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-2px;border:1px solid #0002}
 .legend .s{color:var(--ink-2)}
 .leaflet-tooltip.t{font:.78125rem/1.4 system-ui,sans-serif}
-.leaflet-container .leaflet-tooltip.t{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:0 1px 4px #0003}
+.leaflet-container .leaflet-tooltip.t{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:0 1px 4px #0003;white-space:normal;width:max-content;max-width:min(460px,calc(100vw - 24px))}  /* wraps on phones instead of running off the map */
+.t td+td{white-space:nowrap}  /* only the label column wraps */
 .leaflet-tooltip.t::before{display:none}  /* the arrow would point at the wrong place once the tooltip is shifted into the map */
 .t b{font-size:.8125rem}
 .t .m{color:var(--ink-2)}
@@ -48,6 +49,10 @@ h1{font-size:1.0625rem;margin:0 0 2px}
   .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
   .tabs::-webkit-scrollbar{display:none}
   .tabs button{flex:none}
+  .tipping .leaflet-control-container{opacity:.12}  /* the tooltip is wide here: dim the buttons and legend it covers */
+  .leaflet-tooltip.t{font-size:.6875rem;line-height:1.2;padding:4px 6px}
+  .t b{font-size:.75rem}
+  .t td{padding:0 3px}
   .legend{font-size:.6875rem;padding:6px 8px;max-width:200px}
   .legend i{width:11px;height:10px;margin-right:4px}
   .site{padding:2px 16px 0;font-size:.6875rem;line-height:1.3}
@@ -143,15 +148,21 @@ function tip(f) {
     row("Ελλ. Λύση (Ιούν.)", a.j[1] ? `${pctf(100 * a.p / a.j[1])} <span class="m">(${fmt(a.p)})</span>` : "—") +
     row("Έγκυρα Ιουνίου", fmt(a.j[1])) + row("Περιφέρεια", TIERS[a.t][0]) + `</table>`;
 }
+map.on("tooltipopen", () => map.getContainer().classList.add("tipping"));
+map.on("tooltipclose", () => map.getContainer().classList.remove("tipping"));
 const layer = L.geoJSON(D.geo, {style, onEachFeature: (f, l) => {
   l.bindTooltip(() => tip(f), {sticky: true, className: "t"});
   l.on("click", () => l.openTooltip());
-  l.on("mousemove", e => {  // a tall tooltip is centred on the cursor: shift it so it stays inside the map (one event behind)
+  l.on("mousemove", e => {  // keep the tooltip inside the map: it is placed beside the cursor, so shift it sideways and up/down (one event behind)
     const t = l.getTooltip(), el = t && t.getElement();
     if (!el) return;
-    const h = el.offsetHeight, y = e.containerPoint.y, H = map.getSize().y;
-    const dy = Math.max(4 - (y - h / 2), Math.min(0, H - 4 - (y + h / 2)));
-    if (Math.abs(dy - L.point(t.options.offset).y) > 0.5) { t.options.offset = L.point(0, dy); t.update(); }
+    const w = el.offsetWidth, h = el.offsetHeight, {x, y} = e.containerPoint, size = map.getSize();
+    const left = el.classList.contains("leaflet-tooltip-left");
+    const base = left ? x - 6 - w : x + 6;  // where Leaflet puts the left edge without an offset
+    const dx = Math.min(Math.max(base, 4), Math.max(4, size.x - 4 - w)) - base;
+    const dy = Math.max(4 - (y - h / 2), Math.min(0, size.y - 4 - (y + h / 2)));
+    const o = L.point(t.options.offset), ox = left ? -dx : dx;  // for the left side Leaflet applies the x offset reversed
+    if (Math.abs(ox - o.x) > 0.5 || Math.abs(dy - o.y) > 0.5) { t.options.offset = L.point(ox, dy); t.update(); }
   });
 }}).addTo(map);
 // Circles for the votes view: area proportional to NIKH's June votes.
