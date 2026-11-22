@@ -9,6 +9,9 @@
 - Residuals of the full model per municipal unit (δημοτική ενότητα): NIKH votes above or below the prediction.
 - Friends and neighbours (May 2023 preference votes): each NIKH candidate's home unit is where their crosses per NIKH
   vote are highest relative to their constituency rate; is NIKH above the model there?
+- Crosses (2019 and May 2023): crosses per party vote and how concentrated they are on one candidate per constituency
+  (top candidate's share, effective number of candidates = 1 / sum of squared shares), NIKH against other parties;
+  the share of NIKH crosses that goes to the strongly local candidates.
 
 Run build.py <election> all first (area_match), then:
   python -I -X utf8 analysis/nikh_drivers.py data/stavroi.sqlite
@@ -189,3 +192,41 @@ for loc, ep, cand, home, tot, there in sorted(homes, reverse=True)[:15]:
     resid = f", υπόλοιπο Ιουνίου {100 * u[0] / u[1]:+.1f} μον." if u else ""
     print(f"    {names_c.get((ep, cand), cand)} ({ep_name[ep]}): {tot:,} σταυροί, {100 * there / tot:.0f}% από {home}, "
           f"τοπικότητα {loc:.1f}{resid}")
+
+CMP = {131: "ΝΙΚΗ", 2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΠΑΣΟΚ", 3: "ΚΚΕ", 108: "Ελλ. Λύση"}
+print("\nΣταυροί: συμμετοχή και συγκέντρωση (περιφέρειες με ≥3 υποψηφίους του κόμματος)")
+print(f"  {'':<9}{'':<10}{'ψήφοι κόμματος':>15}{'σταυροί/ψήφο':>14}{'πρώτος υποψ.':>14}{'ισοδ. υποψήφιοι':>17}{'περιφ.':>8}")
+for e in ("2019", "2023/may"):
+    for p, name in CMP.items():
+        ncand = {ep: n for ep, n in c.execute("SELECT ep_id, COUNT(*) FROM candidate WHERE election=? AND party_id=? GROUP BY 1", (e, p))}
+        pv = dict(c.execute("SELECT s.ep_id, SUM(pv.votes) FROM station s JOIN party_votes pv ON pv.election=s.election AND "
+                            "pv.tm_id=s.tm_id WHERE s.election=? AND pv.party_id=? GROUP BY 1", (e, p)))
+        by_ep = {}
+        for ep, cand, v in c.execute("SELECT s.ep_id, cv.cand_id, SUM(cv.votes) FROM station s JOIN cand_votes cv "
+                                     "ON cv.election=s.election AND cv.tm_id=s.tm_id WHERE s.election=? AND cv.party_id=? "
+                                     "GROUP BY 1, 2", (e, p)):
+            by_ep.setdefault(ep, {})[cand] = v
+        eps = [ep for ep, d in by_ep.items() if ncand.get(ep, 0) >= 3 and sum(d.values()) > 0 and pv.get(ep)]
+        if not eps:
+            continue
+        tc = sum(sum(by_ep[ep].values()) for ep in eps)
+        top = sum(max(by_ep[ep].values()) for ep in eps) / tc
+        hhi = sum(sum(v * v for v in by_ep[ep].values()) / sum(by_ep[ep].values()) for ep in eps) / tc
+        print(f"  {e:<9}{name:<10}{sum(pv[ep] for ep in eps):>15,}{tc / sum(pv[ep] for ep in eps):>14.2f}{100 * top:>13.0f}%"
+              f"{1 / hhi:>17.1f}{len(eps):>8}")
+
+tot_cr = sum(sum(by.values()) for by in cr.values())
+loc_cr = sum(tot for loc, _, _, _, tot, _ in homes if loc >= 2)
+print(f"\nΝΙΚΗ Μάιος 2023: σταυροί των {sum(loc >= 2 for loc, *_ in homes)} έντονα τοπικών υποψηφίων {loc_cr:,} από {tot_cr:,} "
+      f"({100 * loc_cr / tot_cr:.0f}%)")
+ex_local = sum(unit[k][0] for k in unit if k in strong)
+print(f"  υπόλοιπο ψήφων ΝΙΚΗΣ Ιουνίου στις ενότητες-έδρες τους: {ex_local:+,.0f} από "
+      f"{sum(u[2] for u in unit.values()):,} ({100 * ex_local / sum(u[2] for u in unit.values()):+.2f}%)")
+ep_cr = {}
+for (ep, _), by in cr.items():
+    ep_cr[ep] = ep_cr.get(ep, 0) + sum(by.values())
+lead = sorted(((sum(by.values()) / ep_cr[ep], ep, cand, sum(by.values())) for (ep, cand), by in cr.items()
+               if sum(by.values()) >= 800 and sum(e_ == ep for e_, _ in names_c) >= 3), reverse=True)[:8]
+print("  Οι 8 υποψήφιοι με το μεγαλύτερο μερίδιο στους σταυρούς ΝΙΚΗΣ της περιφέρειάς τους (≥ 800 σταυροί, ≥3 υποψήφιοι):")
+for sh, ep, cand, v in lead:
+    print(f"    {names_c.get((ep, cand), cand)} ({ep_name[ep]}): {v:,} σταυροί, {100 * sh:.0f}% των σταυρών της ΝΙΚΗΣ εκεί")
