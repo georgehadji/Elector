@@ -9,6 +9,7 @@ NIKH %): one missing poll was added, no other difference.
 Four NIKH figures of the table were wrong and are corrected here from the published estimates (NIKH.md section 16):
 Interview/Political 2026-02-09 2.2 -> 1.4, Metron Analysis/Mega 2025-12-16 2.6 -> 2.1, Pulse RC/Skai 2024-12-17 4.5 -> 3.5,
 Marc/ANT1 2024-10-26 3.5 -> 3.1. So the csv no longer equals the Wikipedia table in those four rows.
+Good Affairs/Dailypost May 2024: end date and sample follow the pollster's PDF (2024-05-23, 3670), not Wikipedia (25 May, 1000).
 Model (stdlib only):
 - true level x_t (% of valid votes) follows a random walk, daily variance q;
 - poll i of firm f: y_i = x_t + h_f + e_i, var(e_i) = p(1-p)/n * 10^4 + tau^2 (sampling + non-sampling noise, in %^2);
