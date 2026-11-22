@@ -15,9 +15,18 @@ data/pop_koinotites_2021.csv.
   ELSTAT perturbs small counts for confidentiality, so totals differ from the population file by a few persons.
   The same WLS with 7 census variables, standard errors also clustered by municipality, and NIKH's share by quarter of
   the valid votes along each variable.
+- Third part: Γ06 (citizenship: Greece / other), Γ05 (place of birth, the community rows of the settlement table) from
+  "Δημογραφικά χαρακτηριστικά" and Γ15 (family nuclei by size) from "Κατοικίες, νοικοκυριά, οικογενειακοί πυρήνες"
+  (publication SAM05), downloaded 2026-11-22, added to the same csv. ELSTAT gives household size only per municipality,
+  so family nuclei stand in for it. Five more variables on top of the model with the first seven.
+- Fourth part: from the same SAM05 publication Γ13 (households by number of cars), Γ11 (occupied dwellings by tenure)
+  and Γ01 (dwellings: occupied, empty, holiday and secondary homes), the community rows, downloaded 2026-11-22.
+  Four more variables on top of the model with the first twelve.
 
 Run build.py <election> all first (area_match), then (the xlsx paths are only needed to (re)build the two csv):
-  python -I -X utf8 analysis/nikh_census.py data/stavroi.sqlite [MON_PLI_DHM_KOIN_2021.xlsx [age.xlsx education.xlsx sectors.xlsx]]
+  python -I -X utf8 analysis/nikh_census.py data/stavroi.sqlite [MON_PLI_DHM_KOIN_2021.xlsx [age.xlsx education.xlsx sectors.xlsx
+      citizenship.xlsx birthplace.xlsx nuclei.xlsx
+      cars.xlsx tenure.xlsx dwellings.xlsx]]
 """
 import csv
 import sqlite3
@@ -139,6 +148,11 @@ EDU = dict(zip("EFGHIJK", ["edu_tertiary", "edu_postsecondary", "edu_lykeio", "e
                            "edu_unclassified"], strict=True))
 WORK = dict(zip("EFGHIJK", ["active", "employed", "sector_primary", "sector_secondary", "sector_tertiary", "unemployed",
                             "inactive"], strict=True))
+MORE = ({"F": "citizen_foreign"}, {"F": "born_same_muni", "I": "born_other_unit", "J": "born_abroad"},
+        {"D": "nuclei", "G": "nuclei_4plus"},  # Γ06, Γ05, Γ15
+        {"D": "households", "E": "hh_no_car", "H": "hh_2_cars", "I": "hh_3plus_cars"},  # Γ13
+        {"D": "dwellings_occupied", "F": "dwellings_rented"},  # Γ11
+        {"E": "dwellings", "J": "dwellings_holiday", "K": "dwellings_secondary"})  # Γ01
 
 
 def cells(path):
@@ -153,8 +167,8 @@ def cells(path):
         yield out
 
 
-def build_census(age, edu, sector):
-    """{community code: {column: count}} from the three sheets. Level 7 = community; its code is the last 8 digits."""
+def build_census(age, edu, sector, *more):
+    """{community code: {column: count}} from the sheets. Level 7 = community; its code is the last 8 digits."""
     out = {}
     for v in cells(age):  # one total row per community (name in C), then one row per age group (label in C)
         if v.get("A") == "7":
@@ -163,7 +177,7 @@ def build_census(age, edu, sector):
                 row["age_" + v["C"].strip()] = int(float(v["D"]))
             else:
                 row["pop"], row["married"] = int(float(v["D"])), int(float(v["F"]))
-    for path, cols in ((edu, EDU), (sector, WORK)):
+    for path, cols in ((edu, EDU), (sector, WORK), *zip(more, MORE, strict=False)):
         for v in cells(path):
             if v.get("A") == "7":
                 out[v["B"][3:]].update({name: int(float(v.get(c_) or 0)) for c_, name in cols.items()})
@@ -171,7 +185,7 @@ def build_census(age, edu, sector):
 
 
 if len(sys.argv) > 5:
-    cen = build_census(*sys.argv[3:6])
+    cen = build_census(*sys.argv[3:12])
     assert len(cen) > 6000 and 10_400_000 < sum(r["pop"] for r in cen.values()) < 10_500_000, len(cen)
     with open(CENSUS, "w", encoding="utf-8", newline="") as f:
         wr = csv.DictWriter(f, fieldnames=["code", *next(iter(cen.values()))])
@@ -222,23 +236,50 @@ V = {name: np.minimum(x, 100) for name, x in V.items()}  # ELSTAT's perturbation
 yk, wk = y[keep], w[keep]
 basek = [b[keep] for b in base]
 muni = [k[:4] for k, f in zip(codes, keep, strict=True) if f]  # first 4 digits = municipality (δήμος)
-print("Παλινδρόμηση (WLS, βάρος τα έγκυρα Ιουνίου): ποσοστό ΝΙΚΗΣ Ιουνίου 2023 ανά κοινότητα")
-for label, cols in (("μόνο απογραφή (7 μεταβλητές)", list(V.values())), ("μοντέλο nikh_drivers.py", basek),
-                    ("το ίδιο + απογραφή", basek + list(V.values()))):
-    print(f"  {label}: R² = {wls(yk, cols, wk)[2]:.3f}")
-for label, cols in (("μόνο απογραφή", list(V.values())), ("με το μοντέλο nikh_drivers.py", basek + list(V.values()))):
-    beta, se, _ = wls(yk, cols, wk)
-    rse = cluster_se(yk, cols, wk, muni)
-    print(f"  Συντελεστές, {label} (μονάδες ποσοστού ΝΙΚΗΣ ανά +1 μονάδα· σφάλμα απλό → ανά δήμο· επίδραση +1 τυπικής απόκλισης):")
-    for (name, x), b, s, rs in zip(V.items(), beta[-len(V):], se[-len(V):], rse[-len(V):], strict=True):
-        sd = np.sqrt(np.average((x - np.average(x, weights=wk)) ** 2, weights=wk))
-        print(f"    {name:<30}{b:+8.3f}  ±{s:.3f} → ±{rs:.3f}   +1 τ.α. ({sd:4.1f}) = {b * sd:+.2f}{'  *' if abs(b) > 2 * rs else ''}")
-print("  (* = ο συντελεστής ξεπερνά τα 2 σφάλματα ανά δήμο)")
-
-print("\nΠοσοστό ΝΙΚΗΣ ανά τέταρτο των έγκυρων ψήφων (κοινότητες ταξινομημένες κατά τη μεταβλητή· Ιούνιος 2023 / Ευρωεκλογές 2024)")
 njk, nek, vek = nj[keep], ne[keep], ve[keep]
-for name, x in V.items():
-    order = np.argsort(x)
-    parts = np.split(order, np.searchsorted(np.cumsum(wk[order]), np.array([.25, .5, .75]) * wk.sum()))
-    print(f"  {name:<30}" + "   ".join(f"{x[p].min():4.0f}-{x[p].max():<3.0f}: {100 * njk[p].sum() / wk[p].sum():.2f}/{100 * nek[p].sum() / vek[p].sum():.2f}"
-                                         for p in parts))
+
+
+def report(V, basecols, base_label, alone_label):
+    """R², coefficients (plain and clustered SE) and NIKH's share by quarter of the valid votes, for the variables V."""
+    print("Παλινδρόμηση (WLS, βάρος τα έγκυρα Ιουνίου): ποσοστό ΝΙΚΗΣ Ιουνίου 2023 ανά κοινότητα")
+    for label, cols in ((alone_label, list(V.values())), (base_label, basecols), ("το ίδιο + αυτές", basecols + list(V.values()))):
+        print(f"  {label}: R² = {wls(yk, cols, wk)[2]:.3f}")
+    for label, cols in ((alone_label, list(V.values())), (f"με {base_label}", basecols + list(V.values()))):
+        beta, se, _ = wls(yk, cols, wk)
+        rse = cluster_se(yk, cols, wk, muni)
+        print(f"  Συντελεστές, {label} (μονάδες ποσοστού ΝΙΚΗΣ ανά +1 μονάδα· σφάλμα απλό → ανά δήμο· επίδραση +1 τυπικής απόκλισης):")
+        for (name, x), b, sx, rs in zip(V.items(), beta[-len(V):], se[-len(V):], rse[-len(V):], strict=True):
+            sd = np.sqrt(np.average((x - np.average(x, weights=wk)) ** 2, weights=wk))
+            print(f"    {name:<34}{b:+8.3f}  ±{sx:.3f} → ±{rs:.3f}   +1 τ.α. ({sd:4.1f}) = {b * sd:+.2f}{'  *' if abs(b) > 2 * rs else ''}")
+    print("  (* = ο συντελεστής ξεπερνά τα 2 σφάλματα ανά δήμο)")
+    print("\nΠοσοστό ΝΙΚΗΣ ανά τέταρτο των έγκυρων ψήφων (κοινότητες ταξινομημένες κατά τη μεταβλητή· Ιούνιος 2023 / Ευρωεκλογές 2024)")
+    for name, x in V.items():
+        order = np.argsort(x)
+        parts = np.split(order, np.searchsorted(np.cumsum(wk[order]), np.array([.25, .5, .75]) * wk.sum()))
+        print(f"  {name:<34}" + "   ".join(f"{x[q_].min():4.0f}-{x[q_].max():<3.0f}: {100 * njk[q_].sum() / wk[q_].sum():.2f}/{100 * nek[q_].sum() / vek[q_].sum():.2f}"
+                                             for q_ in parts))
+
+
+report(V, basek, "μοντέλο nikh_drivers.py", "μόνο απογραφή (7 μεταβλητές)")
+
+if "born_abroad" in C[0]:
+    print("\nΑπογραφή 2021, πίνακες Γ06 (ιθαγένεια), Γ05 (τόπος γέννησης), Γ15 (οικογενειακοί πυρήνες)")
+    V2 = {"ξένη ιθαγένεια (% πληθ.)": 100 * col(lambda r: r["citizen_foreign"]) / people,
+          # born abroad minus foreign citizens: mostly repatriated Greeks (former USSR, Germany); floor 0, the two tables are perturbed separately
+          "γενν. εξωτερικό, Έλληνες (%)": 100 * col(lambda r: max(r["born_abroad"] - r["citizen_foreign"], 0)) / people,
+          "γενν. στον ίδιο δήμο (%)": 100 * col(lambda r: r["born_same_muni"]) / people,
+          "γενν. σε άλλη Π.Ε. (%)": 100 * col(lambda r: r["born_other_unit"]) / people,
+          "πυρήνες 4+ μελών (% πυρήνων)": 100 * col(lambda r: r["nuclei_4plus"]) / col(lambda r: max(r["nuclei"], 1))}
+    V2 = {name: np.minimum(x, 100) for name, x in V2.items()}
+    report(V2, basek + list(V.values()), "μοντέλο nikh_drivers.py + 7 μεταβλητές απογραφής", "μόνο αυτές οι 5")
+
+if "hh_no_car" in C[0]:
+    print("\nΑπογραφή 2021, πίνακες Γ13 (αυτοκίνητα), Γ11 (κυριότητα κατοικίας), Γ01 (κατοικίες)")
+    hh = col(lambda r: max(r["households"], 1))
+    V3 = {"νοικοκυριά χωρίς αυτοκίνητο (%)": 100 * col(lambda r: r["hh_no_car"]) / hh,
+          "νοικοκυριά με 2+ αυτοκίνητα (%)": 100 * col(lambda r: r["hh_2_cars"] + r["hh_3plus_cars"]) / hh,
+          "ενοικιαζόμενες (% κατοικούμενων)": 100 * col(lambda r: r["dwellings_rented"]) / col(lambda r: max(r["dwellings_occupied"], 1)),
+          "εξοχικές και δευτερεύουσες (% κατοικιών)": 100 * col(lambda r: r["dwellings_holiday"] + r["dwellings_secondary"])
+          / col(lambda r: max(r["dwellings"], 1))}
+    report({name: np.minimum(x, 100) for name, x in V3.items()}, basek + list(V.values()) + list(V2.values()),
+           "μοντέλο nikh_drivers.py + 12 μεταβλητές απογραφής", "μόνο αυτές οι 4")

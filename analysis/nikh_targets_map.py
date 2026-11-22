@@ -10,12 +10,16 @@ Classes (June 2023 share s, Euro 2024 share e, Ελλ. Λύση June share pool)
 Euro 2024 had far lower turnout, which raised small parties' shares nationally (NIKH 3.7% -> 4.4%), so a share
 that fell in a community means NIKH kept fewer voters there than turnout alone explains.
 Seat tiers per constituency come from analysis/nikh_seats.py (core = elected in every scenario 3.1-5%).
+Hot clusters: Getis-Ord Gi* of the June 2023 share, z >= 2.58, the method of analysis/nikh_spatial.py (one community more here:
+that script also drops communities without registered voters).
 
 Run build.py <election> all for 2023/may, 2023/june, 2024/euro first, then:
   python -I -X utf8 analysis/nikh_targets_map.py
 """
 import json
+import math
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
@@ -26,6 +30,7 @@ from web import INDEX_DARK, INDEX_LIGHT, fill, secure
 
 NIKH, POOL = 131, (108,)  # Σπαρτιάτες left out: NIKH took almost none of their voters in 2024 (nikh_competition.py)
 STRONG, BASE, POOL_MIN, MIN_VALID = 6.0, 3.0, 4.5, 50  # 4.5%: national June share of the pool
+HOT, TOP = 2.58, 6  # Gi* z threshold; clusters named in the legend
 CORE = ["Α' Θεσσαλονίκης", "Β' Θεσσαλονίκης", "Β1' Βόρειου Τομέα Αθηνών", "Β3' Νότιου Τομέα Αθηνών",
         "Α' Ανατολικής Αττικής", "Αχαΐας", "Πιερίας"]
 MARGINAL = ["Α' Αθηνών", "Β2' Δυτικού Τομέα Αθηνών", "Λάρισας", "Πέλλας", "Κοζάνης", "Αιτωλοακαρνανίας"]
@@ -36,8 +41,48 @@ def pct(x):
     return 100 * x[0] / x[1] if x and x[1] else None
 
 
+def hot_clusters(share, geom):
+    """Connected groups of hot communities, each a list of codes. share: {code: June share}. Neighbours share a
+    boundary vertex; communities without neighbours are left out. Gi* with binary weights including the place itself."""
+    verts = defaultdict(set)
+    for code in share:
+        g = geom[code]
+        for poly in g["coordinates"] if g["type"] == "MultiPolygon" else [g["coordinates"]]:
+            for ring in poly:
+                for pt in ring:
+                    verts[tuple(pt)].add(code)
+    adj = defaultdict(set)
+    for s in verts.values():
+        for a in s:
+            adj[a] |= s - {a}
+    n = len(adj)
+    mean = sum(share[k] for k in adj) / n
+    sd = math.sqrt(sum((share[k] - mean) ** 2 for k in adj) / n)
+    hot = set()
+    for k, nb in adj.items():
+        w = 1 + len(nb)
+        if (share[k] + sum(share[j] for j in nb) - mean * w) / (sd * math.sqrt((n * w - w * w) / (n - 1))) >= HOT:
+            hot.add(k)
+    groups, seen = [], set()
+    for k in hot:
+        if k in seen:
+            continue
+        seen.add(k)
+        group, stack = [], [k]
+        while stack:
+            a = stack.pop()
+            group.append(a)
+            for b in adj[a] & hot - seen:
+                seen.add(b)
+                stack.append(b)
+        groups.append(group)
+    return groups
+
+
 features, summary = [], [{"areas": 0, "votes": 0, "pool": 0} for _ in range(6)]
-for c in communities(["2023/may", "2023/june", "2024/euro"]).values():
+comms = communities(["2023/may", "2023/june", "2024/euro"])
+by_code = {}
+for code, c in comms.items():
     if "2023-june" not in c["e"]:
         continue
     valid, pv = c["e"]["2023-june"]
@@ -60,12 +105,34 @@ for c in communities(["2023/may", "2023/june", "2024/euro"]).values():
     features.append({"type": "Feature", "geometry": c["geometry"],
                      "properties": {"n": c["n"], "u": c["u"], "ep": c["ep"], "k": k, "t": TIER.get(c["ep"], 2),
                                     "m": m, "j": j, "e": e, "p": pool}})
+    by_code[code] = features[-1]["properties"]
+
+# same population as nikh_spatial.py: at least 50 valid votes in June 2023 and in Euro 2024
+share = {k: pct(a["j"]) for k, a in by_code.items() if a["j"][1] >= MIN_VALID and a["e"] and a["e"][1] >= MIN_VALID}
+groups = sorted(hot_clusters(share, {k: comms[k]["geometry"] for k in share}),
+                key=lambda g: -sum(by_code[k]["j"][0] for k in g))
+clusters = []
+for i, g in enumerate(groups):
+    eps = defaultdict(int)
+    for k in g:
+        by_code[k]["h"] = min(i, TOP)  # TOP = every smaller cluster
+        eps[by_code[k]["ep"]] += by_code[k]["j"][0]
+    if i < TOP:
+        clusters.append({"name": ", ".join(sorted(eps, key=eps.get, reverse=True)[:3]), "areas": len(g),
+                         "votes": sum(by_code[k]["j"][0] for k in g)})
+rest = [k for g in groups[TOP:] for k in g]
+clusters.append({"name": f"{len(groups) - TOP} μικρότερες συστάδες", "areas": len(rest),
+                 "votes": sum(by_code[k]["j"][0] for k in rest)})
+print(f"hot: {sum(len(g) for g in groups)} communities in {len(groups)} clusters, "
+      f"{sum(c['votes'] for c in clusters):,} NIKH votes")
+for c in clusters:
+    print(" ", c)
 
 assert len(TIER) == len(CORE) + len(MARGINAL)
 assert TIER.keys() <= {f["properties"]["ep"] for f in features}, set(TIER) - {f["properties"]["ep"] for f in features}
 for k, s in enumerate(summary):
     print(k, s)
-data = {"summary": summary, "geo": {"type": "FeatureCollection", "features": features}}
+data = {"summary": summary, "clusters": clusters, "geo": {"type": "FeatureCollection", "features": features}}
 template = fill((HERE / "analysis" / "nikh_targets_template.html").read_text(encoding="utf-8"),
                 INDEX_LIGHT | {"panel": "#ffffffee", "on": "#1d1d1b", "on-ink": "#fff"},
                 INDEX_DARK | {"panel": "#1d2430ee", "on": "#e8edf5", "on-ink": "#171c24"},
