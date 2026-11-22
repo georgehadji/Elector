@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-5bXgcR1FZsNsdCaRn0gEyEbGFRnC1Rkzdhd3S4QiTsM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-6DNesmARDudnx13ZDUdn0ZIlsXpEV8x2Nt+D+SK5rbw=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-5bXgcR1FZsNsdCaRn0gEyEbGFRnC1Rkzdhd3S4QiTsM=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js; style-src-elem 'sha256-i9YXZ49wsqg7zHrdfwMhy0Y5VcPB8Uk3U7r6HUME9mc=' https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ ανά διαμέρισμα</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
@@ -135,6 +135,7 @@ h1{font-size:1.0625rem;margin:0 0 2px}
 .tabs button{font:inherit;font-size:.8125rem;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:32px}
 .tabs button[aria-pressed="true"]{background:var(--on);color:var(--on-ink);border-color:var(--on)}
 #map{flex:1;min-height:220px}
+:root[data-theme=dark] #map{background:color-mix(in srgb,var(--paper) 88%,var(--ink))}  /* Leaflet's default grey is a light slab in dark theme */
 .legend{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:8px;font-size:.75rem;line-height:1.3;box-shadow:0 1px 4px #0003}
 .legend b{display:block;margin-bottom:4px}
 .legend,.t{overflow-wrap:anywhere}
