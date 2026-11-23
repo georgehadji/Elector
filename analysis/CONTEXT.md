@@ -8,7 +8,8 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | Fact | Home |
 |---|---|
 | Party id 131 | `config.NIKH` (import it; never retype) |
-| Polls since Sep 2023 | `nikh_polls.csv`; May/June 2023: `nikh_polls_2023.csv` |
+| Polls since Sep 2023 | `nikh_polls.csv` (`niki` column hand-checked; other party columns from `polls_wiki.py`); May/June 2023: `nikh_polls_2023.csv` |
+| Polls and ballots of all parties, 2007-2024 | `nikh_pollerror.csv` (from `polls_wiki.py`) |
 | NIKH level today / in H days | `nikh_polls.estimate(H)` |
 | Ballot/poll ratios | `nikh_polls.euro_miss`, `nikh_polls.miss_2023` |
 | Seat allocation, `ep_votes` | `nikh_seats.py` |
@@ -28,6 +29,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_competition.py`, `nikh_expelled.py` | db | one `.txt` each | 5 |
 | `nikh_pareto.py` | db | `nikh_pareto.txt` | 5 |
 | `nikh_regions.py` | db | `nikh_regions.txt` | 7 |
+| `polls_wiki.py` [cache_dir] | Wikipedia poll tables (network) | `nikh_pollerror.csv`; party columns of `nikh_polls.csv` | plan 2, stage 2 |
 | `nikh_polls.py` | `nikh_polls*.csv` | `nikh_polls.txt` | 16, 17 |
 | `nikh_montecarlo.py` | db, `nikh_polls.py`, `nikh_seats.py` | `nikh_montecarlo.txt` | 9, 16 |
 | `nikh_abstention.py` | db | `nikh_abstention.txt` | 10 |
