@@ -82,6 +82,15 @@ if __name__ == "__main__":
     print("Μάιος 2023: {:.2f}-{:.2f}, Ιούνιος 2023: {:.2f}-{:.2f}".format(*m23["2023/may"], *m23["2023/june"]))
     MEASURED = {"χωρίς σφάλμα (m = 1)": [(1.0, 1.0)], "όπως Ευρωεκλογές 2024": [euro], "όπως Ιούνιος 2023": [m23["2023/june"]],
                 "όπως Μάιος 2023": [m23["2023/may"]], "οι τρεις εκλογές ισοπίθανες": [euro, *m23.values()]}
+    # stage 4 of NIKH_plan2.md: m drawn from the ballot/poll ratios of the other small parties (nikh_pollerror.py, 23 pairs),
+    # alone, with NIKH's own three ratios added, and only the parties polled below 2%
+    import nikh_pollerror as E
+    emp, low = E.ratios(), E.ratios("lt2")
+    own = [r for r, _, _ in P.miss_2023().values()] + [m_euro]
+    assert len(emp) >= 20 and len(low) >= 3 and len(own) == 3
+    MEASURED.update({"εμπειρική: 23 μικρά κόμματα": [(r, r) for r in emp],
+                     "εμπειρική + 3 της ΝΙΚΗΣ": [(r, r) for r in emp + own],
+                     "εμπειρική, κάτω από 2% (5 κόμματα)": [(r, r) for r in low]})
     for horizon in (0, 180):
         mu, sd = P.estimate(horizon)
         print(f"\nΜέσος όρος {mu:.2f}%, τυπική απόκλιση {sd:.2f}, σε {horizon} ημέρες από σήμερα")
