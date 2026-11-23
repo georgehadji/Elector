@@ -1,0 +1,60 @@
+Δείγμα: 23 ζεύγη εκλογών-κόμματος με μέσο όρο δημοσκοπήσεων 1.0-4.0% και ≥ 2 δημοσκοπήσεις στις τελευταίες 14 ημέρες, από 7 εκλογές (χωρίς ΝΙΚΗ).
+
+Λόγος κάλπη / μέσος όρος δημοσκοπήσεων, ανά ομάδα
+  all       n  23, median 0.96, mean 1.00, 10%-90% 0.69-1.39, quartiles 0.79-1.14, ratio > 1 in 43%, ratio >= 1.5 in 9%
+  national  n  17, median 1.01, mean 1.06, 10%-90% 0.69-1.68, quartiles 0.82-1.17, ratio > 1 in 53%, ratio >= 1.5 in 12%
+  euro      n   6, median 0.88, mean 0.83, 10%-90% 0.48-1.07, quartiles 0.79-0.93, ratio > 1 in 17%, ratio >= 1.5 in 0%
+  new       n   1, median 0.97, mean 0.97, 10%-90% 0.97-0.97, quartiles 0.97-0.97, ratio > 1 in 0%, ratio >= 1.5 in 0%
+  rising    n   5, median 1.01, mean 0.99, 10%-90% 0.88-1.07, quartiles 0.93-1.04, ratio > 1 in 60%, ratio >= 1.5 in 0%
+  falling   n   4, median 0.75, mean 0.81, 10%-90% 0.48-1.30, quartiles 0.69-1.30, ratio > 1 in 25%, ratio >= 1.5 in 0%
+  other     n  13, median 0.96, mean 1.06, 10%-90% 0.76-1.68, quartiles 0.82-1.17, ratio > 1 in 46%, ratio >= 1.5 in 15%
+  lt2       n   5, median 0.79, mean 0.94, 10%-90% 0.57-1.68, quartiles 0.69-0.96, ratio > 1 in 20%, ratio >= 1.5 in 20%
+  2to3      n   7, median 1.01, mean 1.07, 10%-90% 0.48-1.77, quartiles 0.88-1.30, ratio > 1 in 57%, ratio >= 1.5 in 14%
+  ge3       n  11, median 0.93, mean 0.98, 10%-90% 0.76-1.17, quartiles 0.82-1.14, ratio > 1 in 45%, ratio >= 1.5 in 0%
+  (lt2 = μέσος όρος δημοσκοπήσεων κάτω από 2%, 2to3 = 2-3%, ge3 = 3-4%)
+
+ΝΙΚΗ (δεν είναι στο δείγμα): 2023/may 1.86 (δημοσκ. 1.56%, κάλπη 2.9%), 2023/june 1.14 (δημοσκ. 3.25%, κάλπη 3.7%), 2024/euro 1.18 (δημοσκ. 3.73%, κάλπη 4.4%)
+
+Ανά εκλογή: μεσαίος λόγος και πλήθος
+  2014/euro  n  1, median 0.48, εύρος 0.48-0.48
+  2015/jan   n  2, median 1.39, εύρος 0.97-1.39
+  2015/sep   n  3, median 0.93, εύρος 0.76-1.30
+  2019       n  5, median 0.96, εύρος 0.69-1.04
+  2023/june  n  4, median 1.14, εύρος 0.82-1.77
+  2023/may   n  3, median 1.17, εύρος 0.57-1.68
+  2024/euro  n  5, median 0.88, εύρος 0.79-1.07
+
+Κάθε ζεύγος (ταξινομημένα κατά εκλογή και λόγο)
+  2014/euro Democratic_Left_(Greece)               δημοσκ. 2.48% (17)  κάλπη  1.2%  λόγος 0.48  falling
+  2015/jan  Movement_of_Democratic_Socialists      δημοσκ. 2.57% (39)  κάλπη  2.5%  λόγος 0.97  new
+  2015/jan  Independent_Greeks                     δημοσκ. 3.45% (42)  κάλπη  4.8%  λόγος 1.39  other
+  2015/sep  Popular_Unity_(Greece)                 δημοσκ. 3.83% (38)  κάλπη  2.9%  λόγος 0.76  other
+  2015/sep  Union_of_Centrists                     δημοσκ. 3.67% (38)  κάλπη  3.4%  λόγος 0.93  rising
+  2015/sep  Independent_Greeks                     δημοσκ. 2.84% (38)  κάλπη  3.7%  λόγος 1.30  falling
+  2019      Union_of_Centrists                     δημοσκ. 1.74% (14)  κάλπη  1.2%  λόγος 0.69  falling
+  2019      Golden_Dawn_(political_party)          δημοσκ. 3.85% (15)  κάλπη  2.9%  λόγος 0.75  falling
+  2019      Course_of_Freedom                      δημοσκ. 1.57% (10)  κάλπη  1.5%  λόγος 0.96  other
+  2019      MeRA25                                 δημοσκ. 3.36% (15)  κάλπη  3.4%  λόγος 1.01  rising
+  2019      Greek_Solution                         δημοσκ. 3.56% (15)  κάλπη  3.7%  λόγος 1.04  rising
+  2023/june Course_of_Freedom                      δημοσκ. 3.89% (20)  κάλπη  3.2%  λόγος 0.82  other
+  2023/june MeRA25                                 δημοσκ. 2.48% (20)  κάλπη  2.5%  λόγος 1.01  other
+  2023/june Greek_Solution                         δημοσκ. 3.86% (20)  κάλπη  4.4%  λόγος 1.14  other
+  2023/june Spartans_(Greek_political_party)       δημοσκ. 2.59% (19)  κάλπη  4.6%  λόγος 1.77  other
+  2023/may  National_Creation                      δημοσκ. 1.41% (8)  κάλπη  0.8%  λόγος 0.57  other
+  2023/may  Greek_Solution                         δημοσκ. 3.85% (11)  κάλπη  4.5%  λόγος 1.17  other
+  2023/may  Course_of_Freedom                      δημοσκ. 1.72% (9)  κάλπη  2.9%  λόγος 1.68  other
+  2024/euro Democrats_(Greece,_2024)               δημοσκ. 1.90% (3)  κάλπη  1.5%  λόγος 0.79  other
+  2024/euro New_Left_(Greece)                      δημοσκ. 3.03% (3)  κάλπη  2.5%  λόγος 0.82  other
+  2024/euro MeRA25                                 δημοσκ. 2.85% (16)  κάλπη  2.5%  λόγος 0.88  rising
+  2024/euro Course_of_Freedom                      δημοσκ. 3.66% (16)  κάλπη  3.4%  λόγος 0.93  other
+  2024/euro Voice_of_Reason_(political_party)      δημοσκ. 2.80% (3)  κάλπη  3.0%  λόγος 1.07  rising
+
+Βασικό ποσοστό: κόμματα με 1,0-1,8% στις δημοσκοπήσεις 150-210 ημέρες πριν (εθνικές εκλογές): 6
+  2012/may  Golden_Dawn_(Greece)                   1.47% -> 7.0%  ≥ 3%
+  2015/jan  Democratic_Left_(Greece)               1.70% -> 0.5%
+  2019      Antarsya                               1.10% -> 0.4%
+  2019      Course_of_Freedom                      1.40% -> 1.5%
+  2019      Popular_Unity_(Greece)                 1.51% -> 0.3%
+  2023/may  National_Creation                      1.40% -> 0.8%
+  Πέρασαν το 3%: 1 από 6
+  Κάλπη / δημοσκοπήσεις 150-210 ημέρες πριν, διάμεσος: 0.57
