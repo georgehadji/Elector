@@ -62,6 +62,15 @@ CREATE INDEX IF NOT EXISTS area_match_comm ON area_match(comm_code);
 
 NIKH = 131  # party id of ΝΙΚΗ: the one definition every analysis script imports
 
+# Political blocs by party id (ids are stable across elections): the one grouping every analysis imports.
+# A judgement call; parties not listed count as "Λοιπά". A client profile names its rival bloc by key.
+BLOCS = {
+    "Αριστερά": [3, 122, 123, 44, 100],                       # ΚΚΕ, ΜέΡΑ25, Πλεύση, ΑΝΤΑΡΣΥΑ, ΛΑΕ
+    "Κεντροαριστερά": [4, 106, 166, 28],                       # ΣΥΡΙΖΑ, ΠΑΣΟΚ, Νέα Αριστερά, Οικολόγοι
+    "Κεντροδεξιά": [2, 60, 164],                               # ΝΔ, Δημιουργία/Τζήμερος, Δημοκράτες
+    "Δεξιά της ΝΔ": [108, 131, 157, 41, 158, 153, 163, 113],   # Ελ. Λύση, ΝΙΚΗ, Σπαρτιάτες, ΧΑ, Φωνή Λογικής,
+}                                                              # Πατρ. Συνασπισμός, Πατριώτες, Ελλ. Συνέλευσις
+
 # Short display names by party id (ids are stable across elections); others show the ministry's name.
 PARTY_SHORT = {2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΠΑΣΟΚ-ΚΙΝΑΛ", 3: "ΚΚΕ", 108: "Ελληνική Λύση", 122: "ΜέΡΑ25",
                123: "Πλεύση Ελευθερίας", 131: "ΝΙΚΗ", 157: "Σπαρτιάτες", 41: "Χρυσή Αυγή", 158: "Φωνή Λογικής",

@@ -30,7 +30,7 @@ import openpyxl
 import xlrd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import DB, ELECTION_NAMES, HERE, PARTY_SHORT
+from config import BLOCS, DB, ELECTION_NAMES, HERE, PARTY_SHORT
 from matching import boundaries, ep_label, label, stems
 
 SRC = Path(__file__).resolve().parent / "venues_xls"
@@ -42,12 +42,6 @@ XLS = {"2019": ("eklogika_tmimata_boyl2019.xls", 2, 6, 10),
        "2023/june": ("EklogikaTMHMATAmeKATASTHMApsifofor-VouleftikesIouniou2023-20230624-1317.xls", 2, 6, 10),
        "2024/euro": ("eklogikatmimata_08062024_1420.xlsx", 2, 7, 15)}
 
-BLOCS = {  # party id -> bloc; ids are stable across elections
-    "Αριστερά": [3, 122, 123, 44, 100],                       # ΚΚΕ, ΜέΡΑ25, Πλεύση, ΑΝΤΑΡΣΥΑ, ΛΑΕ
-    "Κεντροαριστερά": [4, 106, 166, 28],                       # ΣΥΡΙΖΑ, ΠΑΣΟΚ, Νέα Αριστερά, Οικολόγοι
-    "Κεντροδεξιά": [2, 60, 164],                               # ΝΔ, Δημιουργία/Τζήμερος, Δημοκράτες
-    "Δεξιά της ΝΔ": [108, 131, 157, 41, 158, 153, 163, 113],   # Ελ. Λύση, ΝΙΚΗ, Σπαρτιάτες, ΧΑ, Φωνή Λογικής,
-}                                                              # Πατρ. Συνασπισμός, Πατριώτες, Ελλ. Συνέλευσις
 BLOC_OF = {pid: b for b, pids in BLOCS.items() for pid in pids}
 BLOC_NAMES = list(BLOCS) + ["Λοιπά"]
 EXTRA_SHORT = {166: "Νέα Αριστερά", 164: "Δημοκράτες", 163: "Πατριώτες", 153: "Πατρ. Συνασπισμός",
@@ -277,6 +271,9 @@ def main():
 
     in_all = sum(1 for k in vid if all((e, k) in venues for e in ELECTIONS))
     write("venue_links.csv", LINKS)
+    # station -> venue id, so no analysis recomputes the matching (client.venue_of reads it)
+    write("venue_stations.csv", [{"venue_id": vid[v_of_all[e][tm][0]], "election": e, "tm_id": tm}
+                                 for e in ELECTIONS for tm in sorted(v_of_all[e])])
     write("venues.csv", venue_rows)
     write("venue_parties_long.csv", long_rows)
     write("communities.csv", comm_rows)

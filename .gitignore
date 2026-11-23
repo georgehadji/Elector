@@ -7,8 +7,9 @@ data/backup/
 __pycache__/
 .ruff_cache/
 
-# Karagiannakidis analyses: kept local only
-analysis/*[Kk][Aa][Rr][Aa][Gg][Ii][Aa][Nn][Nn][Aa][Kk][Ii][Dd][Ii][Ss]*
+# Paid client work: every client has its own folder and nobody else's. Code, outputs and inputs stay local.
+analysis/clients/
+analysis/client*.py
 
 # Field-ops commercial plan: kept local only
 analysis/field_ops_plan.md
