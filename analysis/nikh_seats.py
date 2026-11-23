@@ -112,17 +112,18 @@ def allocate(ep_v):
     return {p: {"state": state[p], **{ep: won[ep][p] for ep in ep_v if won[ep][p]}} for p in qual}, valid
 
 
-def scenario(base, pct, pattern=None):
-    """NIKH scaled to pct of valid votes nationally, other parties shrunk proportionally per constituency.
-    pattern: {ep: NIKH share} to use instead of base's geography (e.g. Euro 2024)."""
-    pat = pattern or {ep: pv.get(NIKH, 0) / sum(pv.values()) for ep, pv in base.items()}
+def scenario(base, pct, pattern=None, party=NIKH):
+    """party (default NIKH; may be a party absent from base) scaled to pct of valid votes nationally, other parties
+    shrunk proportionally per constituency. pattern: {ep: share of the party} to use instead of base's geography
+    (e.g. Euro 2024)."""
+    pat = pattern or {ep: pv.get(party, 0) / sum(pv.values()) for ep, pv in base.items()}
     valid = {ep: sum(pv.values()) for ep, pv in base.items()}
     k = pct / 100 * sum(valid.values()) / sum(pat[ep] * valid[ep] for ep in base)
     out = {}
     for ep, pv in base.items():
         n = round(k * pat[ep] * valid[ep])
-        others = valid[ep] - pv.get(NIKH, 0)
-        out[ep] = {p: round(v * (valid[ep] - n) / others) for p, v in pv.items() if p != NIKH} | {NIKH: n}
+        others = valid[ep] - pv.get(party, 0)
+        out[ep] = {p: round(v * (valid[ep] - n) / others) for p, v in pv.items() if p != party} | {party: n}
     return out
 
 

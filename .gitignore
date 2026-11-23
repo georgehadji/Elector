@@ -9,7 +9,7 @@ __pycache__/
 
 # Paid client work: every client has its own folder and nobody else's. Code, outputs and inputs stay local.
 analysis/clients/
-analysis/client*.py
+analysis/client*
 
 # Field-ops commercial plan: kept local only
 analysis/field_ops_plan.md
