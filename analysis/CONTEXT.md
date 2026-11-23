@@ -15,7 +15,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | Ballot/poll ratios of other small parties | `nikh_pollerror.ratios(kind)` |
 | Seat allocation, `ep_votes` | `nikh_seats.py` |
 | Per-community data | `nikh_drivers.load()` over `build.communities()` |
-| 3% threshold in votes | `nikh_pareto.THRESHOLD` (3% of June 2023 valid votes, from the DB) |
+| 3% threshold in votes | `zones.threshold(c)` (3% of June 2023 valid votes, from the DB) |
 
 ## Scripts
 
@@ -28,9 +28,9 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_targets_map.py` (+ `nikh_targets_template.html`) | db | `out/nikh_targets.html` | 5 |
 | `nikh_drivers.py` | db | `nikh_drivers.txt` | 5, 12 |
 | `nikh_competition.py`, `nikh_expelled.py` | db | one `.txt` each | 5 |
-| `zones.py` (module: units, tiers) | db | — | 5, 21 |
+| `zones.py` (module: units, tiers, 3% threshold) | db | — | 5, 20, 21 |
 | `nikh_pareto.py` | db, `zones.py` | `nikh_pareto.txt` | 5 |
-| `nikh_floor.py` | db (`area_match`) | `nikh_floor.txt` | 20 |
+| `nikh_floor.py` | db (`area_match`), `zones.py` | `nikh_floor.txt` | 20 |
 | `nikh_backtest.py` | db, `zones.py` | `nikh_backtest.txt` | 21 |
 | `nikh_regions.py` | db | `nikh_regions.txt` | 7 |
 | `polls_wiki.py` [cache_dir] | Wikipedia poll tables (network) | `nikh_pollerror.csv`; party columns of `nikh_polls.csv` | plan 2, stage 2 |

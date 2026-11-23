@@ -5,11 +5,14 @@ checked against the firms' releases). An empty cell = the party was not shown in
 1. Pairs: two consecutive polls of the same firm, at most 120 days apart; change = later - earlier. The house effect cancels.
    For each party: correlation and OLS slope of the change of NIKH on the change of the party (pairs where both are present),
    whole period and before / after 20 Apr 2026 (when two new parties, ELPIDA and ELAS, enter the polls).
-   Permutation test: the changes of NIKH are shuffled among the pairs 2000 times (seed 2026); the p of a party is the share of
-   shuffles whose largest |correlation| over all parties of the period is at least its own (so 13 parties are tested at once).
+   Permutation test: 2000 times (seed 2026), the changes of NIKH are shuffled among the pairs of each party, separately for
+   each party (the parties have different sets of pairs, so one shared shuffle does not fit); the p of a party is the share of
+   shuffles whose largest |correlation| over all parties of the period (those with >= MIN_PAIRS pairs) is at least its own.
+   Separate shuffles ignore that the parties' changes are correlated, which makes the largest |correlation| larger: the p are
+   conservative (too high), not too low.
 2. Window comparison, the fall of Apr-Jul 2026: per firm, mean of each party in 1 Jan-19 Apr 2026 vs 1 Jul-22 Nov 2026
-   (firms with NIKH in both); mean change over firms. A party not yet in the polls in the first window counts as 0 there;
-   a party absent from a window's polls of a firm that has it in the other is skipped for that firm.
+   (firms with NIKH in both); mean change over firms. ELPIDA, ELAS and SE, not yet in the polls in the first window, count as
+   0 there; any other party absent from a window's polls of a firm that has it in the other is skipped for that firm.
 This is a correlation of published totals, not a count of voters moving: shares that sum to 100 move against each other by
 arithmetic, and the changes carry sampling noise (about 0.3 points for NIKH).
 

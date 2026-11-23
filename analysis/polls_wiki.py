@@ -19,6 +19,7 @@ empty. niki stays as it is (corrected by hand).
 
   python -I -X utf8 analysis/polls_wiki.py [cache_dir]      # cache_dir keeps the downloaded pages; delete it to refresh
 """
+import calendar
 import csv
 import json
 import re
@@ -136,12 +137,15 @@ def page(title, cache):
 
 
 def end_date(s, year=None):
-    """Last day of a fieldwork date text ('13-19 Nov 2026', '28 Apr-3 May 2025', 'January 25, 2015', '24 May' with a year given); None if not a date."""
+    """Last day of a fieldwork date text ('13-19 Nov 2026', '28 Apr-3 May 2025', 'January 25, 2015', '24 May' with a year given,
+    'Dec 2006' = last day of the month); None if not a date."""
     s = re.sub(r"\(.*?\)", "", s).strip()
     ms = re.findall(r"(\d{1,2})\s*([A-Za-z]{3,})\.?,?\s*(\d{4})?$", s) or \
         [(d, m, y) for m, d, y in re.findall(r"([A-Za-z]{3,})\s+(\d{1,2}),\s*(\d{4})$", s)]
     if not ms:
-        return None
+        mm = re.fullmatch(r"([A-Za-z]{3,})\.?\s+(\d{4})", s)
+        mon = MONTHS.get(mm.group(1)[:3].lower()) if mm else None
+        return date(int(mm.group(2)), mon, calendar.monthrange(int(mm.group(2)), mon)[1]) if mon else None
     d, m, y = ms[-1]
     mon = MONTHS.get(m[:3].lower())
     y = int(y) if y else year
@@ -165,18 +169,25 @@ def pct(s):
 
 
 def rows(g, hr, election_day, year):
-    """(kind, firm, end, sample, {party: pct}) for every poll and the ballot row of one poll table."""
+    """([(kind, firm, end, sample, {party: pct})] for every poll and the ballot row of one poll table, number of rows dropped
+    for want of a date). A date without a year that falls after the election day is taken from the year before ('2-11 Dec'
+    in a table of a May election)."""
     head = g[0]
     firm = next(i for i, h in enumerate(head) if re.search(r"Polling|Firm", h, re.I))
     when = next(i for i, h in enumerate(head) if re.search(r"date", h, re.I))
     smp = next((i for i, h in enumerate(head) if re.search(r"Sample", h)), None)
     parties = {i: hr[0][i] for i in range(len(head)) if i not in (firm, when, smp) and hr[0][i] and not hr[0][i].startswith("File:")}
-    out = []
+    out, nodate = [], 0
     for r in g[1:]:
         if not r[firm] or r[firm] == head[firm] or r[when] == head[when]:
             continue
+        if re.search(r"\d:\d\d", r[when]):  # an exit poll (time of day in the date)
+            continue
         end = end_date(r[when], year)
-        if not end or re.search(r"\d:\d\d", r[when]):  # no date, or an exit poll (time of day in the date)
+        if end and end > election_day and not re.search(r"\d{4}", r[when]):
+            end = end_date(r[when], year - 1)
+        if not end:
+            nodate += 1
             continue
         n = re.sub(r"\D", "", r[smp]) if smp is not None else ""
         ballot = end == election_day and not n and re.search(r"election|result", r[firm], re.I)
@@ -184,7 +195,7 @@ def rows(g, hr, election_day, year):
             continue
         vals = {p: pct(r[i]) for i, p in parties.items()}
         out.append(("ballot" if ballot else "poll", r[firm], end, int(n) if n else "", {p: v for p, v in vals.items() if v is not None}))
-    return out
+    return out, nodate
 
 
 def main():
@@ -194,13 +205,15 @@ def main():
     long = []
     for key, title, idx, day, rev in PAGES:
         tabs, got = page(title, cache)
-        rs = rows(*tabs[idx], day, day.year)
+        rs, nodate = rows(*tabs[idx], day, day.year)
         if key == "2019/euro":
             ptabs, _ = page(EURO_2019_BALLOT[0], cache)
-            rs += [r for r in rows(*ptabs[EURO_2019_BALLOT[1]], EURO_2019_BALLOT[2], 2019) if r[0] == "ballot"]
+            rs += [r for r in rows(*ptabs[EURO_2019_BALLOT[1]], EURO_2019_BALLOT[2], 2019)[0] if r[0] == "ballot"]
+        late = sum(r[2] > day for r in rs)
         rs = [r for r in rs if r[2] <= day]  # a poll dated after the election day is not a poll of it
         nb = sum(r[0] == "ballot" for r in rs)
-        print(f"{key:<10} {sum(r[0] == 'poll' for r in rs):>4} δημοσκοπήσεις, {nb} ballot, rev {got}{'' if got == rev else f' (στο σχέδιο {rev})'}")
+        print(f"{key:<10} {sum(r[0] == 'poll' for r in rs):>4} δημοσκοπήσεις, {nb} ballot, rev {got}{'' if got == rev else f' (στο σχέδιο {rev})'}"
+              f"{f', {nodate} χωρίς ημερομηνία' if nodate else ''}{f', {late} μετά την εκλογή' if late else ''}")
         assert nb == 1, (key, nb)
         for kind, f, end, n, vals in rs:
             for party, v in vals.items():
@@ -247,5 +260,6 @@ def main():
 if __name__ == "__main__":
     assert end_date("13–19 Nov 2026") == date(2026, 11, 19) and end_date("28 Apr–3 May 2025") == date(2025, 5, 3)
     assert end_date("January 25, 2015") == date(2015, 1, 25) and end_date("24 May", 2014) == date(2014, 5, 24)
+    assert end_date("Dec 2006") == date(2006, 12, 31) and end_date("Feb 2008") == date(2008, 2, 29) and end_date("2014") is None
     assert pct("30.2 122") == 30.2 and pct("–") is None and pct("34.6– 37.0") is None and pct("") is None
     main()

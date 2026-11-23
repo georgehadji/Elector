@@ -1,9 +1,15 @@
 """Municipal units (δημοτικές ενότητες) and the zones A/B/C: the one definition used by nikh_pareto.py and nikh_backtest.py.
+Also the 3% threshold in votes (threshold), used by nikh_pareto.py and nikh_floor.py.
 
 A unit = (station.ep_id, station.den_descr). Registered and valid voters are those of June 2023.
 Zones: units sorted by a score (best first); A = first 20% of the registered voters, B = next 30%, C = the rest.
 """
 from config import NIKH
+
+
+def threshold(c):
+    """The 3% threshold in votes: 3% of the June 2023 valid votes, from the DB."""
+    return round(.03 * c.execute("SELECT SUM(valid) FROM station WHERE election='2023/june'").fetchone()[0])
 
 
 def load_units(c, elections, party=NIKH):

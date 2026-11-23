@@ -234,6 +234,495 @@ election,kind,firm,end,sample,party,pct
 2007,poll,VPRC,2007-01-14,,Communist_Party_of_Greece,7.5
 2007,poll,VPRC,2007-01-14,,SYRIZA,4.0
 2007,poll,VPRC,2007-01-14,,Popular_Orthodox_Rally,3.5
+2007,poll,Kapa Research,2006-12-31,,New_Democracy_(Greece),42.2
+2007,poll,Kapa Research,2006-12-31,,PASOK,41.0
+2007,poll,Kapa Research,2006-12-31,,Communist_Party_of_Greece,8.6
+2007,poll,Kapa Research,2006-12-31,,SYRIZA,4.3
+2007,poll,Kapa Research,2006-12-31,,Popular_Orthodox_Rally,3.9
+2007,poll,Rass,2006-12-31,,New_Democracy_(Greece),43.5
+2007,poll,Rass,2006-12-31,,PASOK,40.4
+2007,poll,Rass,2006-12-31,,Communist_Party_of_Greece,8.7
+2007,poll,Rass,2006-12-31,,SYRIZA,4.1
+2007,poll,Rass,2006-12-31,,Popular_Orthodox_Rally,3.3
+2007,poll,Metron Analysis,2006-12-31,,New_Democracy_(Greece),43.1
+2007,poll,Metron Analysis,2006-12-31,,PASOK,41.1
+2007,poll,Metron Analysis,2006-12-31,,Communist_Party_of_Greece,7.0
+2007,poll,Metron Analysis,2006-12-31,,SYRIZA,4.2
+2007,poll,Metron Analysis,2006-12-31,,Popular_Orthodox_Rally,4.5
+2007,poll,VPRC,2006-12-31,,New_Democracy_(Greece),43.0
+2007,poll,VPRC,2006-12-31,,PASOK,38.5
+2007,poll,VPRC,2006-12-31,,Communist_Party_of_Greece,7.5
+2007,poll,VPRC,2006-12-31,,SYRIZA,4.5
+2007,poll,VPRC,2006-12-31,,Popular_Orthodox_Rally,3.5
+2007,poll,GPO,2006-12-31,,New_Democracy_(Greece),42.6
+2007,poll,GPO,2006-12-31,,PASOK,40.8
+2007,poll,GPO,2006-12-31,,Communist_Party_of_Greece,7.7
+2007,poll,GPO,2006-12-31,,SYRIZA,4.2
+2007,poll,GPO,2006-12-31,,Popular_Orthodox_Rally,4.7
+2007,poll,MRB,2006-12-31,,New_Democracy_(Greece),43.8
+2007,poll,MRB,2006-12-31,,PASOK,40.3
+2007,poll,MRB,2006-12-31,,Communist_Party_of_Greece,8.3
+2007,poll,MRB,2006-12-31,,SYRIZA,3.6
+2007,poll,MRB,2006-12-31,,Popular_Orthodox_Rally,3.9
+2007,poll,Alco,2006-11-30,,New_Democracy_(Greece),43.3
+2007,poll,Alco,2006-11-30,,PASOK,40.8
+2007,poll,Alco,2006-11-30,,Communist_Party_of_Greece,8.1
+2007,poll,Alco,2006-11-30,,SYRIZA,3.9
+2007,poll,Alco,2006-11-30,,Popular_Orthodox_Rally,3.9
+2007,poll,GPO,2006-11-30,,New_Democracy_(Greece),42.3
+2007,poll,GPO,2006-11-30,,PASOK,38.5
+2007,poll,GPO,2006-11-30,,Communist_Party_of_Greece,8.5
+2007,poll,GPO,2006-11-30,,SYRIZA,4.6
+2007,poll,GPO,2006-11-30,,Popular_Orthodox_Rally,5.0
+2007,poll,ΜRB,2006-11-30,,New_Democracy_(Greece),43.2
+2007,poll,ΜRB,2006-11-30,,PASOK,39.5
+2007,poll,ΜRB,2006-11-30,,Communist_Party_of_Greece,8.3
+2007,poll,ΜRB,2006-11-30,,SYRIZA,4.8
+2007,poll,ΜRB,2006-11-30,,Popular_Orthodox_Rally,4.2
+2007,poll,VPRC,2006-11-30,,New_Democracy_(Greece),42.5
+2007,poll,VPRC,2006-11-30,,PASOK,38.5
+2007,poll,VPRC,2006-11-30,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2006-11-30,,SYRIZA,4.5
+2007,poll,VPRC,2006-11-30,,Popular_Orthodox_Rally,4.0
+2007,poll,Kapa Research,2006-10-31,,New_Democracy_(Greece),43.6
+2007,poll,Kapa Research,2006-10-31,,PASOK,40.3
+2007,poll,Kapa Research,2006-10-31,,Communist_Party_of_Greece,8.5
+2007,poll,Kapa Research,2006-10-31,,SYRIZA,3.9
+2007,poll,Kapa Research,2006-10-31,,Popular_Orthodox_Rally,3.7
+2007,poll,Metron Analysis,2006-10-31,,New_Democracy_(Greece),43.3
+2007,poll,Metron Analysis,2006-10-31,,PASOK,39.2
+2007,poll,Metron Analysis,2006-10-31,,Communist_Party_of_Greece,7.7
+2007,poll,Metron Analysis,2006-10-31,,SYRIZA,5.4
+2007,poll,Metron Analysis,2006-10-31,,Popular_Orthodox_Rally,4.5
+2007,poll,Kapa Research,2006-10-31,,New_Democracy_(Greece),42.4
+2007,poll,Kapa Research,2006-10-31,,PASOK,40.1
+2007,poll,Kapa Research,2006-10-31,,Communist_Party_of_Greece,7.6
+2007,poll,Kapa Research,2006-10-31,,SYRIZA,3.8
+2007,poll,Kapa Research,2006-10-31,,Popular_Orthodox_Rally,3.4
+2007,poll,GPO,2006-10-31,,New_Democracy_(Greece),41.8
+2007,poll,GPO,2006-10-31,,PASOK,39.6
+2007,poll,GPO,2006-10-31,,Communist_Party_of_Greece,8.9
+2007,poll,GPO,2006-10-31,,SYRIZA,4.9
+2007,poll,GPO,2006-10-31,,Popular_Orthodox_Rally,4.9
+2007,poll,VPRC,2006-10-31,,New_Democracy_(Greece),42.5
+2007,poll,VPRC,2006-10-31,,PASOK,38.5
+2007,poll,VPRC,2006-10-31,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2006-10-31,,SYRIZA,4.5
+2007,poll,VPRC,2006-10-31,,Popular_Orthodox_Rally,4.0
+2007,poll,VPRC,2006-09-30,,New_Democracy_(Greece),42.5
+2007,poll,VPRC,2006-09-30,,PASOK,38.5
+2007,poll,VPRC,2006-09-30,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2006-09-30,,SYRIZA,4.5
+2007,poll,VPRC,2006-09-30,,Popular_Orthodox_Rally,4.0
+2007,poll,GPO,2006-09-30,,New_Democracy_(Greece),41.9
+2007,poll,GPO,2006-09-30,,PASOK,38.8
+2007,poll,GPO,2006-09-30,,Communist_Party_of_Greece,9.7
+2007,poll,GPO,2006-09-30,,SYRIZA,4.6
+2007,poll,GPO,2006-09-30,,Popular_Orthodox_Rally,5.1
+2007,poll,Metron Analysis,2006-08-31,,New_Democracy_(Greece),42.9
+2007,poll,Metron Analysis,2006-08-31,,PASOK,40.2
+2007,poll,Metron Analysis,2006-08-31,,Communist_Party_of_Greece,8.4
+2007,poll,Metron Analysis,2006-08-31,,SYRIZA,4.2
+2007,poll,Metron Analysis,2006-08-31,,Popular_Orthodox_Rally,4.2
+2007,poll,VPRC,2006-07-31,,New_Democracy_(Greece),42.0
+2007,poll,VPRC,2006-07-31,,PASOK,38.0
+2007,poll,VPRC,2006-07-31,,Communist_Party_of_Greece,8.5
+2007,poll,VPRC,2006-07-31,,SYRIZA,4.5
+2007,poll,VPRC,2006-07-31,,Popular_Orthodox_Rally,4.5
+2007,poll,Metron Analysis,2006-06-30,,New_Democracy_(Greece),41.6
+2007,poll,Metron Analysis,2006-06-30,,PASOK,40.1
+2007,poll,Metron Analysis,2006-06-30,,Communist_Party_of_Greece,8.8
+2007,poll,Metron Analysis,2006-06-30,,SYRIZA,3.9
+2007,poll,Metron Analysis,2006-06-30,,Popular_Orthodox_Rally,5.6
+2007,poll,MRB,2006-06-30,,New_Democracy_(Greece),43.1
+2007,poll,MRB,2006-06-30,,PASOK,40.1
+2007,poll,MRB,2006-06-30,,Communist_Party_of_Greece,8.5
+2007,poll,MRB,2006-06-30,,SYRIZA,3.6
+2007,poll,MRB,2006-06-30,,Popular_Orthodox_Rally,4.6
+2007,poll,VPRC,2006-06-30,,New_Democracy_(Greece),41.5
+2007,poll,VPRC,2006-06-30,,PASOK,38.5
+2007,poll,VPRC,2006-06-30,,Communist_Party_of_Greece,8.5
+2007,poll,VPRC,2006-06-30,,SYRIZA,4.5
+2007,poll,VPRC,2006-06-30,,Popular_Orthodox_Rally,4.5
+2007,poll,GPO,2006-06-30,,New_Democracy_(Greece),41.4
+2007,poll,GPO,2006-06-30,,PASOK,39.0
+2007,poll,GPO,2006-06-30,,Communist_Party_of_Greece,9.0
+2007,poll,GPO,2006-06-30,,SYRIZA,4.4
+2007,poll,GPO,2006-06-30,,Popular_Orthodox_Rally,6.2
+2007,poll,Kapa Research,2006-05-31,,New_Democracy_(Greece),42.0
+2007,poll,Kapa Research,2006-05-31,,PASOK,39.9
+2007,poll,Kapa Research,2006-05-31,,Communist_Party_of_Greece,8.3
+2007,poll,Kapa Research,2006-05-31,,SYRIZA,4.0
+2007,poll,Kapa Research,2006-05-31,,Popular_Orthodox_Rally,5.8
+2007,poll,Marc,2006-05-31,,New_Democracy_(Greece),41.3
+2007,poll,Marc,2006-05-31,,PASOK,40.3
+2007,poll,Marc,2006-05-31,,Communist_Party_of_Greece,8.6
+2007,poll,Marc,2006-05-31,,SYRIZA,4.9
+2007,poll,Marc,2006-05-31,,Popular_Orthodox_Rally,5.0
+2007,poll,Metron Analysis,2006-05-31,,New_Democracy_(Greece),41.8
+2007,poll,Metron Analysis,2006-05-31,,PASOK,40.6
+2007,poll,Metron Analysis,2006-05-31,,Communist_Party_of_Greece,8.2
+2007,poll,Metron Analysis,2006-05-31,,SYRIZA,3.7
+2007,poll,Metron Analysis,2006-05-31,,Popular_Orthodox_Rally,5.6
+2007,poll,VPRC,2006-05-31,,New_Democracy_(Greece),42.0
+2007,poll,VPRC,2006-05-31,,PASOK,39.0
+2007,poll,VPRC,2006-05-31,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2006-05-31,,SYRIZA,4.0
+2007,poll,VPRC,2006-05-31,,Popular_Orthodox_Rally,4.0
+2007,poll,GPO,2006-04-30,,New_Democracy_(Greece),41.5
+2007,poll,GPO,2006-04-30,,PASOK,40.5
+2007,poll,GPO,2006-04-30,,Communist_Party_of_Greece,8.5
+2007,poll,GPO,2006-04-30,,SYRIZA,3.7
+2007,poll,GPO,2006-04-30,,Popular_Orthodox_Rally,5.9
+2007,poll,VPRC,2006-04-30,,New_Democracy_(Greece),41.5
+2007,poll,VPRC,2006-04-30,,PASOK,39.5
+2007,poll,VPRC,2006-04-30,,Communist_Party_of_Greece,9.0
+2007,poll,VPRC,2006-04-30,,SYRIZA,3.0
+2007,poll,VPRC,2006-04-30,,Popular_Orthodox_Rally,4.0
+2007,poll,DIMEL,2006-04-30,,New_Democracy_(Greece),42.2
+2007,poll,DIMEL,2006-04-30,,PASOK,44.7
+2007,poll,DIMEL,2006-04-30,,Communist_Party_of_Greece,6.8
+2007,poll,DIMEL,2006-04-30,,SYRIZA,3.5
+2007,poll,DIMEL,2006-04-30,,Popular_Orthodox_Rally,2.8
+2007,poll,GPO,2006-03-31,,New_Democracy_(Greece),41.7
+2007,poll,GPO,2006-03-31,,PASOK,40.5
+2007,poll,GPO,2006-03-31,,Communist_Party_of_Greece,7.7
+2007,poll,GPO,2006-03-31,,SYRIZA,3.8
+2007,poll,GPO,2006-03-31,,Popular_Orthodox_Rally,6.2
+2007,poll,Metron Analysis,2006-03-31,,New_Democracy_(Greece),41.2
+2007,poll,Metron Analysis,2006-03-31,,PASOK,41.5
+2007,poll,Metron Analysis,2006-03-31,,Communist_Party_of_Greece,8.4
+2007,poll,Metron Analysis,2006-03-31,,SYRIZA,3.9
+2007,poll,Metron Analysis,2006-03-31,,Popular_Orthodox_Rally,5.0
+2007,poll,VPRC,2006-03-31,,New_Democracy_(Greece),42.0
+2007,poll,VPRC,2006-03-31,,PASOK,39.5
+2007,poll,VPRC,2006-03-31,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2006-03-31,,SYRIZA,3.5
+2007,poll,VPRC,2006-03-31,,Popular_Orthodox_Rally,4.5
+2007,poll,Kapa Research,2006-03-31,,New_Democracy_(Greece),41.2
+2007,poll,Kapa Research,2006-03-31,,PASOK,40.4
+2007,poll,Kapa Research,2006-03-31,,Communist_Party_of_Greece,8.4
+2007,poll,Kapa Research,2006-03-31,,SYRIZA,3.9
+2007,poll,Kapa Research,2006-03-31,,Popular_Orthodox_Rally,6.0
+2007,poll,MRB,2006-03-31,,New_Democracy_(Greece),41.8
+2007,poll,MRB,2006-03-31,,PASOK,40.5
+2007,poll,MRB,2006-03-31,,Communist_Party_of_Greece,8.4
+2007,poll,MRB,2006-03-31,,SYRIZA,3.8
+2007,poll,MRB,2006-03-31,,Popular_Orthodox_Rally,5.6
+2007,poll,Kapa Research,2006-03-31,,New_Democracy_(Greece),41.3
+2007,poll,Kapa Research,2006-03-31,,PASOK,40.7
+2007,poll,Kapa Research,2006-03-31,,Communist_Party_of_Greece,8.5
+2007,poll,Kapa Research,2006-03-31,,SYRIZA,3.9
+2007,poll,Kapa Research,2006-03-31,,Popular_Orthodox_Rally,5.6
+2007,poll,Metron Analysis,2006-03-31,,New_Democracy_(Greece),41.5
+2007,poll,Metron Analysis,2006-03-31,,PASOK,41.3
+2007,poll,Metron Analysis,2006-03-31,,Communist_Party_of_Greece,7.8
+2007,poll,Metron Analysis,2006-03-31,,SYRIZA,4.5
+2007,poll,Metron Analysis,2006-03-31,,Popular_Orthodox_Rally,4.9
+2007,poll,Rass,2006-03-31,,New_Democracy_(Greece),40.3
+2007,poll,Rass,2006-03-31,,PASOK,39.9
+2007,poll,Rass,2006-03-31,,Communist_Party_of_Greece,7.9
+2007,poll,Rass,2006-03-31,,SYRIZA,4.8
+2007,poll,Rass,2006-03-31,,Popular_Orthodox_Rally,7.0
+2007,poll,Alco,2006-02-28,,New_Democracy_(Greece),40.7
+2007,poll,Alco,2006-02-28,,PASOK,41.2
+2007,poll,Alco,2006-02-28,,Communist_Party_of_Greece,8.0
+2007,poll,Alco,2006-02-28,,SYRIZA,3.4
+2007,poll,Alco,2006-02-28,,Popular_Orthodox_Rally,6.7
+2007,poll,GPO,2006-02-28,,New_Democracy_(Greece),41.9
+2007,poll,GPO,2006-02-28,,PASOK,40.2
+2007,poll,GPO,2006-02-28,,Communist_Party_of_Greece,7.8
+2007,poll,GPO,2006-02-28,,SYRIZA,3.9
+2007,poll,GPO,2006-02-28,,Popular_Orthodox_Rally,6.2
+2007,poll,Kapa Research,2006-02-28,,New_Democracy_(Greece),42.2
+2007,poll,Kapa Research,2006-02-28,,PASOK,39.8
+2007,poll,Kapa Research,2006-02-28,,Communist_Party_of_Greece,8.2
+2007,poll,Kapa Research,2006-02-28,,SYRIZA,3.8
+2007,poll,Kapa Research,2006-02-28,,Popular_Orthodox_Rally,5.9
+2007,poll,MRB,2006-02-28,,New_Democracy_(Greece),42.9
+2007,poll,MRB,2006-02-28,,PASOK,40.2
+2007,poll,MRB,2006-02-28,,Communist_Party_of_Greece,8.1
+2007,poll,MRB,2006-02-28,,SYRIZA,4.1
+2007,poll,MRB,2006-02-28,,Popular_Orthodox_Rally,4.7
+2007,poll,VPRC,2006-02-28,,New_Democracy_(Greece),41.5
+2007,poll,VPRC,2006-02-28,,PASOK,39.5
+2007,poll,VPRC,2006-02-28,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2006-02-28,,SYRIZA,3.5
+2007,poll,VPRC,2006-02-28,,Popular_Orthodox_Rally,5.0
+2007,poll,GPO,2006-01-31,,New_Democracy_(Greece),41.3
+2007,poll,GPO,2006-01-31,,PASOK,38.9
+2007,poll,GPO,2006-01-31,,Communist_Party_of_Greece,8.9
+2007,poll,GPO,2006-01-31,,SYRIZA,4.4
+2007,poll,GPO,2006-01-31,,Popular_Orthodox_Rally,6.5
+2007,poll,VPRC,2006-01-31,,New_Democracy_(Greece),42.0
+2007,poll,VPRC,2006-01-31,,PASOK,39.5
+2007,poll,VPRC,2006-01-31,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2006-01-31,,SYRIZA,3.5
+2007,poll,VPRC,2006-01-31,,Popular_Orthodox_Rally,4.5
+2007,poll,Kapa Research,2005-12-31,,New_Democracy_(Greece),39.4
+2007,poll,Kapa Research,2005-12-31,,PASOK,38.0
+2007,poll,Kapa Research,2005-12-31,,Communist_Party_of_Greece,8.3
+2007,poll,Kapa Research,2005-12-31,,SYRIZA,4.5
+2007,poll,Kapa Research,2005-12-31,,Popular_Orthodox_Rally,6.4
+2007,poll,MRB,2005-12-31,,New_Democracy_(Greece),41.8
+2007,poll,MRB,2005-12-31,,PASOK,39.3
+2007,poll,MRB,2005-12-31,,Communist_Party_of_Greece,8.3
+2007,poll,MRB,2005-12-31,,SYRIZA,3.9
+2007,poll,MRB,2005-12-31,,Popular_Orthodox_Rally,4.1
+2007,poll,GPO,2005-12-31,,New_Democracy_(Greece),39.5
+2007,poll,GPO,2005-12-31,,PASOK,37.9
+2007,poll,GPO,2005-12-31,,Communist_Party_of_Greece,8.6
+2007,poll,GPO,2005-12-31,,SYRIZA,4.9
+2007,poll,GPO,2005-12-31,,Popular_Orthodox_Rally,5.7
+2007,poll,VPRC,2005-12-31,,New_Democracy_(Greece),42.0
+2007,poll,VPRC,2005-12-31,,PASOK,39.5
+2007,poll,VPRC,2005-12-31,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2005-12-31,,SYRIZA,4.0
+2007,poll,VPRC,2005-12-31,,Popular_Orthodox_Rally,4.0
+2007,poll,VPRC,2005-11-30,,New_Democracy_(Greece),42.5
+2007,poll,VPRC,2005-11-30,,PASOK,39.0
+2007,poll,VPRC,2005-11-30,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2005-11-30,,SYRIZA,4.5
+2007,poll,VPRC,2005-11-30,,Popular_Orthodox_Rally,3.5
+2007,poll,GPO,2005-11-30,,New_Democracy_(Greece),41.7
+2007,poll,GPO,2005-11-30,,PASOK,38.7
+2007,poll,GPO,2005-11-30,,Communist_Party_of_Greece,8.0
+2007,poll,GPO,2005-11-30,,SYRIZA,4.7
+2007,poll,GPO,2005-11-30,,Popular_Orthodox_Rally,4.0
+2007,poll,Metron Analysis,2005-11-30,,New_Democracy_(Greece),40.7
+2007,poll,Metron Analysis,2005-11-30,,PASOK,40.0
+2007,poll,Metron Analysis,2005-11-30,,Communist_Party_of_Greece,8.7
+2007,poll,Metron Analysis,2005-11-30,,SYRIZA,4.6
+2007,poll,Metron Analysis,2005-11-30,,Popular_Orthodox_Rally,4.9
+2007,poll,Alco,2005-10-31,,New_Democracy_(Greece),41.9
+2007,poll,Alco,2005-10-31,,PASOK,40.4
+2007,poll,Alco,2005-10-31,,Communist_Party_of_Greece,7.9
+2007,poll,Alco,2005-10-31,,SYRIZA,3.6
+2007,poll,Alco,2005-10-31,,Popular_Orthodox_Rally,4.1
+2007,poll,VPRC,2005-10-31,,New_Democracy_(Greece),42.5
+2007,poll,VPRC,2005-10-31,,PASOK,39.0
+2007,poll,VPRC,2005-10-31,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2005-10-31,,SYRIZA,5.0
+2007,poll,VPRC,2005-10-31,,Popular_Orthodox_Rally,3.0
+2007,poll,GPO,2005-10-31,,New_Democracy_(Greece),41.4
+2007,poll,GPO,2005-10-31,,PASOK,37.8
+2007,poll,GPO,2005-10-31,,Communist_Party_of_Greece,8.1
+2007,poll,GPO,2005-10-31,,SYRIZA,4.7
+2007,poll,GPO,2005-10-31,,Popular_Orthodox_Rally,3.6
+2007,poll,GPO,2005-09-30,,New_Democracy_(Greece),43.3
+2007,poll,GPO,2005-09-30,,PASOK,38.4
+2007,poll,GPO,2005-09-30,,Communist_Party_of_Greece,7.5
+2007,poll,GPO,2005-09-30,,SYRIZA,4.7
+2007,poll,GPO,2005-09-30,,Popular_Orthodox_Rally,3.5
+2007,poll,VPRC,2005-09-30,,New_Democracy_(Greece),42.5
+2007,poll,VPRC,2005-09-30,,PASOK,38.5
+2007,poll,VPRC,2005-09-30,,Communist_Party_of_Greece,7.5
+2007,poll,VPRC,2005-09-30,,SYRIZA,5.0
+2007,poll,VPRC,2005-09-30,,Popular_Orthodox_Rally,3.0
+2007,poll,VPRC,2005-07-31,,New_Democracy_(Greece),43.0
+2007,poll,VPRC,2005-07-31,,PASOK,39.0
+2007,poll,VPRC,2005-07-31,,Communist_Party_of_Greece,7.0
+2007,poll,VPRC,2005-07-31,,SYRIZA,4.5
+2007,poll,VPRC,2005-07-31,,Popular_Orthodox_Rally,3.5
+2007,poll,Metron Analysis,2005-06-30,,New_Democracy_(Greece),41.6
+2007,poll,Metron Analysis,2005-06-30,,PASOK,38.8
+2007,poll,Metron Analysis,2005-06-30,,Communist_Party_of_Greece,8.8
+2007,poll,Metron Analysis,2005-06-30,,SYRIZA,5.0
+2007,poll,Metron Analysis,2005-06-30,,Popular_Orthodox_Rally,4.6
+2007,poll,VPRC,2005-06-30,,New_Democracy_(Greece),43.5
+2007,poll,VPRC,2005-06-30,,PASOK,38.0
+2007,poll,VPRC,2005-06-30,,Communist_Party_of_Greece,7.0
+2007,poll,VPRC,2005-06-30,,SYRIZA,5.0
+2007,poll,VPRC,2005-06-30,,Popular_Orthodox_Rally,3.0
+2007,poll,MRB,2005-05-31,,New_Democracy_(Greece),43.6
+2007,poll,MRB,2005-05-31,,PASOK,39.0
+2007,poll,MRB,2005-05-31,,Communist_Party_of_Greece,7.6
+2007,poll,MRB,2005-05-31,,SYRIZA,4.0
+2007,poll,MRB,2005-05-31,,Popular_Orthodox_Rally,3.3
+2007,poll,VPRC,2005-05-31,,New_Democracy_(Greece),43.5
+2007,poll,VPRC,2005-05-31,,PASOK,39.0
+2007,poll,VPRC,2005-05-31,,Communist_Party_of_Greece,6.5
+2007,poll,VPRC,2005-05-31,,SYRIZA,4.0
+2007,poll,VPRC,2005-05-31,,Popular_Orthodox_Rally,3.0
+2007,poll,Kapa Research,2005-05-31,,New_Democracy_(Greece),43.0
+2007,poll,Kapa Research,2005-05-31,,PASOK,40.3
+2007,poll,Kapa Research,2005-05-31,,Communist_Party_of_Greece,7.5
+2007,poll,Kapa Research,2005-05-31,,SYRIZA,3.6
+2007,poll,Kapa Research,2005-05-31,,Popular_Orthodox_Rally,4.0
+2007,poll,VPRC,2005-04-30,,New_Democracy_(Greece),43.5
+2007,poll,VPRC,2005-04-30,,PASOK,39.5
+2007,poll,VPRC,2005-04-30,,Communist_Party_of_Greece,6.5
+2007,poll,VPRC,2005-04-30,,SYRIZA,4.0
+2007,poll,VPRC,2005-04-30,,Popular_Orthodox_Rally,3.0
+2007,poll,MRB,2005-04-30,,New_Democracy_(Greece),43.5
+2007,poll,MRB,2005-04-30,,PASOK,39.7
+2007,poll,MRB,2005-04-30,,Communist_Party_of_Greece,7.6
+2007,poll,MRB,2005-04-30,,SYRIZA,3.9
+2007,poll,MRB,2005-04-30,,Popular_Orthodox_Rally,2.9
+2007,poll,Kapa Research,2005-03-31,,New_Democracy_(Greece),44.1
+2007,poll,Kapa Research,2005-03-31,,PASOK,39.1
+2007,poll,Kapa Research,2005-03-31,,Communist_Party_of_Greece,6.9
+2007,poll,Kapa Research,2005-03-31,,SYRIZA,4.2
+2007,poll,Kapa Research,2005-03-31,,Popular_Orthodox_Rally,3.5
+2007,poll,Opinion,2005-03-31,,New_Democracy_(Greece),42.8
+2007,poll,Opinion,2005-03-31,,PASOK,37.9
+2007,poll,Opinion,2005-03-31,,Communist_Party_of_Greece,7.0
+2007,poll,Opinion,2005-03-31,,SYRIZA,4.4
+2007,poll,Opinion,2005-03-31,,Popular_Orthodox_Rally,4.1
+2007,poll,VPRC,2005-03-31,,New_Democracy_(Greece),44.5
+2007,poll,VPRC,2005-03-31,,PASOK,40.0
+2007,poll,VPRC,2005-03-31,,Communist_Party_of_Greece,7.0
+2007,poll,VPRC,2005-03-31,,SYRIZA,3.5
+2007,poll,VPRC,2005-03-31,,Popular_Orthodox_Rally,3.0
+2007,poll,Metron Analysis,2005-02-28,,New_Democracy_(Greece),42.8
+2007,poll,Metron Analysis,2005-02-28,,PASOK,37.9
+2007,poll,Metron Analysis,2005-02-28,,Communist_Party_of_Greece,7.0
+2007,poll,Metron Analysis,2005-02-28,,SYRIZA,4.4
+2007,poll,Metron Analysis,2005-02-28,,Popular_Orthodox_Rally,4.1
+2007,poll,GPO,2005-02-28,,New_Democracy_(Greece),44.8
+2007,poll,GPO,2005-02-28,,PASOK,38.1
+2007,poll,GPO,2005-02-28,,Communist_Party_of_Greece,7.7
+2007,poll,GPO,2005-02-28,,SYRIZA,3.4
+2007,poll,GPO,2005-02-28,,Popular_Orthodox_Rally,3.5
+2007,poll,VPRC,2005-01-31,,New_Democracy_(Greece),46.0
+2007,poll,VPRC,2005-01-31,,PASOK,39.0
+2007,poll,VPRC,2005-01-31,,Communist_Party_of_Greece,7.0
+2007,poll,VPRC,2005-01-31,,SYRIZA,3.5
+2007,poll,VPRC,2005-01-31,,Popular_Orthodox_Rally,2.5
+2007,poll,MRB,2004-12-31,,New_Democracy_(Greece),44.6
+2007,poll,MRB,2004-12-31,,PASOK,37.5
+2007,poll,MRB,2004-12-31,,Communist_Party_of_Greece,8.0
+2007,poll,MRB,2004-12-31,,SYRIZA,4.2
+2007,poll,MRB,2004-12-31,,Popular_Orthodox_Rally,3.5
+2007,poll,VPRC,2004-12-31,,New_Democracy_(Greece),47.0
+2007,poll,VPRC,2004-12-31,,PASOK,38.0
+2007,poll,VPRC,2004-12-31,,Communist_Party_of_Greece,7.5
+2007,poll,VPRC,2004-12-31,,SYRIZA,3.0
+2007,poll,VPRC,2004-12-31,,Popular_Orthodox_Rally,2.5
+2007,poll,GPO,2004-12-31,,New_Democracy_(Greece),46.0
+2007,poll,GPO,2004-12-31,,PASOK,38.3
+2007,poll,GPO,2004-12-31,,Communist_Party_of_Greece,7.1
+2007,poll,GPO,2004-12-31,,SYRIZA,3.7
+2007,poll,GPO,2004-12-31,,Popular_Orthodox_Rally,3.2
+2007,poll,Alco,2004-11-30,,New_Democracy_(Greece),44.7
+2007,poll,Alco,2004-11-30,,PASOK,37.7
+2007,poll,Alco,2004-11-30,,Communist_Party_of_Greece,7.9
+2007,poll,Alco,2004-11-30,,SYRIZA,3.8
+2007,poll,Alco,2004-11-30,,Popular_Orthodox_Rally,3.8
+2007,poll,VPRC,2004-11-30,,New_Democracy_(Greece),48.0
+2007,poll,VPRC,2004-11-30,,PASOK,36.5
+2007,poll,VPRC,2004-11-30,,Communist_Party_of_Greece,7.5
+2007,poll,VPRC,2004-11-30,,SYRIZA,2.5
+2007,poll,VPRC,2004-11-30,,Popular_Orthodox_Rally,2.0
+2007,poll,Metron Analysis,2004-10-31,,New_Democracy_(Greece),45.3
+2007,poll,Metron Analysis,2004-10-31,,PASOK,38.4
+2007,poll,Metron Analysis,2004-10-31,,Communist_Party_of_Greece,7.2
+2007,poll,Metron Analysis,2004-10-31,,SYRIZA,4.3
+2007,poll,Metron Analysis,2004-10-31,,Popular_Orthodox_Rally,3.3
+2007,poll,MRB,2004-10-31,,New_Democracy_(Greece),46.8
+2007,poll,MRB,2004-10-31,,PASOK,37.4
+2007,poll,MRB,2004-10-31,,Communist_Party_of_Greece,7.3
+2007,poll,MRB,2004-10-31,,SYRIZA,4.4
+2007,poll,MRB,2004-10-31,,Popular_Orthodox_Rally,2.4
+2007,poll,VPRC,2004-10-31,,New_Democracy_(Greece),48.0
+2007,poll,VPRC,2004-10-31,,PASOK,37.5
+2007,poll,VPRC,2004-10-31,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2004-10-31,,SYRIZA,2.5
+2007,poll,VPRC,2004-10-31,,Popular_Orthodox_Rally,2.0
+2007,poll,GPO,2004-09-30,,New_Democracy_(Greece),46.7
+2007,poll,GPO,2004-09-30,,PASOK,38.1
+2007,poll,GPO,2004-09-30,,Communist_Party_of_Greece,6.8
+2007,poll,GPO,2004-09-30,,SYRIZA,3.5
+2007,poll,GPO,2004-09-30,,Popular_Orthodox_Rally,3.2
+2007,poll,Kapa Research,2004-09-30,,New_Democracy_(Greece),48.0
+2007,poll,Kapa Research,2004-09-30,,PASOK,39.3
+2007,poll,Kapa Research,2004-09-30,,Communist_Party_of_Greece,6.9
+2007,poll,Kapa Research,2004-09-30,,SYRIZA,2.7
+2007,poll,Kapa Research,2004-09-30,,Popular_Orthodox_Rally,2.0
+2007,poll,VPRC,2004-06-30,,New_Democracy_(Greece),45.5
+2007,poll,VPRC,2004-06-30,,PASOK,35.5
+2007,poll,VPRC,2004-06-30,,Communist_Party_of_Greece,9.0
+2007,poll,VPRC,2004-06-30,,SYRIZA,4.5
+2007,poll,VPRC,2004-06-30,,Popular_Orthodox_Rally,3.0
+2007,poll,GPO,2004-05-31,,New_Democracy_(Greece),45.4
+2007,poll,GPO,2004-05-31,,PASOK,36.2
+2007,poll,GPO,2004-05-31,,Communist_Party_of_Greece,8.4
+2007,poll,GPO,2004-05-31,,SYRIZA,4.2
+2007,poll,GPO,2004-05-31,,Popular_Orthodox_Rally,2.9
+2007,poll,VPRC,2004-05-31,,New_Democracy_(Greece),42.0
+2007,poll,VPRC,2004-05-31,,PASOK,34.0
+2007,poll,VPRC,2004-05-31,,Communist_Party_of_Greece,7.0
+2007,poll,VPRC,2004-05-31,,SYRIZA,3.5
+2007,poll,VPRC,2004-05-31,,Popular_Orthodox_Rally,2.5
+2007,poll,Opinion,2004-05-31,,New_Democracy_(Greece),46.7
+2007,poll,Opinion,2004-05-31,,PASOK,37.4
+2007,poll,Opinion,2004-05-31,,Communist_Party_of_Greece,6.5
+2007,poll,Opinion,2004-05-31,,SYRIZA,3.8
+2007,poll,Opinion,2004-05-31,,Popular_Orthodox_Rally,2.7
+2007,poll,Metron Analysis,2004-05-31,,New_Democracy_(Greece),45.9
+2007,poll,Metron Analysis,2004-05-31,,PASOK,37.5
+2007,poll,Metron Analysis,2004-05-31,,Communist_Party_of_Greece,7.9
+2007,poll,Metron Analysis,2004-05-31,,SYRIZA,4.3
+2007,poll,Metron Analysis,2004-05-31,,Popular_Orthodox_Rally,2.5
+2007,poll,Αlco,2004-05-31,,New_Democracy_(Greece),44.8
+2007,poll,Αlco,2004-05-31,,PASOK,36.5
+2007,poll,Αlco,2004-05-31,,Communist_Party_of_Greece,8.5
+2007,poll,Αlco,2004-05-31,,SYRIZA,4.6
+2007,poll,Αlco,2004-05-31,,Popular_Orthodox_Rally,3.1
+2007,poll,MRB,2004-05-31,,New_Democracy_(Greece),46.0
+2007,poll,MRB,2004-05-31,,PASOK,37.4
+2007,poll,MRB,2004-05-31,,Communist_Party_of_Greece,7.4
+2007,poll,MRB,2004-05-31,,SYRIZA,4.1
+2007,poll,MRB,2004-05-31,,Popular_Orthodox_Rally,2.3
+2007,poll,MRB,2004-05-31,,New_Democracy_(Greece),46.4
+2007,poll,MRB,2004-05-31,,PASOK,37.9
+2007,poll,MRB,2004-05-31,,Communist_Party_of_Greece,7.1
+2007,poll,MRB,2004-05-31,,SYRIZA,4.3
+2007,poll,MRB,2004-05-31,,Popular_Orthodox_Rally,2.4
+2007,poll,VPRC,2004-05-31,,New_Democracy_(Greece),41.5
+2007,poll,VPRC,2004-05-31,,PASOK,33.5
+2007,poll,VPRC,2004-05-31,,Communist_Party_of_Greece,7.0
+2007,poll,VPRC,2004-05-31,,SYRIZA,4.0
+2007,poll,VPRC,2004-05-31,,Popular_Orthodox_Rally,3.0
+2007,poll,GPO,2004-05-31,,New_Democracy_(Greece),45.6
+2007,poll,GPO,2004-05-31,,PASOK,37.0
+2007,poll,GPO,2004-05-31,,Communist_Party_of_Greece,8.0
+2007,poll,GPO,2004-05-31,,SYRIZA,4.0
+2007,poll,GPO,2004-05-31,,Popular_Orthodox_Rally,3.2
+2007,poll,Opinion,2004-05-31,,New_Democracy_(Greece),47.9
+2007,poll,Opinion,2004-05-31,,PASOK,37.7
+2007,poll,Opinion,2004-05-31,,Communist_Party_of_Greece,6.6
+2007,poll,Opinion,2004-05-31,,SYRIZA,4.2
+2007,poll,Opinion,2004-05-31,,Popular_Orthodox_Rally,2.7
+2007,poll,Metron Analysis,2004-05-31,,New_Democracy_(Greece),45.8
+2007,poll,Metron Analysis,2004-05-31,,PASOK,38.0
+2007,poll,Metron Analysis,2004-05-31,,Communist_Party_of_Greece,6.5
+2007,poll,Metron Analysis,2004-05-31,,SYRIZA,4.2
+2007,poll,Metron Analysis,2004-05-31,,Popular_Orthodox_Rally,2.5
+2007,poll,Metron Analysis,2004-05-31,,New_Democracy_(Greece),45.6
+2007,poll,Metron Analysis,2004-05-31,,PASOK,35.7
+2007,poll,Metron Analysis,2004-05-31,,Communist_Party_of_Greece,7.1
+2007,poll,Metron Analysis,2004-05-31,,SYRIZA,5.1
+2007,poll,Metron Analysis,2004-05-31,,Popular_Orthodox_Rally,3.7
+2007,poll,Kapa Research,2004-05-31,,New_Democracy_(Greece),46.2
+2007,poll,Kapa Research,2004-05-31,,PASOK,38.3
+2007,poll,Kapa Research,2004-05-31,,Communist_Party_of_Greece,7.0
+2007,poll,Kapa Research,2004-05-31,,SYRIZA,3.8
+2007,poll,Kapa Research,2004-05-31,,Popular_Orthodox_Rally,2.6
+2007,poll,VPRC,2004-04-30,,New_Democracy_(Greece),47.5
+2007,poll,VPRC,2004-04-30,,PASOK,36.0
+2007,poll,VPRC,2004-04-30,,Communist_Party_of_Greece,8.0
+2007,poll,VPRC,2004-04-30,,SYRIZA,4.0
+2007,poll,VPRC,2004-04-30,,Popular_Orthodox_Rally,2.5
+2007,poll,Prognosis,2004-04-30,,New_Democracy_(Greece),47.6
+2007,poll,Prognosis,2004-04-30,,PASOK,39.3
+2007,poll,Prognosis,2004-04-30,,Communist_Party_of_Greece,6.8
+2007,poll,Prognosis,2004-04-30,,SYRIZA,3.7
+2007,poll,GPO,2004-04-30,,New_Democracy_(Greece),45.1
+2007,poll,GPO,2004-04-30,,PASOK,37.6
+2007,poll,GPO,2004-04-30,,Communist_Party_of_Greece,7.6
+2007,poll,GPO,2004-04-30,,SYRIZA,4.5
+2007,poll,GPO,2004-04-30,,Popular_Orthodox_Rally,2.8
 2009,ballot,2009 parliamentary election,2009-10-04,,New_Democracy_(Greece),33.5
 2009,ballot,2009 parliamentary election,2009-10-04,,Panhellenic_Socialist_Movement,43.9
 2009,ballot,2009 parliamentary election,2009-10-04,,Communist_Party_of_Greece,7.5
@@ -11044,6 +11533,20 @@ election,kind,firm,end,sample,party,pct
 2014/euro,poll,Metrisi,2014-02-05,,Golden_Dawn_(Greece),11.9
 2014/euro,poll,Metrisi,2014-02-05,,Democratic_Left_(Greece),4.8
 2014/euro,poll,Metrisi,2014-02-05,,Independent_Greeks,5.8
+2014/euro,poll,MRB,2013-12-11,,Olive_Tree_(Greece),6.4
+2014/euro,poll,MRB,2013-12-11,,New_Democracy_(Greece),27.3
+2014/euro,poll,MRB,2013-12-11,,Communist_Party_of_Greece,6.7
+2014/euro,poll,MRB,2013-12-11,,SYRIZA,28.9
+2014/euro,poll,MRB,2013-12-11,,Golden_Dawn_(Greece),11.9
+2014/euro,poll,MRB,2013-12-11,,Democratic_Left_(Greece),4.2
+2014/euro,poll,MRB,2013-12-11,,Independent_Greeks,7.2
+2014/euro,poll,GPO,2013-11-30,,Olive_Tree_(Greece),7.2
+2014/euro,poll,GPO,2013-11-30,,New_Democracy_(Greece),25.6
+2014/euro,poll,GPO,2013-11-30,,Communist_Party_of_Greece,7.7
+2014/euro,poll,GPO,2013-11-30,,SYRIZA,26.7
+2014/euro,poll,GPO,2013-11-30,,Golden_Dawn_(Greece),10.7
+2014/euro,poll,GPO,2013-11-30,,Democratic_Left_(Greece),4.8
+2014/euro,poll,GPO,2013-11-30,,Independent_Greeks,7.2
 2019/euro,poll,Pulse/Skai,2019-04-20,1010,Syriza,25.0
 2019/euro,poll,Pulse/Skai,2019-04-20,1010,New_Democracy_(Greece),35.5
 2019/euro,poll,Pulse/Skai,2019-04-20,1010,Movement_for_Change_(Greece),8.5

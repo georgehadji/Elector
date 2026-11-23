@@ -74,9 +74,11 @@ if __name__ == "__main__":
     c = sqlite3.connect(sys.argv[1])
     units = load_units(c, ELECTIONS)
     n = len(units)
-    # self-checks: a perfect order captures at least a random one, and the oracle is at least as good as any rule
+    # self-checks: no order beats the oracle by more than one unit (capture drops the unit that crosses the cut, so a rule can
+    # fill the cut more fully; the fractional oracle is an upper bound and loses at most that one unit), and any order captures > 0
     pos = {name: sorted(range(n), key=lambda i: -f(units[i])) for name, f in RULES.items()}
-    assert all(capture(pos["oracle"], units, x) >= capture(pos[r], units, x) - 1e-9 for r in RULES for x in CUTS)
+    biggest = max(u["v"]["2024/euro"] for u in units) / sum(u["v"]["2024/euro"] for u in units)
+    assert all(capture(pos["oracle"], units, x) + biggest >= capture(pos[r], units, x) for r in RULES for x in CUTS)
     assert all(capture(list(range(n)), units, x) > 0 for x in CUTS)
     print(f"{n} δημοτικές ενότητες, {sum(u['reg'] for u in units):,} εγγεγραμμένοι. Ευρωεκλογές 2024, ψήφοι ΝΙΚΗΣ: "
           f"{sum(u['v']['2024/euro'] for u in units):,}")
@@ -93,15 +95,11 @@ if __name__ == "__main__":
         print(f"  {t:<6}{len(g):>9}{r:>11,}{p:>13,}{e:>11,}{100 * e / te:>7.0f}%{100 * e / r:>14.2f}")
 
     # same units, zones of the full score (nikh_pareto.py, three elections): how much of A and C is the same set
+    tier23 = {u["k"]: u["tier"] for u in z}  # assign_tiers writes u["tier"] on the shared dicts: keep the 2023 zones first
     full = sorted(units, key=lambda u: -max(u["v"].values()) / u["reg"])
-    for u in full:
-        u["tier3"] = None
     assign_tiers(full)
-    for u in full:
-        u["tier3"], u["tier"] = u["tier"], None
-    assign_tiers(z)
-    same = {t: sum(u["reg"] for u in z if u["tier"] == t and u["tier3"] == t) / sum(u["reg"] for u in z if u["tier"] == t)
-            for t in "ABC"}
+    same = {t: sum(u["reg"] for u in units if tier23[u["k"]] == t and u["tier"] == t) /
+            sum(u["reg"] for u in units if tier23[u["k"]] == t) for t in "ABC"}
     print("  Ίδια ζώνη με το σκορ τριών εκλογών (% των εγγεγραμμένων της ζώνης): "
           + ", ".join(f"{t} {100 * v:.0f}%" for t, v in same.items()))
 

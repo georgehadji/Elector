@@ -15,11 +15,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from zones import assign_tiers, load_units
+from zones import assign_tiers, load_units, threshold
 
 ELECTIONS = ("2023/may", "2023/june", "2024/euro")
 c = sqlite3.connect(sys.argv[1])
-THRESHOLD = round(.03 * c.execute("SELECT SUM(valid) FROM station WHERE election='2023/june'").fetchone()[0])
+THRESHOLD = threshold(c)
 ep_name = dict(c.execute("SELECT ep_id, name FROM ep WHERE election='2023/june'"))
 
 units = load_units(c, ELECTIONS)

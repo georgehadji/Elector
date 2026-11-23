@@ -3,7 +3,7 @@
 Per ELSTAT community (area_match): share_e = NIKH votes / valid votes in election e, for May 2023, June 2023 and Euro 2024.
 Floor share = min of the three; floor votes = floor share x June 2023 valid votes of the community.
 Summed nationwide and per region (config.REGIONS), next to the votes of the poll level today (nikh_polls.estimate(0)) and
-the 3% threshold (nikh_pareto.THRESHOLD, recomputed here from the DB).
+the 3% threshold (zones.threshold).
 Only communities matched in all three elections count (coverage is printed), so the floor is a lower bound; "scaled" divides
 by the coverage of the June 2023 valid votes, assuming the unmatched part behaves the same. Not tested.
 Different electorates and turnouts: a floor in shares is not a promise in votes; turnout is not modelled.
@@ -18,6 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import NIKH, REGIONS
+from zones import threshold
 
 ELECTIONS = ("2023/may", "2023/june", "2024/euro")
 
@@ -50,7 +51,7 @@ if __name__ == "__main__":
     fl = floors(rows)
     june_valid = c.execute("SELECT SUM(valid) FROM station WHERE election='2023/june'").fetchone()[0]
     june_nikh = c.execute("SELECT SUM(votes) FROM party_votes WHERE election='2023/june' AND party_id=?", (NIKH,)).fetchone()[0]
-    thr = round(.03 * june_valid)
+    thr = threshold(c)
     m_valid = sum(d["2023/june"][0] for d in rows.values())
     m_nikh = sum(d["2023/june"][1] for d in rows.values())
     F = sum(v for _, v in fl.values())
