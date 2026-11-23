@@ -28,7 +28,10 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_targets_map.py` (+ `nikh_targets_template.html`) | db | `out/nikh_targets.html` | 5 |
 | `nikh_drivers.py` | db | `nikh_drivers.txt` | 5, 12 |
 | `nikh_competition.py`, `nikh_expelled.py` | db | one `.txt` each | 5 |
-| `nikh_pareto.py` | db | `nikh_pareto.txt` | 5 |
+| `zones.py` (module: units, tiers) | db | — | 5, 21 |
+| `nikh_pareto.py` | db, `zones.py` | `nikh_pareto.txt` | 5 |
+| `nikh_floor.py` | db (`area_match`) | `nikh_floor.txt` | 20 |
+| `nikh_backtest.py` | db, `zones.py` | `nikh_backtest.txt` | 21 |
 | `nikh_regions.py` | db | `nikh_regions.txt` | 7 |
 | `polls_wiki.py` [cache_dir] | Wikipedia poll tables (network) | `nikh_pollerror.csv`; party columns of `nikh_polls.csv` | plan 2, stage 2 |
 | `nikh_polls.py` | `nikh_polls*.csv` | `nikh_polls.txt` | 16, 17 |

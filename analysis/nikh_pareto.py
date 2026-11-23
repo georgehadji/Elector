@@ -14,25 +14,21 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import NIKH
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from zones import assign_tiers, load_units
 
 ELECTIONS = ("2023/may", "2023/june", "2024/euro")
 c = sqlite3.connect(sys.argv[1])
 THRESHOLD = round(.03 * c.execute("SELECT SUM(valid) FROM station WHERE election='2023/june'").fetchone()[0])
 ep_name = dict(c.execute("SELECT ep_id, name FROM ep WHERE election='2023/june'"))
 
-reg = {(ep, den): (r, v) for ep, den, r, v in c.execute(
-    "SELECT ep_id, den_descr, SUM(registered), SUM(valid) FROM station WHERE election='2023/june' AND den_descr IS NOT NULL "
-    "GROUP BY 1, 2")}
-votes = {e: {(ep, den): n for ep, den, n in c.execute(
-    "SELECT s.ep_id, s.den_descr, SUM(p.votes) FROM station s JOIN party_votes p ON p.election=s.election "
-    "AND p.tm_id=s.tm_id AND p.party_id=? WHERE s.election=? GROUP BY 1, 2", (NIKH, e))} for e in ELECTIONS}
-units = []
-for k, (r, v) in reg.items():
-    n = [votes[e].get(k, 0) for e in ELECTIONS]
-    if r:
-        units.append({"k": k, "reg": r, "valid": v, "june": n[1], "euro": n[2], "peak": max(n), "yield": 100 * max(n) / r})
+units = load_units(c, ELECTIONS)
+for u in units:
+    n = [u["v"][e] for e in ELECTIONS]
+    u.update(june=n[1], euro=n[2], peak=max(n))
+    u["yield"] = 100 * u["peak"] / u["reg"]
 units.sort(key=lambda u: -u["yield"])
+assign_tiers(units)
 REG, PEAK, JUNE = (sum(u[f] for u in units) for f in ("reg", "peak", "june"))
 print(f"{len(units)} δημοτικές ενότητες, {REG:,} εγγεγραμμένοι. ΝΙΚΗ Ιούνιος 2023: {JUNE:,}. "
       f"Άθροισμα κορυφών: {PEAK:,} ({100 * PEAK / THRESHOLD:.0f}% του ορίου των {THRESHOLD:,})")
@@ -45,7 +41,6 @@ m = next(marks)
 for i, u in enumerate(units, 1):
     acc_r += u["reg"]
     acc_p += u["peak"]
-    u["tier"] = "A" if acc_r <= 0.2 * REG else "B" if acc_r <= 0.5 * REG else "C"
     while m is not None and acc_r >= m / 100 * REG:
         print(f"  {m:>13}%{i:>10,}{acc_p:>15,}{100 * acc_p / PEAK:>10.0f}%{100 * acc_p / THRESHOLD:>8.0f}%{u['yield']:>11.1f}")
         m = next(marks, None)
