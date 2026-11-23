@@ -223,18 +223,22 @@ def main():
     with open(HERE / "nikh_polls.csv", encoding="utf-8", newline="") as f:
         old = list(csv.DictReader(f))
     names = [h for _, h in cols]
-    miss = []
-    with open(HERE / "nikh_polls.csv", "w", encoding="utf-8", newline="") as f:
+    # parse every row before the file is touched: a bad row must not leave the hand-checked niki column half written
+    keys = [(fold(r["firm"]), date.fromisoformat(r["end"]), int(r["sample"]) if r["sample"] else "") for r in old]
+    vals = [wiki.pop(k, None) for k in keys]  # exact matches first, so a near match cannot take the key of another row
+    for i, k in enumerate(keys):
+        if vals[i] is None:  # the same firm and sample within 3 days, nearest first (rows whose date was corrected by hand, nikh_polls.py)
+            near = min((x for x in wiki if x[0] == k[0] and x[2] == k[2] and abs((x[1] - k[1]).days) <= 3),
+                       key=lambda x: abs((x[1] - k[1]).days), default=None)
+            vals[i] = wiki.pop(near) if near else None
+    miss = [(r["firm"], r["end"], r["sample"]) for r, v in zip(old, vals, strict=True) if v is None]
+    tmp = HERE / "nikh_polls.csv.tmp"
+    with open(tmp, "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f, lineterminator="\n")
         w.writerow(["firm", "end", "sample", "niki"] + names)
-        for r in old:
-            k = (fold(r["firm"]), date.fromisoformat(r["end"]), int(r["sample"]) if r["sample"] else "")
-            # exact match, else the same firm and sample within 3 days (rows whose date was corrected by hand, nikh_polls.py)
-            k = k if k in wiki else next((x for x in wiki if x[0] == k[0] and x[2] == k[2] and abs((x[1] - k[1]).days) <= 3), k)
-            v = wiki.pop(k, None)
-            if v is None:
-                miss.append((r["firm"], r["end"], r["sample"]))
+        for r, v in zip(old, vals, strict=True):
             w.writerow([r["firm"], r["end"], r["sample"], r["niki"]] + [("" if v is None or v[h] is None else v[h]) for h in names])
+    tmp.replace(HERE / "nikh_polls.csv")
     print(f"nikh_polls.csv: {len(old)} γραμμές, {len(old) - len(miss)} με στήλες κομμάτων, rev {got}")
     print(f"  χωρίς αντιστοίχιση στον πίνακα ({len(miss)}): {miss}")
     print(f"  γραμμές του πίνακα που δεν βρέθηκαν στο csv ({len(wiki)}): {sorted((k[0], k[1].isoformat(), k[2]) for k in wiki)[:20]}")
