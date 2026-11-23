@@ -5,11 +5,10 @@ checked against the firms' releases). An empty cell = the party was not shown in
 1. Pairs: two consecutive polls of the same firm, at most 120 days apart; change = later - earlier. The house effect cancels.
    For each party: correlation and OLS slope of the change of NIKH on the change of the party (pairs where both are present),
    whole period and before / after 20 Apr 2026 (when two new parties, ELPIDA and ELAS, enter the polls).
-   Permutation test: 2000 times (seed 2026), the changes of NIKH are shuffled among the pairs of each party, separately for
-   each party (the parties have different sets of pairs, so one shared shuffle does not fit); the p of a party is the share of
-   shuffles whose largest |correlation| over all parties of the period (those with >= MIN_PAIRS pairs) is at least its own.
-   Separate shuffles ignore that the parties' changes are correlated, which makes the largest |correlation| larger: the p are
-   conservative (too high), not too low.
+   Permutation test (max-|r|): 2000 times (seed 2026), the changes of NIKH are shuffled once over all pairs, and every party
+   (those with >= MIN_PAIRS pairs) is correlated with the same shuffle on the pairs where it is present, so the correlation
+   between the parties' changes is kept. The p of a party is the share of shuffles whose largest |correlation| over all
+   parties of the period is at least its own.
 2. Window comparison, the fall of Apr-Jul 2026: per firm, mean of each party in 1 Jan-19 Apr 2026 vs 1 Jul-22 Nov 2026
    (firms with NIKH in both); mean change over firms. ELPIDA, ELAS and SE, not yet in the polls in the first window, count as
    0 there; any other party absent from a window's polls of a firm that has it in the other is skipped for that firm.
@@ -63,28 +62,26 @@ def corr_slope(x, y):
 
 def table(title, ps, rng):
     print(f"\n{title}: {len(ps)} ζεύγη διαδοχικών δημοσκοπήσεων της ίδιας εταιρείας")
-    res = {}
+    ps = [p for _, p in ps if "niki" in p]
+    niki = [p["niki"] for p in ps]
+    res = {}  # party: (indices of the pairs where it is present, its changes there)
     for c in PARTIES:
-        xy = [(p[c], p["niki"]) for _, p in ps if c in p and "niki" in p]
-        if len(xy) >= MIN_PAIRS:
-            res[c] = xy
+        idx = [i for i, p in enumerate(ps) if c in p]
+        if len(idx) >= MIN_PAIRS:
+            res[c] = (idx, [ps[i][c] for i in idx])
     if not res:
         return
-    obs = {c: corr_slope(*zip(*xy, strict=True)) for c, xy in res.items()}
-    cols = {c: ([a for a, _ in xy], [b for _, b in xy]) for c, xy in res.items()}
+    obs = {c: corr_slope(xs, [niki[i] for i in idx]) for c, (idx, xs) in res.items()}
     mx = []
-    for _ in range(2000):  # the changes of NIKH are shuffled among the pairs of each party
-        best = 0.0
-        for xs, ys in cols.values():
-            ys = ys[:]
-            rng.shuffle(ys)
-            best = max(best, abs(corr_slope(xs, ys)[0]))
-        mx.append(best)
+    for _ in range(2000):  # one shuffle of NIKH's changes over all pairs, the same for every party
+        perm = niki[:]
+        rng.shuffle(perm)
+        mx.append(max(abs(corr_slope(xs, [perm[i] for i in idx])[0]) for idx, xs in res.values()))
     print(f"  {'κόμμα':<8}{'ζεύγη':>6}{'συσχέτιση':>11}{'κλίση ΝΙΚΗΣ ανά +1':>20}{'p (όλα μαζί)':>14}")
     for c in sorted(obs, key=lambda c: obs[c][0]):
         r, b, se = obs[c]
         p = sum(m >= abs(r) for m in mx) / len(mx)
-        print(f"  {c:<8}{len(res[c]):>6}{r:>+11.2f}{f'{b:+.3f} ± {1.96 * se:.3f}':>20}{p:>14.3f}")
+        print(f"  {c:<8}{len(res[c][0]):>6}{r:>+11.2f}{f'{b:+.3f} ± {1.96 * se:.3f}':>20}{p:>14.3f}")
 
 
 def windows(rows, a=(date(2026, 1, 1), date(2026, 4, 19)), b=(date(2026, 7, 1), date(2026, 11, 22))):
