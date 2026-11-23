@@ -15,7 +15,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | Ballot/poll ratios of other small parties | `nikh_pollerror.ratios(kind)` |
 | Seat allocation, `ep_votes` | `nikh_seats.py` |
 | Per-community data | `nikh_drivers.load()` over `build.communities()` |
-| 3% threshold in votes | `zones.threshold(c)` (3% of June 2023 valid votes, from the DB) |
+| Valid votes; 3% threshold in votes | `zones.valid_votes(c, e)`; `zones.threshold(c, e)` (3% of the valid votes, June 2023 by default, from the DB) |
 
 ## Scripts
 
@@ -37,7 +37,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_polls.py` | `nikh_polls*.csv` | `nikh_polls.txt` | 16, 17 |
 | `nikh_pollerror.py` | `nikh_pollerror.csv` | `nikh_pollerror.txt` | 18 |
 | `nikh_flows.py` | `nikh_polls.csv` | `nikh_flows.txt` | 19 |
-| `nikh_montecarlo.py` | db, `nikh_polls.py`, `nikh_pollerror.py`, `nikh_seats.py` | `nikh_montecarlo.txt` | 9, 16, 18 |
+| `nikh_montecarlo.py` | db, `nikh_polls.py`, `nikh_pollerror.py`, `nikh_seats.py`, `zones.py` | `nikh_montecarlo.txt` | 9, 16, 18 |
 | `nikh_abstention.py` | db | `nikh_abstention.txt` | 10 |
 | `nikh_spatial.py` | db | `nikh_spatial.txt` | 11 |
 | `nikh_clusters.py` | db | `nikh_clusters.txt` | 13 |

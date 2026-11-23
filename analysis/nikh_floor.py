@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import NIKH, REGIONS
-from zones import threshold
+from zones import threshold, valid_votes
 
 ELECTIONS = ("2023/may", "2023/june", "2024/euro")
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     c = sqlite3.connect(sys.argv[1])
     rows = community_rows(c)
     fl = floors(rows)
-    june_valid = c.execute("SELECT SUM(valid) FROM station WHERE election='2023/june'").fetchone()[0]
+    june_valid = valid_votes(c)
     june_nikh = c.execute("SELECT SUM(votes) FROM party_votes WHERE election='2023/june' AND party_id=?", (NIKH,)).fetchone()[0]
     thr = threshold(c)
     m_valid = sum(d["2023/june"][0] for d in rows.values())

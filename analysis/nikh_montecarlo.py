@@ -99,8 +99,9 @@ if __name__ == "__main__":
             pcts = report(name, [max(0.2, rng.gauss(mu, sd)) * rng.uniform(*rng.choice(ranges)) for _ in range(N)], rng)
             if horizon == 0:
                 today[name] = pcts
-    VJ, VM = (sum(sum(pv.values()) for pv in v.values()) for v in (june, S.ep_votes("2023/may")))
-    print(f"\nΨήφοι που λείπουν για το 3% (σήμερα), με έγκυρα Ιουνίου 2023 ({VJ:,}, όριο {.03 * VJ:,.0f}) / Μαΐου 2023 ({VM:,}, όριο {.03 * VM:,.0f})")
+    from zones import threshold, valid_votes
+    VJ, VM = valid_votes(S.c), valid_votes(S.c, "2023/may")
+    print(f"\nΨήφοι που λείπουν για το 3% (σήμερα), με έγκυρα Ιουνίου 2023 ({VJ:,}, όριο {threshold(S.c):,}) / Μαΐου 2023 ({VM:,}, όριο {threshold(S.c, '2023/may'):,})")
     for name, pcts in today.items():
         print(f"  {name}: στη διάμεσο {max(0, 3 - q(pcts, .5)) / 100 * VJ:,.0f} / {max(0, 3 - q(pcts, .5)) / 100 * VM:,.0f}, "
               f"στο 80ό εκατοστημόριο {max(0, 3 - q(pcts, .8)) / 100 * VJ:,.0f} / {max(0, 3 - q(pcts, .8)) / 100 * VM:,.0f}")

@@ -179,7 +179,7 @@ def rows(g, hr, election_day, year):
     parties = {i: hr[0][i] for i in range(len(head)) if i not in (firm, when, smp) and hr[0][i] and not hr[0][i].startswith("File:")}
     out, nodate = [], 0
     for r in g[1:]:
-        if not r[firm] or r[firm] == head[firm] or r[when] == head[when]:
+        if not r[firm] or r[firm] == head[firm] or r[when] == head[when] or len(set(r)) == 1:  # len 1: a year separator row
             continue
         if re.search(r"\d:\d\d", r[when]):  # an exit poll (time of day in the date)
             continue
