@@ -33,6 +33,8 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_floor.py` | db (`area_match`), `zones.py` | `nikh_floor.txt` | 20 |
 | `nikh_backtest.py` | db, `zones.py` | `nikh_backtest.txt` | 21 |
 | `nikh_regions.py` | db | `nikh_regions.txt` | 7 |
+| `pyei_2019_2023.py --region=N` (per region, 5 election pairs) | db; PyEI venv | `pyei_regions/<base>_to_<target>_<N>.txt` | 7 |
+| `pyei_regions_summary.py` | db, `pyei_regions/*.txt` | `pyei_regions/summary.txt` | 7 |
 | `polls_wiki.py` [cache_dir] | Wikipedia poll tables (network) | `nikh_pollerror.csv`; party columns of `nikh_polls.csv` | plan 2, stage 2 |
 | `nikh_polls.py` | `nikh_polls*.csv` | `nikh_polls.txt` | 16, 17 |
 | `nikh_pollerror.py` | `nikh_pollerror.csv` | `nikh_pollerror.txt` | 18 |
