@@ -21,9 +21,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import REGIONS
+from config import NIKH, REGIONS
 
-NIKH = 131
 J, E, M = "2023/june", "2024/euro", "2023/may"
 PARTIES = {131: "ΝΙΚΗ", 2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΠΑΣΟΚ", 108: "Ελλ. Λύση", 157: "Σπαρτιάτες"}
 PYEI_ABST = {"Αττική": 3, "Θεσσαλία": 10, "Δυτική Ελλάδα": 7, "Κρήτη": 8, "Πελοπόννησος": 12, "Δυτική Μακεδονία": 13,

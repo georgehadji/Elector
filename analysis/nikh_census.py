@@ -38,9 +38,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import REGIONS
+from config import NIKH, REGIONS
 
-NIKH = 131
 CSV = Path(__file__).resolve().parent.parent / "data" / "pop_koinotites_2021.csv"
 X2019 = {2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΚΙΝΑΛ", 3: "ΚΚΕ", 108: "Ελλ. Λύση", 122: "ΜέΡΑ25", 41: "Χρυσή Αυγή", 15: "Ένωση Κεντρώων"}
 NORTH = {ep for name, eps in REGIONS if "Μακεδονία" in name for ep in eps}

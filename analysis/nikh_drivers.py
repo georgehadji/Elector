@@ -24,9 +24,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import REGIONS
+from config import NIKH, REGIONS
 
-NIKH = 131
 ELECTIONS = ["2019", "2023/may", "2023/june", "2024/euro"]
 X2019 = {2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΚΙΝΑΛ", 3: "ΚΚΕ", 108: "Ελλ. Λύση", 122: "ΜέΡΑ25", 41: "Χρυσή Αυγή", 15: "Ένωση Κεντρώων"}
 NORTH = {ep for name, eps in REGIONS if "Μακεδονία" in name for ep in eps}

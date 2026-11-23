@@ -24,13 +24,17 @@ Calibration: the same model on polls up to 8 Jun 2024 vs the Euro 2024 result (4
 For May and June 2023: analysis/nikh_polls_2023.csv, the polls with a NIKH figure in the Wikipedia tables "Opinion polling
 for the May 2023 / June 2023 Greek parliamentary election" (exit polls left out), ballot / plain mean of the polls of the
 last 14 days. No house effects there: 10 and 24 polls are too few.
+Out-of-sample check (backtest): the random walk, a level+slope model and a damped slope model are each refitted every 30 days
+from 1 Jun 2024 and predict the polls up to 180 days ahead. The random walk has the lowest MAE at 30, 90 and 180 days, so it stays
+the model of estimate(); the slope models are only for the check. split_firms() gives each firm with >= 8 polls on both sides of
+9 Jun 2024 a house effect per period; the level today does not change.
 Unofficial results.
 
   python -I -X utf8 analysis/nikh_polls.py
 """
 import csv
 import math
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 CSV = Path(__file__).resolve().parent / "nikh_polls.csv"
@@ -123,12 +127,77 @@ def miss_2023(days=14):
     return out
 
 
+def _adv(s, dd, rho, q, qb):
+    """Advance the level+slope state s = (x, b, pxx, pxb, pbb) by dd days. rho = 0 and qb = 0 give the random walk of kfilter."""
+    x, b, pxx, pxb, pbb = s
+    rd = rho ** dd
+    g = dd if rho == 1 else (1 - rd) / (1 - rho)
+    return (x + g * b, rd * b, pxx + 2 * g * pxb + g * g * pbb + q * dd, rd * (pxb + g * pbb), rd * rd * pbb + qb * dd)
+
+
+def kf2(obs, h, q, qb, rho, tau2, upto=None):
+    """Filter with a slope: level x (random walk plus slope b), b a random walk damped by rho per day. Returns (last state, last day, loglik)."""
+    s, t, ll = (obs[0][3], 0.0, 4.0, 0.0, 1e-4 if qb else 0.0), obs[0][0], 0.0  # no slope variance for the random walk
+    for d, f, n, y in obs:
+        if upto and d > upto:
+            break
+        x, b, pxx, pxb, pbb = _adv(s, (d - t).days, rho, q, qb)
+        p = min(max(x, 0.3) / 100, 0.5)
+        S = pxx + p * (1 - p) / n * 1e4 + tau2
+        v = y - h.get(f, 0) - x
+        k0, k1 = pxx / S, pxb / S
+        s, t = (x + k0 * v, b + k1 * v, pxx * (1 - k0), pxb * (1 - k0), pbb - k1 * pxb), d
+        ll += -0.5 * (math.log(2 * math.pi * S) + v * v / S)
+    return s, t, ll
+
+
+MODELS = {  # name: (rho, grid of (q, qb, tau)); the random walk is the model of fit() and estimate()
+    "περίπατος": (0.0, [(q, 0.0, tau) for q in (0.0005, 0.001, 0.002, 0.004, 0.008, 0.016, 0.03) for tau in (0.01, 0.1, 0.2, 0.3, 0.45, 0.6, 0.8)]),
+    "τάση": (1.0, [(q, qb, tau) for q in (0.0005, 0.002, 0.008) for qb in (1e-8, 1e-7, 1e-6, 1e-5) for tau in (0.1, 0.3, 0.6)]),
+    "τάση με απόσβεση": (0.98, [(q, qb, tau) for q in (0.0005, 0.002, 0.008) for qb in (1e-8, 1e-7, 1e-6, 1e-5) for tau in (0.1, 0.3, 0.6)]),
+}
+BUCKETS = ((0, 30), (30, 90), (90, 180))
+
+
+def backtest(obs, start=date(2024, 6, 1), step=30):
+    """Out-of-sample: every `step` days from `start`, fit each model on the polls up to that day (house effects from the random-walk fit),
+    predict every later poll up to 180 days ahead (its value less the firm's house effect). {model: {bucket: [(error, predictive sd)]}}"""
+    out = {m: {b: [] for b in BUCKETS} for m in MODELS}
+    t = start
+    while t < obs[-1][0] - timedelta(days=30):
+        past = [o for o in obs if o[0] <= t]
+        future = [o for o in obs if t < o[0] <= t + timedelta(days=180)]
+        h = fit(past)[0]
+        for m, (rho, grid) in MODELS.items():
+            q, qb, tau = max(grid, key=lambda g: kf2(past, h, g[0], g[1], rho, g[2] ** 2)[2])
+            s, t0, _ = kf2(past, h, q, qb, rho, tau * tau)
+            for d, f, n, y in future:
+                x, _, pxx, _, _ = _adv(s, (d - t0).days, rho, q, qb)
+                p = min(max(x, 0.3) / 100, 0.5)
+                sd = math.sqrt(pxx + p * (1 - p) / n * 1e4 + tau * tau)
+                lo, hi = next(b for b in BUCKETS if (d - t).days <= b[1])
+                out[m][lo, hi].append((y - h.get(f, 0) - x, sd))
+        t += timedelta(days=step)
+    return out
+
+
+def split_firms(obs, cut=date(2024, 6, 9), minn=8):
+    """Obs with each firm that has at least `minn` polls on both sides of `cut` split in two (name + '@<' / '@>'), so each side gets its own house effect."""
+    cnt = {}
+    for d, f, n, y in obs:
+        cnt.setdefault(f, [0, 0])[d >= cut] += 1
+    return [(d, f + ("@>" if d >= cut else "@<") if min(cnt[f]) >= minn else f, n, y) for d, f, n, y in obs]
+
+
 if __name__ == "__main__":
     obs = load()
     # self-check: constant level 2% from one firm -> filter ends near 2
     _o = [(date(2024, 1, 1 + i), "A", 1000, 2.0) for i in range(20)]
     assert abs(kfilter(_o, {}, 0.001, 0.01)[0][-1][0] - 2.0) < 1e-6
     h, q, tau2, ll = fit(obs)
+    assert abs(kf2(obs, h, q, 0.0, 0.0, tau2)[2] - kfilter(obs, h, q, tau2)[1]) < 1e-6  # slope filter with rho = 0, qb = 0 is kfilter
+    _o = [(date(2024, 1, 1) + timedelta(days=10 * i), "A", 5000, 4.0 - 0.1 * i) for i in range(30)]  # falls 0.01 per day
+    assert abs(kf2(_o, {}, 0.0005, 1e-6, 1.0, 0.01)[0][1] + 0.01) < 0.002  # the trend model finds the slope
     print(f"{len(obs)} δημοσκοπήσεις, {len({f for _, f, _, _ in obs})} εταιρείες, {obs[0][0]} έως {obs[-1][0]}")
     print(f"Μοντέλο: q^(1/2) = {math.sqrt(q):.3f} μονάδες ανά √ημέρα (= {math.sqrt(q * 30):.2f} ανά μήνα), "
           f"τ = {math.sqrt(tau2):.2f} μονάδες (θόρυβος εκτός δειγματοληψίας), loglik {ll:.1f}")
@@ -168,3 +237,28 @@ if __name__ == "__main__":
         day, ballot = BALLOT_2023[e]
         print(f"Εκλογές {day}: κάλπη {ballot}%. Απλός μέσος όρος των {k3} δημοσκοπήσεων των τελευταίων 14 ημερών: {ballot / m3:.2f}% "
               f"→ κάλπη/δημοσκοπήσεις = {m3:.2f}· ανά δημοσκόπηση {per3[0]:.2f}–{per3[-1]:.2f}, 10%-90%: {per3[int(.1 * k3)]:.2f}–{per3[min(k3 - 1, int(.9 * k3))]:.2f}")
+    print("\nΈλεγχος εκτός δείγματος: κάθε 30 ημέρες από 1.6.2024 προσαρμόζεται κάθε μοντέλο στις δημοσκοπήσεις μέχρι εκείνη την ημέρα"
+          " και προβλέπει τις επόμενες (έως 180 ημέρες), μείον το εφέ της εταιρείας.")
+    print("  Τα σφάλματα επικαλύπτονται (οι ίδιες δημοσκοπήσεις μπαίνουν σε πολλές ημερομηνίες): τα n δεν είναι ανεξάρτητα.")
+    bt = backtest(obs)
+    print(f"  {'μοντέλο':<20}{'ορίζοντας':>12}{'n':>6}{'MAE':>7}{'RMSE':>7}{'μέσο σφάλμα':>13}{'κάλυψη 95%':>12}")
+    for m, bs in bt.items():
+        for (lo, hi), es in bs.items():
+            n = len(es)
+            print(f"  {m:<20}{f'{lo + 1}-{hi} ημ.':>12}{n:>6}{sum(abs(e) for e, _ in es) / n:>7.3f}{math.sqrt(sum(e * e for e, _ in es) / n):>7.3f}"
+                  f"{sum(e for e, _ in es) / n:>+13.3f}{100 * sum(abs(e) < 1.96 * s for e, s in es) / n:>11.0f}%")
+    CUT = date(2024, 6, 9)
+    res = {}
+    for (d, f, n, y), s in zip(obs, xs, strict=True):
+        res.setdefault(f, [[], []])[d >= CUT].append(y - s)
+    print(f"\nΕφέ εταιρείας πριν και μετά τις {CUT} (μέσο y − εξομαλυμένο επίπεδο, μονάδες ΝΙΚΗΣ), εταιρείες με ≥ 8 δημοσκοπήσεις και στις δύο περιόδους")
+    for f, (a, b) in sorted(res.items()):
+        if min(len(a), len(b)) >= 8:
+            sd = math.sqrt((sum(e * e for e in a + b) - len(a) * (sum(a) / len(a)) ** 2 - len(b) * (sum(b) / len(b)) ** 2) / (len(a) + len(b) - 2))
+            se = sd * math.sqrt(1 / len(a) + 1 / len(b))
+            diff = sum(b) / len(b) - sum(a) / len(a)
+            print(f"  {f:<20}πριν {sum(a) / len(a):+.2f} ({len(a)})  μετά {sum(b) / len(b):+.2f} ({len(b)})  διαφορά {diff:+.2f} ± {1.96 * se:.2f}")
+    obs2 = split_firms(obs)
+    h2, q2, tau2_2, _ = fit(obs2)
+    x2, P2, _, _ = kfilter(obs2, h2, q2, tau2_2)[0][-1]
+    print(f"  Με χωριστό εφέ ανά περίοδο: επίπεδο σήμερα {x2:.2f}% (με ένα εφέ: {x:.2f}%), {len({o[1] for o in obs2}) - len({o[1] for o in obs})} εταιρείες χωρίστηκαν")

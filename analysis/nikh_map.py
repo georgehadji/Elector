@@ -13,10 +13,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 from build import communities  # noqa: E402
-from config import ELECTION_NAMES, HERE, OUT, slug  # noqa: E402
+from config import ELECTION_NAMES, HERE, NIKH, OUT, slug  # noqa: E402
 from web import INDEX_DARK, INDEX_LIGHT, fill, secure  # noqa: E402
 
-NIKH = 131
 # NIKH first ran in 2023; 2019 appears only through BLOCS.
 ELECTIONS = {slug(k): name for k, name in ELECTION_NAMES.items() if k != "2019"}
 # key -> (election pages, party ids summed, label)

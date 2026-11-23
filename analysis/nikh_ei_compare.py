@@ -34,9 +34,9 @@ import pymc as pm
 import pytensor.tensor as pt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import REGIONS
+from config import NIKH, REGIONS
 
-NIKH, J, E, TOL = 131, "2023/june", "2024/euro", 10
+J, E, TOL = "2023/june", "2024/euro", 10
 # NIKH.md section 7, PyEI R x C per region: % of June NIKH voters who stayed / abstained / went to Ελλ. Λύση (posterior means)
 RXC = {"Αττική": (72, 3, 11), "Θεσσαλία": (68, 10, 5), "Δυτική Ελλάδα": (67, 7, 6), "Κρήτη": (66, 8, 8),
        "Πελοπόννησος": (65, 12, 5), "Δυτική Μακεδονία": (64, 13, 11), "Ήπειρος": (63, 8, 9), "Κεντρική Μακεδονία": (62, 25, 2),

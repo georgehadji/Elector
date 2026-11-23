@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS area_match(election TEXT, tm_id INT, comm_code TEXT, 
 CREATE INDEX IF NOT EXISTS area_match_comm ON area_match(comm_code);
 """
 
+NIKH = 131  # party id of ΝΙΚΗ: the one definition every analysis script imports
+
 # Short display names by party id (ids are stable across elections); others show the ministry's name.
 PARTY_SHORT = {2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΠΑΣΟΚ-ΚΙΝΑΛ", 3: "ΚΚΕ", 108: "Ελληνική Λύση", 122: "ΜέΡΑ25",
                123: "Πλεύση Ελευθερίας", 131: "ΝΙΚΗ", 157: "Σπαρτιάτες", 41: "Χρυσή Αυγή", 158: "Φωνή Λογικής",

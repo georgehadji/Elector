@@ -24,11 +24,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 from build import communities
-from config import HERE, OUT
+from config import HERE, NIKH, OUT
 from matching import ep_label
 from web import INDEX_DARK, INDEX_LIGHT, fill, secure
 
-NIKH, POOL = 131, (108,)  # Σπαρτιάτες left out: NIKH took almost none of their voters in 2024 (nikh_competition.py)
+POOL = (108,)  # Σπαρτιάτες left out: NIKH took almost none of their voters in 2024 (nikh_competition.py)
 STRONG, BASE, POOL_MIN, MIN_VALID = 6.0, 3.0, 4.5, 50  # 4.5%: national June share of the pool
 HOT, TOP = 2.58, 6  # Gi* z threshold; clusters named in the legend
 CORE = ["Α' Θεσσαλονίκης", "Β' Θεσσαλονίκης", "Β1' Βόρειου Τομέα Αθηνών", "Β3' Νότιου Τομέα Αθηνών",

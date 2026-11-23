@@ -15,12 +15,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))  # python -I drops the script dir
 import xlrd
 
-from config import DB, ELECTED, HERE
+from config import DB, ELECTED, HERE, NIKH
 from matching import norm
 from stations_map import XLS_EP, venue_parts
 from web import fill, secure
 
-NIKH = 131
 MAY, JUN = "2023/may", "2023/june"
 
 

@@ -24,10 +24,9 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import REGIONS
+from config import NIKH, REGIONS
 from matching import boundaries
 
-NIKH = 131
 J, E, M = "2023/june", "2024/euro", "2023/may"
 HOT = 2.58
 c = sqlite3.connect(sys.argv[1])

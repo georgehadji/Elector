@@ -17,9 +17,9 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import REGIONS
+from config import NIKH, REGIONS
 
-NIKH, EL = 131, 108
+EL = 108
 J, E = "2023/june", "2024/euro"
 # party: (name, consolidation, share of its 2023 voters that went to NIKH)
 EXIT_2024 = {2: ("ΝΔ", 0.724, 0.023), 4: ("ΣΥΡΙΖΑ", 0.669, 0.008), 106: ("ΠΑΣΟΚ", 0.774, 0.005)}

@@ -9,8 +9,11 @@
 """
 import sqlite3
 import sys
+from pathlib import Path
 
-NIKH = 131
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
+from config import NIKH
+
 c = sqlite3.connect(sys.argv[1])
 ep_name = dict(c.execute("SELECT ep_id, name FROM ep WHERE election='2023/june'"))
 

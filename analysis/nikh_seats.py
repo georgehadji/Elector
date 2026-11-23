@@ -19,10 +19,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import ELECTED, PARTY_SHORT, source
+from config import ELECTED, NIKH, PARTY_SHORT, source
 from fetch import statics
 
-NIKH, STATE = 131, 15
+STATE = 15
 c = sqlite3.connect(sys.argv[1])
 seats = {e[0]: e[4] for e in statics(*source("2023/june"), "ep") if e[4] > 0}
 ep_name = dict(c.execute("SELECT ep_id, name FROM ep WHERE election='2023/june'"))

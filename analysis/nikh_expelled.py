@@ -10,10 +10,13 @@ are an upper bound on voters who chose him, not voters who came for him.
 """
 import sqlite3
 import sys
+from pathlib import Path
 
 import numpy as np
 
-NIKH = 131
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
+from config import NIKH
+
 M, J, U = "2023/may", "2023/june", "2024/euro"
 c = sqlite3.connect(sys.argv[1])
 

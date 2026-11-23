@@ -16,9 +16,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import REGIONS
+from config import NIKH, REGIONS
 
-NIKH = 131
 J, E = "2023/june", "2024/euro"
 VARS = {131: "ΝΙΚΗ", 108: "Ελλ. Λύση", 157: "Σπαρτιάτες", 2: "ΝΔ", 3: "ΚΚΕ"}
 rng = np.random.default_rng(2026)

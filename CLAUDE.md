@@ -48,6 +48,7 @@ Election keys: `2019`, `2023/may`, `2023/june`, `2024/euro`, all defined once in
 - **stations_map.py** places polling stations at venues from the ministry `.xls`. It geocodes with Nominatim, at most 1 request/s with a generic User-Agent, and caches results in `data/venues_geo.json`. A geocode is kept only if it falls inside the station's ELSTAT municipal unit. `XLS_EP` aliases constituency names that differ between the results site and the spreadsheet (Β1/Β2/Β3 Αθηνών).
 - **nikh_report.py** compares NIKH (party 131) May vs June 2023 in the 9 constituencies where it elected an MP.
 - **compare.py**, **analysis/nikh_map.py**: nationwide pages from `build.communities()` (area_match joined with stations and party votes, one row per ELSTAT community).
+- **analysis/**: the ΝΙΚΗ statistics scripts. `analysis/CONTEXT.md` is the catalog (script → inputs → outputs → section of `analysis/NIKH.md`, and where each shared fact lives, e.g. `config.NIKH`).
 - **Templates** (`template.html`, `stations_template.html`) read everything from the injected `D` object. Deep links: `#party=<pid>&cand=<cid>`.
   - **Initial fit:** `fitOnceSized()` in `common.js` delays the first `fitBounds` until the container has a real size. Pages opened in hidden tabs/panes lay out at 0×0 and would otherwise fit to zoom 0.
 

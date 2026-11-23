@@ -11,10 +11,14 @@
 import math
 import sqlite3
 import sys
+from pathlib import Path
 
 import numpy as np
 
-NIKH, SPART = 131, 157
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
+from config import NIKH
+
+SPART = 157
 PARTIES = {131: "ΝΙΚΗ", 108: "Ελλ. Λύση", 158: "Φωνή Λογικής", 163: "Πατριώτες", 2: "ΝΔ", 123: "Πλεύση", 3: "ΚΚΕ"}
 c = sqlite3.connect(sys.argv[1])
 
@@ -68,7 +72,7 @@ valid = {(ep, den, ekd): v for ep, den, ekd, v in c.execute(
     "SELECT ep_id, den_descr, ekd_descr, SUM(valid) FROM station WHERE election='2023/june' AND kind='Κ' GROUP BY 1, 2, 3")}
 units = {}  # {(ep, unit): [(district, valid, NIKH votes, Ελλ. Λύση + Σπαρτιάτες votes)]}
 for ep, den, ekd, n, pool in c.execute(
-        "SELECT s.ep_id, s.den_descr, s.ekd_descr, SUM(CASE WHEN pv.party_id=131 THEN pv.votes ELSE 0 END), "
+        f"SELECT s.ep_id, s.den_descr, s.ekd_descr, SUM(CASE WHEN pv.party_id={NIKH} THEN pv.votes ELSE 0 END), "
         "SUM(CASE WHEN pv.party_id IN (108, 157) THEN pv.votes ELSE 0 END) FROM station s JOIN party_votes pv "
         "ON pv.election=s.election AND pv.tm_id=s.tm_id WHERE s.election='2023/june' AND s.kind='Κ' GROUP BY 1, 2, 3"):
     units.setdefault((ep, den), []).append((ekd, valid[ep, den, ekd], n, pool))
