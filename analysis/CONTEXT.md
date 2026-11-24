@@ -51,5 +51,5 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_map.py` (+ `nikh_map_template.html`) | db | `out/nikh_2023-2024.html` | — |
 
 Not NIKH: `field_ops*`, `venue_*`, `client*`, `stats.py` (shared helpers, no catalog entry).
-Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (in progress).
+Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done).
 Before changing a shared function: rerun the scripts that import it and `cmp` their `.txt` with the committed one.
