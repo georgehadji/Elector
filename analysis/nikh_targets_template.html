@@ -179,14 +179,6 @@ layer.eachLayer(l => {
   L.circleMarker(l.getBounds().getCenter(), {radius: 0.35 * Math.sqrt(v), weight: 0.6, color: "#3a1866", fillColor: "#6b3f9a", fillOpacity: 0.55, interactive: false}).addTo(circles);
 });
 
-// Rings for the hot view: the smaller clusters are a few communities each and vanish at country zoom.
-const rings = L.layerGroup();
-D.clusters.forEach((c, i) => {
-  if (i < D.top) return;
-  const b = L.latLngBounds([]);
-  layer.eachLayer(l => { if (l.feature.properties.h === i) b.extend(l.getBounds()); });
-  L.circleMarker(b.getCenter(), {radius: 9, weight: 1.5, color: SMALL, fill: false, interactive: false}).addTo(rings);
-});
 const smallTotal = () => {
   const rest = D.clusters.slice(D.top);
   return {name: `${rest.length} μικρότερες συστάδες`, votes: rest.reduce((t, c) => t + c.votes, 0)};
@@ -208,8 +200,7 @@ function drawLegend() {
     change: "<b>Μεταβολή ΝΙΚΗΣ (μον.)</b>" + ranges(DBINS, DCOLORS),
     seats: "<b>Εκλογική περιφέρεια</b>" + TIERS.map(([name, c]) => sw(c, name)).join(""),
     hot: "<b>Συστάδα (ψήφοι ΝΙΚΗΣ Ιουν.)</b>" + [...D.clusters.slice(0, D.top), smallTotal()].map((c, i) =>
-      sw(HOT_COLORS[i], c.name, ` <span class="s">${n(c.votes)} · ${Math.round(100 * c.votes / total)}%</span>`)).join("") +
-      `<div class="s" style="margin-top:4px">κύκλος: μικρή συστάδα</div>`,
+      sw(HOT_COLORS[i], c.name, ` <span class="s">${n(c.votes)} · ${Math.round(100 * c.votes / total)}%</span>`)).join(""),
   }[current];
   legend.getContainer().innerHTML = html + (current === "target" || current === "pool" || current === "change"
     ? `<div class="s" style="margin-top:4px">αχνό: &lt; 50 έγκυρα</div>` : "");
@@ -228,7 +219,6 @@ function setView(k) {
   document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
   layer.setStyle(style);
   if (k === "votes") circles.addTo(map); else circles.remove();
-  if (k === "hot") rings.addTo(map); else rings.remove();
   drawLegend();
 }
 addEventListener("themechange", () => layer.setStyle(style));
