@@ -37,7 +37,7 @@ from web import INDEX_DARK, INDEX_LIGHT, fill, secure
 out = party.page_path("nikh_targets.html")  # fails early for another party without --out
 POOL = (party.RIVAL,)  # Σπαρτιάτες left out: NIKH took almost none of their voters in 2024 (nikh_competition.py)
 STRONG, BASE, POOL_MIN, MIN_VALID = 6.0, 3.0, 4.5, 50  # 4.5%: national June share of the pool
-HOT, TOP = 2.58, 6  # Gi* z threshold; clusters named in the legend
+HOT, TOP = 2.58, 6  # Gi* z threshold; clusters named in the legend, the rest share one colour
 CORE = ["Α' Θεσσαλονίκης", "Β' Θεσσαλονίκης", "Β1' Βόρειου Τομέα Αθηνών", "Β3' Νότιου Τομέα Αθηνών",
         "Α' Ανατολικής Αττικής", "Αχαΐας", "Πιερίας"]
 MARGINAL = ["Α' Αθηνών", "Β2' Δυτικού Τομέα Αθηνών", "Λάρισας", "Πέλλας", "Κοζάνης", "Αιτωλοακαρνανίας"]
@@ -122,14 +122,10 @@ clusters = []
 for i, g in enumerate(groups):
     eps = defaultdict(int)
     for k in g:
-        by_code[k]["h"] = min(i, TOP)  # TOP = every smaller cluster
+        by_code[k]["h"] = i  # the page names the first TOP in the legend and draws the rest in one colour
         eps[by_code[k]["ep"]] += by_code[k]["j"][0]
-    if i < TOP:
-        clusters.append({"name": ", ".join(sorted(eps, key=eps.get, reverse=True)[:3]), "areas": len(g),
-                         "votes": sum(by_code[k]["j"][0] for k in g)})
-rest = [k for g in groups[TOP:] for k in g]
-clusters.append({"name": f"{len(groups) - TOP} μικρότερες συστάδες", "areas": len(rest),
-                 "votes": sum(by_code[k]["j"][0] for k in rest)})
+    clusters.append({"name": ", ".join(sorted(eps, key=eps.get, reverse=True)[:3]), "areas": len(g),
+                     "votes": sum(by_code[k]["j"][0] for k in g)})
 print(f"hot: {sum(len(g) for g in groups)} communities in {len(groups)} clusters, "
       f"{sum(c['votes'] for c in clusters):,} {'NIKH' if party.IS_NIKH else party.NAME} votes")
 for c in clusters:
@@ -139,7 +135,7 @@ assert len(TIER) == (len(CORE) + len(MARGINAL)) * party.IS_NIKH
 assert TIER.keys() <= {f["properties"]["ep"] for f in features}, set(TIER) - {f["properties"]["ep"] for f in features}
 for k, s in enumerate(summary):
     print(k, s)
-data = {"summary": summary, "clusters": clusters, "geo": {"type": "FeatureCollection", "features": features}}
+data = {"summary": summary, "clusters": clusters, "top": TOP, "geo": {"type": "FeatureCollection", "features": features}}
 text = (HERE / "analysis" / "nikh_targets_template.html").read_text(encoding="utf-8")
 if not party.IS_NIKH:  # the template is written for NIKH: swap the names, drop what only holds for NIKH
     rival_gen = PARTY_GEN.get(party.RIVAL, party.RIVAL_NAME)

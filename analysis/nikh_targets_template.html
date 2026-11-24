@@ -98,8 +98,9 @@ const VIEWS = {
   seats: "Έδρες",
   hot: "Θερμές συστάδες",
 };
-// one colour per named cluster, the last for all smaller ones
-const HOT_COLORS = ["#542788", "#b2182b", "#1b7837", "#d95f02", "#1f78b4", "#a6761d", "#8a8a8a"];
+// one colour per named cluster, the last for all smaller ones (clusters never touch, so one colour still tells them apart)
+const HOT_COLORS = ["#542788", "#b2182b", "#1b7837", "#d95f02", "#1f78b4", "#a6761d", "#c51b7d"];
+const SMALL = HOT_COLORS[HOT_COLORS.length - 1];
 const NOTE = "Ανεπίσημα αποτελέσματα ΥΠΕΣ· διαμερίσματα που δεν αντιστοιχίστηκαν σε κοινότητα ΕΛΣΤΑΤ λείπουν. " +
   "Μόνο συγκεντρωτικά αποτελέσματα, κανένα προσωπικό στοιχείο. Η «δεξαμενή» είναι υπόθεση: δεν μετρά πόσοι ψηφοφόροι θα άλλαζαν κόμμα.";
 const NOTES = {
@@ -129,6 +130,7 @@ function style(f) {
   if (current === "target") return {weight: 0.3, color: "#5553", fillColor: CLASSES[a.k][1], fillOpacity: a.k === 5 ? 0.5 : op};
   if (current === "seats") return {weight: 0.3, color: "#5553", fillColor: TIERS[a.t][1], fillOpacity: 0.8};
   if (current === "hot") return a.h === undefined ? {weight: 0.2, color: "#5552", fillColor: "#e8e6e1", fillOpacity: 0.5}
+    : a.h >= D.top ? {weight: 1, color: SMALL, fillColor: SMALL, fillOpacity: 0.85}
     : {weight: 0.3, color: "#5553", fillColor: HOT_COLORS[a.h], fillOpacity: 0.85};
   if (current === "votes") return {weight: 0.2, color: "#5552", fillColor: "#e8e6e1", fillOpacity: 0.5};
   if (current === "pool") return a.j[1] ? {weight: 0.3, color: "#5553", fillColor: bin(100 * a.p / a.j[1], POOL_BINS, POOL_COLORS), fillOpacity: op} : FAINT;
@@ -142,7 +144,7 @@ function tip(f) {
   const s = share(a.j), e = share(a.e);
   return `<b>${a.n}</b><div class="m">${a.u} · ${a.ep}</div><table>` +
     row("Κατηγορία", `<b>${CLASSES[a.k][0]}</b>`) +
-    (a.h === undefined ? "" : row("Θερμή συστάδα", D.clusters[a.h].name)) +
+    (a.h === undefined ? "" : row(a.h >= D.top ? "Μικρή θερμή συστάδα" : "Θερμή συστάδα", D.clusters[a.h].name)) +
     row("ΝΙΚΗ Μάιος 2023", votes(a.m)) + row("ΝΙΚΗ Ιούνιος 2023", votes(a.j)) + row("ΝΙΚΗ Ευρωεκλογές 2024", votes(a.e)) +
     (s !== null && e !== null ? row("Ιούνιος → Ευρωεκλογές", `${signed(e - s)} μον.`) : "") +
     row("Ελλ. Λύση (Ιούν.)", a.j[1] ? `${pctf(100 * a.p / a.j[1])} <span class="m">(${fmt(a.p)})</span>` : "—") +
@@ -173,6 +175,19 @@ layer.eachLayer(l => {
   L.circleMarker(l.getBounds().getCenter(), {radius: 0.35 * Math.sqrt(v), weight: 0.6, color: "#3a1866", fillColor: "#6b3f9a", fillOpacity: 0.55, interactive: false}).addTo(circles);
 });
 
+// Rings for the hot view: the smaller clusters are a few communities each and vanish at country zoom.
+const rings = L.layerGroup();
+D.clusters.forEach((c, i) => {
+  if (i < D.top) return;
+  const b = L.latLngBounds([]);
+  layer.eachLayer(l => { if (l.feature.properties.h === i) b.extend(l.getBounds()); });
+  L.circleMarker(b.getCenter(), {radius: 9, weight: 1.5, color: SMALL, fill: false, interactive: false}).addTo(rings);
+});
+const smallTotal = () => {
+  const rest = D.clusters.slice(D.top);
+  return {name: `${rest.length} μικρότερες συστάδες`, votes: rest.reduce((t, c) => t + c.votes, 0)};
+};
+
 const legend = L.control({position: "bottomright"});
 legend.onAdd = () => L.DomUtil.create("div", "legend");
 legend.addTo(map);
@@ -188,8 +203,9 @@ function drawLegend() {
     pool: "<b>Ελλ. Λύση, % εγκύρων</b>" + ranges(POOL_BINS, POOL_COLORS),
     change: "<b>Μεταβολή ΝΙΚΗΣ (μον.)</b>" + ranges(DBINS, DCOLORS),
     seats: "<b>Εκλογική περιφέρεια</b>" + TIERS.map(([name, c]) => sw(c, name)).join(""),
-    hot: "<b>Συστάδα (ψήφοι ΝΙΚΗΣ Ιουν.)</b>" + D.clusters.map((c, i) =>
-      sw(HOT_COLORS[i], c.name, ` <span class="s">${n(c.votes)} · ${Math.round(100 * c.votes / total)}%</span>`)).join(""),
+    hot: "<b>Συστάδα (ψήφοι ΝΙΚΗΣ Ιουν.)</b>" + [...D.clusters.slice(0, D.top), smallTotal()].map((c, i) =>
+      sw(HOT_COLORS[i], c.name, ` <span class="s">${n(c.votes)} · ${Math.round(100 * c.votes / total)}%</span>`)).join("") +
+      `<div class="s" style="margin-top:4px">κύκλος: μικρή συστάδα</div>`,
   }[current];
   legend.getContainer().innerHTML = html + (current === "target" || current === "pool" || current === "change"
     ? `<div class="s" style="margin-top:4px">αχνό: &lt; 50 έγκυρα</div>` : "");
@@ -208,6 +224,7 @@ function setView(k) {
   document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
   layer.setStyle(style);
   if (k === "votes") circles.addTo(map); else circles.remove();
+  if (k === "hot") rings.addTo(map); else rings.remove();
   drawLegend();
 }
 for (const [k, name] of Object.entries(VIEWS)) {
