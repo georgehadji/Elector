@@ -19,3 +19,6 @@ analysis/venue_parties/*.csv
 analysis/venues_xls/
 .vercel
 .env*
+
+# Raw cache of analysis/majorline_fetch.py: third-party data, not redistributed
+data/majorline/
