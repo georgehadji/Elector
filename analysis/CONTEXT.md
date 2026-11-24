@@ -1,6 +1,6 @@
 # analysis/ — ΝΙΚΗ (party 131) statistics
 
-Catalog only: no numbers, no conclusions. Numbers live in each script's `.txt`; the Greek write-up is `NIKH.md` (sections below), the short report `NIKH_anafora.md` (+ pdf) quotes `NIKH.md`.
+Catalog only: no numbers, no conclusions. Numbers live in each script's `.txt`; the Greek write-up is `NIKH.md` (sections below), the short report `NIKH_anafora.md` (+ pdf) quotes `NIKH.md`; the action plan `NIKH_schedio.md` (+ pdf, no new analysis) quotes both.
 Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only unless noted). The docstring of each script is its contract (inputs, method, output). A step is done when its `.txt` exists and its section is in `NIKH.md`.
 
 ## One home per fact
