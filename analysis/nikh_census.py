@@ -24,9 +24,15 @@ data/pop_koinotites_2021.csv.
   Four more variables on top of the model with the first twelve.
 
 Run build.py <election> all first (area_match), then (the xlsx paths are only needed to (re)build the two csv):
-  python -I -X utf8 analysis/nikh_census.py data/stavroi.sqlite [MON_PLI_DHM_KOIN_2021.xlsx [age.xlsx education.xlsx sectors.xlsx
+  python -I -X utf8 analysis/nikh_census.py data/stavroi.sqlite [--party=ID] [--rival=ID] [--base=KEY] [--target=KEY] [MON_PLI_DHM_KOIN_2021.xlsx [age.xlsx education.xlsx sectors.xlsx
       citizenship.xlsx birthplace.xlsx nuclei.xlsx
       cars.xlsx tenure.xlsx dwellings.xlsx]]
+--party studies another party in place of NIKH (labels follow; the xlsx rebuild of the csv files needs the NIKH default).
+--base/--target pick the election pair (config.ELECTIONS keys, base older; default 2023/june -> 2024/euro): the party's base share is
+the dependent variable, the target feeds the "kept" columns. The regressors stay the 2019 shares; each distinct election is loaded once,
+so with --base=2019 the regressors and the base coincide: the model then explains 2019 by 2019 (a party in X2019 is its own regressor,
+R² ~ 1), which is a check, not a finding. The model label "nikh_drivers.py" names that script's model on its own default pair.
+Nothing here is hand-entered NIKH June 2023 -> Euro 2024 data, so no REFERENCE-only section exists.
 """
 import csv
 import sqlite3
@@ -38,7 +44,9 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import NIKH, REGIONS
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import REGIONS
+import party
 
 CSV = Path(__file__).resolve().parent.parent / "data" / "pop_koinotites_2021.csv"
 X2019 = {2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΚΙΝΑΛ", 3: "ΚΚΕ", 108: "Ελλ. Λύση", 122: "ΜέΡΑ25", 41: "Χρυσή Αυγή", 15: "Ένωση Κεντρώων"}
@@ -63,6 +71,8 @@ def read_xlsx(path):
 
 
 if len(sys.argv) > 2:
+    if not party.IS_NIKH:
+        raise SystemExit("rebuilding data/*.csv from xlsx is party-independent: run it without --party")
     rows = read_xlsx(sys.argv[2])
     assert len(rows) > 6000 and sum(p for _, _, p in rows) > 10_000_000, len(rows)  # country total is 10.48 million
     with open(CSV, "w", encoding="utf-8", newline="") as f:
@@ -96,18 +106,25 @@ def load(e):
         "ON a.election=s.election AND a.tm_id=s.tm_id WHERE s.election=? GROUP BY 1", (e,))}
     for k, p, v in c.execute(
             "SELECT a.comm_code, pv.party_id, SUM(pv.votes) FROM party_votes pv JOIN area_match a ON a.election=pv.election "
-            f"AND a.tm_id=pv.tm_id WHERE pv.election=? AND pv.party_id IN ({','.join(map(str, [NIKH, *X2019]))}) GROUP BY 1, 2", (e,)):
+            f"AND a.tm_id=pv.tm_id WHERE pv.election=? AND pv.party_id IN ({','.join(map(str, [party.ID, *X2019]))}) GROUP BY 1, 2", (e,)):
         out[k][3][p] = v
     return out
 
 
-D = {e: load(e) for e in ("2019", "2023/june", "2024/euro")}
-codes = [k for k in D["2023/june"] if k in pop and pop[k] > 0 and all(k in D[e] and D[e][k][1] >= 50 for e in D)]
-print(f"{len(codes)} κοινότητες με ≥50 έγκυρα σε Ιούνιο 2023, Ευρωεκλογές 2024 και 2019, και πληθυσμό απογραφής 2021")
-J, E = D["2023/june"], D["2024/euro"]
+D = {e: load(e) for e in dict.fromkeys(("2019", party.BASE, party.TARGET))}  # each distinct election once
+codes = [k for k in D[party.BASE] if k in pop and pop[k] > 0 and all(k in D[e] and D[e][k][1] >= 50 for e in D)]
+J, E = D[party.BASE], D[party.TARGET]
+if not any(J[k][3].get(party.ID) for k in codes):
+    raise SystemExit(f"{party.NAME}: δεν έχει ψήφους στις κοινότητες της βάσης ({party.BASE_NAME})")
+# default pair keeps the original wording (accusative / genitive); other pairs name the chosen elections
+names = list(dict.fromkeys([party.BASE_NAME, party.TARGET_NAME, "2019"]))
+LIST = "Ιούνιο 2023, Ευρωεκλογές 2024 και 2019" if party.DEFAULT_PAIR else ", ".join(names[:-1]) + " και " + names[-1] if len(names) > 1 else names[0]
+BG = "Ιουνίου 2023" if party.DEFAULT_PAIR else f"({party.BASE_NAME})"
+BV = "Ιουνίου" if party.DEFAULT_PAIR else BG  # after "έγκυρα"
+print(f"{len(codes)} κοινότητες με ≥50 έγκυρα σε {LIST}, και πληθυσμό απογραφής 2021")
 w = np.array([J[k][1] for k in codes], float)
 reg = np.array([J[k][0] for k in codes], float)
-y = np.array([100 * J[k][3].get(NIKH, 0) / J[k][1] for k in codes])
+y = np.array([100 * J[k][3].get(party.ID, 0) / J[k][1] for k in codes])
 P = np.array([pop[k] for k in codes], float)
 rho = np.clip(reg / P, 0.3, 10)
 print(f"εγγεγραμμένοι / μόνιμος πληθυσμός (rho): διάμεσος {np.median(reg / P):.2f}, 10%-90%: "
@@ -117,10 +134,10 @@ xs = [np.array([100 * D["2019"][k][3].get(p, 0) / D["2019"][k][1] for k in codes
 north = np.array([float(J[k][2] in NORTH) for k in codes])
 turn = np.array([100 * J[k][1] / J[k][0] for k in codes])
 base = [*xs, north, turn, np.log10(np.maximum(reg, 1))]
-bnames = [*X2019.values(), "Μακεδονία/Θράκη", "συμμετοχή Ιουν.", "log10 εγγεγραμμένων"]
+bnames = [*X2019.values(), "Μακεδονία/Θράκη", "συμμετοχή " + ("Ιουν." if party.DEFAULT_PAIR else party.ABBR[party.BASE]), "log10 εγγεγραμμένων"]
 census = [np.log10(P), np.log10(rho)]
 cnames = ["log10 πληθυσμού 2021", "log10 εγγεγρ./πληθυσμό"]
-print("\nΠαλινδρόμηση (WLS): ποσοστό ΝΙΚΗΣ Ιουνίου 2023 ανά κοινότητα")
+print(f"\nΠαλινδρόμηση (WLS): ποσοστό {party.GEN} {BG} ανά κοινότητα")
 for label, cols in (("μόνο μέγεθος και rho", [np.log10(np.maximum(reg, 1)), *census]),
                     ("μοντέλο nikh_drivers.py (χωρίς απογραφή)", base), ("το ίδιο + απογραφή", base + census)):
     print(f"  {label}: R² = {wls(y, cols, w)[2]:.3f}")
@@ -128,12 +145,12 @@ beta, se, r2 = wls(y, base + census, w)
 for n, b, s in list(zip([*bnames, *cnames], beta[1:], se[1:], strict=True))[-5:]:
     print(f"    {n:<26}{b:+8.3f}  (±{s:.3f})")
 
-print("\nΖώνες rho (τεταρτημόρια κοινοτήτων· ποσοστά σταθμισμένα με έγκυρα Ιουνίου)")
+print(f"\nΖώνες rho (τεταρτημόρια κοινοτήτων· ποσοστά σταθμισμένα με έγκυρα {BV})")
 q = np.quantile(rho, [.25, .5, .75])
-nj = np.array([J[k][3].get(NIKH, 0) for k in codes], float)
-ne = np.array([E[k][3].get(NIKH, 0) for k in codes], float)
+nj = np.array([J[k][3].get(party.ID, 0) for k in codes], float)
+ne = np.array([E[k][3].get(party.ID, 0) for k in codes], float)
 ve = np.array([E[k][1] for k in codes], float)
-print(f"  {'rho':<14}{'κοιν.':>6}{'ψήφοι ΝΙΚΗΣ':>12}{'ΝΙΚΗ Ιούν.':>11}{'Ευρ.':>7}{'κράτησε':>9}{'συμμετοχή':>10}{'πληθ. διάμ.':>12}")
+print(f"  {'rho':<14}{'κοιν.':>6}{'ψήφοι ' + party.GEN[:5]:>12}{party.NAME[:5] + ' ' + party.ABBR[party.BASE]:>11}{party.ABBR[party.TARGET]:>7}{'κράτησε':>9}{'συμμετοχή':>10}{'πληθ. διάμ.':>12}")
 for lo, hi in ((0, q[0]), (q[0], q[1]), (q[1], q[2]), (q[2], np.inf)):
     m = (rho >= lo) & (rho < hi)
     print(f"  {lo:>5.2f}-{min(hi, 10):<6.2f}{m.sum():>6}{nj[m].sum():>12,.0f}{100 * nj[m].sum() / w[m].sum():>10.2f}%"
@@ -240,18 +257,18 @@ njk, nek, vek = nj[keep], ne[keep], ve[keep]
 
 def report(V, basecols, base_label, alone_label):
     """R², coefficients (plain and clustered SE) and NIKH's share by quarter of the valid votes, for the variables V."""
-    print("Παλινδρόμηση (WLS, βάρος τα έγκυρα Ιουνίου): ποσοστό ΝΙΚΗΣ Ιουνίου 2023 ανά κοινότητα")
+    print(f"Παλινδρόμηση (WLS, βάρος τα έγκυρα {BV}): ποσοστό {party.GEN} {BG} ανά κοινότητα")
     for label, cols in ((alone_label, list(V.values())), (base_label, basecols), ("το ίδιο + αυτές", basecols + list(V.values()))):
         print(f"  {label}: R² = {wls(yk, cols, wk)[2]:.3f}")
     for label, cols in ((alone_label, list(V.values())), (f"με {base_label}", basecols + list(V.values()))):
         beta, se, _ = wls(yk, cols, wk)
         rse = cluster_se(yk, cols, wk, muni)
-        print(f"  Συντελεστές, {label} (μονάδες ποσοστού ΝΙΚΗΣ ανά +1 μονάδα· σφάλμα απλό → ανά δήμο· επίδραση +1 τυπικής απόκλισης):")
+        print(f"  Συντελεστές, {label} (μονάδες ποσοστού {party.GEN} ανά +1 μονάδα· σφάλμα απλό → ανά δήμο· επίδραση +1 τυπικής απόκλισης):")
         for (name, x), b, sx, rs in zip(V.items(), beta[-len(V):], se[-len(V):], rse[-len(V):], strict=True):
             sd = np.sqrt(np.average((x - np.average(x, weights=wk)) ** 2, weights=wk))
             print(f"    {name:<34}{b:+8.3f}  ±{sx:.3f} → ±{rs:.3f}   +1 τ.α. ({sd:4.1f}) = {b * sd:+.2f}{'  *' if abs(b) > 2 * rs else ''}")
     print("  (* = ο συντελεστής ξεπερνά τα 2 σφάλματα ανά δήμο)")
-    print("\nΠοσοστό ΝΙΚΗΣ ανά τέταρτο των έγκυρων ψήφων (κοινότητες ταξινομημένες κατά τη μεταβλητή· Ιούνιος 2023 / Ευρωεκλογές 2024)")
+    print(f"\nΠοσοστό {party.GEN} ανά τέταρτο των έγκυρων ψήφων (κοινότητες ταξινομημένες κατά τη μεταβλητή· {party.BASE_NAME} / {party.TARGET_NAME})")
     for name, x in V.items():
         order = np.argsort(x)
         parts = np.split(order, np.searchsorted(np.cumsum(wk[order]), np.array([.25, .5, .75]) * wk.sum()))

@@ -1,4 +1,9 @@
 """Spatial clustering of NIKH (party 131) votes per ELSTAT community: Moran's I and Getis-Ord Gi*.
+Any other party: --party=ID (see party.py). No section rests on NIKH-only inputs; the zone A tiers are then
+those of that party's own peak votes (the nikh_pareto.py rule applied to it).
+Any pair of elections, older -> newer: --base=KEY --target=KEY (party.py; default 2023/june -> 2024/euro). The texts
+below say June 2023 / Euro 2024 for the default pair; the printed labels name the chosen elections otherwise. The
+zone A tiers also use 2023/may peak votes as a third election, unless it is the base or the target.
 
 - Neighbours: communities sharing at least one boundary vertex (queen contiguity from data/koinotites_2021.json).
   Communities with no neighbour among the analysed ones (islands) are left out.
@@ -13,7 +18,7 @@
 Shares of small communities are noisy: >= 50 valid votes in both elections. Unofficial results.
 
 Run build.py <election> all first (area_match), then:
-  python -I -X utf8 analysis/nikh_spatial.py data/stavroi.sqlite
+  python -I -X utf8 analysis/nikh_spatial.py data/stavroi.sqlite [--party=ID] [--base=KEY] [--target=KEY]
 """
 import math
 import sqlite3
@@ -24,10 +29,16 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import NIKH, REGIONS
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import party
+from config import REGIONS
 from matching import boundaries
 
-J, E, M = "2023/june", "2024/euro", "2023/may"
+GEN = party.GEN
+J, E, M = party.BASE, party.TARGET, "2023/may"
+# printed wording: the default pair keeps its genitive text, any other pair names its elections in the nominative
+BASE_GEN, BASE_GEN2 = ("Ιουνίου 2023", "Ιουνίου") if party.DEFAULT_PAIR else (f"({party.BASE_NAME})",) * 2
+JA, EA = party.ABBR[J], party.ABBR[E]
 HOT = 2.58
 c = sqlite3.connect(sys.argv[1])
 region = {ep: name for name, eps in REGIONS for ep in eps}
@@ -46,11 +57,11 @@ assert abs(moran(np.array([1., 2, 3, 4]), _I, _J, np.array([1, .5, .5, .5, .5, 1
 
 
 def load(e):
-    """{community: [registered, valid, NIKH votes, ep, unit]}"""
+    """{community: [registered, valid, party votes, ep, unit]}"""
     return {k: [r, v, n or 0, ep, den] for k, r, v, n, ep, den in c.execute(
         "SELECT a.comm_code, SUM(s.registered), SUM(s.valid), SUM((SELECT votes FROM party_votes p WHERE p.election=s.election "
         "AND p.tm_id=s.tm_id AND p.party_id=?)), MIN(s.ep_id), MIN(s.den_descr) FROM station s JOIN area_match a "
-        "ON a.election=s.election AND a.tm_id=s.tm_id WHERE s.election=? GROUP BY 1", (NIKH, e))}
+        "ON a.election=s.election AND a.tm_id=s.tm_id WHERE s.election=? GROUP BY 1", (party.ID, e))}
 
 
 dj, de = load(J), load(E)
@@ -86,8 +97,8 @@ ve = np.array([de[k][1] for k in codes], float)
 sj, se = 100 * nj / vj, 100 * ne / ve
 rng = np.random.default_rng(2026)
 print("\nGlobal Moran's I (αναμενόμενο ≈ 0), 999 τυχαίες μεταθέσεις")
-for label, x in (("ποσοστό ΝΙΚΗΣ Ιούνιος 2023", sj), ("ποσοστό ΝΙΚΗΣ Ευρωεκλογές 2024", se),
-                 ("μεταβολή ποσοστού Ιούν. → Ευρ. (μονάδες)", se - sj)):
+for label, x in ((f"ποσοστό {GEN} {party.BASE_NAME}", sj), (f"ποσοστό {GEN} {party.TARGET_NAME}", se),
+                 (f"μεταβολή ποσοστού {JA} → {EA} (μονάδες)", se - sj)):
     obs = moran(x, ia, ja, w)
     sim = np.array([moran(rng.permutation(x), ia, ja, w) for _ in range(999)])
     print(f"  {label:<44} I = {obs:+.3f}  (τυχαία: {sim.mean():+.3f} ± {sim.std():.3f}, p = {(1 + (sim >= obs).sum()) / 1000:.3f})")
@@ -100,7 +111,7 @@ xbar, S = sj.mean(), sj.std()
 gz = (lag - xbar * ws) / (S * np.sqrt((n * ws - ws ** 2) / (n - 1)))
 hot = gz >= HOT
 tot = nj.sum()
-print(f"\nGi* ποσοστού Ιουνίου 2023: {hot.sum()} θερμές κοινότητες (z ≥ {HOT}), {nj[hot].sum():,.0f} ψήφοι ΝΙΚΗΣ "
+print(f"\nGi* ποσοστού {BASE_GEN}: {hot.sum()} θερμές κοινότητες (z ≥ {HOT}), {nj[hot].sum():,.0f} ψήφοι {GEN} "
       f"({100 * nj[hot].sum() / tot:.0f}% του συνόλου) σε {100 * vj[hot].sum() / vj.sum():.0f}% των έγκυρων. "
       f"Ψυχρές (z ≤ -{HOT}): {(gz <= -HOT).sum()}")
 
@@ -128,7 +139,7 @@ for g in range(nxt):
         byunit[dj[codes[i]][3], dj[codes[i]][4]] += nj[i]
     rows.append((nj[m].sum(), len(m), g, sorted(byunit, key=byunit.get, reverse=True)[:3]))
 rows.sort(reverse=True)
-print(f"\n{nxt} συστάδες. Οι 12 μεγαλύτερες κατά ψήφους ΝΙΚΗΣ Ιουνίου (σωρευτικά ως % των θερμών ψήφων):")
+print(f"\n{nxt} συστάδες. Οι 12 μεγαλύτερες κατά ψήφους {GEN} {BASE_GEN2} (σωρευτικά ως % των θερμών ψήφων):")
 acc = 0
 for v, m, g, us in rows[:12]:
     acc += v
@@ -139,11 +150,11 @@ for k in (5, 10, 20):
 
 # units and tiers as in nikh_pareto.py
 U = {}
-for e in (J, E, M):
+for e in dict.fromkeys((J, E, M) if party.DEFAULT_PAIR else (J, E, *([M] if M not in (J, E) else []))):
     for ep, den, r, nv in c.execute(
             "SELECT s.ep_id, s.den_descr, SUM(s.registered), SUM((SELECT votes FROM party_votes p WHERE p.election=s.election "
             "AND p.tm_id=s.tm_id AND p.party_id=?)) FROM station s WHERE s.election=? AND s.den_descr IS NOT NULL GROUP BY 1, 2",
-            (NIKH, e)):
+            (party.ID, e)):
         u = U.setdefault((ep, den), {"reg": 0, "peak": 0})
         if e == J:
             u["reg"] = r or 0
@@ -160,7 +171,7 @@ for i, k in enumerate(codes):
     if hot[i]:
         inhot[dj[k][3], dj[k][4]] += nj[i]
 top = sorted((k for k in units if tier[k] == "A"), key=lambda k: -U[k]["peak"])[:40]
-print("\nΟι 40 μεγαλύτερες ενότητες της ζώνης Α: ποσοστό ψήφων Ιουνίου σε θερμές κοινότητες")
+print(f"\nΟι 40 μεγαλύτερες ενότητες της ζώνης Α: ποσοστό ψήφων {BASE_GEN2} σε θερμές κοινότητες")
 in_hot = 0
 for k in top:
     f = inhot[k] / allv[k] if allv[k] else 0
@@ -188,7 +199,7 @@ def robust(y, x, wt, groups):
 
 R = np.array([dj[k][0] for k in codes], float)
 dv, dn = (ve - vj) / R, (ne - nj) / R
-print("\nΚλίση b της ΝΙΚΗΣ στη μεταβολή έγκυρων (ανάλυση αποχής): σφάλμα απλό → ανά δημοτική ενότητα")
+print(f"\nΚλίση b της {GEN} στη μεταβολή έγκυρων (ανάλυση αποχής): σφάλμα απλό → ανά δημοτική ενότητα")
 grp = [(dj[k][3], dj[k][4]) for k in codes]
 for label, m in (("εθνικά", np.ones(n, bool)),
                  ("Κεντρική Μακεδονία", np.array([region[dj[k][3]] == "Κεντρική Μακεδονία" for k in codes]))):
@@ -203,13 +214,13 @@ passed = np.flatnonzero(srt <= 0.05 * np.arange(1, n + 1) / n)
 cut = srt[passed[-1]] if len(passed) else -1
 fdr = pv <= cut
 print(f"\nΈλεγχος πολλαπλών συγκρίσεων (Benjamini-Hochberg, FDR 5%): {fdr.sum()} θερμές κοινότητες (z ≥ {gz[fdr].min():.2f}), "
-      f"{nj[fdr].sum():,.0f} ψήφοι ΝΙΚΗΣ ({100 * nj[fdr].sum() / tot:.0f}% του συνόλου). Από τις {hot.sum()} με z ≥ {HOT} μένουν {(hot & fdr).sum()}.")
+      f"{nj[fdr].sum():,.0f} ψήφοι {GEN} ({100 * nj[fdr].sum() / tot:.0f}% του συνόλου). Από τις {hot.sum()} με z ≥ {HOT} μένουν {(hot & fdr).sum()}.")
 
 # 2. Moran's I of retention (Euro votes / June votes, log, +1 so that zeros stay defined)
 ret = np.log((ne + 1) / (nj + 1))
 obs = moran(ret, ia, ja, w)
 sim = np.array([moran(rng.permutation(ret), ia, ja, w) for _ in range(999)])
-print(f"Συγκράτηση (log ψήφων Ευρ. / Ιουν.): I = {obs:+.3f}  (τυχαία: {sim.mean():+.3f} ± {sim.std():.3f}, p = {(1 + (sim >= obs).sum()) / 1000:.3f})")
+print(f"Συγκράτηση (log ψήφων {EA} / {"Ιουν." if party.DEFAULT_PAIR else JA}): I = {obs:+.3f}  (τυχαία: {sim.mean():+.3f} ± {sim.std():.3f}, p = {(1 + (sim >= obs).sum()) / 1000:.3f})")
 
 # 3. the communities left out (no neighbour by shared vertex): link each to its 3 nearest centroids and recompute
 cen = {}
@@ -229,5 +240,5 @@ for k in allc:
 pr = [(p2[a], p2[b]) for a in allc for b in adj2[a]]
 i2, j2 = np.array([p[0] for p in pr]), np.array([p[1] for p in pr])
 x2 = np.array([100 * dj[k][2] / dj[k][1] for k in allc])
-print(f"Με τις {island} απομονωμένες (3 πλησιέστερα κέντρα ως γείτονες), {len(allc)} κοινότητες: I ποσοστού Ιουνίου = "
+print(f"Με τις {island} απομονωμένες (3 πλησιέστερα κέντρα ως γείτονες), {len(allc)} κοινότητες: I ποσοστού {BASE_GEN2} = "
       f"{moran(x2, i2, j2, 1 / np.bincount(i2, minlength=len(allc))[i2]):+.3f}")

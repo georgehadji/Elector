@@ -1,4 +1,10 @@
 """Types of community by vote profile (k-means), and where NIKH (party 131) lost votes in each.
+Any other party: --party=ID (and --rival=ID, default 108; see party.py). Nothing here is NIKH-only; the other four
+variables are the rival, then Σπαρτιάτες, ΝΔ, ΚΚΕ (skipping any already used), so the studied party's own variable comes first.
+
+Any pair of elections: --base=KEY --target=KEY (config.ELECTIONS keys, older first; default June 2023 -> Euro 2024). The texts
+say June 2023 / Euro 2024 for the default pair and name the chosen elections otherwise. Nothing here is a hand-entered
+NIKH constant, so no part is limited to party.REFERENCE.
 
 Per ELSTAT community (>= 50 valid votes in June 2023 and Euro 2024, matched by area_match), 8 standardised variables:
 June 2023 shares of NIKH, Ελλ. Λύση, Σπαρτιάτες, ΝΔ, ΚΚΕ; abstention in June 2023 (1 - valid / registered, a relative
@@ -7,7 +13,7 @@ k-means (k-means++ start, 10 restarts, seed fixed) for k = 4..8, k chosen by the
 unweighted places: the tables then weight by votes. Unofficial results.
 
 Run build.py <election> all first (area_match), then:
-  python -I -X utf8 analysis/nikh_clusters.py data/stavroi.sqlite
+  python -I -X utf8 analysis/nikh_clusters.py data/stavroi.sqlite [--party=ID] [--rival=ID] [--base=KEY] [--target=KEY]
 """
 import sqlite3
 import sys
@@ -16,10 +22,22 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import NIKH, REGIONS
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import party
+from config import PARTY_SHORT, REGIONS
 
-J, E = "2023/june", "2024/euro"
-VARS = {131: "ΝΙΚΗ", 108: "Ελλ. Λύση", 157: "Σπαρτιάτες", 2: "ΝΔ", 3: "ΚΚΕ"}
+J, E = party.BASE, party.TARGET
+BN, TN = party.ABBR[J], party.ABBR[E]  # column abbreviations ("Ιούν.", "Ευρ." by default)
+BASE_W = "Ιουνίου 2023)" if party.DEFAULT_PAIR else f"{party.BASE_NAME})"  # closes the parenthesis of the weights note
+BASE_G = "Ιουνίου" if party.DEFAULT_PAIR else party.BASE_NAME
+NIKH, NAME = party.ID, party.NAME  # the studied party (the name NIKH is kept for the code below)
+_ids = [NIKH]
+for _p in (party.RIVAL, 157, 2, 3, 131, 108, 4, 106):  # for NIKH: 131, 108, 157, 2, 3, as before
+    if _p not in _ids and len(_ids) < 5:
+        _ids.append(_p)
+VARS = {p: {108: "Ελλ. Λύση", 131: "ΝΙΚΗ"}.get(p, PARTY_SHORT.get(p, str(p))) for p in _ids}
+ABBR = {108: "Ελ.Λ.", 157: "Σπαρτ."}
+SLOTS = list(zip(_ids[1:], (7, 8, 6, 6)))  # table columns after the studied party: (party, width)
 rng = np.random.default_rng(2026)
 
 
@@ -87,9 +105,11 @@ EP = np.array([dj[k][2] for k in codes])
 sh = {p: 100 * np.array([dj[k][3].get(p, 0) for k in codes], float) / VJ for p in VARS}
 nj = np.array([dj[k][3].get(NIKH, 0) for k in codes], float)
 ne = np.array([de[k][3].get(NIKH, 0) for k in codes], float)
+if nj.sum() == 0:
+    raise SystemExit(f"{NAME}: no votes in {party.BASE_NAME} (--base={J}), nothing to cluster")
 X = np.column_stack([*sh.values(), 100 * (1 - VJ / R), 100 * ne / VE - 100 * nj / VJ, np.log10(R)])
-names = [*VARS.values(), "αποχή Ιουν.", "μεταβολή ΝΙΚΗΣ", "log10 εγγεγρ."]
-Z = (X - X.mean(0)) / X.std(0)
+names = [*VARS.values(), "αποχή Ιουν." if party.DEFAULT_PAIR else f"αποχή {BN}", f"μεταβολή {party.GEN}", "log10 εγγεγρ."]
+Z = (X - X.mean(0)) / np.where(X.std(0) > 0, X.std(0), 1)  # a party absent from the base election is a constant 0: no spread
 print(f"{len(codes)} κοινότητες, {len(names)} μεταβλητές: {', '.join(names)}")
 
 print("\nk-means: μέση silhouette (υψηλότερη = πιο καθαρός διαχωρισμός)")
@@ -115,30 +135,29 @@ def ari(a, b):
 
 assert ari(np.array([0, 0, 1, 1]), np.array([1, 1, 0, 0])) == 1
 # check: are the types stable? k-means again from 5 other seeds, and the "stronghold" type (highest NIKH share) each time
-print(f"\nΣταθερότητα των τύπων (k = {k}, 5 άλλοι σπόροι): ARI με την επιλεγμένη λύση, και ο τύπος με το υψηλότερο ποσοστό ΝΙΚΗΣ")
+print(f"\nΣταθερότητα των τύπων (k = {k}, 5 άλλοι σπόροι): ARI με την επιλεγμένη λύση, και ο τύπος με το υψηλότερο ποσοστό {party.GEN}")
 for seed in range(1, 6):
     rng = np.random.default_rng(seed)
     l2, _ = kmeans(Z, k)
     top = max(range(k), key=lambda i: nj[l2 == i].sum() / VJ[l2 == i].sum())
     m = l2 == top
-    print(f"  σπόρος {seed}: ARI {ari(lab, l2):.2f}· κάστρα: {m.sum()} κοιν., {100 * nj[m].sum() / nj.sum():.0f}% των ψήφων ΝΙΚΗΣ, "
+    print(f"  σπόρος {seed}: ARI {ari(lab, l2):.2f}· κάστρα: {m.sum()} κοιν., {100 * nj[m].sum() / nj.sum():.0f}% των ψήφων {party.GEN}, "
           f"κράτησε {100 * ne[m].sum() / nj[m].sum():.0f}%, χαμένες ανά 1000 εγγ. {1000 * (nj[m] - ne[m]).sum() / R[m].sum():.1f}")
 
 tot_nj, tot_loss = nj.sum(), (nj - ne).sum()
-print(f"\nΤύποι κοινοτήτων (σταθμισμένοι με ψήφους Ιουνίου 2023). Σύνολο ΝΙΚΗ {tot_nj:,.0f} → {ne.sum():,.0f}, καθαρή απώλεια {tot_loss:,.0f}")
-print(f"  {'τύπος':<6}{'κοιν.':>6}{'ψήφοι ΝΙΚΗΣ':>12}{'%':>5}{'ΝΙΚΗ Ιούν.':>11}{'Ευρ.':>6}{'κράτησε':>9}{'Ελ.Λ.':>7}{'Σπαρτ.':>8}{'ΝΔ':>6}"
-      f"{'ΚΚΕ':>6}{'αποχή':>7}{'εγγ. διάμ.':>11}{'χαμένες':>9}{'ανά 1000 εγγ.':>14}")
+print(f"\nΤύποι κοινοτήτων (σταθμισμένοι με ψήφους {BASE_W}. Σύνολο {NAME} {tot_nj:,.0f} → {ne.sum():,.0f}, καθαρή απώλεια {tot_loss:,.0f}")
+print(f"  {'τύπος':<6}{'κοιν.':>6}{'ψήφοι ' + party.GEN[:5]:>12}{'%':>5}{NAME[:4] + ' ' + BN:>11}{TN:>6}{'κράτησε':>9}"
+      + "".join(f"{ABBR.get(p, VARS[p])[:w - 1]:>{w}}" for p, w in SLOTS) + f"{'αποχή':>7}{'εγγ. διάμ.':>11}{'χαμένες':>9}{'ανά 1000 εγγ.':>14}")
 order = np.argsort([-nj[lab == i].sum() for i in range(k)])
 for rank, i in enumerate(order, 1):
     m = lab == i
     v, nn, ee = VJ[m].sum(), nj[m].sum(), ne[m].sum()
     print(f"  {rank:<6}{m.sum():>6}{nn:>12,.0f}{100 * nn / tot_nj:>5.0f}{100 * nn / v:>10.2f}%{100 * ee / VE[m].sum():>5.2f}%{100 * ee / nn:>8.0f}%"
-          f"{sh[108][m].dot(VJ[m]) / v:>7.1f}{sh[157][m].dot(VJ[m]) / v:>8.1f}{sh[2][m].dot(VJ[m]) / v:>6.1f}"
-          f"{sh[3][m].dot(VJ[m]) / v:>6.1f}{100 * (1 - v / R[m].sum()):>7.0f}{np.median(R[m]):>11,.0f}{nn - ee:>9,.0f}"
+          + "".join(f"{sh[p][m].dot(VJ[m]) / v:>{w}.1f}" for p, w in SLOTS) + f"{100 * (1 - v / R[m].sum()):>7.0f}{np.median(R[m]):>11,.0f}{nn - ee:>9,.0f}"
           f"{1000 * (nn - ee) / R[m].sum():>14.1f}")
-print("  (% ψήφων, ποσοστά σε % των έγκυρων· κράτησε = ΝΙΚΗ Ευρ. / ΝΙΚΗ Ιούν.· χαμένες = καθαρή απώλεια ψήφων)")
+print(f"  (% ψήφων, ποσοστά σε % των έγκυρων· κράτησε = {NAME} {TN} / {NAME} {BN}· χαμένες = καθαρή απώλεια ψήφων)")
 
-print("\nΠεριφέρειες ανά τύπο (οι 3 με τις περισσότερες ψήφους ΝΙΚΗΣ Ιουνίου):")
+print(f"\nΠεριφέρειες ανά τύπο (οι 3 με τις περισσότερες ψήφους {party.GEN} {BASE_G}):")
 for rank, i in enumerate(order, 1):
     m = lab == i
     by = {}

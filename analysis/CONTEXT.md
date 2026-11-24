@@ -8,6 +8,8 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | Fact | Home |
 |---|---|
 | Party id 131 | `config.NIKH` (import it; never retype) |
+| Which party a `nikh_*` script studies | `party.py`: `--party=ID`, `--rival=ID` (default NIKH, 108), `--out=PATH` for pages of another party (never in `out/`); `--base=KEY --target=KEY` (default 2023/june → 2024/euro) in the scripts that compare two elections; NIKH-only sections run only when `party.IS_NIKH`, those about NIKH June 2023 → Euro 2024 only when `party.REFERENCE` |
+| Party names, genitive | `config.PARTY_SHORT`, `config.PARTY_GEN` |
 | Polls since Sep 2023 | `nikh_polls.csv` (`niki` column hand-checked; other party columns from `polls_wiki.py`); May/June 2023: `nikh_polls_2023.csv` |
 | Polls and ballots of all parties, 2007-2024 | `nikh_pollerror.csv` (from `polls_wiki.py`) |
 | NIKH level today / in H days | `nikh_polls.estimate(H)` |

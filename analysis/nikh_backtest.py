@@ -11,8 +11,9 @@ Outcome: Euro 2024 NIKH votes. Capture(x) = share of the Euro 2024 votes that si
 Bootstrap: 1000 resamples of the units with replacement (seed 2026), the same resample for every rule; 95% interval = 2.5-97.5
 percentile. Differences are paired. One election pair, one party: the result says how stable the vote was between 2023 and 2024,
 not how it will move in 2026. Euro 2024 has lower turnout than a national election.
+Any other party: --party=ID (see party.py); nothing here is NIKH-only input, the rules use only that party's votes.
 
-  python -I -X utf8 analysis/nikh_backtest.py data/stavroi.sqlite
+  python -I -X utf8 analysis/nikh_backtest.py data/stavroi.sqlite [--party=ID] [--rival=ID]
 """
 import random
 import sqlite3
@@ -21,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import party
 from zones import assign_tiers, load_units
 
 ELECTIONS = ("2023/may", "2023/june", "2024/euro")
@@ -72,7 +74,7 @@ def pct(xs, f):
 
 if __name__ == "__main__":
     c = sqlite3.connect(sys.argv[1])
-    units = load_units(c, ELECTIONS)
+    units = load_units(c, ELECTIONS, party.ID)
     n = len(units)
     # self-checks: no order beats the oracle by more than one unit (capture drops the unit that crosses the cut, so a rule can
     # fill the cut more fully; the fractional oracle is an upper bound and loses at most that one unit), and any order captures > 0
@@ -80,7 +82,7 @@ if __name__ == "__main__":
     biggest = max(u["v"]["2024/euro"] for u in units) / sum(u["v"]["2024/euro"] for u in units)
     assert all(capture(pos["oracle"], units, x) + biggest >= capture(pos[r], units, x) for r in RULES for x in CUTS)
     assert all(capture(list(range(n)), units, x) > 0 for x in CUTS)
-    print(f"{n} δημοτικές ενότητες, {sum(u['reg'] for u in units):,} εγγεγραμμένοι. Ευρωεκλογές 2024, ψήφοι ΝΙΚΗΣ: "
+    print(f"{n} δημοτικές ενότητες, {sum(u['reg'] for u in units):,} εγγεγραμμένοι. Ευρωεκλογές 2024, ψήφοι {party.GEN}: "
           f"{sum(u['v']['2024/euro'] for u in units):,}")
 
     print("\nΖώνες από το σκορ του 2023 (μόνο Μάιος+Ιούνιος 2023), αποτέλεσμα Ευρωεκλογές 2024")
