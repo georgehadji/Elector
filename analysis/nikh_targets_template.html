@@ -124,15 +124,18 @@ let current = "target";
 const map = L.map("map", {preferCanvas: true, zoomSnap: 0.25}).setView([38.6, 23.8], 6.5);
 map.attributionControl.addAttribution("Όρια: ΕΛΣΤΑΤ 2021 · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)");
 const FAINT = {weight: 0.3, color: "#888", fillColor: "#ccc", fillOpacity: 0.25};
+// background communities: a light wash on paper, almost nothing in dark theme (a light grey there drowns the colours)
+const BASE = () => document.documentElement.dataset.theme === "dark"
+  ? {weight: 0.2, color: "#0000", fillColor: "#8a8a8a", fillOpacity: 0.12} : {weight: 0.2, color: "#5552", fillColor: "#e8e6e1", fillOpacity: 0.5};
 
 function style(f) {
   const a = f.properties, s = share(a.j), op = a.j[1] < 50 ? 0.45 : 0.85;
   if (current === "target") return {weight: 0.3, color: "#5553", fillColor: CLASSES[a.k][1], fillOpacity: a.k === 5 ? 0.5 : op};
   if (current === "seats") return {weight: 0.3, color: "#5553", fillColor: TIERS[a.t][1], fillOpacity: 0.8};
-  if (current === "hot") return a.h === undefined ? {weight: 0.2, color: "#5552", fillColor: "#e8e6e1", fillOpacity: 0.5}
+  if (current === "hot") return a.h === undefined ? BASE()
     : a.h >= D.top ? {weight: 1, color: SMALL, fillColor: SMALL, fillOpacity: 0.85}
     : {weight: 0.3, color: "#5553", fillColor: HOT_COLORS[a.h], fillOpacity: 0.85};
-  if (current === "votes") return {weight: 0.2, color: "#5552", fillColor: "#e8e6e1", fillOpacity: 0.5};
+  if (current === "votes") return BASE();
   if (current === "pool") return a.j[1] ? {weight: 0.3, color: "#5553", fillColor: bin(100 * a.p / a.j[1], POOL_BINS, POOL_COLORS), fillOpacity: op} : FAINT;
   const e = share(a.e);
   if (s === null || e === null) return FAINT;
@@ -154,8 +157,9 @@ map.on("tooltipopen", () => map.getContainer().classList.add("tipping"));
 map.on("tooltipclose", () => map.getContainer().classList.remove("tipping"));
 const layer = L.geoJSON(D.geo, {style, onEachFeature: (f, l) => {
   l.bindTooltip(() => tip(f), {sticky: true, className: "t"});
-  l.on("click", () => l.openTooltip());
-  l.on("mousemove", e => {  // keep the tooltip inside the map: it is placed beside the cursor, so shift it sideways and up/down (one event behind)
+  l.on("click", e => { l.openTooltip(e.latlng); fit(e); });  // a tap has no mousemove: fit it here too
+  l.on("mousemove", fit);
+  function fit(e) {  // keep the tooltip inside the map: it is placed beside the cursor, so shift it sideways and up/down (one event behind)
     const t = l.getTooltip(), el = t && t.getElement();
     if (!el) return;
     const w = el.offsetWidth, h = el.offsetHeight, {x, y} = e.containerPoint, size = map.getSize();
@@ -165,7 +169,7 @@ const layer = L.geoJSON(D.geo, {style, onEachFeature: (f, l) => {
     const dy = Math.max(4 - (y - h / 2), Math.min(0, size.y - 4 - (y + h / 2)));
     const o = L.point(t.options.offset), ox = left ? -dx : dx;  // for the left side Leaflet applies the x offset reversed
     if (Math.abs(ox - o.x) > 0.5 || Math.abs(dy - o.y) > 0.5) { t.options.offset = L.point(ox, dy); t.update(); }
-  });
+  }
 }}).addTo(map);
 // Circles for the votes view: area proportional to NIKH's June votes.
 const circles = L.layerGroup();
@@ -227,6 +231,7 @@ function setView(k) {
   if (k === "hot") rings.addTo(map); else rings.remove();
   drawLegend();
 }
+addEventListener("themechange", () => layer.setStyle(style));
 for (const [k, name] of Object.entries(VIEWS)) {
   const b = document.createElement("button");
   b.textContent = name; b.dataset.k = k; b.onclick = () => setView(k);

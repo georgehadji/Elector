@@ -120,11 +120,15 @@ groups = sorted(hot_clusters(share, {k: comms[k]["geometry"] for k in share}),
                 key=lambda g: -sum(by_code[k]["j"][0] for k in g))
 clusters = []
 for i, g in enumerate(groups):
-    eps = defaultdict(int)
+    eps, units = defaultdict(int), defaultdict(int)
     for k in g:
         by_code[k]["h"] = i  # the page names the first TOP in the legend and draws the rest in one colour
         eps[by_code[k]["ep"]] += by_code[k]["j"][0]
-    clusters.append({"name": ", ".join(sorted(eps, key=eps.get, reverse=True)[:3]), "areas": len(g),
+        units[by_code[k]["u"]] += by_code[k]["j"][0]
+    top = lambda d, n: ", ".join(sorted(d, key=d.get, reverse=True)[:n])  # noqa: E731
+    # small clusters sit inside one constituency, so their constituency name repeats: name them by municipal unit
+    name = top(eps, 3) if i < TOP else f"{top(units, 2)} ({top(eps, 1)})"
+    clusters.append({"name": name, "areas": len(g),
                      "votes": sum(by_code[k]["j"][0] for k in g)})
 print(f"hot: {sum(len(g) for g in groups)} communities in {len(groups)} clusters, "
       f"{sum(c['votes'] for c in clusters):,} {'NIKH' if party.IS_NIKH else party.NAME} votes")
