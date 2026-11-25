@@ -3,6 +3,7 @@
 Run: python -I -X utf8 -m unittest discover -s tests
 Needs the pages built (build.py <election> all, build.py index, compare.py).
 """
+import json
 import re
 import struct
 import sys
@@ -223,6 +224,43 @@ class Index(unittest.TestCase):
         self.assertEqual(len(re.findall(r'<h3 class="reg" id="reg-\d+">', s)), 13)
         self.assertEqual(c.h4, len(c.cards))
         self.assertEqual(s.count("<h1>"), 1)
+
+
+class VercelHeaders(unittest.TestCase):
+    """The headers a <meta> cannot set. Needs no built page: vercel.json is in the repo."""
+    rules = json.loads((OUT.parent / "vercel.json").read_text(encoding="utf-8"))["headers"]
+
+    def header(self, source, key):
+        for rule in self.rules:
+            if rule["source"] == source:
+                return next((h["value"] for h in rule["headers"] if h["key"] == key), None)
+        self.fail(f"no rule for {source}")
+
+    def test_csp_header(self):
+        csp = self.header("/(.*)", "Content-Security-Policy")
+        for directive in ("frame-ancestors 'none'", "object-src 'none'", "base-uri 'none'", "form-action 'none'",
+                          "upgrade-insecure-requests"):
+            self.assertIn(directive, csp)
+
+    def test_plain_headers(self):
+        self.assertEqual(self.header("/(.*)", "X-Frame-Options"), "DENY")
+        self.assertEqual(self.header("/(.*)", "X-Content-Type-Options"), "nosniff")
+        self.assertEqual(self.header("/(.*)", "Cross-Origin-Opener-Policy"), "same-origin")
+        # tile.openstreetmap.org refuses requests without a Referer, so never "no-referrer"
+        self.assertEqual(self.header("/(.*)", "Referrer-Policy"), "strict-origin-when-cross-origin")
+
+    def test_permissions_policy_keeps_copy_button_working(self):
+        policy = self.header("/(.*)", "Permissions-Policy")
+        for feature in ("camera", "microphone", "geolocation", "payment", "usb", "accelerometer", "gyroscope", "magnetometer",
+                        "bluetooth", "serial", "hid", "midi", "display-capture"):
+            self.assertIn(f"{feature}=()", policy)
+        for feature in ("clipboard-write", "fullscreen"):  # the copy-link button and the map controls need these
+            self.assertNotIn(feature, policy)
+
+    def test_resource_policy_open_only_for_share_pictures(self):
+        self.assertEqual(self.header("/((?!out/og/).*)", "Cross-Origin-Resource-Policy"), "same-origin")
+        self.assertEqual(self.header("/out/og/(.*)", "Cross-Origin-Resource-Policy"), "cross-origin")
+        self.assertFalse(self.header("/(.*)", "Cross-Origin-Resource-Policy"))  # that rule would also cover out/og/
 
 
 if __name__ == "__main__":
