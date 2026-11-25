@@ -1,7 +1,8 @@
 """Benchmark: an outside Greek parliamentary forecast (site: BASE below) -> analysis/benchmark_runs.csv, analysis/benchmark_parties.csv.
 
-PROTOTYPE, NOT SCHEDULED, NOT RUN AGAINST THE SITE. Plan, legal position and open questions: analysis/benchmark_plan.md.
-Run it against the network only after the site owner has agreed (or the user has decided to use it privately and locally).
+Run every second day by .github/workflows/benchmark.yml (opens or updates one PR; a human merges). First run 24 Nov 2026.
+The user decided that no permission from the site owner is needed; none was asked for (the plan's draft request was not sent).
+Plan, legal position and open risks: analysis/benchmark_plan.md.
 
 Source: BASE + /data/greece.json, the file the public page greece.html loads itself (robots.txt: Allow: /).
 Undocumented; no terms of use or licence found (24 Nov 2026). Their estimate is published weekly (Sunday as_of date, file
