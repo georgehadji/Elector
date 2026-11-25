@@ -19,6 +19,7 @@ import html
 import json
 import sqlite3
 import sys
+import unicodedata
 from datetime import date
 from pathlib import Path
 
@@ -121,8 +122,8 @@ def lead(r, key):
     nd = r["parties"]["ND"]
     return (f'<p class="lead h{key}">Αν οι εκλογές γίνονταν {WHEN[key]}, η ΝΔ θα ήταν πρώτη {in_sims(nd["p_first"])}, '
             f'με {num(nd["share"][1])}% και {nd["seats"][1]} έδρες (μεσαία τιμή). '
-            f'Αυτοδύναμη θα ήταν {in_sims(r["p_nd_majority"])}· μαζί με το ΠΑΣΟΚ θα είχε 151 έδρες '
-            f'{in_sims(r["p_nd_pasok_151"])}.</p>')
+            f'Αυτοδύναμη θα ήταν {in_sims(r["p_nd_majority"])}. Μαζί με το ΠΑΣΟΚ θα είχε 151 έδρες '
+            f'{in_sims(r["p_nd_pasok_151"])}, μαζί με την ΕΛΑΣ {in_sims(r["p_nd_elas_151"])}.</p>')
 
 
 def hist_range(h):
@@ -233,9 +234,9 @@ def seat_table(r, order, names):
         if "seats" not in d or d["seats"][2] == 0:  # OTHER has no seats
             continue
         rows.append(f'<tr><td><span class="sw" style="--c:{colour(p)}"></span>{html.escape(names[p])}</td>'
-                    f'<td class="n">{pct(d["p_first"])}</td><td class="n">{seats_range(d["seats"])}</td>'
+                    f'<td class="n pf">{pct(d["p_first"])}</td><td class="n">{seats_range(d["seats"])}</td>'
                     f'<td class="n">{seats_range(d["seats_bonus"])}</td><td class="n">{seats_range(d["seats_nobonus"])}</td></tr>')
-    return ('<div class="wrap"><table><thead><tr><th>κόμμα</th><th class="n">βγαίνει πρώτο</th><th class="n">έδρες</th>'
+    return ('<div class="wrap"><table><thead><tr><th>κόμμα</th><th class="n pf">βγαίνει πρώτο</th><th class="n">έδρες</th>'
             '<th class="n">αν υπάρχει μπόνους</th><th class="n">χωρίς μπόνους</th></tr></thead><tbody>'
             + "".join(rows) + '</tbody></table></div>'
             '<p class="note">Έδρες: η μεσαία τιμή των προσομοιώσεων και, σε παρένθεση, το εύρος όπου πέφτει στις 8 από τις 10. '
@@ -284,7 +285,8 @@ def histograms(r):
             "κόμμα δεν έφτασε το 25%.")
     for key, title, p in (("hist_nd", "Έδρες της ΝΔ", r["p_nd_majority"]),
                           ("hist_nd_pasok", "Έδρες ΝΔ και ΠΑΣΟΚ μαζί", r["p_nd_pasok_151"]),
-                          ("hist_nd_elas", "Έδρες ΝΔ και ΕΛΑΣ μαζί", r["p_nd_elas_151"])):
+                          ("hist_nd_elas", "Έδρες ΝΔ και ΕΛΑΣ μαζί", r["p_nd_elas_151"]),
+                          ("hist_pasok_elas", "Έδρες ΠΑΣΟΚ και ΕΛΑΣ μαζί", r["p_pasok_elas_151"])):
         out.append(f'<figure><h3>{title}</h3><div class="wide">{hist(r[key], 440, 210, 12, 20)}</div>'
                    f'<div class="narrow">{hist(r[key], 360, 210, 12, 20)}</div>'
                    f'<figcaption>151 ή περισσότερες: {pct(p)}.</figcaption></figure>')
@@ -318,7 +320,6 @@ def per_ep(r, order, names):
 def record():
     """How close each firm fell at 2019, May 2023 and June 2023 (pollster_record.py), and whether weights would move the shares."""
     rows, bench = PR.table()
-    top = max(r["avg"] for r in rows)
     may = [r["by"]["2023/may"] for r in rows if "2023/may" in r["by"]]
     other = [e for r in rows for k, e in r["by"].items() if k != "2023/may"]
     a, b = F.levels(), F.levels(weighted=True)
@@ -334,18 +335,19 @@ def record():
     body_rows = []
     for r in rows:
         cells = "".join(f'<td class="n">{num(r["by"][e]) if e in r["by"] else "·"}</td>' for e in PR.ELECTIONS)
-        body_rows.append(f'<tr><td>{html.escape(r["firm"])}</td><td class="rbar"><div class="meter" aria-hidden="true">'
-                         f'<i style="width:{100 * r["avg"] / top:.0f}%"></i></div></td><td class="n">{num(r["avg"])}</td>{cells}</tr>')
+        body_rows.append(f'<tr><td>{html.escape(r["firm"])}</td><td class="n">{len(r["by"])}</td>'
+                         f'<td class="n">{num(r["avg"])}</td>{cells}</tr>')
     return ('<section class="rec" aria-labelledby="rh"><h2 id="rh">Πόσο κοντά έπεσαν οι εταιρείες δημοσκοπήσεων</h2>'
             '<p class="note">Για κάθε εταιρεία που δημοσκοπεί σήμερα: πόσο απείχε η τελευταία της δημοσκόπηση πριν την κάλπη '
             '(έως 21 ημέρες πριν) από το αποτέλεσμα, στις εκλογές του 2019, του Μαΐου 2023 και του Ιουνίου 2023. Η τιμή είναι η '
             'μέση διαφορά ανά κόμμα με 3% και πάνω, σε ποσοστιαίες μονάδες. Μικρότερη σημαίνει πιο κοντά. «·»: η εταιρεία '
             f'δεν είχε τότε δημοσκόπηση στο διάστημα αυτό. Όλες οι δημοσκοπήσεις μαζί απείχαν κατά μέσο όρο {num(bench)} μονάδες.</p>'
-            '<div class="wrap"><table class="rec"><thead><tr><th>εταιρεία</th><th></th><th class="n">μέσος όρος</th>'
-            f'{head}</tr></thead><tbody>' + "".join(body_rows) + '</tbody></table></div>'
             f'<p class="note">{spread}Οι διαφορές '
             'ανάμεσα στις περισσότερες εταιρείες είναι μικρότερες από τις διακυμάνσεις από εκλογή σε εκλογή: ο πίνακας δείχνει πόσο '
-            'κοντά έπεσαν, όχι πόσο κοντά θα πέσουν. Στο μέσο όρο που βγάζουμε, όλες οι εταιρείες μετράνε το ίδιο. Δοκιμάσαμε να '
+            'κοντά έπεσαν, όχι πόσο κοντά θα πέσουν, και δεν είναι κατάταξη.</p>'
+            '<div class="wrap"><table class="rec"><thead><tr><th>εταιρεία</th><th class="n">εκλογές</th><th class="n">μέσος όρος</th>'
+            f'{head}</tr></thead><tbody>' + "".join(body_rows) + '</tbody></table></div>'
+            '<p class="note">Στο μέσο όρο που βγάζουμε, όλες οι εταιρείες μετράνε το ίδιο. Δοκιμάσαμε να '
             f'μετράνε λίγο περισσότερο οι πιο κοντινές: {tested}</p></section>')
 
 
@@ -364,15 +366,16 @@ def ep_geometries():
     return out
 
 
-MAP_BINS = ((0.5, 30), (1, 50), (2, 72), (float("inf"), 95))  # mean seats below -> % of the party colour
+MAP_BINS = ((0.5, 40), (1, 58), (2, 76), (float("inf"), 95))  # mean seats below -> % of the party colour
 
 
 def ep_map(data, order, names):
     """Expected seats per constituency on a map of Greece with Attica enlarged beside it: for the party picked (radio
     buttons), its mean seats in each constituency, in four steps of its colour (the legend takes the same colour). Each
     region carries the class of its step per horizon and party; generated CSS lights the classes of the checked pair. A
-    tap or focus shows every party's seats in that constituency under the country map (between it and the inset on a
-    phone) and marks the constituency in both figures."""
+    tap, focus or the constituency list shows every party's seats in that constituency under the country map (between it
+    and the inset on a phone) and marks the constituency in both figures. Attica's constituencies take keyboard focus only
+    in the inset, so each constituency is one tab stop."""
     geoms = ep_geometries()
     hz = data["horizons"]
     eps = {ep: e for ep, e in hz["0"]["eps"].items() if ep != "state"}
@@ -389,7 +392,7 @@ def ep_map(data, order, names):
         m = sorted(((p, v) for p, v in means[key][ep].items() if v >= 0.05), key=lambda pv: -pv[1])
         return f'{eps[ep]["name"]}, {eps[ep]["seats"]} έδρες: ' + " · ".join(f"{names[p]} {num(v)}" for p, v in m)
 
-    def svg(shown, size, label, box=None):
+    def svg(shown, size, label, box=None, focus=()):
         """`box` (lon, lat, lon, lat): frame only the units inside it; the rest is drawn but falls outside the view."""
         inside = [g for ep in shown for g in geoms[ep]
                   if box is None or box[0] < centroid(g)[0] < box[2] and box[1] < centroid(g)[1] < box[3]]
@@ -404,12 +407,14 @@ def ep_map(data, order, names):
                 continue
             cls = " ".join(f"h{key}-{p}-{step(ep, key, p)}" for key in hz for p in picks)
             data_ = "".join(f' data-d{key}="{html.escape(detail(ep, key), quote=True)}"' for key in hz)
-            out.append(f'<path class="{cls}" d="{d}" data-ep="{ep}" tabindex="0" aria-label="{html.escape(eps[ep]["name"], quote=True)}"'
+            tab = ' tabindex="0"' if ep in focus else ""
+            out.append(f'<path class="{cls}" d="{d}" data-ep="{ep}"{tab} aria-label="{html.escape(eps[ep]["name"], quote=True)}"'
                        f'{data_}/>')
         return f'<svg viewBox="0 0 {w} {h}" role="group" aria-label="{label}">' + "".join(out) + "</svg>"
 
-    country = svg([*(ep for ep in eps), None], 440, "Χάρτης της Ελλάδας ανά εκλογική περιφέρεια")
-    zoom = svg(attica, 260, "Αττική σε μεγέθυνση", box=(22.8, 37.6, 24.2, 38.4))  # without Kythira and the far islands
+    country = svg([*(ep for ep in eps), None], 440, "Χάρτης της Ελλάδας ανά εκλογική περιφέρεια",
+                  focus=[ep for ep in eps if ep not in attica])
+    zoom = svg(attica, 260, "Αττική σε μεγέθυνση", box=(22.8, 37.6, 24.2, 38.4), focus=attica)  # without Kythira and the far islands
     chips = "".join(f'<label><input type="radio" name="m" id="m-{p}"{" checked" if i == 0 else ""}>'
                     f'<i style="--c:{colour(p)}"></i>{html.escape(names[p])}</label>' for i, p in enumerate(picks))
     css = "".join(f"main:has(#h{key}:checked):has(#m-{p}:checked) .h{key}-{p}-{b}"
@@ -418,17 +423,23 @@ def ep_map(data, order, names):
     css += "".join(f"main:has(#m-{p}:checked) .legend.bins{{--c:{'var(--mute)' if p in HATCHED else colour(p)}}}"
                    for p in picks)
     bins = ["κάτω από 0,5", "0,5–1", "1–2", "2 και πάνω"]
-    key_ = ('<li><i class="z"></i>καμία</li>'
+    key_ = ('<li><i class="z"></i>σχεδόν καμία</li>'
             + "".join(f'<li><i style="background:color-mix(in oklab,var(--c) {k}%,var(--paper))"></i>{t}</li>'
                       for (_, k), t in zip(MAP_BINS, bins)))
+    fold = lambda t: "".join(c for c in unicodedata.normalize("NFD", t) if not unicodedata.combining(c)).upper()
+    options = "".join(f'<option value="{ep}">{html.escape(eps[ep]["name"])}</option>'
+                      for ep in sorted(eps, key=lambda ep: fold(eps[ep]["name"])))
     tables = "".join(f'<div class="h{key}">{per_ep(r, order, names)}</div>' for key, r in hz.items())
     return css, (f'<h2>Έδρες ανά περιφέρεια, εκλογές <span class="h0">{WHEN["0"]}</span><span class="h180">{WHEN["180"]}</span></h2>'
-                 '<p class="note">Πόσες έδρες παίρνει κατά μέσο όρο σε κάθε περιφέρεια το κόμμα που διαλέγεις. Οι 15 έδρες '
-                 'Επικρατείας δεν φαίνονται στον χάρτη.</p>'
+                 '<p class="note">Πόσες έδρες παίρνει κατά μέσο όρο σε κάθε περιφέρεια το κόμμα που διαλέγεις. Οι μεγάλες '
+                 'περιφέρειες έχουν περισσότερες έδρες, γι’ αυτό βγαίνουν συνήθως πιο σκούρες. Οι 15 έδρες Επικρατείας δεν '
+                 'φαίνονται στον χάρτη.</p>'
                  f'<fieldset class="pick"><legend>Κόμμα:</legend>{chips}</fieldset>'
                  f'<p class="legend-t">Μέσος όρος εδρών:</p><ul class="legend bins">{key_}</ul>'
+                 f'<p class="epsel"><label for="ep">Περιφέρεια:</label> <select id="ep"><option value="">διάλεξε…</option>'
+                 f'{options}</select></p>'
                  f'<div class="epmap"><figure>{country}</figure>'
-                 '<div class="epd"><p aria-live="polite">Πάτησε μια περιφέρεια για τις έδρες όλων των κομμάτων εκεί.</p>'
+                 '<div class="epd"><p aria-live="polite">Πάτησε ή διάλεξε μια περιφέρεια για τις έδρες όλων των κομμάτων εκεί.</p>'
                  '<p class="note">Οι έδρες είναι μέσοι όροι των προσομοιώσεων, γι’ αυτό έχουν δεκαδικά: 0,4 είναι σαν μία '
                  'έδρα στις 4 από τις 10.</p></div>'
                  f'<figure>{zoom}<figcaption>Αττική σε μεγέθυνση</figcaption></figure></div>' + tables)
