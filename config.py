@@ -32,6 +32,27 @@ def slug(election):
     return election.replace("/", "-")
 
 
+# Share pictures, out/og/<kind>.png (1200x630, made by og_image.py): kind -> (title, line under it).
+OG_IMAGES = {
+    "site": ("Χάρτες σταυρών", "Αποτελέσματα εκλογών ανά κοινότητα και εκλογικό τμήμα"),
+    "compare": ("Σύγκριση εκλογών", "Ποσοστό κάθε κόμματος ανά κοινότητα, 2019–2024"),
+    "nikh": ("ΝΙΚΗ", "Χάρτες, στόχευση και δημοσκοπήσεις"),
+    "coverage": ("Κάλυψη χαρτών", "Πόσες περιοχές έχουν θέση στον χάρτη"),
+} | {slug(k): ("Χάρτες σταυρών", t) for k, (_, t) in ELECTIONS.items()}  # one per election, for its map pages
+
+
+def og_kind(name):
+    """Which share picture a page file gets: its election's, or one per kind of nationwide page; "site" otherwise."""
+    m = re.match(r"([^_]+)_\d", name)
+    if m and m[1] in OG_IMAGES:
+        return m[1]
+    if name.startswith("index_"):
+        return "coverage"
+    if name.lower().startswith("nikh_"):
+        return "nikh"
+    return "compare" if name == "compare.html" else "site"
+
+
 BASE = "https://ekloges-prev.singularlogic.eu/{election}"
 # shortcut: Euro 2024 still lives under /current; move to its ekloges-prev path once the site archives it.
 SOURCES = {"2024/euro": ("https://ekloges.ypes.gr/current", "e")}

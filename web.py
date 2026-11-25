@@ -21,11 +21,13 @@ from config import (
     ELECTED,
     ELECTION_NAMES,
     ELECTIONS,
+    OG_IMAGES,
     HERE,
     OUT,
     PARTY_SHORT,
     REGIONS,
     SITE_URL,
+    og_kind,
     slug,
 )
 from geo import exteriors, frame, path
@@ -124,13 +126,13 @@ def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx=
 
 
 def meta(title, description):
-    """Description, Open Graph and Twitter card tags (no og:image yet: that needs a hosted raster picture, so the card is "summary").
-    The address-bound tags (og:url, canonical) are added by secure(), which knows the file."""
+    """Description, Open Graph and Twitter card tags. The picture and address tags come from secure(), which knows the file;
+    without SITE_URL there is no picture, so the card is "summary"."""
     t, d = html.escape(title, quote=True), html.escape(description, quote=True)
     return (f'<meta name="description" content="{d}"><meta property="og:type" content="website">'
             f'<meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR">'
             f'<meta property="og:title" content="{t}"><meta property="og:description" content="{d}">'
-            '<meta name="twitter:card" content="summary">')
+            f'<meta name="twitter:card" content="{"summary_large_image" if SITE_URL else "summary"}">')
 
 FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' "
            "stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E"
@@ -140,7 +142,7 @@ LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/"
 
 def secure(page, path=None):
     """Content-Security-Policy (as a <meta>: GitHub Pages sets no headers), referrer policy, favicon and, when config.SITE_URL
-    is set, the page's canonical address and og:url (`path` = the file the page is written to; one outside out/ gets none).
+    is set, the page's canonical address, og:url and og:image (`path` = the file the page is written to; one outside out/ gets none).
     Call it last, on the finished page: the inline scripts and styles are allowed by their SHA-256 hash, so injected markup cannot run.
     Leaflet (cdnjs, also pinned by integrity=) and the OSM tiles are the only outside sources; the fonts are self-hosted (fonts.css, out/fonts/)."""
     def hashes(tag):
@@ -158,7 +160,12 @@ def secure(page, path=None):
             f'<link rel="icon" href="{FAVICON}">')
     if SITE_URL and path is not None and Path(path).resolve().parent == OUT.resolve():  # pages outside out/ are not published
         url = f"{SITE_URL}/out/{urllib.parse.quote(Path(path).name)}"
-        tags += f'<link rel="canonical" href="{url}"><meta property="og:url" content="{url}">'
+        kind = og_kind(Path(path).name)
+        img, alt = f"{SITE_URL}/out/og/{kind}.png", html.escape(". ".join(OG_IMAGES[kind]), quote=True)
+        tags += (f'<link rel="canonical" href="{url}"><meta property="og:url" content="{url}">'
+                 f'<meta property="og:image" content="{img}"><meta property="og:image:width" content="1200">'
+                 f'<meta property="og:image:height" content="630"><meta property="og:image:alt" content="{alt}">'
+                 f'<meta name="twitter:image" content="{img}">')
     return page.replace('<meta charset="utf-8">', '<meta charset="utf-8">' + tags, 1)
 
 def common_css():

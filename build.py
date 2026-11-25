@@ -251,7 +251,7 @@ main{{max-width:900px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}
 χωρίς αντιστοίχιση ονόματος · Κάλυψη: σταυροί στον χάρτη ως ποσοστό του συνόλου.</p>
 <div class="wrap"><table><thead><tr><th>Περιφέρεια</th><th class="n">Ε.Δ.</th><th class="n">Περιοχές</th><th class="n">Χωρίς χάρτη</th>
 <th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody>{tr}</tbody></table></div>
-{footer()}</main></body></html>""")),
+{footer()}</main></body></html>"""), index_page),
                                                                                           encoding="utf-8")
     ok = [r for r in rows if r.get("file")]
     print(f"\n{len(ok)}/{len(rows)} built; unmatched Ε.Δ.: {sum(r['unmatched'] for r in ok)}, "

@@ -4,6 +4,7 @@ Run: python -I -X utf8 -m unittest discover -s tests
 Needs the pages built (build.py <election> all, build.py index, compare.py).
 """
 import re
+import struct
 import sys
 import unittest
 from html.parser import HTMLParser
@@ -65,6 +66,26 @@ class Pages(unittest.TestCase):
             want = f"{SITE_URL}/out/{quote(p.name)}"
             self.assertEqual(url and url.group(1), want, p.name)
             self.assertEqual(canon and canon.group(1), want, p.name)
+
+    def test_og_image_tags(self):
+        from config import SITE_URL, og_kind
+        for p in ALL:
+            s = read(p)
+            img = re.search(r'property="og:image" content="([^"]*)"', s)
+            if not SITE_URL:
+                self.assertIsNone(img, p.name)
+                continue
+            self.assertEqual(img and img.group(1), f"{SITE_URL}/out/og/{og_kind(p.name)}.png", p.name)
+            for tag in ('property="og:image:alt"', 'content="summary_large_image"', 'name="twitter:image"'):
+                self.assertIn(tag, s, f"{p.name}: {tag}")
+
+    def test_og_pictures_are_1200_by_630(self):
+        from config import OG_IMAGES
+        for kind in OG_IMAGES:
+            data = (OUT / "og" / f"{kind}.png").read_bytes()
+            self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n", kind)
+            self.assertEqual(struct.unpack(">II", data[16:24]), (1200, 630), kind)
+            self.assertLess(len(data), 300_000, kind)
 
     def test_no_middle_dot_in_titles(self):
         for p in APP:
