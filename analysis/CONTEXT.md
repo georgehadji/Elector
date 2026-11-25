@@ -64,4 +64,5 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 
 Not NIKH: `field_ops*`, `venue_*`, `client*`, `stats.py` (shared helpers, no catalog entry).
 Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done), `forecast_plan.md` (forecast page sections; in progress).
+Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done), `stats_plan.md` (open: calibration, signed bias, shared ballot error, house effects over time, herding, undecided, postal vote, turnout).
 Before changing a shared function: rerun the scripts that import it and `cmp` their `.txt` with the committed one.
