@@ -1,5 +1,5 @@
 """National election forecast -> out/forecast.html, from analysis/forecast.json (run analysis/forecast.py with the database
-first; this script needs neither the database nor a simulation).
+first; this script needs no simulation, but it does read the database, for the outlines of the constituency map).
 
 Shown for an election today and in 180 days (radio buttons, CSS :has()): who reaches 151 seats, each party's
 share (median and 80% range, with P(>= 3%); parties under 3% today folded away), expected seats as one 300-seat bar and
@@ -319,13 +319,21 @@ def record():
     rows, bench = PR.table()
     top = max(r["avg"] for r in rows)
     may = [r["by"]["2023/may"] for r in rows if "2023/may" in r["by"]]
+    other = [e for r in rows for k, e in r["by"].items() if k != "2023/may"]
     a, b = F.levels(), F.levels(weighted=True)
     shift = max(abs(b[p][0] - a[p][0]) for p in a)
+    # said only while the data show it: every firm that polled before May 2023 was further off then than at any other election
+    spread = (f"Είναι λίγες εκλογές, και στον Μάιο 2023 όλες οι εταιρείες που είχαν δημοσκόπηση απείχαν πολύ ({num(min(may))} έως "
+              f"{num(max(may))} μονάδες), οπότε ο μέσος όρος κάθε εταιρείας εξαρτάται κυρίως από εκείνη τη μία φορά. "
+              if may and other and min(may) > max(other) else
+              "Είναι λίγες εκλογές, οπότε ο μέσος όρος κάθε εταιρείας στηρίζεται σε ελάχιστες μετρήσεις. ")
+    tested = (f"το ποσοστό κανενός κόμματος δεν άλλαζε πάνω από {num(shift, 2)} μονάδες, οπότε δεν άξιζε να το προσθέσουμε."
+              if shift < 0.1 else f"το ποσοστό κάποιου κόμματος άλλαζε έως {num(shift, 2)} μονάδες.")
     head = "".join(f'<th class="n">{PR.LABEL[e]}</th>' for e in PR.ELECTIONS)
     body_rows = []
     for r in rows:
         cells = "".join(f'<td class="n">{num(r["by"][e]) if e in r["by"] else "·"}</td>' for e in PR.ELECTIONS)
-        body_rows.append(f'<tr><td>{html.escape(r["firm"])}</td><td class="bar"><div class="meter" aria-hidden="true">'
+        body_rows.append(f'<tr><td>{html.escape(r["firm"])}</td><td class="rbar"><div class="meter" aria-hidden="true">'
                          f'<i style="width:{100 * r["avg"] / top:.0f}%"></i></div></td><td class="n">{num(r["avg"])}</td>{cells}</tr>')
     return ('<section class="rec" aria-labelledby="rh"><h2 id="rh">Πόσο κοντά έπεσαν οι εταιρείες δημοσκοπήσεων</h2>'
             '<p class="note">Για κάθε εταιρεία που δημοσκοπεί σήμερα: πόσο απείχε η τελευταία της δημοσκόπηση πριν την κάλπη '
@@ -334,12 +342,10 @@ def record():
             f'δεν είχε τότε δημοσκόπηση στο διάστημα αυτό. Όλες οι δημοσκοπήσεις μαζί απείχαν κατά μέσο όρο {num(bench)} μονάδες.</p>'
             '<div class="wrap"><table class="rec"><thead><tr><th>εταιρεία</th><th></th><th class="n">μέσος όρος</th>'
             f'{head}</tr></thead><tbody>' + "".join(body_rows) + '</tbody></table></div>'
-            f'<p class="note">Είναι λίγες εκλογές, και στον Μάιο 2023 όλες οι εταιρείες απείχαν πολύ ({num(min(may))} έως '
-            f'{num(max(may))} μονάδες), οπότε ο μέσος όρος κάθε εταιρείας εξαρτάται κυρίως από εκείνη τη μία φορά. Οι διαφορές '
+            f'<p class="note">{spread}Οι διαφορές '
             'ανάμεσα στις περισσότερες εταιρείες είναι μικρότερες από τις διακυμάνσεις από εκλογή σε εκλογή: ο πίνακας δείχνει πόσο '
             'κοντά έπεσαν, όχι πόσο κοντά θα πέσουν. Στο μέσο όρο που βγάζουμε, όλες οι εταιρείες μετράνε το ίδιο. Δοκιμάσαμε να '
-            'μετράνε λίγο περισσότερο οι πιο κοντινές: το ποσοστό κανενός κόμματος δεν άλλαζε πάνω από '
-            f'{num(shift, 2)} μονάδες, οπότε δεν άξιζε να το προσθέσουμε.</p></section>')
+            f'μετράνε λίγο περισσότερο οι πιο κοντινές: {tested}</p></section>')
 
 
 def ep_geometries():

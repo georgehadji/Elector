@@ -24,6 +24,17 @@ class PollsterRecord(unittest.TestCase):
         self.assertEqual([r["avg"] for r in rows], sorted(r["avg"] for r in rows))
         self.assertTrue(all(r["n"] == len(r["by"]) and set(r["by"]) <= set(PR.ELECTIONS) for r in rows))
 
+    def test_same_parties_for_every_firm(self):
+        errs = PR.errors()
+        for el in PR.ELECTIONS:
+            counts = {v[el][2] for v in errs.values() if el in v}
+            self.assertEqual(len(counts), 1, el)  # one party set per election, so no firm gains by leaving a party out
+
+    def test_house_check_has_every_firm(self):
+        out, rho = PR.house_check()
+        self.assertIn("ProRata", {o[0] for o in out})  # the poll file spells it "Prorata"
+        self.assertTrue(-1 <= rho <= 1)
+
     def test_weights_are_mild(self):
         w = PR.weights()
         self.assertTrue(all(0.7 < v < 1.5 for v in w.values()))

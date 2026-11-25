@@ -8,8 +8,8 @@ party system).
   merged (FIRM_ALIAS). Only firms that still poll today (analysis/nikh_polls.csv) are scored.
 - Last poll of a firm at an election = its latest poll ending 0-WINDOW days before election day (the polls of one firm ending
   the same day are averaged: one firm, one poll).
-- Error of one poll = mean over the parties with a ballot >= MIN_BALLOT % and a figure in that poll of |poll - ballot|, in points;
-  the poll must cover at least MIN_PARTIES of them.
+- Error of one poll = mean over the parties with a ballot >= MIN_BALLOT % of |poll - ballot|, in points. The parties are the
+  same for every firm at one election (those that every scored firm's last poll reports), at least MIN_PARTIES of them.
 - avg of a firm = plain mean of its errors over the elections it was scored in (n of them). bench = plain mean of all errors.
 - Three elections at most per firm, and May 2023 alone is far worse than the other two for everybody: the ranking is mostly
   noise. weights() therefore shrinks towards 1 (see there). It is a cross-check and a mild weight, not a verdict.
@@ -20,6 +20,7 @@ import csv
 import sys
 from collections import defaultdict
 from datetime import date
+from functools import cache
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -65,23 +66,27 @@ def load():
     return ballot, day, polls
 
 
+@cache
 def errors():
-    """{firm: {election: (poll end, mean absolute error in points, parties scored)}} for the firms that poll today."""
+    """{firm: {election: (poll end, mean absolute error in points, parties scored)}} for the firms that poll today.
+    At one election every firm is scored on the same parties: those with a ballot >= MIN_BALLOT that the last poll of every
+    scored firm reports (a firm that left out a hard party would otherwise look better). An election with fewer than
+    MIN_PARTIES such parties is not scored."""
     ballot, day, polls = load()
     now, out = current_firms(), defaultdict(dict)
     for el in ELECTIONS:
         big = {p: v for p, v in ballot[el].items() if v >= MIN_BALLOT}
+        last = {}  # firm: (end, {party: poll})
         for firm, by_end in polls[el].items():
-            if firm not in now:
-                continue
             ends = [d for d in by_end if 0 <= (day[el] - d).days <= WINDOW]
-            if not ends:
-                continue
-            end = max(ends)
-            cells = {p: sum(v) / len(v) for p, v in by_end[end].items() if p in big}
-            if len(cells) < MIN_PARTIES:
-                continue
-            out[firm][el] = (end, sum(abs(v - big[p]) for p, v in cells.items()) / len(cells), len(cells))
+            if firm in now and ends:
+                end = max(ends)
+                last[firm] = (end, {p: sum(v) / len(v) for p, v in by_end[end].items() if p in big})
+        common = set(big).intersection(*(set(c) for _, c in last.values())) if last else set()
+        if len(common) < MIN_PARTIES:
+            continue
+        for firm, (end, cells) in last.items():
+            out[firm][el] = (end, sum(abs(cells[p] - big[p]) for p in common) / len(common), len(common))
     return out
 
 
@@ -95,6 +100,7 @@ def table():
     return rows, (sum(allerr) / len(allerr) if allerr else None)
 
 
+@cache
 def weights(k=3.0):
     """{firm: weight} for a poll average. A firm's error is shrunk to the mean of all firms as n / (n + k) (k = 3: one
     election counts a quarter, three elections a half), then weight = bench / shrunk error, so an average firm has 1.
@@ -124,12 +130,12 @@ def house_check(min_obs=8):
     rows, _ = table()
     out = []
     for r in rows:
-        key = r["firm"].replace(" RC", "")
         hs = []
         for p in F.PARTIES:
             obs, h, *_ = F.fitted(p)
-            if key in h and sum(1 for o in obs if o[1] == key) >= min_obs:
-                hs.append(abs(h[key]))
+            keys = {k for k in h if firm_of(k) == r["firm"]}  # the poll file spells some firms differently ("Prorata", "Pulse")
+            if keys and sum(1 for o in obs if o[1] in keys) >= min_obs:
+                hs.append(abs(sum(h[k] for k in keys) / len(keys)))
         if hs:
             out.append((r["firm"], r["avg"], sum(hs) / len(hs), len(hs)))
     ra, rb = ranks([o[1] for o in out]), ranks([o[2] for o in out])

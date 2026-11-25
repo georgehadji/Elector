@@ -75,17 +75,22 @@ GEO_SD = 0.10
 
 
 def firm_weights(obs):
-    """{firm key of obs: weight} from the firms' past accuracy (pollster_record.weights, shrunk, 0.85-1.3). Firms without a record: 1."""
+    """{firm key of obs: weight} from the firms' past accuracy (pollster_record.weights, shrunk toward 1). Firms without a record: 1."""
     import pollster_record as PR
     w = PR.weights()
     return {f: w[PR.firm_of(f)] for f in {o[1] for o in obs} if PR.firm_of(f) in w}
 
 
 @cache
-def fitted(party, weighted=False):
-    """(obs, house effects, q, tau2, loglik) for one party code. weighted: polls of firms with a better record count more."""
+def _fit(party, weighted):
     obs = NP.load(PARTIES[party][0])
     return (obs, *NP.fit(obs, QS, TAUS, wt=firm_weights(obs) if weighted else None))
+
+
+def fitted(party, weighted=False):
+    """(obs, house effects, q, tau2, loglik) for one party code. weighted: polls of firms with a better record count more.
+    One cache entry per (party, weighted) however it is called."""
+    return _fit(party, bool(weighted))
 
 
 def estimate(party, horizon_days=0, weighted=False):
