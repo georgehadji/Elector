@@ -21,10 +21,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I dro
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import forecast as F
 
-from config import HERE
+from config import HERE, slug
 from web import INDEX_DARK, INDEX_LIGHT, fill, meta, secure
 
 OUT = HERE / "out" / "forecast.html"
+MAP_ELECTION = "2023/june"  # per-constituency rows link to this election's maps
 WIKI = "https://en.wikipedia.org/wiki/Opinion_polling_for_the_next_Greek_legislative_election"
 # party: (light, dark); dict order = slot order = order in the seat bar
 COLOURS = {"ND": ("#2a78d6", "#3987e5"), "ELAS": ("#eb6834", "#d95926"), "PASOK": ("#1baf7a", "#199e70"),
@@ -245,7 +246,11 @@ def per_ep(r, order, names):
         cells = "".join(f'<td class="n{" z" if means.get(p, 0) < 0.05 else ""}">'
                         f'{num(means[p]) if means.get(p, 0) >= 0.05 else "·"}</td>' for p in cols)
         cls = ' class="state"' if ep == "state" else ""
-        rows.append(f"<tr{cls}><td>{html.escape(e['name'])}</td><td class=\"n\">{e['seats']}</td>{cells}</tr>")
+        name = html.escape(e["name"])
+        page = f"{slug(MAP_ELECTION)}_{ep}.html"  # the constituency's map of the last national election
+        if (OUT.parent / page).exists():
+            name = f'<a href="{page}">{name}</a>'
+        rows.append(f"<tr{cls}><td>{name}</td><td class=\"n\">{e['seats']}</td>{cells}</tr>")
     return ('<details><summary>Αναμενόμενες έδρες ανά εκλογική περιφέρεια</summary>'
             '<p class="note">Μέσος όρος των προσομοιώσεων, γι’ αυτό έχει δεκαδικά: 0,4 σημαίνει ότι το κόμμα παίρνει έδρα εκεί '
             'περίπου σε 4 από τις 10. «·»: κάτω από 0,05. Η κατανομή ανά περιφέρεια στηρίζεται σε υποθέσεις (βλ. παρακάτω).</p>'
@@ -321,7 +326,7 @@ def main():
         page = page.replace(a, b)
     light = INDEX_LIGHT | {"mute": MUTE[0]} | {f"p-{p}": c[0] for p, c in COLOURS.items()}
     dark = INDEX_DARK | {"mute": MUTE[1]} | {f"p-{p}": c[1] for p, c in COLOURS.items()}
-    page = fill(page, light, dark, current="maps", skip="#main", compact=True)
+    page = fill(page, light, dark, current="forecast", skip="#main", compact=True)  # not in the nav: nothing marked current
     OUT.write_text(secure(page, OUT), encoding="utf-8")
     print(f"wrote {OUT} ({thousands(n_sims)} simulations, polls to {data['as_of']})")
 
