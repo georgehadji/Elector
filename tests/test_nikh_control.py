@@ -43,6 +43,13 @@ class Category(unittest.TestCase):
         for title, want in cases.items():
             self.assertEqual(C.category(title), want, title)
 
+    def test_ministry_breaks_ties(self):  # parents of a school: family and education tie, the ministry decides
+        title = "Διαμαρτυρία του Συλλόγου Γονέων του 45ου Δημοτικού Σχολείου για τη σύμπτυξη τμημάτων."
+        self.assertEqual(C.category(title, ["Παιδείας και Θρησκευμάτων"]), "Παιδεία")
+        self.assertEqual(C.category("Ζητήματα λειτουργίας.", ["Υγείας"]), "Υγεία")  # no keyword: the ministry
+        self.assertEqual(C.category("Ζητήματα λειτουργίας.", ["Υγείας", "Εσωτερικών"]), C.OTHER)  # two: unknown
+        self.assertEqual(C.category("Συμφωνία Ελλάδας_Τουρκίας."), "Εθνικά θέματα, άμυνα, εξωτερική πολιτική")
+
     def test_other(self):
         self.assertEqual(C.category("Ερώτηση."), C.OTHER)
 
