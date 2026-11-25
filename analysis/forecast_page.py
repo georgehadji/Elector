@@ -2,8 +2,9 @@
 first; this script needs neither the database nor a simulation).
 
 Shown for an election today and in 180 days (radio buttons, CSS :has(), no script): the three probabilities, each party's
-share (median and 80% range, with P(>= 3%)), expected seats as one 300-seat bar, seat ranges with and without the bonus,
-the histograms of ND's and ND+PASOK's seats, and the expected seats per constituency. Charts are HTML/SVG built here (no
+share (median and 80% range, with P(>= 3%); parties under 3% today folded away), expected seats as one 300-seat bar and
+per coalition, seat ranges with and without the bonus, the histograms of ND's seats alone and with PASOK or ELAS, and the
+expected seats per constituency. Charts are HTML/SVG built here (no
 chart library); the histograms have a wide and a narrow drawing, the CSS shows one.
 Party colours: the reference palette of the dataviz skill in its validated order (adjacent pairs in the seat bar pass the
 colour-vision checks in both themes, against INDEX_LIGHT/INDEX_DARK paper); parties past the eighth are grey.
@@ -128,28 +129,35 @@ def odds(r, key):
             f'<ul class="odds">{items}</ul>')
 
 
-def shares(r, order, names):
+def shares(r, order, names, small):
+    """One row per party; the parties in `small` (under 3% today, the same at both horizons) go in a closed <details>
+    below, with their own copy of the header and axis on the same scale."""
     top = max(r["parties"][p]["share"][2] for p in order)
     scale = 5 * (int(top) // 5 + 1)
     x = lambda v: f"{100 * v / scale:.2f}%"
-    out = [('<p class="note">Κουκκίδα: το μεσαίο ποσοστό των προσομοιώσεων. Γραμμή, και αριθμοί κάτω από το ποσοστό: το εύρος '
-            'όπου πέφτει στις 8 από τις 10. Διακεκομμένη γραμμή: το όριο του 3%.</p>'
-            '<div class="sh"><span class="hd l">κόμμα</span><span class="hd tk"></span>'
-            '<span class="hd">ποσοστό</span><span class="hd">περνά το 3%</span>')]
+    step = 10 if scale > 20 else 5  # no 0% tick: it would crowd the 3% label beside it
+    ticks = "".join(f'<span style="left:{x(v)}">{v}%</span>' for v in range(step, scale + 1, step))
+    head = ('<div class="sh"><span class="hd l">κόμμα</span><span class="hd tk"></span>'
+            '<span class="hd">ποσοστό</span><span class="hd">περνά το 3%</span>'
+            f'<span></span><span class="trk ax">{ticks}<span style="left:{x(3)}">3%</span></span><span></span><span></span>')
+    rows = {}
     for p in order:
         lo, mid, hi = r["parties"][p]["share"]
         d = 1 if hi < 10 else 0
         p_in = "—" if p == F.OTHER else pct(r["parties"][p]["p_in"])  # many small parties together: no threshold
         tip = f"{names[p]}: {num(mid)}% (80%: {num(lo)}–{num(hi)}%)" + ("" if p == F.OTHER else f", πιθανότητα να περάσει το 3%: {p_in}")
-        out.append(f'<span class="nm">{html.escape(names[p])}</span>'
+        rows[p] = (f'<span class="nm">{html.escape(names[p])}</span>'
                    f'<span class="trk" title="{html.escape(tip, quote=True)}" style="--c:{colour(p)}">'
                    f'<span class="thr" style="left:{x(3)}"></span>'
                    f'<span class="rng" style="left:{x(lo)};width:{100 * (hi - lo) / scale:.2f}%"></span>'
                    f'<span class="dot" style="left:{x(mid)}"></span></span>'
                    f'<span class="v">{num(mid)}%<small>{num(lo, d)}–{num(hi, d)}</small></span><span class="v">{p_in}</span>')
-    ticks = "".join(f'<span style="left:{x(v)}">{v}%</span>' for v in range(0, scale + 1, 10 if scale > 20 else 5))
-    out.append(f'<span></span><span class="trk ax">{ticks}<span style="left:{x(3)};top:-2px">3%</span></span><span></span><span></span></div>')
-    return "".join(out)
+    big = [p for p in order if p not in small]
+    return ('<p class="note">Κουκκίδα: το μεσαίο ποσοστό των προσομοιώσεων. Γραμμή, και αριθμοί κάτω από το ποσοστό: το '
+            'εύρος όπου πέφτει στις 8 από τις 10. Διακεκομμένη γραμμή: το όριο του 3%.</p>'
+            + head + "".join(rows[p] for p in big) + "</div>"
+            + (f'<details><summary>Άλλα {len(small)} κόμματα, κάτω από 3% σήμερα</summary>'
+               + head + "".join(rows[p] for p in order if p in small) + "</div></details>" if small else ""))
 
 
 def seatbar(r, order, names):
@@ -167,24 +175,28 @@ def seatbar(r, order, names):
     return (f'<div class="seatbar" role="img" aria-label="Αναμενόμενες έδρες: {html.escape(label, quote=True)}">{spans}<i></i></div>'
             '<div class="trk ax"><span style="left:0;transform:none">0</span><span style="left:50.33%">151</span>'
             '<span style="right:0;transform:none">300</span></div>'
-            f'<ul class="legend">{legend}</ul>' + coalitions(seats, names))
+            f'<ul class="legend">{legend}</ul>' + coalitions(seats, names, r))
 
 
-COALITIONS = (("ΝΔ και ΠΑΣΟΚ", ("ND", "PASOK")), ("ΝΔ και ΕΛΑΣ", ("ND", "ELAS")),
-              ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", ("ND", "PASOK", "ELAS")))
+# in the order of the 151 list; parties stack in seat-bar order
+COALITIONS = (("ΝΔ και ΠΑΣΟΚ", ("ND", "PASOK"), "p_nd_pasok_151"), ("ΝΔ και ΕΛΑΣ", ("ND", "ELAS"), "p_nd_elas_151"),
+              ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", ("ND", "PASOK", "ELAS"), "p_nd_pasok_elas_151"))
 
 
-def coalitions(seats, names):
-    """The same expected seats, one short bar per coalition against the 151 line, most seats first."""
+def coalitions(seats, names, r):
+    """The same expected seats, one short bar per coalition against the 151 line, with how often the sum reaches 151
+    (an expected value alone reads as more certain than it is)."""
     rows = []
-    for title, ps in sorted(COALITIONS, key=lambda c: -sum(seats.get(p, 0) for p in c[1])):
+    for title, ps, key in COALITIONS:
+        ps = sorted(ps, key=list(COLOURS).index)
         n = sum(seats.get(p, 0) for p in ps)
         spans = ("".join(f'<span style="--c:{colour(p)};flex:{seats.get(p, 0)}"></span>' for p in ps)
                  + f'<span class="rest" style="flex:{300 - n}"></span>')
         label = ", ".join(f"{names[p]} {seats.get(p, 0)}" for p in ps)
-        rows.append(f'<li><span>{title} <b>{n}</b></span>'
+        rows.append(f'<li><span>{title} <b>{n}</b><small>151 ή περισσότερες: {pct(r[key])}</small></span>'
                     f'<div class="seatbar mini" role="img" aria-label="{html.escape(label, quote=True)}: {n} έδρες">{spans}<i></i></div></li>')
-    return '<p class="note">Οι ίδιες έδρες ανά συνεργασία, απέναντι στις 151:</p><ul class="coal">' + "".join(rows) + "</ul>"
+    return ('<p class="note">Οι ίδιες έδρες ανά συνεργασία, απέναντι στις 151, και πόσο συχνά το άθροισμα φτάνει τις 151:</p>'
+            '<ul class="coal">' + "".join(rows) + "</ul>")
 
 
 def seats_range(x):
@@ -253,8 +265,9 @@ def histograms(r):
                           ("hist_nd_elas", "Έδρες ΝΔ και ΕΛΑΣ μαζί", r["p_nd_elas_151"])):
         out.append(f'<figure><h3>{title}</h3><div class="wide">{hist(r[key], 440, 210, 12, 20)}</div>'
                    f'<div class="narrow">{hist(r[key], 360, 210, 12, 20)}</div>'
-                   f'<figcaption>Ποσοστό των προσομοιώσεων ανά αριθμό εδρών. 151 ή περισσότερες: {pct(p)}.{hump}</figcaption></figure>')
-    return '<div class="two">' + "".join(out) + "</div>"
+                   f'<figcaption>151 ή περισσότερες: {pct(p)}.</figcaption></figure>')
+    return (f'<p class="note">Ποσοστό των προσομοιώσεων ανά αριθμό εδρών· η διακεκομμένη γραμμή είναι οι 151.{hump}</p>'
+            '<div class="two">' + "".join(out) + "</div>")
 
 
 def per_ep(r, order, names):
@@ -302,19 +315,21 @@ def method(n_sims, n_polls, err, sens):
         + ("Οι έδρες κάθε κόμματος στο σύνολο της χώρας δεν αλλάζουν με αυτές τις υποθέσεις (βγαίνουν από τα εθνικά ποσοστά)· "
            if same else "")
         + f"αλλάζει μόνο σε ποια περιφέρεια εκλέγονται, έως περίπου {num(moved, 0)} έδρες για ένα κόμμα όταν δοκιμάσαμε "
-        "άλλες υποθέσεις. Οι στήλες των δημοσκοπήσεων εκτός της ΝΙΚΗΣ είναι από τη Wikipedia και δεν έχουν ελεγχθεί μία προς "
-        "μία με τις εταιρείες.",
+        "άλλες υποθέσεις. Οι δημοσκοπήσεις είναι από τη Wikipedia και, εκτός από τα ποσοστά της ΝΙΚΗΣ, δεν έχουν ελεγχθεί "
+        "μία προς μία με τις εταιρείες.",
         (f"<small>Τεχνικά: λάθος κάλπης log(αποτέλεσμα / μέσος όρος) ~ N(0, a/p + b), a = {num(a, 2)}, b = {num(b, 3)}, "
         "με μέγιστη πιθανοφάνεια.</small>")])
 
 
 def body(data, order):
     names = data["names"]
+    today = data["horizons"]["0"]["parties"]
+    small = {p for p in order if today[p]["share"][1] < 3}
     out = []
     for key, r in data["horizons"].items():
         out.append(f'<div class="h{key}">'
                    + odds(r, key)
-                   + f'<h2>Ποσοστά, εκλογές {WHEN[key]}</h2>' + shares(r, order, names)
+                   + f'<h2>Ποσοστά, εκλογές {WHEN[key]}</h2>' + shares(r, order, names, small)
                    + f'<h2>Έδρες, εκλογές {WHEN[key]}</h2><p class="note">Αναμενόμενες έδρες: μέσος όρος των προσομοιώσεων, '
                      'γι’ αυτό μπορεί να διαφέρει λίγο από τη μεσαία τιμή του πίνακα. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>' + seatbar(r, order, names)
                    + seat_table(r, order, names) + histograms(r) + per_ep(r, order, names) + "</div>")
