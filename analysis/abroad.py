@@ -694,7 +694,7 @@ def main():
         abroad_section(e)
     postal_section()
     nikh_section()
-    PAGE.write_text(secure(fill(page()), PAGE), encoding="utf-8")
+    PAGE.write_text(secure(fill(page(), current="abroad"), PAGE), encoding="utf-8")
     print(f"\nwrote {PAGE}", file=sys.stderr)
 
 
