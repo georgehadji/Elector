@@ -7,7 +7,9 @@ per coalition, seat ranges with and without the bonus, the histograms of ND's se
 expected seats per constituency as a map (one party at a time, radio buttons again) and a table. The map's outlines are the
 ELSTAT 2021 municipal units of each constituency's polling stations in June 2023, read from the database (data/stavroi.sqlite);
 the rest comes from forecast.json. Then how close each polling firm fell at the last three elections (pollster_record.py; a
-table, and a check that counting the better firms a bit more would not change the shares). Charts are HTML/SVG built here (no
+table, and a check that counting the better firms a bit more would not change the shares). If analysis/samaras.json exists
+(samaras_scenarios.py), a scenario section: a Samaras party at 10, 11 or 12%, elections today; it goes once the party has
+polls and is in forecast.json as a party like the others. Charts are HTML/SVG built here (no
 chart library); the histograms have a wide and a narrow drawing, the CSS shows one.
 Party colours: the reference palette of the dataviz skill in its validated order (adjacent pairs in the seat bar pass the
 colour-vision checks in both themes, against INDEX_LIGHT/INDEX_DARK paper); parties past the eighth are grey.
@@ -356,6 +358,100 @@ def record():
             f'μετράνε λίγο περισσότερο οι πιο κοντινές: {tested}</p></section>')
 
 
+SAM_JSON = HERE / "analysis" / "samaras.json"
+
+
+def dash(a, b):
+    """'1,0–7,0%' from '1,0%' and '7,0%'; both kept whole when either is '<0,1%' or '>99,9%', or when they are equal."""
+    return a if a == b else f"{a[:-1]}–{b}" if a[-1] == b[-1] == "%" and a[0].isdigit() and b[0].isdigit() else f"{a}–{b}"
+
+
+def samaras(names):
+    """Scenario section from analysis/samaras.json (samaras_scenarios.py): a new party of Antonis Samaras at exactly 10, 11
+    or 12%, elections today. Seats and who reaches 151 beside the forecast without it, the two assumptions in words, and how
+    much the alternatives move the result. Empty if the file is missing or once the party is in the forecast itself
+    (forecast.NEW: it has polls), so a stale scenario never stands beside the real figures."""
+    if not SAM_JSON.exists() or "SAM" in names:
+        return ""
+    d = json.loads(SAM_JSON.read_text(encoding="utf-8"))
+    nm = names | {"SAM": "κόμμα Σαμαρά", F.OTHER: "μικρότερα κόμματα"}
+    B, levels = d["base"], d["levels"]
+    by = {L: d["by_level"][str(L)] for L in levels}
+    cols = [(None, B), *((L, by[L]) for L in levels)]
+    span = lambda f, fmt=pct: dash(fmt(min(f(by[L]) for L in levels)), fmt(max(f(by[L]) for L in levels)))
+    head = ('<tr><th></th><th class="n">χωρίς</th>' + "".join(f'<th class="n">{L}%</th>' for L in levels) + "</tr>")
+
+    seated = [p for p in ("ND", "SAM", *(p for p in B["seats"] if p not in ("ND", "SAM"))) if any(s["seats"].get(p, [0, 0, 0])[1] for _, s in cols)]
+    seat_rows = "".join(f'<tr><td><span class="sw" style="--c:{colour(p)}"></span>{html.escape(nm[p])}</td>'
+                        + "".join(f'<td class="n">{"—" if L is None and p == "SAM" else seats_range(s["seats"][p])}</td>' for L, s in cols)
+                        + "</tr>" for p in seated)
+    join = lambda ps: nm[ps[0]] if len(ps) == 1 else ", ".join(nm[p] for p in ps[:-1]) + " και " + nm[ps[-1]]
+    co = {L: {tuple(c): hit for c, _, hit in by[L]["coalitions"]} for L in levels}
+    groups = [(("ND",), "nd"), (("ND", "PASOK"), "nd_pasok"), (("ND", "ELAS"), "nd_elas"), (("ND", "PASOK", "ELAS"), "nd_pasok_elas"),
+              (("ND", "SAM"), "nd_sam")]
+    # three-party groups with the Samaras party listed at every level: those reaching 151 in >= 20% somewhere, the one with
+    # EL (the parties to ND's right), any without ND; the others (ND and SAM plus any third party) in one sentence
+    three = [c for c in co[levels[0]] if len(c) == 3 and all(c in co[L] for L in levels)]
+    top = lambda c: max(co[L][c] for L in levels)
+    shown = [c for c in three if top(c) >= 0.2 or "EL" in c or "ND" not in c]
+    rest = [c for c in three if c not in shown]
+    for c in sorted(shown, key=lambda c: ("ND" not in c, -top(c))):
+        groups.append((("ND", "SAM", *(p for p in c if p not in ("ND", "SAM"))) if "ND" in c else c, c))
+    rows151 = []
+    for ps, k in groups:
+        cells = "".join(f'<td class="n">{"—" if L is None and "SAM" in ps else pct(s[k] if isinstance(k, str) else co[L][k])}</td>'
+                        for L, s in cols)
+        rows151.append(f"<tr><td>{html.escape(join(ps))}</td>{cells}</tr>")
+    rows151.append('<tr><td>μπόνους (πρώτο κόμμα 25% και πάνω)</td>'
+                   + "".join(f'<td class="n">{pct(s["bonus"])}</td>' for _, s in cols) + "</tr>")
+
+    from_ = lambda sp: ", ".join(f"{nm[p]} {num(100 * w, 0)}%" for p, w in sp.items())
+    alt = []
+    for k, v in list(d["splits"].items())[1:]:  # the first is the main split, shown in the tables
+        ss = [v[str(L)] for L in levels]
+        rng = lambda f, fmt=pct: dash(fmt(min(f(s) for s in ss)), fmt(max(f(s) for s in ss)))
+        alt.append(f"<b>{html.escape(k)}</b> ({from_(v['split'])}): "
+                   f"η ΝΔ {rng(lambda s: s['seats']['ND'][1], str)} έδρες, ΝΔ και ΕΛΑΣ στις 151 σε {rng(lambda s: s['nd_elas'])}, "
+                   f"μπόνους σε {rng(lambda s: s['bonus'])}")
+    geo = [g for v in d["geo"].values() for g in v.values()]
+    moved = max(g["moved_sam"] for g in geo)
+    differ, worst = max(g["differ"] for g in geo), max(g["max_diff"] for g in geo)
+    nd_share = lambda s: s["share"]["ND"][1]
+    best_c = max(three, key=top)
+    best = ("ND", "SAM", *(p for p in best_c if p not in ("ND", "SAM")))
+    for L in levels:
+        by[L]["level"] = L
+    return ('<section aria-labelledby="sh"><h2 id="sh">Σενάριο: κόμμα Σαμαρά στο 10, 11 ή 12%, εκλογές σήμερα</h2>'
+            '<p class="note">Τι θα γινόταν αν ένα νέο κόμμα του Αντώνη Σαμαρά έπαιρνε ακριβώς 10, 11 ή 12% των έγκυρων ψήφων. '
+            'Δεν λέμε ότι θα τα πάρει: το κόμμα δεν έχει δημοσκοπήσεις ούτε εκλογές πίσω του. Είναι οι ίδιες '
+            f'{thousands(d["n"])} προσομοιώσεις με παραπάνω, όπου οι ψήφοι του αφαιρούνται από τα άλλα κόμματα.</p>'
+            f'<p class="lead">Η ΝΔ πέφτει από {num(nd_share(B))}% σε {span(nd_share, num)}% και από {B["seats"]["ND"][1]} σε '
+            f'{span(lambda s: s["seats"]["ND"][1], str)} έδρες, κυρίως γιατί κάτω από 25% χάνει το μπόνους. ΝΔ και ΠΑΣΟΚ '
+            f'φτάνουν τις 151 σε {span(lambda s: s["nd_pasok"])} των προσομοιώσεων (χωρίς κόμμα Σαμαρά: {pct(B["nd_pasok"])}), '
+            f'ΝΔ και ΕΛΑΣ σε {span(lambda s: s["nd_elas"])} (χωρίς: {pct(B["nd_elas"])}). Χρειάζονται τρία κόμματα: '
+            f'{html.escape(join(best))} φτάνουν τις 151 σε {span(lambda s: co[s["level"]][best_c])}.</p>'
+            '<h3>Έδρες</h3><div class="wrap"><table><thead>' + head + "</thead><tbody>" + seat_rows + "</tbody></table></div>"
+            '<p class="note">Μεσαία τιμή και, σε παρένθεση, το εύρος όπου πέφτουν στις 8 από τις 10 προσομοιώσεις. «Χωρίς»: '
+            'η πρόβλεψη της σελίδας, χωρίς κόμμα Σαμαρά.</p>'
+            '<h3>Ποιοι φτάνουν τις 151 έδρες</h3><div class="wrap"><table><thead>' + head + "</thead><tbody>"
+            + "".join(rows151) + "</tbody></table></div>"
+            '<p class="note">Ποσοστό των προσομοιώσεων όπου τα κόμματα μαζί έχουν 151 έδρες ή περισσότερες. Είναι αθροίσματα '
+            'εδρών, όχι πρόβλεψη για το ποια κυβέρνηση θα σχηματιστεί.'
+            + (f' ΝΔ και κόμμα Σαμαρά με οποιοδήποτε άλλο τρίτο κόμμα ({", ".join(nm[p] for c in rest for p in c if p not in ("ND", "SAM"))}) '
+               f'φτάνουν τις 151 σε έως {pct(max(top(c) for c in rest))}.' if rest else "") + '</p>'
+            '<details><summary>Οι υποθέσεις και πόσο αλλάζουν τα αποτελέσματα</summary>'
+            f'<p class="note"><b>Από πού έρχονται οι ψήφοι του.</b> Υπόθεση: από τις ψήφους του, {from_(d['main_split'])}. Από αυτό εξαρτάται κυρίως πόσες έδρες '
+            'κρατά η ΝΔ. Με άλλες υποθέσεις, στο 10–12%: ' + "· ".join(alt) + ".</p>"
+            '<p class="note"><b>Πού είναι δυνατό.</b> Υπόθεση: όπου ήταν δυνατή η ΝΔ τον Ιούνιο 2023. Δοκιμάσαμε και τρεις άλλες: '
+            'το ίδιο με διπλάσιο ποσοστό στη Μεσσηνία, την εκλογική περιφέρεια του Σαμαρά· όπου ήταν δυνατή η Ελληνική Λύση στις '
+            'Ευρωεκλογές 2024· ίδιο ποσοστό παντού. Οι έδρες '
+            'κάθε κόμματος στο σύνολο της χώρας βγαίνουν από τα εθνικά ποσοστά, άρα σχεδόν δεν αλλάζουν '
+            + (f'(διαφορά {worst} έδρας σε έως {differ} από τις {thousands(d["n"])} προσομοιώσεις). ' if differ else
+               f'(καμία διαφορά στις {thousands(d["n"])} προσομοιώσεις). ')
+            + 'Αλλάζει μόνο σε ποια περιφέρεια '
+            f'εκλέγονται, έως περίπου {num(moved, 0)} έδρες του κόμματος Σαμαρά.</p></details></section>')
+
+
 def ep_geometries():
     """{constituency id: [municipal unit geometries]}: the units of its polling stations in June 2023, matched by name as
     build.py does; plus the units in no constituency (Mount Athos) under None, drawn blank."""
@@ -494,7 +590,7 @@ def body(data, order):
                      + seatbar(order, names, r)
                    + seat_table(r, order, names) + histograms(r) + "</div>")
     css, section = ep_map(data, order, names)
-    return css, "".join(out) + section
+    return css, "".join(out) + section + samaras(names)
 
 
 def main():

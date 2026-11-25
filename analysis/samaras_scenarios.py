@@ -15,10 +15,15 @@ Two assumptions, both judgement, neither from data (SAM has never run):
    national votes, full lists everywhere) up to vote rounding, so this check counts the draws whose totals differ and how
    many seats change constituency.
 Bonus (law of June 2023): first party >= 25% gets 20 seats plus 1 per 0.5% above 25%, at most 50; below 25%, none.
+Stands in only while the party has no polls: once its column in nikh_polls.csv has forecast.MIN_POLLS polls it is in
+forecast.PARTIES (forecast.NEW), this script stops and out/forecast.html shows it as a party of the forecast.
 Unofficial; party columns of the polls come from Wikipedia (polls_wiki.py).
+
+Writes analysis/samaras.json too, for the scenario section of out/forecast.html (forecast_page.py).
 
   python -I -X utf8 analysis/samaras_scenarios.py data/stavroi.sqlite [N] > analysis/samaras_scenarios.txt
 """
+import json
 import math
 import random
 import sys
@@ -37,6 +42,7 @@ SPLITS = {"κύρια: κυρίως ΝΔ": {"ND": .70, "EL": .12, "NIKI": .04, "
           "σχεδόν όλα ΝΔ": {"ND": .85, "EL": .08, F.OTHER: .07},
           "πολλά από τα δεξιά της ΝΔ": {"ND": .50, "EL": .25, "FL": .08, "NIKI": .06, "SE": .06, "SPARTIATES": .02, F.OTHER: .03}}
 MAIN_SPLIT = next(iter(SPLITS))
+OUT = Path(__file__).resolve().parent / "samaras.json"  # read by forecast_page.py
 SAM_GEO = ("ΝΔ Ιούνιος 2023", "ΝΔ Ιούνιος 2023, Μεσσηνία ×2", "ΕΛ Ευρωεκλογές 2024", "ομοιόμορφα")
 MAIN_GEO = SAM_GEO[0]
 NAMES = {**{p: n for p, (_, n) in F.PARTIES.items()}, F.OTHER: "Άλλοι", SAM: "Σαμαράς"}
@@ -162,6 +168,8 @@ def selftest(draws):
 
 
 if __name__ == "__main__":
+    if SAM in F.PARTIES:  # the party is in the polls: the forecast covers it and the page drops the scenario
+        sys.exit(f"Το {F.PARTIES[SAM][1]} έχει πλέον ≥ {F.MIN_POLLS} δημοσκοπήσεις: το καλύπτει το forecast.py, το σενάριο δεν τρέχει.")
     N = int(sys.argv[2]) if len(sys.argv) > 2 else 10000
     draws = F.simulate(N, 0, seed=SEED)
     selftest(draws)
@@ -170,6 +178,8 @@ if __name__ == "__main__":
     B, M = stats(base), {L: stats(s) for L, s in main.items()}
     order = sorted(F.PARTIES, key=lambda p: -B["share"][p][1])
     rows = [order[0], SAM, *order[1:]]
+    js = {"as_of": str(F.NP.TODAY), "n": N, "seed": SEED, "names": NAMES, "levels": LEVELS, "main_split": SPLITS[MAIN_SPLIT],
+          "base": B, "by_level": {str(L): M[L] | {"coalitions": []} for L in LEVELS}, "splits": {}, "geo": {}}
 
     print(f"=== Κόμμα Σαμαρά στο 10, 11, 12%: έδρες με το μοντέλο του forecast.py (εκλογές σήμερα, {N:,} προσομοιώσεις, "
           f"σπόρος {SEED}, μέσος όρος δημοσκοπήσεων στις {F.NP.TODAY}) ===")
@@ -209,6 +219,7 @@ if __name__ == "__main__":
               " / P να φτάσει")
         for c, (hit, need) in sorted(coalitions(sims).items(), key=lambda kv: -kv[1][1]):
             if need >= 0.005:
+                js["by_level"][str(L)]["coalitions"].append([c, need, hit])
                 print(f"    {' + '.join(NAMES[p] for p in c):<44}{pct(need):>7} / {pct(hit):>6}")
 
     print("\n--- Ευαισθησία 1: προέλευση των ψήφων του ΣΑΜ (γεωγραφία ΝΔ Ιούνιος 2023) ---")
@@ -220,6 +231,8 @@ if __name__ == "__main__":
         for L in LEVELS:
             s = M[L] if k == MAIN_SPLIT else stats(run(draws, L, sp))
             st = s["seats"]
+            js["splits"].setdefault(k, {"split": sp})[str(L)] = {x: s[x] for x in ("nd", "nd_pasok", "nd_elas", "nd_sam", "bonus",
+                                                                                   "seats", "in")}
             print(f"  {k:<28}{L:>4}{st['ND'][1]:>5}{st[SAM][1]:>5}{st['EL'][1]:>4}{st['FL'][1]:>4}{st['SE'][1]:>4}"
                   f"{pct(s['in']['FL']):>8}{pct(s['in']['SE']):>8}{pct(s['nd_sam']):>9}{pct(s['nd_pasok']):>11}"
                   f"{pct(s['nd_elas']):>10}{pct(s['bonus']):>10}")
@@ -236,6 +249,10 @@ if __name__ == "__main__":
             sims = main[L] if g == MAIN_GEO else run(draws, L, SPLITS[MAIN_SPLIT], g)
             diff = [max(abs(a[1].get(p, 0) - b[1].get(p, 0)) for p in {*a[1], *b[1]}) for a, b in zip(sims, main[L], strict=True)]
             moved = {p: sum(abs(ep_mean(sims, p, ep) - ep_mean(main[L], p, ep)) for ep in eps) / 2 for p in (SAM, "ND")}
+            js["geo"].setdefault(g, {})[str(L)] = {"differ": sum(d > 0 for d in diff), "max_diff": max(diff),
+                                                     "moved_sam": moved[SAM], "moved_nd": moved["ND"],
+                                                     "sam_messinia": ep_mean(sims, SAM, MESSINIA)}
             print(f"  {g:<30}{L:>4}{f"{sum(d > 0 for d in diff)} / {max(diff)}":>12}{moved[SAM]:>11.1f}{moved['ND']:>10.1f}"
                   f"{ep_mean(sims, SAM, MESSINIA):>10.2f}{ep_mean(sims, 'ND', MESSINIA):>9.2f}{ep_mean(sims, SAM, 'state'):>11.2f}")
     print(f"  (χωρίς ΣΑΜ: ΝΔ Μεσσηνία {ep_mean(base, 'ND', MESSINIA):.2f})")
+    OUT.write_text(json.dumps(js, ensure_ascii=False, indent=1), encoding="utf-8")

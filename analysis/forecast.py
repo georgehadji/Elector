@@ -30,6 +30,8 @@ SE as EL Euro 2024 [judgement: the nationalist right], DIMOKRATES as SYRIZA Euro
 ELAS flat).
 Writes analysis/forecast.json: probabilities, shares, national seats, ND and ND+PASOK histograms, per constituency (and State
 list) the distribution of each party's seats there, and the sensitivity table.
+A party in NEW (the expected party of Samaras) joins PARTIES and GEO by itself once its poll column has MIN_POLLS polls;
+the run reports poll columns that no party reads.
 Party columns other than niki come from Wikipedia (polls_wiki.py), not checked against the firms' releases.
 Unofficial.
 
@@ -65,6 +67,30 @@ EURO, JUNE = "2024/euro", "2023/june"
 GEO = {"ND": (EURO, 2), "SYRIZA": (EURO, 4), "PASOK": (EURO, 106), "EL": (EURO, 108), "KKE": (EURO, 3), "NIKI": (EURO, 131),
        "PE": (EURO, 123), "FL": (EURO, 158), "MERA25": (EURO, 122), "NEA_ARISTERA": (EURO, 166),
        "SPARTIATES": (JUNE, 157), "ELAS": (JUNE, 4)}
+# Parties expected in the polls but not there yet: code -> (column of nikh_polls.csv, Greek name, geography until it has
+# results of its own). One joins PARTIES and GEO, and so the forecast, its seats and out/forecast.html, by itself once its
+# column has MIN_POLLS polls. polls_wiki.py names the columns after Wikipedia's header, unknown before the party exists: when
+# forecast.py reports a new column, write that header here. Until then analysis/samaras_scenarios.py stands in for it.
+NEW = {"SAM": ("SAM", "κόμμα Σαμαρά", (JUNE, 2))}  # [judgement] ND June 2023, as in samaras_scenarios.py
+MIN_POLLS = 10
+
+
+def poll_counts():
+    """{column of nikh_polls.csv: polls with a figure in it}."""
+    with open(NP.CSV, encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    return {c: sum(bool(r[c].strip()) for r in rows) for c in rows[0] if c not in ("firm", "end", "sample")}
+
+
+def joined(counts):
+    """{code: (column, name)} of the NEW parties with at least MIN_POLLS polls in counts {column: polls}."""
+    return {p: (col, name) for p, (col, name, _) in NEW.items() if counts.get(col, 0) >= MIN_POLLS}
+
+
+COUNTS = poll_counts()
+PARTIES |= joined(COUNTS)
+GEO |= {p: NEW[p][2] for p in joined(COUNTS) if p not in GEO}
+UNKNOWN = sorted(set(COUNTS) - {col for col, _ in PARTIES.values()})  # columns no party reads: a new party in the polls?
 # sensitivity: June 2023 for every party that ran then (NA and ELAS as SYRIZA); other proxies for the parties without a past
 VARIANTS = {"κύρια (GEO)": GEO,
             "Ιούνιος 2023 για όλα": {p: (JUNE, pid) for p, (_, pid) in GEO.items()} | {"NEA_ARISTERA": (JUNE, 4)},
@@ -290,6 +316,8 @@ def selftest():
     assert abs(sum(d.values()) - 100) < 1e-9 and min(d.values()) > 0, d
     d = draw(random.Random(1), {"A": (60, 0), "B": (40, 0)}, 0, 0)  # no error at all: the levels come back
     assert abs(d["A"] - 60) < 1e-9, d
+    for p, (col, name, _) in NEW.items():  # a new party joins at MIN_POLLS polls, not before
+        assert joined({col: MIN_POLLS - 1}) == {} and joined({col: MIN_POLLS}) == {p: (col, name)}
 
 
 if __name__ == "__main__":
@@ -313,6 +341,12 @@ if __name__ == "__main__":
         print(line)
     print(f"{'Σύνολο':<43}{tot:>8.1f}")
     print(f"Άλλοι (100 − σύνολο): {100 - tot:.1f}%")
+    for p, (col, name, _) in NEW.items():
+        if p not in PARTIES:
+            print(f"{name}: {COUNTS.get(col, 0)} δημοσκοπήσεις στη στήλη {col}, μπαίνει στην πρόβλεψη από {MIN_POLLS} (forecast.NEW).")
+    if UNKNOWN:
+        print(f"Στήλες του nikh_polls.csv που δεν διαβάζει κανένα κόμμα: {', '.join(UNKNOWN)}. Νέο κόμμα; "
+              "Βάλε τη στήλη του στο forecast.PARTIES ή στο forecast.NEW.")
 
     print("\n=== Βήμα 2: λάθος της κάλπης, log(κάλπη / μέσος όρος δημοσκοπήσεων) ~ Normal(0, a/p + b) ===")
     P = pairs()
