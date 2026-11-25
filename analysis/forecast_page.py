@@ -44,12 +44,13 @@ def thousands(n):
 
 
 def pct(p):
-    """A probability as a percentage: one decimal under 10%, none above; the ends say so instead of 0% or 100%."""
+    """A probability as a percentage: one decimal under 10% and over 90% (so 0,997 is 99,7%, not 100%), none between;
+    the ends say so instead of 0% or 100%."""
     if p < 0.001:
         return "<0,1%"
     if p > 0.999:
         return ">99,9%"
-    return f"{num(100 * p, 1 if p < 0.1 else 0)}%"
+    return f"{num(100 * p, 1 if p < 0.1 or p > 0.9 else 0)}%"
 
 
 def day(iso):
@@ -240,8 +241,8 @@ def body(data, order):
         out.append(f'<div class="h{key}">'
                    + cards(r)
                    + f'<h2>Ποσοστά, εκλογές {WHEN[key]}</h2>' + shares(r, order, names)
-                   + f'<h2>Έδρες, εκλογές {WHEN[key]}</h2><p class="note">Αναμενόμενες έδρες (μέσος όρος των προσομοιώσεων). '
-                     'Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>' + seatbar(r, order, names)
+                   + f'<h2>Έδρες, εκλογές {WHEN[key]}</h2><p class="note">Αναμενόμενες έδρες: μέσος όρος των προσομοιώσεων, '
+                     'γι’ αυτό μπορεί να διαφέρει λίγο από τη μεσαία τιμή του πίνακα. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>' + seatbar(r, order, names)
                    + seat_table(r, order, names) + histograms(r) + per_ep(r, order, names) + "</div>")
     return "".join(out)
 
