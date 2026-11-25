@@ -24,6 +24,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I dro
 from config import DB, ELECTION_NAMES, NIKH, OUT, PARTY_COLOR, PARTY_SHORT  # noqa: E402
 from web import FONTS, common_css, fill, footer, header, meta, secure  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from party import RIVAL  # noqa: E402  (Ελληνική Λύση: the party ΝΙΚΗ is set against)
+
 ABROAD = 57  # constituency of voters abroad
 ABROAD_ELECTIONS = ("2023/may", "2023/june")  # the ones with stations abroad and a country for each
 EURO = "2024/euro"
@@ -309,7 +312,7 @@ def chart_dumbbell(title, note, rows, a, b, label, unit="%", sep=" → "):
     return figure(title, note, key + body + scale, label)
 
 
-def chart_scatter(title, note, pts, xlab, ylab, label, marked=()):
+def chart_scatter(title, note, pts, xlab, ylab, label, marked=(), tip=("κάλπη", "επιστολική")):
     """Scatter of (name, x, y) in % with the line y = x; points in `marked` carry their name."""
     W, H, L, B, T, R = 360, 300, 38, 34, 10, 12  # size and margins
     top = max(max(x, y) for _, x, y in pts)
@@ -322,7 +325,7 @@ def chart_scatter(title, note, pts, xlab, ylab, label, marked=()):
                    f'<text x="{sx(v):.1f}" y="{H - B + 15}" text-anchor="middle">{v}</text>' for v in range(0, top + 1, step))
     diag = f'<line class="d" x1="{sx(0)}" y1="{sy(0)}" x2="{sx(top):.1f}" y2="{sy(top):.1f}"/>'
     dots = "".join(f'<circle cx="{sx(x):.1f}" cy="{sy(y):.1f}" r="4.5"{" class=m" if n in marked else ""}><title>{html.escape(n)}: '
-                   f'{num(y)}% επιστολική, {num(x)}% κάλπη</title></circle>' for n, x, y in pts)
+                   f'{num(y)}% {tip[1]}, {num(x)}% {tip[0]}</title></circle>' for n, x, y in pts)
     names = "".join(f'<text class="n" x="{sx(x) + (-7 if x > top * .7 else 7):.1f}" y="{sy(y) + 4:.1f}"'  # right part: name on the left
                     f'{" text-anchor=end" if x > top * .7 else ""}>{html.escape(n)}</text>' for n, x, y in pts if n in marked)
     axes = (f'<text x="{(L + W - R) / 2}" y="{H - 4}" text-anchor="middle">{html.escape(xlab)}</text>'
@@ -356,6 +359,37 @@ def chart_stack(title, note, e, parties, rows):
     return figure(title, note, key + body, label)
 
 
+def chart_strip(title, note, pts, label, refs, marked=(), dec=2):
+    """One dot per item on a shared axis from 0, dots stacked where they would overlap; refs = [(value, text)] are dashed
+    reference lines; items in `marked` carry their name."""
+    W, L, R, B, r = 400, 14, 14, 30, 5
+    T = 14 + 13 * len(refs)  # room for the reference labels above the tallest stack
+    top = math.ceil(max(v for _, v in pts) * 4) / 4
+    sx = lambda v: L + (W - L - R) * v / top
+    step, height = 2 * r + 1, {}
+    placed = []
+    for n, v in sorted(pts, key=lambda q: q[1]):
+        k = round(sx(v) / step)
+        h = height.get(k, 0)
+        height[k] = h + 1
+        placed.append((n, v, k * step, h))
+    H = T + B + max(height.values()) * step
+    base = H - B
+    ticks = "".join(f'<line class="g" x1="{sx(t):.1f}" x2="{sx(t):.1f}" y1="{base}" y2="{base + 5}"/>'
+                    f'<text x="{sx(t):.1f}" y="{base + 18}" text-anchor="middle">{num(t, 2)}</text>'
+                    for t in [i / 4 for i in range(int(top * 4) + 1)])
+    lines = "".join(f'<line class="d" x1="{sx(v):.1f}" x2="{sx(v):.1f}" y1="{14 + 13 * i}" y2="{base}"/>'
+                    f'<text class="n" x="{sx(v) + (-4 if sx(v) > W / 2 else 4):.1f}" y="{12 + 13 * i}"{" text-anchor=end" if sx(v) > W / 2 else ""}>'
+                    f'{html.escape(t)}</text>' for i, (v, t) in enumerate(refs))
+    dots = "".join(f'<circle cx="{x}" cy="{base - r - 1 - h * step}" r="{r}"{" class=m" if n in marked else ""}>'
+                   f'<title>{html.escape(n)}: {num(v, dec)}</title></circle>' for n, v, x, h in placed)
+    side = lambda x: "end" if x > W * .8 else "start" if x < W * .2 else "middle"  # name above its dot, kept inside the box
+    names = "".join(f'<text class="n" x="{x}" y="{base - 2 * r - 5 - h * step}" text-anchor="{side(x)}">{html.escape(n)}</text>'
+                    for n, v, x, h in placed if n in marked)
+    axis = f'<line class="g" x1="{L}" x2="{W - R}" y1="{base}" y2="{base}"/>'
+    return figure(title, note, f'<svg class="sc st" viewBox="0 0 {W} {H}" aria-hidden="true">{axis}{ticks}{lines}{dots}{names}</svg>', label)
+
+
 CHART_CSS = """
 .ch{margin:1.2em 0 1.8em;max-width:760px} .ch figcaption{margin-bottom:.6em;color:var(--ink-2)} .ch figcaption b{color:var(--ink)}
 .cr{display:grid;grid-template-columns:minmax(6.5em,10em) 1fr minmax(4.5em,auto);gap:.7em;align-items:center;min-height:26px}
@@ -370,7 +404,7 @@ CHART_CSS = """
 .cst{display:flex;height:16px} .cst i{display:block;height:100%;border-right:2px solid var(--surface)}
 .cst i:first-child{border-radius:4px 0 0 4px} .cst i:last-child{border-right:0;border-radius:0 4px 4px 0}
 .ch i.o{background:color-mix(in srgb,var(--ink-2) 30%,transparent)} .ck{flex-wrap:wrap;gap:.3em 1.2em}
-.sc{width:100%;max-width:520px;height:auto} .sc text{fill:var(--ink-2);font-size:11px} .sc text.n{fill:var(--ink)}
+.sc{width:100%;max-width:520px;height:auto} .sc.st{max-width:600px} .sc text{fill:var(--ink-2);font-size:11px} .sc text.n{fill:var(--ink)}
 .sc .g{stroke:var(--line);stroke-width:1} .sc .d{stroke:var(--ink-2);stroke-dasharray:4 3}
 .sc circle{fill:var(--s4);stroke:var(--surface);stroke-width:1.5} .sc circle.m{fill:var(--s6)}
 """
@@ -417,6 +451,42 @@ def nikh_section():
         "Μάιος 2023", "Ιούνιος 2023", "Ποσοστό ΝΙΚΗΣ ανά χώρα, Μάιος και Ιούνιος 2023: "
         + "; ".join(f"{g}: {num(x)}% και {num(y)}%" for g, x, y in rows)))
 
+    co = {e: groups(e, "a.continent", f"s.ep_id={ABROAD}") for e in ABROAD_ELECTIONS}
+    rows = [(g, share(co[may][g], NIKH), share(co[june][g], NIKH)) for g in sorted(co[june], key=lambda g: -co[june][g]["valid"])
+            if g in co[may]]
+    print("ΝΙΚΗ ανά ήπειρο (Μάιος → Ιούνιος): " + "; ".join(f"{g} {num(x)} → {num(y)}% ({co[june][g]['votes'].get(NIKH, 0)} ψήφοι, "
+                                                       f"{thousands(co[june][g]['valid'])} έγκυρα)" for g, x, y in rows))
+    SECTIONS.append(chart_dumbbell(
+        "Η ΝΙΚΗ ανά ήπειρο", "Ποσοστό επί των εγκύρων. Έγκυρα τον Ιούνιο: "
+        + ", ".join(f"{html.escape(g)} {thousands(co[june][g]['valid'])}" for g, _, _ in rows) + "· έξω από την Ευρώπη λίγες ψήφοι "
+        "αλλάζουν πολύ το ποσοστό.", rows, "Μάιος 2023", "Ιούνιος 2023",
+        "Ποσοστό ΝΙΚΗΣ ανά ήπειρο, Μάιος και Ιούνιος 2023: " + "; ".join(f"{g}: {num(x)}% και {num(y)}%" for g, x, y in rows)))
+
+    nv, vv = ab[june]["votes"][NIKH], ab[june]["valid"]
+    top10 = sorted(cn[june].items(), key=lambda x: -x[1]["votes"].get(NIKH, 0))[:10]
+    rows = [(g, 100 * d["valid"] / vv, 100 * d["votes"].get(NIKH, 0) / nv) for g, d in top10]
+    over = max(rows, key=lambda r: r[2] - r[1])  # in points: a ratio would pick a country with a handful of votes
+    print("Μερίδιο στα έγκυρα του εξωτερικού → μερίδιο στις ψήφους της ΝΙΚΗΣ εκεί, Ιούνιος 2023: "
+          + "; ".join(f"{g} {num(x)} → {num(y)}%" for g, x, y in rows))
+    SECTIONS.append(chart_dumbbell(
+        f"{over[0]}: {num(over[1])}% των εγκύρων του εξωτερικού, {num(over[2])}% των ψήφων της ΝΙΚΗΣ",
+        "Ιούνιος 2023, οι 10 χώρες με τις περισσότερες ψήφους της. Όπου το μερίδιο στις ψήφους της ΝΙΚΗΣ είναι μεγαλύτερο, η χώρα "
+        "της δίνει περισσότερα απ' όσο της αναλογεί σε έγκυρα.", rows, "Μερίδιο στα έγκυρα του εξωτερικού", "Μερίδιο στις ψήφους της ΝΙΚΗΣ",
+        "Μερίδιο κάθε χώρας στα έγκυρα του εξωτερικού και στις ψήφους της ΝΙΚΗΣ, Ιούνιος 2023: "
+        + "; ".join(f"{g}: {num(x)}% και {num(y)}%" for g, x, y in rows), sep=" · "))
+
+    rv = name(june, RIVAL)
+    pts = [(g, share(d, RIVAL), share(d, NIKH)) for g, d in cn[june].items() if d["valid"] >= 300]
+    ahead = sum(y > x for _, x, y in pts)
+    print(f"ΝΙΚΗ και {rv} ανά χώρα (300 έγκυρα και πάνω), Ιούνιος 2023: ΝΙΚΗ πάνω σε {ahead} από τις {len(pts)}; "
+          + "; ".join(f"{g} {num(y)} / {num(x)}%" for g, x, y in sorted(pts, key=lambda q: -q[2])))
+    SECTIONS.append(chart_scatter(
+        f"ΝΙΚΗ και {rv} στο εξωτερικό: η ΝΙΚΗ πάνω σε {ahead} από τις {len(pts)} χώρες",
+        f"Ιούνιος 2023, χώρες με 300 έγκυρα και πάνω· κάθε κουκκίδα μια χώρα. Πάνω από τη διαγώνιο: η ΝΙΚΗ πήρε περισσότερο από την {rv}.",
+        pts, f"{rv} (%)", "ΝΙΚΗ (%)", f"Ποσοστό ΝΙΚΗΣ και {rv} ανά χώρα, Ιούνιος 2023: "
+        + "; ".join(f"{g}: {num(y)}% και {num(x)}%" for g, x, y in pts),
+        {max(pts, key=lambda q: q[2])[0], max(pts, key=lambda q: q[1])[0]}, tip=(rv, "ΝΙΚΗ")))
+
     def area(by, label, title, fold, chart=""):
         keys = sorted(set(by[may]) | set(by[june]), key=lambda g: (-by[june].get(g, {"votes": {}})["votes"].get(NIKH, 0), str(g)))
         rows = []
@@ -459,6 +529,20 @@ def nikh_section():
         "Κάθε κουκκίδα μια περιφέρεια, Ευρωεκλογές 2024. Κάτω από τη διαγώνιο: μικρότερο ποσοστό στην επιστολική απ' ό,τι στην κάλπη.",
         pts, "Κάλπη (%)", "Επιστολική (%)", f"Ποσοστό ΝΙΚΗΣ στην επιστολική και στην κάλπη ανά περιφέρεια: χαμηλότερο στην επιστολική σε "
         f"{below} από τις {len(pts)}. Τα ίδια στοιχεία είναι στον πίνακα που ακολουθεί.", marked))
+    idx = []
+    for ep in (e for e in post if e != ABROAD):  # abroad has no ballot box in 2024
+        mine = post[ep]["votes"].get(NIKH, 0) + box[ep]["votes"].get(NIKH, 0)
+        if mine:
+            idx.append((names[ep], (post[ep]["votes"].get(NIKH, 0) / mine) / (post[ep]["valid"] / (post[ep]["valid"] + box[ep]["valid"]))))
+    lo_i, hi_i = min(idx, key=lambda q: q[1]), max(idx, key=lambda q: q[1])
+    print(f"Δείκτης επιστολικής ψήφου της ΝΙΚΗΣ ανά περιφέρεια: από {num(lo_i[1], 2)} ({lo_i[0]}) ως {num(hi_i[1], 2)} ({hi_i[0]}); "
+          f"κάτω από 1 σε {sum(v < 1 for _, v in idx)} από τις {len(idx)}")
+    SECTIONS.append(chart_strip(
+        f"Ο ψηφοφόρος της ΝΙΚΗΣ ψήφισε λιγότερο επιστολικά από τον μέσο σε {sum(v < 1 for _, v in idx)} από τις {len(idx)} περιφέρειες",
+        "Ευρωεκλογές 2024. Για κάθε περιφέρεια: το μερίδιο των ψήφων της ΝΙΚΗΣ που ήταν επιστολικές, διά το ίδιο μερίδιο για όλα τα "
+        "έγκυρα. 1 = όσο ο μέσος ψηφοφόρος.", idx,
+        "Δείκτης επιστολικής ψήφου της ΝΙΚΗΣ ανά περιφέρεια: " + "; ".join(f"{n} {num(v, 2)}" for n, v in sorted(idx, key=lambda q: q[1])),
+        [(1, "1 = όσο ο μέσος ψηφοφόρος"), (prop, f"{num(prop, 2)} = όλη η χώρα")], {lo_i[0], hi_i[0]}))
     rows = []
     for ep in sorted((e for e in post if e != ABROAD), key=lambda e: -post[e]["votes"].get(NIKH, 0)):
         p, b = post[ep], box[ep]
