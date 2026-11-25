@@ -153,7 +153,7 @@ def main():
         assert a in page, a
         page = page.replace(a, b)
     page = fill(page, INDEX_LIGHT | {"dot": "#46453f"}, INDEX_DARK | {"dot": "#c2c1bc"}, current="maps", skip="#main", compact=True)
-    OUT.write_text(secure(page), encoding="utf-8")
+    OUT.write_text(secure(page, OUT), encoding="utf-8")
     print(f"wrote {OUT} ({len(polls)} polls, last average {num(last_x)}% ± {num(Z90 * last_s)})")
 
 

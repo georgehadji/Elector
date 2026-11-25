@@ -4,9 +4,11 @@ Run: python -I -X utf8 -m unittest discover -s tests
 Needs the pages built (build.py <election> all, build.py index, compare.py).
 """
 import re
+import sys
 import unittest
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import quote
 
 OUT = Path(__file__).resolve().parent.parent / "out"
 PLACEHOLDER = re.compile(r"/\*[A-Z_]{4,}\*/|<!--[A-Z]{4,}-->")
@@ -14,6 +16,9 @@ PLACEHOLDER = re.compile(r"/\*[A-Z_]{4,}\*/|<!--[A-Z]{4,}-->")
 # rebuilt from the venue spreadsheet, so a stale one is not a failure here.
 APP = sorted(p for p in OUT.glob("*.html") if re.fullmatch(r"(2019|2023-may|2023-june|2024-euro)_\d+\.html", p.name))
 SPECIAL = [OUT / "index.html", OUT / "compare.html", OUT / "nikh_polls.html"]
+FRAGMENTS = {"greece_map.html"}  # a <figure> the index inlines, not a page
+ALL = sorted(p for p in OUT.glob("*.html") if p.name not in FRAGMENTS)
+sys.path.insert(0, str(OUT.parent))
 
 
 def read(p):
@@ -42,10 +47,24 @@ class Pages(unittest.TestCase):
             self.assertEqual(len(re.findall(r'L\.map\("map", (?!mapOptions\()', s)), 0, p.name)
 
     def test_share_tags(self):
-        for p in APP + [OUT / "compare.html"]:
+        for p in ALL:
             s = read(p)
-            self.assertIn('property="og:title"', s, p.name)
-            self.assertIn('name="description"', s, p.name)
+            for tag in ('property="og:title"', 'property="og:description"', 'property="og:type"',
+                        'property="og:locale"', 'name="description"', 'name="twitter:card"', "<title>"):
+                self.assertIn(tag, s, f"{p.name}: {tag}")
+
+    def test_absolute_urls_only_with_site_url(self):
+        from config import SITE_URL
+        for p in ALL:
+            s = read(p)
+            url = re.search(r'property="og:url" content="([^"]*)"', s)
+            canon = re.search(r'rel="canonical" href="([^"]*)"', s)
+            if not SITE_URL:  # a relative or guessed address is worse than none
+                self.assertFalse(url or canon, p.name)
+                continue
+            want = f"{SITE_URL}/out/{quote(p.name)}"
+            self.assertEqual(url and url.group(1), want, p.name)
+            self.assertEqual(canon and canon.group(1), want, p.name)
 
     def test_no_middle_dot_in_titles(self):
         for p in APP:
@@ -93,13 +112,14 @@ class Pages(unittest.TestCase):
         import base64
         import hashlib
         h = lambda t: "'sha256-" + base64.b64encode(hashlib.sha256(t.encode()).digest()).decode() + "'"
-        for p in APP + SPECIAL:
+        for p in ALL:
             s = read(p)
             csp = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', s)
             self.assertTrue(csp, p.name)
-            for tag, body in re.findall(r"<(script|style)(?:\s[^>]*)?>(.*?)</>", s, re.S):
-                if tag == "script" and "src=" in s[s.find(body) - 200:s.find(body)]:
-                    continue
+            self.assertIn('<meta name="referrer" content="strict-origin-when-cross-origin">', s, p.name)
+            blocks = re.findall(r"<(script|style)>(.*?)</\1>", s, re.S)  # secure() hashes the blocks without attributes
+            self.assertTrue(blocks, p.name)
+            for tag, body in blocks:
                 self.assertIn(h(body), csp.group(1), f"{p.name}: inline {tag} not allowed")
             self.assertIsNone(re.search(r"\son[a-z]+=\"", s), f"{p.name}: inline handler")
             for tag in re.findall(r"<(?:script|link)[^>]+leaflet[^>]+>", s):

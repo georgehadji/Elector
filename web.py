@@ -14,6 +14,7 @@ import sqlite3
 import unicodedata
 import urllib.parse
 from collections import defaultdict
+from pathlib import Path
 
 from config import (
     DB,
@@ -24,6 +25,7 @@ from config import (
     OUT,
     PARTY_SHORT,
     REGIONS,
+    SITE_URL,
     slug,
 )
 from geo import exteriors, frame, path
@@ -122,17 +124,24 @@ def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx=
 
 
 def meta(title, description):
-    """Description and Open Graph tags (no og:image: that needs a hosted raster picture)."""
+    """Description, Open Graph and Twitter card tags (no og:image yet: that needs a hosted raster picture, so the card is "summary").
+    The address-bound tags (og:url, canonical) are added by secure(), which knows the file."""
     t, d = html.escape(title, quote=True), html.escape(description, quote=True)
     return (f'<meta name="description" content="{d}"><meta property="og:type" content="website">'
             f'<meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR">'
-            f'<meta property="og:title" content="{t}"><meta property="og:description" content="{d}">')
+            f'<meta property="og:title" content="{t}"><meta property="og:description" content="{d}">'
+            '<meta name="twitter:card" content="summary">')
+
+FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' "
+           "stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E"
+           "%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E")  # the site mark; img-src allows data:
 
 LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/"
 
-def secure(page):
-    """Content-Security-Policy (as a <meta>: GitHub Pages sets no headers) and referrer policy. Call it last, on the
-    finished page: the inline scripts and styles are allowed by their SHA-256 hash, so injected markup cannot run.
+def secure(page, path=None):
+    """Content-Security-Policy (as a <meta>: GitHub Pages sets no headers), referrer policy, favicon and, when config.SITE_URL
+    is set, the page's canonical address and og:url (`path` = the file the page is written to; one outside out/ gets none).
+    Call it last, on the finished page: the inline scripts and styles are allowed by their SHA-256 hash, so injected markup cannot run.
     Leaflet (cdnjs, also pinned by integrity=) and the OSM tiles are the only outside sources; the fonts are self-hosted (fonts.css, out/fonts/)."""
     def hashes(tag):
         return [f"'sha256-{base64.b64encode(hashlib.sha256(m.encode()).digest()).decode()}'"
@@ -145,15 +154,20 @@ def secure(page):
         "font-src 'self'",
         f"img-src 'self' data: https://tile.openstreetmap.org {LEAFLET}",
         "connect-src 'none'", "base-uri 'none'", "form-action 'none'", "object-src 'none'", "frame-src 'none'"])
-    tags = f'<meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="referrer" content="strict-origin-when-cross-origin">'
+    tags = (f'<meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="referrer" content="strict-origin-when-cross-origin">'
+            f'<link rel="icon" href="{FAVICON}">')
+    if SITE_URL and path is not None and Path(path).resolve().parent == OUT.resolve():  # pages outside out/ are not published
+        url = f"{SITE_URL}/out/{urllib.parse.quote(Path(path).name)}"
+        tags += f'<link rel="canonical" href="{url}"><meta property="og:url" content="{url}">'
     return page.replace('<meta charset="utf-8">', '<meta charset="utf-8">' + tags, 1)
 
 def common_css():
     return fill((HERE / "common.css").read_text(encoding="utf-8"), print_={"surface": "#fff"})
 
 
-def render_page(template, data):
-    """Template with the shared UI (common.css/js, theme, header, footer) and the page data inlined: one self-contained file."""
+def render_page(template, data, path=None):
+    """Template with the shared UI (common.css/js, theme, header, footer) and the page data inlined: one self-contained file.
+    `path` is the file the page is written to (see secure())."""
     page = (HERE / template).read_text(encoding="utf-8")
     page = fill(page.replace("/*COMMON_CSS*/", common_css()).replace("/*COMMON_JS*/", (HERE / "common.js").read_text(encoding="utf-8")),
                 ctx=context_row(data), skip="#map")
@@ -163,7 +177,7 @@ def render_page(template, data):
     et = data["election_title"]
     page = page.replace("<!--META-->", meta(f"{kind}, {data['ep_name']}",
                                             f"{kind} ανά {unit}, {data['ep_name']}, {et[0].lower() + et[1:]}."))
-    return secure(page.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False)))  # last: data may contain anything
+    return secure(page.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False)), path)  # last: data may contain anything
 
 
 # A ballpoint cross in a ballot box, the mark a voter puts next to a candidate: the one decorative element of the site.
@@ -516,7 +530,7 @@ def _write_index(order, nikh, elected):
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Χάρτες σταυρών</title>
-<meta name="description" content="Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.">
+{meta("Χάρτες σταυρών", "Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.")}
 {FONTS}
 <script>/*THEME_JS*/</script>
 <style>{INDEX_CSS}</style></head><body><main id="main">
@@ -548,7 +562,7 @@ def _write_index(order, nikh, elected):
 {groups}
 </section>
 {footer(" Οι ψήφοι ετεροδημοτών και ειδικών τμημάτων δεν έχουν θέση στον χάρτη.", home=False)}
-</main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK, current="index")), encoding="utf-8")
+</main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK, current="index"), OUT / "index.html"), encoding="utf-8")
 
 
 MAPS = OUT / "maps.json"

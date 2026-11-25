@@ -53,7 +53,7 @@ template = fill((HERE / "compare_template.html").read_text(encoding="utf-8"),
 template = template.replace("<!--META-->", meta("Σύγκριση εκλογών ανά κοινότητα",
     "Χάρτης όλης της χώρας: ποσοστό κάθε κόμματος ανά κοινότητα και μεταβολή ανάμεσα σε οποιεσδήποτε δύο εκλογές, 2019–2024."))
 out = OUT / "compare.html"
-out.write_text(secure(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":")))),
+out.write_text(secure(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))), out),
                encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB, {len(features)} areas, {len(order)} parties)")
 

@@ -9,6 +9,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 DB = HERE / "data" / "stavroi.sqlite"
 OUT = HERE / "out"
+# Public address of the site, without a trailing slash (https://example.gr). Empty: pages carry no og:url or canonical,
+# since a relative or guessed address is worse than none. Set it, then rebuild every page.
+SITE_URL = "https://elector-eight.vercel.app"
 
 
 def accented(s):

@@ -24,6 +24,7 @@ from matching import boundaries, ep_label, label, match_areas, norm  # noqa: E40
 from web import (  # noqa: E402
     FONTS,
     header,
+    meta,
     common_css,
     secure,
     entry,
@@ -149,7 +150,7 @@ def main(election, ep):
     out = OUT / f"{slug(election)}_{ep}.html"
     out.parent.mkdir(exist_ok=True)
     data["links"] = links(out.name, election, ep)
-    out.write_text(render_page("template.html", data), encoding="utf-8")
+    out.write_text(render_page("template.html", data, out), encoding="utf-8")
     print(f"wrote {out}")
     label_ = "Ανά περιοχή · κόμματα (% εγκύρων)" if party_mode else "Ανά περιοχή · όλοι οι υποψήφιοι"
     return {"ep": ep, "name": ep_name, "file": out.name, "areas": len(areas), "map_areas": len(features),
@@ -234,9 +235,11 @@ def build_all(election):
         f'<td class="n">{r["map_areas"]}</td><td class="n">{r["unmatched"]}</td><td class="n">{r["seat"]}</td>'
         f'<td class="n">{r["coverage"]:.1%}</td></tr>' if r.get("file") else
         f'<tr><td>{r["name"]}</td><td colspan="5">σφάλμα: {r["error"]}</td></tr>' for r in rows)
-    (OUT / f"index_{slug(election)}.html").write_text(secure(fill(f"""<!doctype html>
+    index_page = OUT / f"index_{slug(election)}.html"
+    index_page.write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Κάλυψη χαρτών · {ELECTION_NAMES.get(election, election)}</title>
+{meta(f"Κάλυψη χαρτών, {ELECTION_NAMES.get(election, election)}", "Πόσα εκλογικά διαμερίσματα κάθε περιφέρειας έχουν θέση στον χάρτη και πόσα μένουν εκτός.")}
 {FONTS}
 <script>/*THEME_JS*/</script><style>{common_css()}
 main{{max-width:900px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}

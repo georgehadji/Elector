@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import party  # noqa: E402
 from build import communities  # noqa: E402
 from config import ELECTION_NAMES, HERE, slug  # noqa: E402
-from web import INDEX_DARK, INDEX_LIGHT, fill, secure  # noqa: E402
+from web import INDEX_DARK, INDEX_LIGHT, fill, meta, secure  # noqa: E402
 
 # NIKH first ran in 2023; 2019 appears only through BLOCS.
 ELECTIONS = {slug(k): name for k, name in ELECTION_NAMES.items() if k != "2019"}
@@ -66,6 +66,6 @@ template = fill((HERE / "analysis" / "nikh_map_template.html").read_text(encodin
 if not party.IS_NIKH:
     template = re.sub(r'DELTAS\["d-bloc[^\]]*\] = \[.*?\];[^\n]*\n', "", template, flags=re.S)  # bloc change views
     template = re.sub(r'<p class="rel">.*?</p>\n', "", template).replace("ΝΙΚΗ ανά", f"{party.NAME} ανά").replace("<h1>ΝΙΚΗ:", f"<h1>{party.NAME}:")
-out.write_text(secure(template.replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":")))),
+out.write_text(secure(template.replace("<!--META-->", meta(f"{party.NAME}: ποσοστό ανά εκλογικό διαμέρισμα", f"Ποσοστό του κόμματος {party.NAME} ανά εκλογικό διαμέρισμα και μεταβολή του από εκλογές σε εκλογές, 2019–2024.")).replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))), out),
                encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB, {len(features)} areas)")

@@ -18,7 +18,7 @@ import xlrd
 from config import DB, ELECTED, HERE, NIKH
 from matching import norm
 from stations_map import XLS_EP, venue_parts
-from web import fill, secure
+from web import fill, meta, secure
 
 MAY, JUN = "2023/may", "2023/june"
 
@@ -121,7 +121,7 @@ def main(xls):
            '<p><a href="index.html">Όλοι οι χάρτες</a> · <a href="../exports/NIKH_2023_ana_dhm_enotita.csv">'
            'CSV ανά δημοτική ενότητα</a> · <a href="nikh_targets.html">Χάρτης στόχευσης</a> · <a href="nikh_2023-2024.html">Χάρτης 2019–2024</a></p>', ""] + detail
     report = HERE / "out" / "NIKH_eklegmenoi_2023.html"  # next to the maps it links to
-    report.write_text(to_html(md), encoding="utf-8")
+    report.write_text(to_html(md, report), encoding="utf-8")
     with open(HERE / "exports" / "NIKH_2023_ana_dhm_enotita.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         w.writerow(["Περιφέρεια", "Βουλευτής", "Δημ. ενότητα", "Ψήφοι Μάιος", "Έγκυρα Μάιος", "% Μάιος",
@@ -130,7 +130,7 @@ def main(xls):
     print(f"wrote {report}")
 
 
-def to_html(lines):
+def to_html(lines, path):
     """The report's small markdown subset (#, ##, pipe tables, paragraphs, raw '<' lines) -> one HTML page."""
     body, table, align = [], [], []
 
@@ -163,7 +163,7 @@ def to_html(lines):
     flush()
     return secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ΝΙΚΗ 2023</title><script>/*THEME_JS*/</script><style>
+<title>ΝΙΚΗ 2023</title>{meta("ΝΙΚΗ 2023: Μάιος και Ιούνιος", "Η ΝΙΚΗ στις εννέα περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο 2023, σε σύγκριση με τον Μάιο, ανά περιφέρεια, δημοτική ενότητα και εκλογικό τμήμα.")}<script>/*THEME_JS*/</script><style>
 /*THEME_TOKENS*/
 /*SITE_CSS*/
 body{{margin:0;font:.9375rem/1.5 system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
@@ -177,7 +177,7 @@ th{{color:var(--ink-2);font-size:.75rem;font-weight:600}} .n{{text-align:right;w
 <!--HEADER-->
 {chr(10).join(body)}
 <!--FOOTER-->
-</main></body></html>"""))
+</main></body></html>"""), path)
 
 
 if __name__ == "__main__":
