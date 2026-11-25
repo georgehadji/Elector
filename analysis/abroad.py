@@ -10,6 +10,7 @@ kind Τ per constituency; compared with the ballot boxes of the same constituenc
 """
 import html
 import json
+import math
 import re
 import sqlite3
 import sys
@@ -240,6 +241,73 @@ def postal_section():
          + [(name(EURO, p) + " %", True) for p in parties], rows, fold=True)
 
 
+# Charts, drawn here as HTML and inline SVG (no script): one purple hue from the map ramp, two shades for a dumbbell.
+# Each repeats a table of the page, which stays the accessible view of the same numbers.
+def figure(title, note, body, label):
+    return (f'<figure class="ch" role="img" aria-label="{html.escape(label, quote=True)}"><figcaption><b>{html.escape(title)}</b>'
+            f'{f"<br>{note}" if note else ""}</figcaption>{body}</figure>')
+
+
+def chart_bars(title, note, rows, label):
+    """Ranked horizontal bars: rows = [(name, value, text beside the bar)], largest first."""
+    top = max(v for _, v, _ in rows) or 1
+    body = "".join(f'<div class="cr"><span class="cl">{html.escape(n)}</span><span class="cb"><i style="width:{100 * v / top:.1f}%">'
+                   f'</i></span><span class="cv">{t}</span></div>' for n, v, t in rows)
+    return figure(title, note, body, label)
+
+
+def chart_dumbbell(title, note, rows, a, b, label, unit="%", sep=" → "):
+    """One row per item, two dots on a shared 0..max axis: rows = [(name, value a, value b)]; a is the lighter dot."""
+    top = math.ceil(max(max(x, y) for _, x, y in rows) * 1.05) or 1  # a round end, so the end label is exact
+    pos = lambda v: f"{100 * v / top:.1f}%"
+    key = f'<p class="ck"><span><i class="a"></i>{html.escape(a)}</span><span><i class="b"></i>{html.escape(b)}</span></p>'
+    body = "".join(
+        f'<div class="cr"><span class="cl">{html.escape(n)}</span><span class="cd"><i class="ln" style="left:{pos(min(x, y))};'
+        f'width:{100 * abs(x - y) / top:.1f}%"></i><i class="a" style="left:{pos(x)}"></i><i class="b" style="left:{pos(y)}"></i></span>'
+        f'<span class="cv">{num(x)}{sep}{num(y)}{unit}</span></div>' for n, x, y in rows)
+    scale = f'<div class="cr cs"><span></span><span class="cd0"><span>0{unit}</span><span>{num(top, 0)}{unit}</span></span><span></span></div>'
+    return figure(title, note, key + body + scale, label)
+
+
+def chart_scatter(title, note, pts, xlab, ylab, label, marked=()):
+    """Scatter of (name, x, y) in % with the line y = x; points in `marked` carry their name."""
+    W, H, L, B, T, R = 360, 300, 38, 34, 10, 12  # size and margins
+    top = max(max(x, y) for _, x, y in pts)
+    top = int(top) + 1
+    sx = lambda v: L + (W - L - R) * v / top
+    sy = lambda v: H - B - (H - B - T) * v / top
+    step = 1 if top <= 6 else 2
+    grid = "".join(f'<line class="g" x1="{L}" x2="{W - R}" y1="{sy(v):.1f}" y2="{sy(v):.1f}"/><line class="g" y1="{T}" y2="{H - B}" '
+                   f'x1="{sx(v):.1f}" x2="{sx(v):.1f}"/><text x="{L - 6}" y="{sy(v) + 4:.1f}" text-anchor="end">{v}</text>'
+                   f'<text x="{sx(v):.1f}" y="{H - B + 15}" text-anchor="middle">{v}</text>' for v in range(0, top + 1, step))
+    diag = f'<line class="d" x1="{sx(0)}" y1="{sy(0)}" x2="{sx(top):.1f}" y2="{sy(top):.1f}"/>'
+    dots = "".join(f'<circle cx="{sx(x):.1f}" cy="{sy(y):.1f}" r="4.5"{" class=m" if n in marked else ""}><title>{html.escape(n)}: '
+                   f'{num(y)}% επιστολική, {num(x)}% κάλπη</title></circle>' for n, x, y in pts)
+    names = "".join(f'<text class="n" x="{sx(x) + (-7 if x > top * .7 else 7):.1f}" y="{sy(y) + 4:.1f}"'  # right part: name on the left
+                    f'{" text-anchor=end" if x > top * .7 else ""}>{html.escape(n)}</text>' for n, x, y in pts if n in marked)
+    axes = (f'<text x="{(L + W - R) / 2}" y="{H - 4}" text-anchor="middle">{html.escape(xlab)}</text>'
+            f'<text transform="translate(11 {(T + H - B) / 2}) rotate(-90)" text-anchor="middle">{html.escape(ylab)}</text>'
+            f'<text class="n" x="{sx(top * .62):.1f}" y="{sy(top * .62) - 8:.1f}" text-anchor="end">ίδιο ποσοστό</text>')
+    return figure(title, note, f'<svg class="sc" viewBox="0 0 {W} {H}" aria-hidden="true">{grid}{diag}{dots}{names}{axes}</svg>', label)
+
+
+CHART_CSS = """
+.ch{margin:1.2em 0 1.8em;max-width:760px} .ch figcaption{margin-bottom:.6em;color:var(--ink-2)} .ch figcaption b{color:var(--ink)}
+.cr{display:grid;grid-template-columns:minmax(6.5em,10em) 1fr minmax(4.5em,auto);gap:.7em;align-items:center;min-height:26px}
+.cl{font-size:14px;overflow-wrap:anywhere} .cv{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cb{height:14px} .cb i{display:block;height:100%;min-width:2px;background:var(--s5);border-radius:0 4px 4px 0}
+.cd{position:relative;height:1px;background:var(--line)} .cd i{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;
+  transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--surface)} .cd i.ln{height:3px;border-radius:0;transform:translateY(-50%);
+  box-shadow:none;background:var(--s2)}
+.ch i.a{background:var(--s2)} .ch i.b{background:var(--s6)}
+.ck{display:flex;gap:1.2em;font-size:13px;margin:.2em 0 .5em} .ck i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.cs .cd0{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)}
+.sc{width:100%;max-width:520px;height:auto} .sc text{fill:var(--ink-2);font-size:11px} .sc text.n{fill:var(--ink)}
+.sc .g{stroke:var(--line);stroke-width:1} .sc .d{stroke:var(--ink-2);stroke-dasharray:4 3}
+.sc circle{fill:var(--s4);stroke:var(--surface);stroke-width:1.5} .sc circle.m{fill:var(--s6)}
+"""
+
+
 def rank(g, pid):
     """Place of party pid among the parties of group g, by votes (1 = first); "-" without votes."""
     mine = g["votes"].get(pid, 0)
@@ -262,6 +330,24 @@ def nikh_section():
             f"έδωσαν το {num(100 * sum(d['votes'].get(NIKH, 0) for d in top3) / ab[june]['votes'][NIKH], 0)}% των ψήφων της στο εξωτερικό.")
     print(lead)
     SECTIONS.append(f'<h2 id="nikh">ΝΙΚΗ: αναλυτικά</h2><p>{lead}</p>')
+    e24, ab24 = total(EURO), total(EURO, f"s.ep_id={ABROAD}")
+    rows = [(ELECTION_NAMES[e], share(nat[e], NIKH), share(ab[e], NIKH)) for e in ABROAD_ELECTIONS]
+    rows.append((ELECTION_NAMES[EURO], share(e24, NIKH), share(ab24, NIKH)))
+    SECTIONS.append(chart_dumbbell(
+        "Η ΝΙΚΗ πάει χειρότερα στο εξωτερικό απ' ό,τι σε όλη τη χώρα", "Ποσοστό επί των εγκύρων. Στις Ευρωεκλογές 2024 όλη η ψήφος του εξωτερικού ήταν επιστολική.", rows,
+        "Όλη η χώρα", "Εξωτερικό", sep=" · ", label="Ποσοστό ΝΙΚΗΣ, όλη η χώρα και εξωτερικό: "
+        + "; ".join(f"{n}: {num(x)}% και {num(y)}%" for n, x, y in rows)))
+    jv = sorted(((g, d) for g, d in cn[june].items() if d["votes"].get(NIKH)), key=lambda x: -x[1]["votes"][NIKH])[:12]
+    SECTIONS.append(chart_bars(
+        "Ψήφοι της ΝΙΚΗΣ ανά χώρα, Ιούνιος 2023", "Οι 12 χώρες με τις περισσότερες ψήφους της· δίπλα το ποσοστό της εκεί.",
+        [(g, d["votes"][NIKH], f"{d['votes'][NIKH]} · {num(share(d, NIKH))}%") for g, d in jv],
+        "Ψήφοι ΝΙΚΗΣ ανά χώρα, Ιούνιος 2023: " + "; ".join(f"{g} {d['votes'][NIKH]}" for g, d in jv)))
+    big = sorted((g for g, d in cn[june].items() if d["valid"] >= 500 and g in cn[may]), key=lambda g: -share(cn[june][g], NIKH))
+    rows = [(g, share(cn[may][g], NIKH), share(cn[june][g], NIKH)) for g in big]
+    SECTIONS.append(chart_dumbbell(
+        "Από τον Μάιο στον Ιούνιο: η ΝΙΚΗ ανέβηκε σχεδόν παντού", "Χώρες με 500 έγκυρα και πάνω τον Ιούνιο.", rows,
+        "Μάιος 2023", "Ιούνιος 2023", "Ποσοστό ΝΙΚΗΣ ανά χώρα, Μάιος και Ιούνιος 2023: "
+        + "; ".join(f"{g}: {num(x)}% και {num(y)}%" for g, x, y in rows)))
 
     def area(by, label, title, fold):
         keys = sorted(set(by[may]) | set(by[june]), key=lambda g: (-by[june].get(g, {"votes": {}})["votes"].get(NIKH, 0), str(g)))
@@ -292,6 +378,15 @@ def nikh_section():
             f"{ab[june]['votes'][NIKH]} στις κάλπες του εξωτερικού τον Ιούνιο 2023.")
     print(lead)
     SECTIONS.append(f"<p>{lead}</p>")
+    pts = [(names[ep], share(box[ep], NIKH), share(post[ep], NIKH)) for ep in post if ep != ABROAD]
+    gaps = sorted(pts, key=lambda p: p[2] - p[1])
+    marked = {gaps[0][0], gaps[-1][0], max(pts, key=lambda p: p[1])[0]}
+    below = sum(y < x for _, x, y in pts)
+    SECTIONS.append(chart_scatter(
+        f"Επιστολική και κάλπη: η ΝΙΚΗ κάτω από τη γραμμή σε {below} από τις {len(pts)} περιφέρειες",
+        "Κάθε κουκκίδα μια περιφέρεια, Ευρωεκλογές 2024. Κάτω από τη διαγώνιο: μικρότερο ποσοστό στην επιστολική απ' ό,τι στην κάλπη.",
+        pts, "Κάλπη (%)", "Επιστολική (%)", f"Ποσοστό ΝΙΚΗΣ στην επιστολική και στην κάλπη ανά περιφέρεια: χαμηλότερο στην επιστολική σε "
+        f"{below} από τις {len(pts)}. Τα ίδια στοιχεία είναι στον πίνακα που ακολουθεί.", marked))
     rows = []
     for ep in sorted((e for e in post if e != ABROAD), key=lambda e: -post[e]["votes"].get(NIKH, 0)):
         p, b = post[ep], box[ep]
@@ -367,9 +462,9 @@ function fillCols(el) {
   el.shown.forEach(p => colSel.add(new Option("Ποσοστό: " + D.parties[p].name, p)));
   colSel.value = [...colSel.options].some(o => o.value === (keep || h.get("p"))) ? (keep || h.get("p")) : "first";
 }
-function draw() {
+function draw(user) {  // user: a control changed, so the address keeps the choice (on load it keeps a #section link)
   const el = D.els.find(e => e.key === elSel.value), mode = colSel.value;
-  history.replaceState(null, "", "#e=" + el.key + (mode === "first" ? "" : "&p=" + mode));
+  if (user) history.replaceState(null, "", "#e=" + el.key + (mode === "first" ? "" : "&p=" + mode));
   layer.clearLayers();
   marks = el.cities.map(c => [c.ll, mode === "first" ? c.v : (c.p[mode] || 0), radius(c.v)]);
   showLabels();
@@ -395,8 +490,8 @@ function draw() {
       sw(css("--line"), `κάτω από ${MIN} έγκυρα`)) +
     `<span class="k">Μέγεθος κύκλου: έγκυρα. Αριθμός: ${mode === "first" ? "έγκυρα" : "ψήφοι " + D.parties[mode].name} (με μεγέθυνση, σε όλους τους κύκλους).${el.missing ? ` ${el.missing} πόλεις χωρίς θέση στον χάρτη.` : ""}</span>`;
 }
-elSel.addEventListener("change", () => { fillCols(D.els.find(e => e.key === elSel.value)); draw(); });
-colSel.addEventListener("change", draw);
+elSel.addEventListener("change", () => { fillCols(D.els.find(e => e.key === elSel.value)); draw(true); });
+colSel.addEventListener("change", () => draw(true));
 $("m-num").addEventListener("change", showLabels);
 fillCols(D.els.find(e => e.key === elSel.value));
 draw();
@@ -417,7 +512,7 @@ def page():
 <link rel="stylesheet" href="vendor/leaflet-1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
 <script src="vendor/leaflet-1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <script>/*THEME_JS*/</script><style>{common_css()}
-.mctl{{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0}} .mctl select{{margin-left:.4em}}
+{CHART_CSS}.mctl{{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0}} .mctl select{{margin-left:.4em}}
 .mnum span{{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:11px;font-weight:600;line-height:1;
   color:var(--ink);text-shadow:0 0 2px var(--surface),0 0 2px var(--surface),0 0 3px var(--surface)}}
 #m-legend{{display:flex;flex-wrap:wrap;gap:.3em 1em;margin:.5em 0 1em;font-size:14px}}
