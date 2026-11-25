@@ -23,10 +23,17 @@ h3{font-size:.875rem;margin:12px 0 0}
 .when label{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer}
 .when input{margin:0;accent-color:var(--pen);width:16px;height:16px}
 main:has(#h180:checked) .h0,main:has(#h0:checked) .h180{display:none}
-.cards{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;padding:0;list-style:none}
-.cards li{display:flex;flex-direction:column;min-width:170px;padding:6px 14px 8px 10px;border-left:4px solid var(--pen);background:var(--wash)}
-.cards span{font-size:.75rem;color:var(--ink-2)}
-.cards b{font-size:1.5rem;line-height:1.25}
+.odds{margin:10px 0 0;padding:0;list-style:none;max-width:760px}
+.odds li{display:grid;grid-template-columns:minmax(11em,15em) 1fr 4.5em;gap:0 14px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.odds .lb{display:flex;flex-direction:column;font-size:.875rem}
+.odds small{font-size:.75rem;color:var(--ink-2)}
+.odds .meter{height:10px;border-radius:5px;background:var(--wash);overflow:hidden}
+.odds .meter i{display:block;height:100%;min-width:3px;border-radius:5px;background:var(--ink-2)}
+.odds b{font-size:1.25rem;text-align:right;font-variant-numeric:tabular-nums}
+.odds .nd .lb{font-weight:600}
+.odds .nd b{font-size:1.75rem;line-height:1.15}
+.odds .nd .meter i{background:var(--p-ND)}
+@media (max-width:600px){.odds li{grid-template-columns:1fr auto;gap:6px 12px}.odds .meter{grid-column:1/-1;grid-row:2}}
 .sh{display:grid;grid-template-columns:minmax(7.5em,11em) 1fr 4.2em 4.6em;gap:0 10px;align-items:center;margin:8px 0 0;font-variant-numeric:tabular-nums}
 .sh>span{font-size:.8125rem}
 .sh .hd{font-size:.75rem;color:var(--ink-2);text-align:right}

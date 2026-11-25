@@ -80,13 +80,31 @@ def expected(r):
     return whole
 
 
-def cards(r):
-    items = [("ΝΔ αυτοδύναμη, 151 έδρες ή περισσότερες", r["p_nd_majority"]),
-             ("Το πρώτο κόμμα παίρνει μπόνους (25% και πάνω)", r["p_bonus"]),
-             ("ΝΔ και ΠΑΣΟΚ μαζί 151 ή περισσότερες", r["p_nd_pasok_151"]),
-             ("ΝΔ και ΕΛΑΣ μαζί 151 ή περισσότερες", r["p_nd_elas_151"]),
-             ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ μαζί 151 ή περισσότερες", r["p_nd_pasok_elas_151"])]
-    return '<ul class="cards">' + "".join(f"<li><span>{t}</span><b>{pct(p)}</b></li>" for t, p in items) + "</ul>"
+def often(p):
+    """A probability in words, as a share of the simulations: 'περίπου 1 στις 120', 'περίπου 7 στις 10'."""
+    one_in = lambda q: thousands(int(round(1 / q, 2 - len(str(round(1 / q))))))  # two significant digits: 278 -> 280
+    if p < 0.001:
+        return "λιγότερο από 1 στις 1.000"
+    if p < 0.095:
+        return f"περίπου 1 στις {one_in(p)}"
+    if p <= 0.95:
+        return f"περίπου {round(10 * p)} στις 10"
+    if p <= 0.999:
+        return f"όλες εκτός από περίπου 1 στις {one_in(1 - p)}"
+    return "σχεδόν όλες"
+
+
+def odds(r, key):
+    """Who reaches 151 seats: ND alone first (the main question), then the coalitions from most to least likely."""
+    rows = [("ΝΔ μόνη της (αυτοδυναμία)", r["p_nd_majority"], ' class="nd"')] + sorted(
+        [("ΝΔ και ΠΑΣΟΚ", r["p_nd_pasok_151"], ""), ("ΝΔ και ΕΛΑΣ", r["p_nd_elas_151"], ""),
+         ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", r["p_nd_pasok_elas_151"], "")], key=lambda t: -t[1])
+    items = "".join(f'<li{c}><span class="lb">{t}<small>{often(p)}</small></span>'
+                    f'<span class="meter" aria-hidden="true"><i style="width:{100 * p:.1f}%"></i></span><b>{pct(p)}</b></li>'
+                    for t, p, c in rows)
+    return (f'<h2>Ποιοι φτάνουν τις 151 έδρες, εκλογές {WHEN[key]}</h2>'
+            '<p class="note">Σε τι ποσοστό των προσομοιώσεων το κόμμα, ή τα κόμματα μαζί, παίρνουν 151 έδρες ή περισσότερες.</p>'
+            f'<ul class="odds">{items}</ul>')
 
 
 def shares(r, order, names):
@@ -141,7 +159,7 @@ def seat_table(r, order, names):
             '<th class="n">αν υπάρχει μπόνους</th><th class="n">χωρίς μπόνους</th></tr></thead><tbody>'
             + "".join(rows) + '</tbody></table></div>'
             '<p class="note">Έδρες: 10%–διάμεσος–90% των προσομοιώσεων. «Αν υπάρχει μπόνους»: μόνο οι προσομοιώσεις όπου το '
-            'πρώτο κόμμα πήρε 25% και πάνω.</p>')
+            f'πρώτο κόμμα πήρε 25% και πάνω, δηλαδή {pct(r["p_bonus"])} του συνόλου.</p>')
 
 
 def hist(h, w, hgt, fs, every):
@@ -239,7 +257,7 @@ def body(data, order):
     out = []
     for key, r in data["horizons"].items():
         out.append(f'<div class="h{key}">'
-                   + cards(r)
+                   + odds(r, key)
                    + f'<h2>Ποσοστά, εκλογές {WHEN[key]}</h2>' + shares(r, order, names)
                    + f'<h2>Έδρες, εκλογές {WHEN[key]}</h2><p class="note">Αναμενόμενες έδρες: μέσος όρος των προσομοιώσεων, '
                      'γι’ αυτό μπορεί να διαφέρει λίγο από τη μεσαία τιμή του πίνακα. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>' + seatbar(r, order, names)
