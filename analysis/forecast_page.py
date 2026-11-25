@@ -120,7 +120,7 @@ def in_sims(p):
 def lead(r, key):
     nd = r["parties"]["ND"]
     return (f'<p class="lead h{key}">Αν οι εκλογές γίνονταν {WHEN[key]}, η ΝΔ θα ήταν πρώτη {in_sims(nd["p_first"])}, '
-            f'με {num(nd["share"][1])}% και {nd["seats"][1]} έδρες στη μεσαία περίπτωση. '
+            f'με {num(nd["share"][1])}% και {nd["seats"][1]} έδρες (μεσαία τιμή). '
             f'Αυτοδύναμη θα ήταν {in_sims(r["p_nd_majority"])}· μαζί με το ΠΑΣΟΚ θα είχε 151 έδρες '
             f'{in_sims(r["p_nd_pasok_151"])}.</p>')
 
@@ -144,6 +144,7 @@ def hist_range(h):
 GROUPS = (("ΝΔ μόνη της (αυτοδυναμία)", ("ND",), "p_nd_majority", "hist_nd", ' class="nd"'),
           ("ΝΔ και ΠΑΣΟΚ", ("ND", "PASOK"), "p_nd_pasok_151", "hist_nd_pasok", ""),
           ("ΝΔ και ΕΛΑΣ", ("ND", "ELAS"), "p_nd_elas_151", "hist_nd_elas", ""),
+          ("ΠΑΣΟΚ και ΕΛΑΣ", ("PASOK", "ELAS"), "p_pasok_elas_151", "hist_pasok_elas", ""),
           ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", ("ND", "PASOK", "ELAS"), "p_nd_pasok_elas_151", "hist_nd_pasok_elas", ' class="far"'))
 
 
@@ -159,7 +160,7 @@ def odds(r, key):
         n = sum(seats.get(x, 0) for x in ps)
         spans = ("".join(f'<span style="--c:{colour(x)};flex:{seats.get(x, 0)}"></span>' for x in ps)
                  + f'<span class="rest" style="flex:{300 - n}"></span>')
-        items.append(f'<li{c}><span class="lb">{title}<small>{mid} έδρες ({lo}–{hi}) · {often(p)}</small></span>'
+        items.append(f'<li{c}><span class="lb">{title.replace("ΕΛΑΣ", '<abbr title="Ελληνική Αριστερή Συμπαράταξη">ΕΛΑΣ</abbr>')}<small>{mid} έδρες ({lo}–{hi}) · {often(p)}</small></span>'
                      f'<div class="seatbar mini" role="img" aria-label="{title}: {mid} έδρες, στις 8 από τις 10 από {lo} '
                      f'έως {hi}">{spans}<i></i></div><b>{pct(p)}</b></li>')
     return (f'<h2>Ποιοι φτάνουν τις 151 έδρες, εκλογές {WHEN[key]}</h2>'
@@ -363,14 +364,15 @@ def ep_geometries():
     return out
 
 
-MAP_BINS = ((0.2, 30), (0.4, 50), (0.6, 72), (1.01, 95))  # share of the constituency's seats -> % of the party colour
+MAP_BINS = ((0.5, 30), (1, 50), (2, 72), (float("inf"), 95))  # mean seats below -> % of the party colour
 
 
 def ep_map(data, order, names):
     """Expected seats per constituency on a map of Greece with Attica enlarged beside it: for the party picked (radio
-    buttons), the share of each constituency's seats it wins on average, in four steps of its colour. Each region carries
-    the class of its step per horizon and party; generated CSS lights the classes of the checked pair. A tap or focus
-    shows every party's seats in that constituency below the map."""
+    buttons), its mean seats in each constituency, in four steps of its colour (the legend takes the same colour). Each
+    region carries the class of its step per horizon and party; generated CSS lights the classes of the checked pair. A
+    tap or focus shows every party's seats in that constituency under the country map (between it and the inset on a
+    phone) and marks the constituency in both figures."""
     geoms = ep_geometries()
     hz = data["horizons"]
     eps = {ep: e for ep, e in hz["0"]["eps"].items() if ep != "state"}
@@ -380,8 +382,8 @@ def ep_map(data, order, names):
     picks = [p for p in sorted(total, key=lambda p: -total[p]) if total[p] >= 1]
 
     def step(ep, key, p):
-        share = means[key][ep].get(p, 0) / eps[ep]["seats"]
-        return 0 if means[key][ep].get(p, 0) < 0.05 else next(i for i, (hi, _) in enumerate(MAP_BINS, 1) if share < hi)
+        m = means[key][ep].get(p, 0)
+        return 0 if m < 0.05 else next(i for i, (hi, _) in enumerate(MAP_BINS, 1) if m < hi)
 
     def detail(ep, key):
         m = sorted(((p, v) for p, v in means[key][ep].items() if v >= 0.05), key=lambda pv: -pv[1])
@@ -402,7 +404,7 @@ def ep_map(data, order, names):
                 continue
             cls = " ".join(f"h{key}-{p}-{step(ep, key, p)}" for key in hz for p in picks)
             data_ = "".join(f' data-d{key}="{html.escape(detail(ep, key), quote=True)}"' for key in hz)
-            out.append(f'<path class="{cls}" d="{d}" tabindex="0" aria-label="{html.escape(eps[ep]["name"], quote=True)}"'
+            out.append(f'<path class="{cls}" d="{d}" data-ep="{ep}" tabindex="0" aria-label="{html.escape(eps[ep]["name"], quote=True)}"'
                        f'{data_}/>')
         return f'<svg viewBox="0 0 {w} {h}" role="group" aria-label="{label}">' + "".join(out) + "</svg>"
 
@@ -413,18 +415,23 @@ def ep_map(data, order, names):
     css = "".join(f"main:has(#h{key}:checked):has(#m-{p}:checked) .h{key}-{p}-{b}"
                   f"{{fill:color-mix(in oklab,{'var(--mute)' if p in HATCHED else colour(p)} {k}%,var(--paper))}}"
                   for key in hz for p in picks for b, (_, k) in enumerate(MAP_BINS, 1))
-    bins = ["κάτω από 20%", "20–40%", "40–60%", "60% και πάνω"]
+    css += "".join(f"main:has(#m-{p}:checked) .legend.bins{{--c:{'var(--mute)' if p in HATCHED else colour(p)}}}"
+                   for p in picks)
+    bins = ["κάτω από 0,5", "0,5–1", "1–2", "2 και πάνω"]
     key_ = ('<li><i class="z"></i>καμία</li>'
-            + "".join(f'<li><i style="background:color-mix(in oklab,var(--ink-2) {k}%,var(--paper))"></i>{t}</li>'
+            + "".join(f'<li><i style="background:color-mix(in oklab,var(--c) {k}%,var(--paper))"></i>{t}</li>'
                       for (_, k), t in zip(MAP_BINS, bins)))
     tables = "".join(f'<div class="h{key}">{per_ep(r, order, names)}</div>' for key, r in hz.items())
     return css, (f'<h2>Έδρες ανά περιφέρεια, εκλογές <span class="h0">{WHEN["0"]}</span><span class="h180">{WHEN["180"]}</span></h2>'
-                 '<p class="note">Τι μέρος των εδρών κάθε περιφέρειας παίρνει κατά μέσο όρο το κόμμα που διαλέγεις. Πάτησε μια '
-                 'περιφέρεια για τις έδρες όλων των κομμάτων εκεί. Οι 15 έδρες Επικρατείας δεν φαίνονται στον χάρτη.</p>'
+                 '<p class="note">Πόσες έδρες παίρνει κατά μέσο όρο σε κάθε περιφέρεια το κόμμα που διαλέγεις. Οι 15 έδρες '
+                 'Επικρατείας δεν φαίνονται στον χάρτη.</p>'
                  f'<fieldset class="pick"><legend>Κόμμα:</legend>{chips}</fieldset>'
-                 f'<div class="epmap"><figure>{country}</figure><figure>{zoom}<figcaption>Αττική σε μεγέθυνση</figcaption></figure></div>'
-                 f'<ul class="legend bins">{key_}</ul>'
-                 '<p class="epd" aria-live="polite">Πάτησε μια περιφέρεια.</p>' + tables)
+                 f'<p class="legend-t">Μέσος όρος εδρών:</p><ul class="legend bins">{key_}</ul>'
+                 f'<div class="epmap"><figure>{country}</figure>'
+                 '<div class="epd"><p aria-live="polite">Πάτησε μια περιφέρεια για τις έδρες όλων των κομμάτων εκεί.</p>'
+                 '<p class="note">Οι έδρες είναι μέσοι όροι των προσομοιώσεων, γι’ αυτό έχουν δεκαδικά: 0,4 είναι σαν μία '
+                 'έδρα στις 4 από τις 10.</p></div>'
+                 f'<figure>{zoom}<figcaption>Αττική σε μεγέθυνση</figcaption></figure></div>' + tables)
 
 
 def method(n_sims, n_polls, err, sens):
@@ -444,7 +451,7 @@ def method(n_sims, n_polls, err, sens):
         "με λίγο τυχαίο θόρυβο. Μετά εφαρμόζεται ο νόμος: όριο 3%, μπόνους 20 έως 50 εδρών στο πρώτο κόμμα αν πάρει 25% και "
         "πάνω, 285 έδρες στις περιφέρειες και 15 Επικρατείας. Κάθε προσομοίωση ελέγχεται να δίνει 300 έδρες."),
         "<b>Τα όρια.</b> Τα λάθη των κομμάτων κληρώνονται ανεξάρτητα, ενώ σε πραγματικές εκλογές συχνά κινούνται μαζί· τα εύρη "
-        "μπορεί να είναι στενότερα από όσο πρέπει. Τα νέα κόμματα (ΕΛΑΣ, Ελπίδα, Συμμαχία Ελλήνων) έχουν λίγες δημοσκοπήσεις "
+        "μπορεί να είναι στενότερα από όσο πρέπει. Τα νέα κόμματα (ΕΛΑΣ, δηλαδή Ελληνική Αριστερή Συμπαράταξη, Ελπίδα, Συμμαχία Ελλήνων) έχουν λίγες δημοσκοπήσεις "
         "και καμία κάλπη. Για όσα δεν έχουν παρελθόν, το πού παίρνουν ψήφους είναι υπόθεση: η ΕΛΑΣ σαν τον ΣΥΡΙΖΑ του Ιουνίου "
         "2023, τα άλλα ομοιόμορφα. "
         + ("Οι έδρες κάθε κόμματος στο σύνολο της χώρας δεν αλλάζουν με αυτές τις υποθέσεις (βγαίνουν από τα εθνικά ποσοστά)· "
