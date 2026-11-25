@@ -223,7 +223,7 @@ if __name__ == "__main__":
     for H in (0, 180):
         sd = math.sqrt(P + q * (gap + H))
         print(f"\nΣτις {TODAY} + {H} ημέρες: μέσος όρος {x:.2f}% (95%: {x - 1.96 * sd:.2f}–{x + 1.96 * sd:.2f}%)"
-              f" = {x / 100 * 5.1e6:,.0f} ψήφοι με 5,1 εκατ. έγκυρα")
+              f" = {x / 100 * 5.2e6:,.0f} ψήφοι με 5,2 εκατ. έγκυρα (Ιούνιος 2023)")
     recent = [y - h.get(f, 0) for d, f, n, y in obs if (obs[-1][0] - d).days <= 60]
     print(f"Απλός μέσος όρος των τελευταίων 60 ημερών: {sum(recent) / len(recent):.2f}% ({len(recent)} δημοσκοπήσεις, εύρος "
           f"{min(y for d, f, n, y in obs if (obs[-1][0] - d).days <= 60):.1f}–{max(y for d, f, n, y in obs if (obs[-1][0] - d).days <= 60):.1f}%)")

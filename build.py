@@ -140,6 +140,9 @@ def main(election, ep):
     if unmatched:
         print("unmatched:", ", ".join(f'{u["name"]} ({u["unit"]})' for u in unmatched))
 
+    if not features:  # nothing to place, e.g. the constituency of voters abroad: no page
+        print("no map areas: page not written")
+        return {"ep": ep, "skip": True}
     ep_name = ep_label((q("SELECT name FROM ep WHERE election=? AND ep_id=?", ep) or [[str(ep)]])[0][0])
     data = {
         "election": election, "election_name": ELECTION_NAMES[election], "ep": ep, "ep_name": ep_name, "mode": "party" if party_mode else "cand",
@@ -227,7 +230,8 @@ def build_all(election):
     with ProcessPoolExecutor(max_workers=WORKERS) as pool:
         for ep, (r, log) in zip(eps, pool.map(_build_quiet, [election] * len(eps), eps)):
             print(f"--- EP {ep}\n{log}", end="")
-            rows.append(r)
+            if not r.get("skip"):
+                rows.append(r)
     save(election, rows)
     write_index()
     tr = "".join(
