@@ -505,7 +505,7 @@ def main():
     page = (HERE / "analysis" / "forecast_template.html").read_text(encoding="utf-8")
     map_css, body_html = body(data, order)
     n_sims = today["n"]
-    for a, b in (("<!--META-->", meta("Πόσο κοντά έπεσαν οι εταιρείες δημοσκοπήσεων",
+    for a, b in (("<!--META-->", meta("Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων",
                                       "Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.")),
                  ("<!--LEAD-->", leads), ("<!--N-->", thousands(n_sims)), ("<!--ASOF-->", day(data["as_of"])),
                  ("<!--BODY-->", body_html), ("/*MAP_CSS*/", map_css), ("<!--RECORD-->", record()),
