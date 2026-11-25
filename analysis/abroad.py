@@ -341,7 +341,16 @@ const map = L.map("map", mapOptions({scrollWheelZoom: false, worldCopyJump: true
 map.getContainer().classList.add("muted");
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 10, opacity: 0.6,
   attribution: "&copy; OpenStreetMap · Αποτελέσματα: ΥΠΕΣ (ανεπίσημα)"}).addTo(map);
-const layer = L.layerGroup().addTo(map);
+const layer = L.layerGroup().addTo(map), labels = L.layerGroup().addTo(map);
+let marks = [];  // [latlng, number, radius] of the circles drawn, for the vote labels
+function showLabels() {  // all numbers from zoom 6; below it only on the big circles, where they fit without piling up
+  labels.clearLayers();
+  if (!$("m-num").checked) return;
+  const z = map.getZoom();
+  marks.forEach(([ll, n, r]) => { if (z >= 6 || r >= 13) L.marker(ll, {interactive: false, keyboard: false,
+    icon: L.divIcon({className: "mnum", html: `<span>${fmt(n)}</span>`, iconSize: null})}).addTo(labels); });
+}
+map.on("zoomend", showLabels);
 const radius = v => 3 + Math.sqrt(v) * 0.42;  // area grows with the valid votes
 const first = c => Object.keys(c.p).reduce((a, b) => c.p[a] >= c.p[b] ? a : b);
 const share = (c, p) => (c.p[p] || 0) / c.v;
@@ -362,6 +371,8 @@ function draw() {
   const el = D.els.find(e => e.key === elSel.value), mode = colSel.value;
   history.replaceState(null, "", "#e=" + el.key + (mode === "first" ? "" : "&p=" + mode));
   layer.clearLayers();
+  marks = el.cities.map(c => [c.ll, mode === "first" ? c.v : (c.p[mode] || 0), radius(c.v)]);
+  showLabels();
   const br = mode === "first" ? [] : breaks(el.cities.filter(c => c.v >= MIN).map(c => share(c, mode)));
   const col = c => {
     if (mode === "first") return D.parties[first(c)].color;
@@ -382,10 +393,11 @@ function draw() {
   $("m-legend").innerHTML = (mode === "first" ? firsts.map(p => sw(D.parties[p].color, D.parties[p].name)).join("")
     : sw(css("--s0"), "καμία ψήφος") + seq().map((c, i) => i <= br.length ? sw(c, binLabel([-Infinity, ...br][i], br[i], pc)) : "").join("") +
       sw(css("--line"), `κάτω από ${MIN} έγκυρα`)) +
-    `<span class="k">Μέγεθος κύκλου: έγκυρα.${el.missing ? ` ${el.missing} πόλεις χωρίς θέση στον χάρτη.` : ""}</span>`;
+    `<span class="k">Μέγεθος κύκλου: έγκυρα. Αριθμός: ${mode === "first" ? "έγκυρα" : "ψήφοι " + D.parties[mode].name} (με μεγέθυνση, σε όλους τους κύκλους).${el.missing ? ` ${el.missing} πόλεις χωρίς θέση στον χάρτη.` : ""}</span>`;
 }
 elSel.addEventListener("change", () => { fillCols(D.els.find(e => e.key === elSel.value)); draw(); });
 colSel.addEventListener("change", draw);
+$("m-num").addEventListener("change", showLabels);
 fillCols(D.els.find(e => e.key === elSel.value));
 draw();
 """
@@ -406,6 +418,8 @@ def page():
 <script src="vendor/leaflet-1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <script>/*THEME_JS*/</script><style>{common_css()}
 .mctl{{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0}} .mctl select{{margin-left:.4em}}
+.mnum span{{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:11px;font-weight:600;line-height:1;
+  color:var(--ink);text-shadow:0 0 2px var(--surface),0 0 2px var(--surface),0 0 3px var(--surface)}}
 #m-legend{{display:flex;flex-wrap:wrap;gap:.3em 1em;margin:.5em 0 1em;font-size:14px}}
 #m-legend .k i{{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}}
 main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-bottom:1.5em}} h2{{margin-top:1.8em;font-size:1.5em}}
@@ -417,7 +431,7 @@ summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
 «Εγγεγραμμένοι» στο εξωτερικό και στην επιστολική ψήφο είναι όσοι έκαναν αίτηση, άρα τα έγκυρα ως ποσοστό τους είναι κοντά στη συμμετοχή.</p>
 <p>{jump}</p>
 <div><h2 id="map-h">Χάρτης πόλεων του εξωτερικού</h2>
-<div class="mctl"><label>Εκλογή<select id="m-el"></select></label><label>Χρώμα<select id="m-col"></select></label></div>
+<div class="mctl"><label>Εκλογή<select id="m-el"></select></label><label>Χρώμα<select id="m-col"></select></label><label><input type="checkbox" id="m-num" checked> Αριθμός ψήφων</label></div>
 <div id="map" role="region" aria-label="Χάρτης των πόλεων με εκλογικά τμήματα εξωτερικού· τα ίδια στοιχεία είναι στους πίνακες ανά πόλη"></div>
 <div id="m-legend"></div>
 {"".join(SECTIONS)}</div>
