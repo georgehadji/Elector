@@ -13,7 +13,11 @@ At most 1 request per second, a generic User-Agent, nothing personal sent. Raw p
 data/parl_control/ (git-ignored), so a rerun resumes; the last listing page of each MP and the Vouliwatch
 pages are fetched again on every run so new acts are seen. Delete data/parl_control/act/ to re-read answers.
 
-  python -I -X utf8 analysis/nikh_control_fetch.py
+  python -I -X utf8 analysis/nikh_control_fetch.py            # all acts of the ΝΙΚΗ MPs
+  python -I -X utf8 analysis/nikh_control_fetch.py baseline   # count of acts since 25/06/2023 for every MP in
+      nikh_control_baseline.csv, from the Parliament listing -> data/parl_control/baseline_counts.json
+  python -I -X utf8 analysis/nikh_control_fetch.py answers    # text of the first answer PDF of 50 random answered
+      written acts -> data/parl_control/answer_sample.json (PDFs not kept; needs PyMuPDF, tesseract for scans)
 """
 import json
 import re
@@ -133,7 +137,90 @@ def vouliwatch(name, short):
         page += 1
 
 
+def baseline_counts():
+    """Acts since START of every MP in nikh_control_baseline.csv, counted by the Parliament (the first listing page
+    with DateFrom says how many). The MP id comes from the site's MP menu by name; a name the menu has more than
+    once is read for each id and the ids with acts are kept. Writes CACHE/baseline_counts.json."""
+    import csv
+    import unicodedata
+
+    def key(name):  # "Έξαρχος Νικόλαος (Πάκος)" and "Εξαρχος  Νικόλαος" alike: no brackets, accents, spaces, dashes
+        name = unicodedata.normalize("NFD", re.sub(r"\([^()]*\)", "", name))
+        return re.sub(r"[^\w]|\d|_", "", "".join(c for c in name if not unicodedata.combining(c))).upper()
+    menu = re.search(r"<select[^>]*ddMps.*?</select>", (CACHE / "list" / f"{MPS[0][1]}_001.html")
+                     .read_text(encoding="utf-8"), re.DOTALL)[0]
+    ids = {}
+    for mp_id, name in re.findall(r'<option[^>]*value="([0-9a-f-]{36})"[^>]*>([^<]*)', menu):
+        ids.setdefault(key(name), []).append(mp_id)
+    since = "/".join(reversed(START.split("-")))
+    with open(Path(__file__).with_name("nikh_control_baseline.csv"), encoding="utf-8-sig") as f:
+        names = [r["ΟΝΟΜΑ"] for r in csv.DictReader(f, delimiter=";")]
+    out = {}
+    for row in names:
+        found = []
+        for mp_id in ids.get(key(row), []):
+            h = cached(CACHE / "base" / f"{mp_id}.html", f"{BASE}?mpId={mp_id}&DateFrom={since}&pageNo=1")
+            m = HEADER.search(h)
+            found.append([mp_id, int(m[1]) if m else 0])  # no header: the listing is empty
+        # homonyms: keep the ids with acts; one id with none is an MP with no acts (a minister, say)
+        out[row] = [f for f in found if f[1]] or (found if len(found) == 1 else [])
+    (CACHE / "baseline_counts.json").write_text(json.dumps(out, ensure_ascii=False, indent=0), encoding="utf-8")
+    print(f"{sum(1 for v in out.values() if len(v) == 1)} of {len(out)} MPs found once", flush=True)
+
+
+def sample_answers(n=50, seed=2026):
+    """Text of the first answer file of n random answered written acts, to check the estimated answer day, who
+    signed and Vouliwatch's grade by hand. Needs PyMuPDF (fitz); a PDF with no text layer (a scan) is read with
+    tesseract (Greek). Only the text is kept, in CACHE/answer_sample.json; the PDFs are not stored."""
+    import random
+    import shutil
+    import subprocess
+    import tempfile
+    import fitz
+    tess = shutil.which("tesseract") or r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    index = json.loads((CACHE / "list_index.json").read_text(encoding="utf-8"))
+    written = {"Ερωτήσεις", "Ερώτηση σε συνδυασμό με Α.Κ.Ε.", "Α.Κ.Ε.", "Α.Κ.Ε. σε συνδυασμό με ερώτηση", "Αναφορές"}
+    pool = []
+    for pcm, (_, _, kind, _) in index.items():
+        block = re.search(r"Αρχεία Απαντήσεων:</dt>\s*<dd>(.*?)</dd>",
+                          (CACHE / "act" / f"{pcm}.html").read_text(encoding="utf-8"), re.DOTALL)
+        files = sorted(re.findall(r'href="([^"]+/(\d+)\.pdf)"', block[1]) if block else [], key=lambda f: int(f[1]))
+        if kind in written and files:
+            pool.append((pcm, files[0][0]))
+    random.seed(seed)
+    out = []
+    for pcm, url in random.sample(sorted(pool), n):
+        for attempt in range(3):
+            time.sleep(1)
+            try:
+                with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=90) as r:
+                    data = r.read()
+                break
+            except (urllib.error.URLError, TimeoutError):
+                data = None
+        if not data:
+            continue
+        doc = fitz.open(stream=data, filetype="pdf")
+        text, ocr = "".join(page.get_text() for page in doc), False
+        if len(text.strip()) < 200:  # a scan: OCR the first three and the last page
+            ocr, text = True, ""
+            with tempfile.TemporaryDirectory() as tmp:
+                for i in sorted({*range(min(3, len(doc))), len(doc) - 1}):
+                    png = Path(tmp) / f"{i}.png"
+                    doc[i].get_pixmap(dpi=200).save(png)
+                    text += subprocess.run([tess, str(png), "-", "-l", "ell"], capture_output=True,
+                                           text=True, encoding="utf-8").stdout
+        out.append({"pcm_id": pcm, "url": url, "pages": len(doc), "created": doc.metadata.get("creationDate", ""),
+                    "ocr": ocr, "head": text[:3000], "tail": text[-2000:]})
+        print(f"{len(out)}/{n}", flush=True)
+    (CACHE / "answer_sample.json").write_text(json.dumps(out, ensure_ascii=False, indent=0), encoding="utf-8")
+
+
 def main():
+    if sys.argv[1:] == ["baseline"]:
+        return baseline_counts()
+    if sys.argv[1:] == ["answers"]:
+        return sample_answers()
     summary, index = {}, {}
     for mp_id, short, _, _ in MPS:
         acts, total = listing(mp_id, short)
