@@ -111,10 +111,13 @@ def shares(r, order, names):
     top = max(r["parties"][p]["share"][2] for p in order)
     scale = 5 * (int(top) // 5 + 1)
     x = lambda v: f"{100 * v / scale:.2f}%"
-    out = [('<div class="sh"><span class="hd l">κόμμα</span><span class="hd l">ποσοστό: κουκκίδα ο διάμεσος, γραμμή το 80%</span>'
-           '<span class="hd">διάμεσος</span><span class="hd">πιθ. ≥3%</span>')]
+    out = [('<p class="note">Κουκκίδα: το μεσαίο ποσοστό των προσομοιώσεων. Γραμμή, και αριθμοί κάτω από το ποσοστό: το εύρος '
+            'όπου πέφτει στις 8 από τις 10. Διακεκομμένη γραμμή: το όριο του 3%.</p>'
+            '<div class="sh"><span class="hd l">κόμμα</span><span class="hd tk"></span>'
+            '<span class="hd">ποσοστό</span><span class="hd">περνά το 3%</span>')]
     for p in order:
         lo, mid, hi = r["parties"][p]["share"]
+        d = 1 if hi < 10 else 0
         p_in = "—" if p == F.OTHER else pct(r["parties"][p]["p_in"])  # many small parties together: no threshold
         tip = f"{names[p]}: {num(mid)}% (80%: {num(lo)}–{num(hi)}%)" + ("" if p == F.OTHER else f", πιθανότητα να περάσει το 3%: {p_in}")
         out.append(f'<span class="nm">{html.escape(names[p])}</span>'
@@ -122,7 +125,7 @@ def shares(r, order, names):
                    f'<span class="thr" style="left:{x(3)}"></span>'
                    f'<span class="rng" style="left:{x(lo)};width:{100 * (hi - lo) / scale:.2f}%"></span>'
                    f'<span class="dot" style="left:{x(mid)}"></span></span>'
-                   f'<span class="v">{num(mid)}%</span><span class="v">{p_in}</span>')
+                   f'<span class="v">{num(mid)}%<small>{num(lo, d)}–{num(hi, d)}</small></span><span class="v">{p_in}</span>')
     ticks = "".join(f'<span style="left:{x(v)}">{v}%</span>' for v in range(0, scale + 1, 10 if scale > 20 else 5))
     out.append(f'<span></span><span class="trk ax">{ticks}<span style="left:{x(3)};top:-2px">3%</span></span><span></span><span></span></div>')
     return "".join(out)
