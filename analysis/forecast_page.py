@@ -795,6 +795,40 @@ def ep_map(data, order, names):
                  f'<figure>{zoom}<figcaption>Αττική σε μεγέθυνση</figcaption></figure></div>' + tables)
 
 
+LAW_SOURCE = ("https://www.hellenicparliament.gr/UserFiles/7b24652e-78eb-4807-9d68-e9a5d4576eff/eklogi-vouleutwn-epist.pdf",
+              "την έκθεση της Επιστημονικής Υπηρεσίας της Βουλής για το νομοσχέδιο (22.1.2020)")
+
+
+def rules(data):
+    """§10, the electoral law in plain words, every number from seats_law.LAWS, with a worked bonus example at ND's
+    median share today; closed by default."""
+    law = LAW.LAWS[LAW.CURRENT]
+    b, seats, state = law["bonus"], law["seats"], law["state"]
+    full = b["from"] + (b["cap"] - b["base"]) * b["step"]  # the share at which the bonus reaches its cap
+    x = data["horizons"]["0"]["parties"]["ND"]["share"][1]
+    rows = "".join(f'<tr><td class="n">{num(s, 1 if s % 1 else 0)}%</td><td class="n">{LAW.bonus_seats(s)}</td></tr>'
+                   for s in (b["from"] - 0.1, b["from"], b["from"] + 2.5, 30, 35, full))
+    url, src = LAW_SOURCE
+    return ('<details class="rules"><summary>Οι κανόνες του εκλογικού νόμου με απλά λόγια</summary>'
+            f'<p><b>Πόσες έδρες.</b> {seats} βουλευτές: {seats - state} εκλέγονται στις εκλογικές περιφέρειες και {state} '
+            f'είναι οι έδρες Επικρατείας. Πλειοψηφία στη Βουλή (αυτοδυναμία, αν είναι ένα κόμμα): {LAW.majority(LAW.CURRENT)}.</p>'
+            f'<p><b>Το όριο του {num(law["threshold"], 0)}%.</b> Έδρες παίρνουν μόνο τα κόμματα με {num(law["threshold"], 0)}% '
+            'των έγκυρων ψήφων και πάνω σε όλη τη χώρα. Οι ψήφοι των υπόλοιπων δεν φέρνουν έδρα σε κανέναν, οπότε όσα περνούν '
+            'παίρνουν λίγο περισσότερες έδρες από το ποσοστό τους.</p>'
+            f'<p><b>Το μπόνους.</b> Το πρώτο κόμμα παίρνει επιπλέον έδρες μόνο αν φτάσει το {num(b["from"], 0)}%: {b["base"]} '
+            f'έδρες στο {num(b["from"], 0)}%, και μία ακόμη για κάθε μισή μονάδα πάνω από αυτό, έως {b["cap"]} έδρες στο '
+            f'{num(full, 0)}%. Οι υπόλοιπες έδρες, μαζί οι {state} Επικρατείας, μοιράζονται αναλογικά στα κόμματα που πέρασαν το '
+            f'όριο. Κάτω από {num(b["from"], 0)}% δεν υπάρχει μπόνους και όλες οι {seats} μοιράζονται αναλογικά.</p>'
+            f'<div class="wrap"><table class="bonus"><thead><tr><th class="n">πρώτο κόμμα</th><th class="n">μπόνους</th></tr></thead>'
+            f'<tbody>{rows}</tbody></table></div>'
+            f'<p>Σήμερα η ΝΔ είναι στο {num(x)}% (μεσαία τιμή): μπόνους {LAW.bonus_seats(x)} έδρες.</p>'
+            '<p><b>Συνασπισμοί.</b> Συνασπισμός κομμάτων παίρνει μπόνους μόνο αν ο μέσος όρος των κομμάτων που τον απαρτίζουν '
+            'είναι μεγαλύτερος από το πρώτο κόμμα που κατέβηκε μόνο του. Η πρόβλεψη μετρά κάθε κόμμα ως αυτοτελές.</p>'
+            '<p class="note">Ο νόμος είναι ο ν. 4654/2020, που άλλαξε τα άρθρα 99 και 100 του π.δ. 26/2012, και εφαρμόστηκε '
+            f'πρώτη φορά στις εκλογές του Ιουνίου 2023. Οι κανόνες εδώ είναι γραμμένοι από <a href="{url}">{src}</a>. Οι ίδιοι '
+            'αριθμοί είναι αυτοί που χρησιμοποιεί η προσομοίωση.</p></details>')
+
+
 def method(n_sims, n_polls, err, sens):
     a, b, n_pairs = err
     moved = max(max(s["moved"].values()) for s in sens.values())
@@ -841,7 +875,7 @@ def body(data, order):
                    + seat_table(r, order, names) + histograms(r)
                    + bonus_html(r, key, names) + ladder_html(r, key, names) + "</div>")
     css, section = ep_map(data, order, names)
-    return css, "".join(out) + section + samaras(names)
+    return css, "".join(out) + section + samaras(names) + rules(data)
 
 
 def main():
