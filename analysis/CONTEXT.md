@@ -53,7 +53,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_ei_compare.py` | db; PyEI venv (arviz) | `nikh_ei_compare.txt` | 14 |
 | `nikh_census.py` | db, 2021 census | `nikh_census.txt` | 15 |
 | `nikh_map.py` (+ `nikh_map_template.html`) | db | `out/nikh_2023-2024.html` | — |
-| `nikh_polls_page.py` (+ `nikh_polls_template.html`) | `nikh_polls*.csv`, `nikh_polls.py` | `out/nikh_polls.html` | 16 |
+| `nikh_polls_page.py` (+ `nikh_polls_template.html`) | `nikh_polls*.csv`, `nikh_polls.py`, `pollster_record.py` (`niki_misses()`: how close each firm fell) | `out/nikh_polls.html` | 16, 18 |
 | `pollster_record.py` (error of each firm's last poll before 2019, May and June 2023; `weights()`; house-effect check) | `nikh_pollerror.csv`, `nikh_polls.csv`, `forecast.py` | stdout (and the track-record section of `out/forecast.html`) | — |
 | `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `nikh_polls.csv`, `pollster_record.py`, db (constituency outlines for the map) | `out/forecast.html` | — |
 

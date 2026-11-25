@@ -113,6 +113,36 @@ def weights(k=3.0):
     return w
 
 
+NIKI_ELECTIONS = ("2023/may", "2023/june", "2024/euro")
+NIKI_LABEL = {"2023/may": "Μάι. 2023", "2023/june": "Ιούν. 2023", "2024/euro": "Ευρωεκλογές 2024"}
+
+
+def niki_misses():
+    """{firm: {election: (last poll %, ballot %, end)}} for NIKH, the firms that poll today.
+    Last poll = the firm's latest NIKH figure ending 1-WINDOW days before the election (same-day figures averaged), from
+    nikh_polls_2023.csv (May, June 2023) and nikh_polls.csv (Euro 2024). Ballots: nikh_polls.BALLOT_2023 and EURO.
+    NIKH ran in these three only (not in 2019), so there are at most three misses per firm, one party each."""
+    import nikh_polls as NP
+    ballots = {**NP.BALLOT_2023, "2024/euro": NP.EURO}
+    rows = []  # (election, firm, end, pct)
+    with open(HERE / "nikh_polls_2023.csv", encoding="utf-8") as f:
+        rows += [(r["election"], firm_of(r["firm"]), date.fromisoformat(r["end"]), float(r["niki"])) for r in csv.DictReader(f)]
+    with open(POLLS, encoding="utf-8") as f:
+        rows += [("2024/euro", firm_of(r["firm"]), date.fromisoformat(r["end"]), float(r["niki"]))
+                 for r in csv.DictReader(f) if r["niki"].strip()]
+    now, out = current_firms(), defaultdict(dict)
+    for el, (day, ballot) in ballots.items():
+        last = defaultdict(list)
+        for e, firm, d, y in rows:
+            if e == el and firm in now and 0 < (day - d).days <= WINDOW:
+                last[firm].append((d, y))
+        for firm, ps in last.items():
+            end = max(d for d, _ in ps)
+            ys = [y for d, y in ps if d == end]
+            out[firm][el] = (sum(ys) / len(ys), ballot, end)
+    return out
+
+
 def ranks(xs):
     order = sorted(range(len(xs)), key=xs.__getitem__)
     r = [0.0] * len(xs)
@@ -159,6 +189,12 @@ def main():
     for f, e, h, k in sorted(out, key=lambda o: o[1]):
         print(f"{f:<18}{e:>6.2f}{h:>8.2f}  ({k} κόμματα)")
     print(f"Spearman ρ = {rho:.2f} (n = {len(out)} εταιρείες)")
+    print("\nΝΙΚΗ: δημοσκόπηση − κάλπη (μονάδες, + = υπερεκτίμηση), τελευταία δημοσκόπηση ≤ 21 ημέρες πριν")
+    print(f"{'εταιρεία':<18}" + "".join(f"{NIKI_LABEL[e]:>18}" for e in NIKI_ELECTIONS) + "   μ.ό. |σφάλμα|")
+    miss = niki_misses()
+    for firm, by in sorted(miss.items(), key=lambda fb: sum(abs(p - b) for p, b, _ in fb[1].values()) / len(fb[1])):
+        cells = "".join(f"{by[e][0]:.1f} ({by[e][0] - by[e][1]:+.2f})".rjust(18) if e in by else " " * 18 for e in NIKI_ELECTIONS)
+        print(f"{firm:<18}{cells}   {sum(abs(p - b) for p, b, _ in by.values()) / len(by):.2f}")
     import forecast as F
     a, b = F.levels(), F.levels(weighted=True)
     print("\nΕπίπεδο σήμερα, χωρίς και με βάρη (% έγκυρων, μέση εταιρεία):")

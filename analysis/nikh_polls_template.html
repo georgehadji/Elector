@@ -56,6 +56,11 @@ table{border-collapse:collapse;margin-top:8px;font-size:.8125rem;font-variant-nu
 th,td{padding:3px 12px 3px 0;border-bottom:1px solid var(--line);text-align:left}
 th:nth-child(n+4),td:nth-child(n+4){text-align:right}
 @media (max-width:600px){th:nth-child(3),td:nth-child(3){display:none}}
+.rec table{width:100%;max-width:720px}
+.rec th,.rec td{text-align:right}
+.rec th:first-child,.rec td:first-child{text-align:left}
+@media (max-width:600px){.rec th:nth-child(3),.rec td:nth-child(3){display:table-cell}}
+.rec .note{max-width:68ch}
 .rel{font-size:.8125rem;margin:16px 0 0}
 a{color:var(--pen)}
 </style>
@@ -90,6 +95,7 @@ a{color:var(--pen)}
       <tbody><!--ROWS--></tbody>
     </table>
   </details>
+  <!--RECORD-->
   <p class="rel">Πηγή δημοσκοπήσεων: <a href="<!--WIKI-->" rel="noopener">Wikipedia</a> (CC BY-SA 4.0), με έλεγχο της στήλης της ΝΙΚΗΣ.
     Δες και: <a href="nikh_targets.html">χάρτης στόχευσης</a> · <a href="nikh_2023-2024.html">χάρτης 2019–2024</a></p>
 </main>
