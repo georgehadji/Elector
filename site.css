@@ -19,7 +19,7 @@ body > .bar { padding-inline: calc((100% - min(100%, var(--page, 100%))) / 2 + v
 .mark rect { stroke-width: 2.4; }
 .mark path { stroke-width: 3.2; }
 .bar nav { display: flex; gap: 20px; font-size: var(--t-sm); }
-.bar nav a { color: var(--ink-2); text-decoration: none; padding: var(--space-2xs) 0; }
+.bar nav a { display: inline-flex; align-items: center; min-height: 24px; color: var(--ink-2); text-decoration: none; padding: var(--space-2xs) 0; }
 .bar nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; }
 .bar nav a[aria-current] { color: var(--ink); }
 .bar nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
