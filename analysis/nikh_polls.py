@@ -44,11 +44,15 @@ D0 = date(2023, 9, 26)
 BALLOT_2023 = {"2023/may": (date(2023, 5, 21), 2.92), "2023/june": (date(2023, 6, 25), 3.70)}  # NIKH % of valid votes
 
 
-def load():
-    """[(day, firm, sample, pct)] sorted by day. Firm = first part of 'Firm/Commissioner'."""
+QS = (0.0005, 0.001, 0.002, 0.004, 0.008, 0.016, 0.03)  # grid of fit(): daily variance of the level
+TAUS = (0.01, 0.1, 0.2, 0.3, 0.45, 0.6, 0.8)  # grid of fit(): non-sampling noise, % points
+
+
+def load(col="niki"):
+    """[(day, firm, sample, pct)] sorted by day, for one party column (empty cells skipped). Firm = first part of 'Firm/Commissioner'."""
     with open(CSV, encoding="utf-8") as f:
-        rows = [(date.fromisoformat(r["end"]), r["firm"].split("/")[0].replace(" RC", "").strip(), int(r["sample"]), float(r["niki"]))
-                for r in csv.DictReader(f)]
+        rows = [(date.fromisoformat(r["end"]), r["firm"].split("/")[0].replace(" RC", "").strip(), int(r["sample"]), float(r[col]))
+                for r in csv.DictReader(f) if r[col].strip()]
     return sorted(rows)
 
 
@@ -79,13 +83,12 @@ def smooth(obs, flt, q):
     return xs
 
 
-def fit(obs):
+def fit(obs, qs=QS, taus=TAUS):
     """house effects, q, tau2, loglik."""
     h = {}
     best = None
     for _ in range(6):
-        best = max((kfilter(obs, h, q, tau * tau)[1], q, tau * tau)
-                    for q in (0.0005, 0.001, 0.002, 0.004, 0.008, 0.016, 0.03) for tau in (0.01, 0.1, 0.2, 0.3, 0.45, 0.6, 0.8))
+        best = max((kfilter(obs, h, q, tau * tau)[1], q, tau * tau) for q in qs for tau in taus)
         _, q, tau2 = best
         flt, _ = kfilter(obs, h, q, tau2)
         xs = smooth(obs, flt, q)
