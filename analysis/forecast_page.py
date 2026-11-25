@@ -119,11 +119,15 @@ def in_sims(p):
 
 
 def lead(r, key):
+    """The answer first, at display size: how often ND alone, and ND with PASOK or with ELAS, reach 151 seats (the 151
+    list's order); then one sentence on ND's share and seats."""
     nd = r["parties"]["ND"]
-    return (f'<p class="lead h{key}">Αν οι εκλογές γίνονταν {WHEN[key]}, η ΝΔ θα ήταν πρώτη {in_sims(nd["p_first"])}, '
-            f'με {num(nd["share"][1])}% και {nd["seats"][1]} έδρες (μεσαία τιμή). '
-            f'Αυτοδύναμη θα ήταν {in_sims(r["p_nd_majority"])}. Μαζί με το ΠΑΣΟΚ θα είχε 151 έδρες '
-            f'{in_sims(r["p_nd_pasok_151"])}, μαζί με την ΕΛΑΣ {in_sims(r["p_nd_elas_151"])}.</p>')
+    figs = "".join(f'<p><b>{pct(r[k])}</b><span class="t"><strong>{t}</strong><small>151 έδρες {in_sims(r[k]).replace(f" ({pct(r[k])})", "")}</small>'
+                   '</span></p>' for t, k in (("ΝΔ μόνη της", "p_nd_majority"), ("ΝΔ και ΠΑΣΟΚ", "p_nd_pasok_151"),
+                                              ('ΝΔ και <abbr title="Ελληνική Αριστερή Συμπαράταξη">ΕΛΑΣ</abbr>', "p_nd_elas_151")))
+    return (f'<div class="hero h{key}">{figs}</div>'
+            f'<p class="lead h{key}">Αν οι εκλογές γίνονταν {WHEN[key]}, η ΝΔ θα ήταν πρώτη {in_sims(nd["p_first"])}, '
+            f'με {num(nd["share"][1])}% και {nd["seats"][1]} έδρες (μεσαία τιμή).</p>')
 
 
 def hist_range(h):
@@ -224,7 +228,7 @@ def seatbar(order, names, r):
 
 def seats_range(x):
     """[10%, median, 90%] as '117 (100–134)'; one number when the range is a single value."""
-    return "—" if not x else str(x[1]) if x[0] == x[2] else f"{x[1]} ({x[0]}–{x[2]})"
+    return "—" if not x else str(x[1]) if x[0] == x[2] else f"{x[1]} <small>({x[0]}–{x[2]})</small>"
 
 
 def seat_table(r, order, names):
@@ -312,7 +316,8 @@ def per_ep(r, order, names):
         rows.append(f"<tr{cls}><td>{name}</td><td class=\"n\">{e['seats']}</td>{cells}</tr>")
     return ('<details><summary>Αναμενόμενες έδρες ανά εκλογική περιφέρεια</summary>'
             '<p class="note">Μέσος όρος των προσομοιώσεων, γι’ αυτό έχει δεκαδικά: 0,4 σημαίνει ότι το κόμμα παίρνει έδρα εκεί '
-            'περίπου σε 4 από τις 10. «·»: κάτω από 0,05. Η κατανομή ανά περιφέρεια στηρίζεται σε υποθέσεις (βλ. παρακάτω).</p>'
+            'περίπου σε 4 από τις 10. «·»: κάτω από 0,05. Η κατανομή ανά περιφέρεια στηρίζεται σε υποθέσεις (βλ. παρακάτω).'
+            '<span class="swipe"> Σύρε τον πίνακα πλάγια για όλα τα κόμματα.</span></p>'
             f'<div class="wrap"><table><thead><tr><th>περιφέρεια</th><th class="n">έδρες</th>{head}</tr></thead><tbody>'
             + "".join(rows) + "</tbody></table></div></details>")
 
