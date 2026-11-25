@@ -160,7 +160,7 @@ def odds(r, key):
         n = sum(seats.get(x, 0) for x in ps)
         spans = ("".join(f'<span style="--c:{colour(x)};flex:{seats.get(x, 0)}"></span>' for x in ps)
                  + f'<span class="rest" style="flex:{300 - n}"></span>')
-        items.append(f'<li{c}><span class="lb">{title.replace("ΕΛΑΣ", '<abbr title="Ελληνική Αριστερή Συμπαράταξη">ΕΛΑΣ</abbr>')}<small>{mid} έδρες ({lo}–{hi}) · {often(p)}</small></span>'
+        items.append(f'<li{c}><span class="lb"><span>{title.replace("ΕΛΑΣ", '<abbr title="Ελληνική Αριστερή Συμπαράταξη">ΕΛΑΣ</abbr>')}</span><small>{mid} έδρες ({lo}–{hi}) · {often(p)}</small></span>'
                      f'<div class="seatbar mini" role="img" aria-label="{title}: {mid} έδρες, στις 8 από τις 10 από {lo} '
                      f'έως {hi}">{spans}<i></i></div><b>{pct(p)}</b></li>')
     return (f'<h2>Ποιοι φτάνουν τις 151 έδρες, εκλογές {WHEN[key]}</h2>'
