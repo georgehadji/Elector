@@ -43,38 +43,46 @@ FONTS = "".join(f'<link rel="preload" href="fonts/{f}.woff2" as="font" type="fon
                 for f in ("ibm-plex-sans-greek", "ibm-plex-sans-latin"))  # the @font-face rules are in fonts.css
 MARK = ('<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
         '<path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>')
-NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"))
+NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"),
+       ("forecast", "forecast.html", "Πρόβλεψη"), ("abroad", "abroad.html", "Εξωτερικό"))
 MONTHS = ("Ιανουαρίου", "Φεβρουαρίου", "Μαρτίου", "Απριλίου", "Μαΐου", "Ιουνίου",
           "Ιουλίου", "Αυγούστου", "Σεπτεμβρίου", "Οκτωβρίου", "Νοεμβρίου", "Δεκεμβρίου")
 
 
+def nav(current="maps"):
+    """The site's pages; `current` is one of NAV's keys (that page) or "maps", a page under Περιφέρειες (aria-current="true")."""
+    cur = ("index", "true") if current == "maps" else (current, "page")
+    links = "".join(f'<a href="{href}"' + (f' aria-current="{cur[1]}"' if cur[0] == key else "") + f">{label}</a>"
+                    for key, href, label in NAV)
+    return f'<nav aria-label="Κύριο μενού">{links}</nav>'
+
 def header(current="maps", ctx="", skip="#main"):
-    """Site bar: wordmark, three-item nav, theme toggle, skip link; `ctx` is the wayfinding row of map pages.
-    `current`: "index" and "compare" are those pages, "maps" is a page under Περιφέρειες (aria-current="true")."""
-    cur = {"index": ("index", "page"), "compare": ("compare", "page"), "maps": ("index", "true")}.get(current)
-    nav = "".join(f'<a href="{href}"' + (f' aria-current="{cur[1]}"' if cur and cur[0] == key else "") + f">{label}</a>"
-                  for key, href, label in NAV)
+    """Site bar: wordmark, nav, theme toggle, skip link; `ctx` is the wayfinding row of map pages."""
     to = "στον χάρτη" if skip == "#map" else "στο περιεχόμενο"
     home = (f'<a class="home" href="index.html" aria-label="Χάρτες σταυρών">{MARK}</a>' if current == "index"  # the h1 below says it
             else f'<a class="home" href="index.html">{MARK}Χάρτες σταυρών</a>')
     return (f'<a class="skip" href="{skip}">Μετάβαση {to}</a><header class="bar{" with-ctx" if ctx else ""}">{home}'
-            f'<nav aria-label="Κύριο μενού">{nav}</nav>{THEME_BTN}</header>{ctx}')
+            f'{nav(current)}{THEME_BTN}</header>{ctx}')
 
 
 def footer(note="", home=True, compact=False, sources=""):
-    """Site colophon: sources (`sources` adds page-specific <li> items), notes (`note` adds page-specific caveats), links. `compact` keeps it to a few lines
-    on pages where the map needs the height. `home` is kept for callers; the Χάρτες column always links the index."""
+    """Site colophon: the name again, at full width, over the site's pages, its sources (`sources` adds page-specific <li> items)
+    and notes (`note` adds page-specific caveats). `compact` keeps it to a line on pages where the map needs the height.
+    `home` is kept for callers; the Χάρτες column always links the index."""
     today = datetime.date.today()
-    return (f'<footer class="site{" compact" if compact else ""}"><div class="cols">'
+    pages = "".join(f'<li><a href="{href}">{label}</a></li>' for _, href, label in NAV)
+    return (f'<footer class="site{" compact" if compact else ""}">'
+            f'<p class="name">{MARK}Χάρτες σταυρών</p>'
+            '<p class="what">Σταυροί και ποσοστά των κομμάτων ανά κοινότητα και εκλογικό τμήμα, από το 2019 έως το 2024.</p>'
+            f'<div class="cols"><div><h3>Χάρτες</h3><ul>{pages}'
+            '<li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div>'
             '<div><h3>Πηγές</h3><ul>'
             '<li>Αποτελέσματα: <a href="https://ekloges.ypes.gr/" rel="noopener">Υπουργείο Εσωτερικών</a></li>'
             '<li>Όρια: <a href="https://www.statistics.gr/" rel="noopener">ΕΛΣΤΑΤ 2021</a></li>'
             '<li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li>'
             f'{sources}</ul></div>'
-            f'<div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα.{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div>'
-            '<div><h3>Χάρτες</h3><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li>'
-            '<li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div></div>'
-            f'<p class="built">Ενημέρωση: {today.day} {MONTHS[today.month - 1]} {today.year}{MARK}</p></footer>')
+            f'<div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα.{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div></div>'
+            f'<p class="built">Ενημέρωση: {today.day} {MONTHS[today.month - 1]} {today.year}</p></footer>')
 
 
 def context_row(data):
