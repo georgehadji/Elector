@@ -7,6 +7,7 @@ The chart is SVG built here (no chart library, no script): one wide and one narr
 Each poll is marked by its basis (KIND, per firm, from the source checks of NIKH.md section 16): the firm's own vote estimate
 (filled dot), intention divided by (1 - undecided) (open dot), or not checked (square). Checkboxes in the key hide a kind in
 the chart and the table with CSS :has(), no script.
+Below the table: how close each firm's last NIKH poll before May 2023, June 2023 and Euro 2024 fell (pollster_record.niki_misses).
 
   python -I -X utf8 analysis/nikh_polls_page.py
 """
@@ -20,6 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import nikh_polls
+import pollster_record as PR
 from config import HERE
 from web import INDEX_DARK, INDEX_LIGHT, fill, meta, secure
 
@@ -127,6 +129,36 @@ def chart(polls, line, w, h, fs, r, ticks_every):
     return "\n".join(out) + "</svg>"
 
 
+def signed(x, dec=2):
+    """+0,13 / −0,57 (a true minus sign)."""
+    return ("+" if x >= 0 else "−") + num(abs(x), dec)
+
+
+def record():
+    """How close each firm's last NIKH poll before an election fell (pollster_record.niki_misses): poll and poll − result."""
+    miss = PR.niki_misses()
+    mae = {f: sum(abs(p - b) for p, b, _ in by.values()) / len(by) for f, by in miss.items()}
+    head = "".join(f'<th scope="col">{PR.NIKI_LABEL[e]}</th>' for e in PR.NIKI_ELECTIONS)
+    rows = []
+    for f in sorted(miss, key=mae.get):
+        cells = "".join(f"<td>{num(miss[f][e][0])}% ({signed(miss[f][e][0] - miss[f][e][1])})</td>" if e in miss[f] else "<td>·</td>"
+                        for e in PR.NIKI_ELECTIONS)
+        rows.append(f"<tr><td>{html.escape(f)}</td>{cells}<td>{num(mae[f])}</td></tr>")
+    diffs = [p - b for by in miss.values() for p, b, _ in by.values()]
+    under = sum(1 for d in diffs if d < 0)
+    return ('<section class="rec" aria-labelledby="rh"><h2 id="rh">Πόσο κοντά έπεσαν οι εταιρείες δημοσκοπήσεων για τη ΝΙΚΗ</h2>'
+            '<p class="note">Για κάθε εταιρεία που δημοσκοπεί σήμερα: το ποσοστό της ΝΙΚΗΣ στην τελευταία της δημοσκόπηση πριν τις '
+            'εκλογές (έως 21 ημέρες πριν) και, σε παρένθεση, πόσο απείχε από το αποτέλεσμα, σε ποσοστιαίες μονάδες. Το αρνητικό '
+            'σημαίνει ότι η δημοσκόπηση έδωσε λιγότερο από το αποτέλεσμα. «·»: δεν υπάρχει τέτοια δημοσκόπηση. '
+            'Πρώτες οι εταιρείες που έπεσαν πιο κοντά κατά μέσο όρο.</p>'
+            f'<table><thead><tr><th scope="col">εταιρεία</th>{head}<th scope="col">μέση διαφορά</th></tr></thead><tbody>'
+            + "".join(rows) + "</tbody></table>"
+            f'<p class="note">Σε {under} από τις {len(diffs)} μετρήσεις η δημοσκόπηση έδωσε στη ΝΙΚΗ λιγότερα από το αποτέλεσμα '
+            f'(κατά μέσο όρο {signed(sum(diffs) / len(diffs), 1)} μονάδες). Είναι λίγες μετρήσεις και η ΝΙΚΗ κινείται κοντά στο 3%, '
+            'όπου μισή μονάδα μετράει πολύ· ο πίνακας δείχνει πόσο κοντά έπεσαν, όχι πόσο κοντά θα πέσουν. Το αποτέλεσμα των '
+            'Ευρωεκλογών είναι με την επιστολική ψήφο. Ο μέσος όρος που δείχνει η σελίδα δεν χρησιμοποιεί αυτόν τον πίνακα.</p></section>')
+
+
 def main():
     recent = nikh_polls.load()
     line = trend(recent)
@@ -148,7 +180,7 @@ def main():
     for a, b in (("<!--META-->", meta("Η ΝΙΚΗ στις δημοσκοπήσεις", "Κάθε δημοσκόπηση για τη ΝΙΚΗ από το 2023, ο μέσος όρος τους και το όριο του 3%.")),
                  ("<!--LEAD-->", lead), ("<!--WIDE-->", chart(polls, line, 900, 380, 12, 3, 3)),
                  ("<!--NARROW-->", chart(polls, line, 360, 300, 10, 2.2, 6)), ("<!--ROWS-->", rows),
-                 ("<!--KINDS-->", toggles), ("<!--RESULTS-->", results),
+                 ("<!--KINDS-->", toggles), ("<!--RESULTS-->", results), ("<!--RECORD-->", record()),
                  ("<!--N-->", str(len(polls))), ("<!--WIKI-->", WIKI)):
         assert a in page, a
         page = page.replace(a, b)

@@ -35,6 +35,17 @@ class PollsterRecord(unittest.TestCase):
         self.assertIn("ProRata", {o[0] for o in out})  # the poll file spells it "Prorata"
         self.assertTrue(-1 <= rho <= 1)
 
+    def test_niki_misses(self):
+        miss = PR.niki_misses()
+        self.assertGreaterEqual(len(miss), 8)
+        ballots = {**NP.BALLOT_2023, "2024/euro": NP.EURO}
+        for by in miss.values():
+            for el, (poll, ballot, end) in by.items():
+                self.assertEqual(ballot, ballots[el][1])
+                self.assertTrue(0 < (ballots[el][0] - end).days <= PR.WINDOW)
+                self.assertTrue(0 < poll < 10)
+        self.assertIn("ProRata", miss)  # "Prorata" in nikh_polls.csv
+
     def test_weights_are_mild(self):
         w = PR.weights()
         self.assertTrue(all(0.7 < v < 1.5 for v in w.values()))
