@@ -84,6 +84,7 @@ h1, h2 { text-wrap: balance; }
 .site .copy { padding: 0; font: inherit; background: none; border: 0; text-decoration: underline; cursor: pointer; }
 .site .copy:active { transform: scale(.97); }
 .copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
+@media (prefers-reduced-motion: no-preference) { #theme svg { transition: transform .45s cubic-bezier(.16,1,.3,1); } #theme[aria-pressed="true"] svg { transform: rotate(180deg); } }  /* the half-moon turns over */
 @media (prefers-reduced-motion: reduce) { #theme, .site .copy { transition: none; } #theme:active, .site .copy:active { transform: none; } }
 /* theme switch: short cross-fade instead of a brightness jump (View Transitions, where supported) */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
@@ -105,4 +106,8 @@ h1, h2 { text-wrap: balance; }
 
 /* Every number is set in tabular figures, so columns of crosses and percentages line up. */
 :root { font-variant-numeric: tabular-nums; font-synthesis: none; --t-xs: .8125rem; --t-sm: .875rem; --t-base: 1rem; --t-lg: 1.25rem; --t-xl: 1.75rem; }
+/* Running text in Literata (its x-height matches Plex Sans, so the two share a line); headings, labels, figures, tables
+   and controls stay in IBM Plex Sans. Plain paragraphs only: a classed or id'd one is part of a component. */
+:root { --font-text: "Literata", Georgia, serif; }
+main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--font-text); }
 p, li, dd { text-wrap: pretty; }
