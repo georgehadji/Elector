@@ -12,7 +12,8 @@
 /*SITE_CSS*/
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:.9375rem/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:960px;margin:0 auto;padding:12px 16px 24px}
+:root{--page:960px}
+main{max-width:var(--page);margin:0 auto;padding:12px 16px 24px}
 h1{font-size:1.625rem;line-height:1.2;letter-spacing:-.01em;margin:8px 0 8px}
 h2{font-size:1.1875rem;line-height:1.3;margin:32px 0 4px}
 h3{font-size:.9375rem;margin:14px 0 0}
@@ -33,6 +34,9 @@ main:has(#h180:checked) .h0,main:has(#h0:checked) .h180{display:none}
 .odds .nd .lb{font-weight:600}
 .odds .nd b{font-size:1.75rem;line-height:1.15}
 .odds .nd .meter i{background:var(--p-ND)}
+.odds .far .lb,.odds .far b{color:var(--ink-2)}
+.odds .far b{font-size:1rem}
+.odds .far .meter i{background:var(--line)}
 @media (max-width:600px){.odds li{grid-template-columns:1fr auto;gap:6px 12px}.odds .meter{grid-column:1/-1;grid-row:2}}
 .sh{display:grid;grid-template-columns:minmax(7.5em,11em) 1fr 4.6em 6em;gap:0 10px;align-items:center;margin:8px 0 0;font-variant-numeric:tabular-nums}
 .sh>span{font-size:.8125rem}
@@ -110,7 +114,7 @@ a{color:var(--pen)}
 <!--HEADER-->
 <main id="main">
   <h1>Πρόβλεψη βουλευτικών εκλογών</h1>
-  <p class="lead"><!--LEAD--></p>
+  <!--LEAD-->
   <p class="note">Οι αριθμοί δεν είναι δημοσκόπηση ούτε αποτέλεσμα. Είναι συχνότητες σε <!--N--> εκλογές που προσομοιώσαμε από τον μέσο όρο των δημοσκοπήσεων, με τον εκλογικό νόμο των εκλογών του Ιουνίου 2023. Δημοσκοπήσεις έως <!--ASOF-->. Ανεπίσημο. ΕΛΑΣ: Ελληνική Αριστερή Συμπαράταξη.</p>
   <fieldset class="when">
     <legend>Εκλογές:</legend>

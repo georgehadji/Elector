@@ -95,16 +95,36 @@ def often(p):
     return "σχεδόν όλες"
 
 
+def in_sims(p):
+    """often(p) as a phrase of the lead, with the percentage: 'σε περίπου 1 στις 120 προσομοιώσεις (0,8%)'."""
+    w = often(p)
+    if w == "σχεδόν όλες":
+        return "σχεδόν σε όλες τις προσομοιώσεις"
+    if w.startswith("όλες "):
+        return f"σε όλες τις προσομοιώσεις {w.removeprefix('όλες ')} ({pct(p)})"
+    return f"σε {w} προσομοιώσεις ({pct(p)})"
+
+
+def lead(r, key):
+    nd = r["parties"]["ND"]
+    return (f'<p class="lead h{key}">Αν οι εκλογές γίνονταν {WHEN[key]}, η ΝΔ θα ήταν πρώτη {in_sims(nd["p_first"])}, '
+            f'με {num(nd["share"][1])}% και {nd["seats"][1]} έδρες στη μεσαία περίπτωση. '
+            f'Αυτοδύναμη θα ήταν {in_sims(r["p_nd_majority"])}· μαζί με το ΠΑΣΟΚ θα είχε 151 έδρες '
+            f'{in_sims(r["p_nd_pasok_151"])}.</p>')
+
+
 def odds(r, key):
-    """Who reaches 151 seats: ND alone first (the main question), then the coalitions from most to least likely."""
-    rows = [("ΝΔ μόνη της (αυτοδυναμία)", r["p_nd_majority"], ' class="nd"')] + sorted(
-        [("ΝΔ και ΠΑΣΟΚ", r["p_nd_pasok_151"], ""), ("ΝΔ και ΕΛΑΣ", r["p_nd_elas_151"], ""),
-         ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", r["p_nd_pasok_elas_151"], "")], key=lambda t: -t[1])
+    """Who reaches 151 seats, in a fixed order from the smallest group up, so the rows read the same at every
+    horizon. The three-party sum is near certain by arithmetic alone, so its row is drawn quieter."""
+    rows = (("ΝΔ μόνη της (αυτοδυναμία)", r["p_nd_majority"], ' class="nd"'),
+            ("ΝΔ και ΠΑΣΟΚ", r["p_nd_pasok_151"], ""), ("ΝΔ και ΕΛΑΣ", r["p_nd_elas_151"], ""),
+            ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", r["p_nd_pasok_elas_151"], ' class="far"'))
     items = "".join(f'<li{c}><span class="lb">{t}<small>{often(p)}</small></span>'
                     f'<span class="meter" aria-hidden="true"><i style="width:{100 * p:.1f}%"></i></span><b>{pct(p)}</b></li>'
                     for t, p, c in rows)
     return (f'<h2>Ποιοι φτάνουν τις 151 έδρες, εκλογές {WHEN[key]}</h2>'
-            '<p class="note">Σε τι ποσοστό των προσομοιώσεων το κόμμα, ή τα κόμματα μαζί, παίρνουν 151 έδρες ή περισσότερες.</p>'
+            '<p class="note">Σε τι ποσοστό των προσομοιώσεων το κόμμα, ή τα κόμματα μαζί, παίρνουν 151 έδρες ή περισσότερες. '
+            'Είναι αθροίσματα εδρών, όχι πρόβλεψη για το ποια κυβέρνηση θα σχηματιστεί.</p>'
             f'<ul class="odds">{items}</ul>')
 
 
@@ -307,12 +327,7 @@ def main():
     order = sorted(today["parties"], key=lambda p: (p == F.OTHER, -today["parties"][p]["share"][1]))
     with open(HERE / "analysis" / "nikh_polls.csv", encoding="utf-8") as f:
         n_polls = sum(1 for _ in csv.DictReader(f))
-    nd = today["parties"]["ND"]
-    first = ("σχεδόν σε όλες τις προσομοιώσεις" if nd["p_first"] > 0.999
-             else f"σε {pct(nd['p_first'])} των προσομοιώσεων")
-    lead = (f"Αν οι εκλογές γίνονταν σήμερα, η ΝΔ θα ήταν πρώτη {first}, με "
-            f"{num(nd['share'][1])}% και {nd['seats'][1]} έδρες στη μεσαία περίπτωση. Αυτοδύναμη θα ήταν σε "
-            f"{pct(today['p_nd_majority'])}· μαζί με το ΠΑΣΟΚ θα είχε 151 έδρες σε {pct(today['p_nd_pasok_151'])}.")
+    leads = "".join(lead(r, key) for key, r in data["horizons"].items())
     sources = (f'Δεδομένα: δημοσκοπήσεις από <a href="{WIKI}">Wikipedia</a> '
                '(η ΝΙΚΗ ελεγμένη με τις εταιρείες), αποτελέσματα από το Υπουργείο Εσωτερικών. '
                '<a href="nikh_polls.html">Η ΝΙΚΗ στις δημοσκοπήσεις</a> · <a href="index.html">Όλοι οι χάρτες</a>')
@@ -320,7 +335,7 @@ def main():
     n_sims = today["n"]
     for a, b in (("<!--META-->", meta("Πρόβλεψη βουλευτικών εκλογών",
                                       "Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.")),
-                 ("<!--LEAD-->", lead), ("<!--N-->", thousands(n_sims)), ("<!--ASOF-->", day(data["as_of"])),
+                 ("<!--LEAD-->", leads), ("<!--N-->", thousands(n_sims)), ("<!--ASOF-->", day(data["as_of"])),
                  ("<!--BODY-->", body(data, order)),
                  ("<!--METHOD-->", method(n_sims, n_polls, F.error_fit(), data["sensitivity"])), ("<!--SOURCES-->", sources)):
         assert a in page, a
