@@ -3,7 +3,10 @@
   2. are answers to his questions slower than to comparable ones (Kaplan–Meier, log-rank stratified by addressee, kind and quarter);
   3. which topics set him apart (keywords on the English titles of all questions; log-odds with an informative Dirichlet prior);
   4. whom he signs with (co-signing network of all current MEPs);
-  5. when he asks more than the Parliament's own calendar predicts (Poisson test per month).
+  5. when he asks more than the Parliament's own calendar predicts (Poisson test per month);
+  6. how often he votes in roll calls (share of the roll-call votes held during each MEP's mandate);
+  7. how many plenary speeches he makes, against all current MEPs.
+  Amendments are not here: the API does not say who tabled an amendment.
 
   python -I -X utf8 analysis/nikh_ep_stats.py      # -> analysis/nikh_ep_stats.txt (needs `nikh_ep.py fetch` first)
 """
@@ -13,7 +16,6 @@ import re
 import statistics
 import sys
 from collections import Counter, defaultdict
-from datetime import date
 from pathlib import Path
 
 import networkx as nx
@@ -135,8 +137,7 @@ def main():
                 frac[m] += 1 / len(q["authors"])
                 if len(q["authors"]) == 1:
                     solo[m] += 1
-    months = {m: max(1.0, ((date.fromisoformat(mand[m]["end"]) if mand[m]["end"] else ep.TODAY)
-                           - date.fromisoformat(mand[m]["start"])).days / 30.44) for m in ids}
+    months = {m: max(1.0, ep.months_in_office(mand[m])) for m in ids}
     per_month = {m: frac[m] / months[m] for m in ids}
     p("")
     p("1. Αντέχει η θέση του; (θέση στους 720· η κοινή ερώτηση μετρά 1 σε κάθε υπογράφοντα, ή 1/k στην κλασματική)")
@@ -163,7 +164,7 @@ def main():
     p(f"   Bootstrap {BOOT} επαναδειγματοληψιών των ερωτήσεων (κλασματική): θέση 95% από {lo:.0f} ως {hi:.0f}, διάμεσος {np.median(ranks):.0f}")
     gr_frac = {m: frac.get(m, 0) for m in gr}
     p(f"   Στους 21 Έλληνες, κλασματική: θέση {rank_of(gr_frac, ME)}· μόνο οι δικές του: θέση {rank_of({m: solo.get(m, 0) for m in gr}, ME)}")
-    late = [m for m in ids if mand[m]["start"] > "2024-08-01"]
+    late = [m for m in ids if mand[m][0][0] > "2024-08-01"]
     p(f"   {len(late)} σημερινοί ευρωβουλευτές μπήκαν μετά τον Ιούλιο 2024· η ανά μήνα μέτρηση τους δίνει δίκαιη σύγκριση.")
 
     # 2. answer time
@@ -272,6 +273,49 @@ def main():
                 p(f"        {q['date']} {q['title'][:100]}")
     days = Counter(q["date"] for q in mine)
     p(f"   Ημέρες με 3+ ερωτήσεις: {sum(v >= 3 for v in days.values())}· η μεγαλύτερη: {max(days.values())} στις {max(days, key=days.get)}")
+
+    # 6. roll-call votes: share of the votes held during each MEP's mandate in which he is on a voter list
+    vts = [v for v in ep.votes() if v["favor"] or v["against"] or v["abstention"]]  # some roll calls come without voter lists
+    held, cast, how = Counter(), Counter(), defaultdict(Counter)
+    for v in vts:
+        for m in ids:
+            if ep.in_office(mand[m], v["date"]):
+                held[m] += 1
+        for k in ("favor", "against", "abstention"):
+            for m in v[k]:
+                if m in pos:
+                    cast[m] += 1
+                    how[m][k] += 1
+    part = {m: 100 * cast[m] / held[m] for m in ids if held[m]}
+    p("")
+    p(f"6. Συμμετοχή στις ονομαστικές ψηφοφορίες ({len(vts):,} ψηφοφορίες σε {len({v['date'] for v in vts})} ημέρες Ολομέλειας· "
+      "μετρά όσες έγιναν όσο ήταν ευρωβουλευτής)".replace(",", "."))
+    p(f"   Αναδιώτης: ψήφισε σε {cast[ME]:,} από {held[ME]:,}".replace(",", ".") + f", {part[ME]:.1f}%· θέση {rank_of(part, ME)} στους {len(part)} "
+      f"(κάτω από αυτόν {sum(v < part[ME] for v in part.values())})")
+    for label, grp_ids in [("Όλοι", list(part)), ("Έλληνες", [m for m in part if m in gr]), ("Μη εγγεγραμμένοι (NI)", [m for m in part if grp[m] == "NI"])]:
+        vals = [part[m] for m in grp_ids]
+        p(f"   {label:24} διάμεσος {statistics.median(vals):.1f}%  (n = {len(vals)})")
+    tot = sum(how[ME].values())
+    p(f"   Συμμετοχή έξω από 0–100%: {sum(not 0 <= v <= 100 for v in part.values())}· η χαμηλότερη {min(part.values()):.1f}%, η υψηλότερη {max(part.values()):.1f}%")
+    p("   Πώς ψηφίζει: " + ", ".join(f"{k} {100 * how[ME][k] / tot:.1f}%" for k in ("favor", "against", "abstention"))
+      + "· όλοι μαζί: " + ", ".join(f"{k} {100 * sum(how[m][k] for m in ids) / sum(cast.values()):.1f}%" for k in ("favor", "against", "abstention")))
+    p("   Έλληνες: " + ", ".join(f"{name(m)} {part[m]:.1f}" for m in sorted((m for m in part if m in gr), key=lambda m: -part[m])))
+    me_month = Counter()
+    me_held = Counter()
+    for v in vts:
+        me_held[v["date"][:7]] += 1
+        me_month[v["date"][:7]] += any(ME in v[k] for k in ("favor", "against", "abstention"))
+    p("   Ανά μήνα (%): " + ", ".join(f"{m} {100 * me_month[m] / me_held[m]:.0f}" for m in sorted(me_held)))
+
+    # 7. plenary speeches of all current MEPs
+    sp = {m: len(ep.speeches(m)) for m in ids}
+    sp_month = {m: sp[m] / months[m] for m in ids}
+    p("")
+    p("7. Ομιλίες στην Ολομέλεια (όλοι οι 720)")
+    p(f"   Αναδιώτης: {sp[ME]} ομιλίες, θέση {rank_of(sp, ME)} στους {len(ids)}· ανά μήνα θητείας {sp_month[ME]:.2f}, θέση {rank_of(sp_month, ME)}")
+    for label, grp_ids in [("Όλοι", ids), ("Έλληνες", [m for m in ids if m in gr]), ("Μη εγγεγραμμένοι (NI)", [m for m in ids if grp[m] == "NI"])]:
+        p(f"   {label:24} διάμεσος {statistics.median(sp[m] for m in grp_ids):.0f}, μέσος όρος {statistics.mean(sp[m] for m in grp_ids):.1f}  (n = {len(grp_ids)})")
+    p(f"   Λιγότερες από αυτόν έχουν {sum(v < sp[ME] for v in sp.values())} ευρωβουλευτές· καμία ομιλία {sum(v == 0 for v in sp.values())}")
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
 

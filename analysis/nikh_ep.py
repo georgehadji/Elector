@@ -63,6 +63,12 @@ def get(path, cache, keep=slim):
                 body = r.read().decode("utf-8")
             data = json.loads(body) if body.strip() else {"data": []}  # 204: nothing found
             break
+        except urllib.error.HTTPError as e:
+            if e.code == 404:  # e.g. a plenary day with no decisions
+                data = {"data": []}
+                break
+            print(f"  retry {attempt + 1} {path[:80]}: {e}", flush=True)
+            time.sleep(10 * (attempt + 1))
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
             print(f"  retry {attempt + 1} {path[:80]}: {e}", flush=True)
             time.sleep(10 * (attempt + 1))
@@ -97,28 +103,69 @@ def fetch():
         if i % 1000 == 0:
             print(f"  {i}/{len(ids)}", flush=True)
     mandates([m["identifier"] for m in meps])
-    for m in meps:
-        if m.get("api:country-of-representation") == "GR":
-            speeches(m["identifier"])
+    print(f"{len(votes())} roll-call votes", flush=True)
+    for k, m in enumerate(sorted(meps, key=lambda m: m.get("api:country-of-representation") != "GR")):  # Greeks first
+        speeches(m["identifier"])
+        if k % 100 == 0:
+            print(f"  speeches {k}/{len(meps)}", flush=True)
 
 
-def term_dates(data):
-    """Only the start and end of each MEP's 10th-term mandate: the API also gives birth date, e-mail and the like, never stored."""
-    out = {}
-    for m in data.get("data", []):
-        for x in m.get("hasMembership", []):
-            if x.get("organization") == "org/ep-10":
-                d = x.get("memberDuring", {})
-                out[m["identifier"]] = {"start": d.get("startDate"), "end": d.get("endDate")}
+def slim_votes(data):
+    """Per roll-call decision only its id, day, label and the three voter lists."""
+    out = []
+    for d in data.get("data", []):
+        if "ROLLCALL" not in d.get("decision_method", ""):
+            continue
+        lab, ref = d.get("activity_label") or {}, d.get("referenceText") or {}
+        out.append({"id": d["activity_id"], "date": d["activity_date"], "label": lab.get("en") or lab.get("fr") or "",
+                    "ref": ref.get("en", ""), **{k: [p.split("/")[-1] for p in d.get(f"had_voter_{k}", [])] for k in ("favor", "against", "abstention")}})
     return {"data": out}
 
 
+def plenary_days():
+    days = []
+    for y in YEARS:
+        days += [m["activity_id"] for m in get(f"meetings?year={y}&limit=1000", f"meetings_{y}.json")["data"]
+                 if m["activity_id"].startswith("MTG-PL-") and m["activity_date"] >= "2024-07-16" and m["activity_date"] <= TODAY.isoformat()]
+    return sorted(days)
+
+
+def votes():
+    """Every roll-call vote of the term, read one plenary day a call."""
+    out = []
+    for day in plenary_days():
+        page = get(f"meetings/{day}/decisions?limit=1000", f"votes/{day}.json", keep=slim_votes)["data"]
+        out += page
+    return out
+
+
+def term_dates(data):
+    """Only the start and end of each 10th-term mandate span (role MEMBER_PARLIAMENT; an MEP can have several). The other
+    ep-10 memberships are offices such as vice-president. The API also gives birth date, e-mail and the like, never stored."""
+    out = {}
+    for m in data.get("data", []):
+        for x in m.get("hasMembership", []):
+            if x.get("organization") == "org/ep-10" and x.get("role", "").endswith("/MEMBER_PARLIAMENT"):
+                d = x.get("memberDuring", {})
+                out.setdefault(m["identifier"], []).append([d.get("startDate"), d.get("endDate")])
+    return {"data": {k: sorted(v, key=lambda x: x[0]) for k, v in out.items()}}
+
+
+def in_office(spans, day):
+    """Was the MEP in office on `day` (ISO date)? An open span runs to TODAY."""
+    return any(s <= day <= (e or TODAY.isoformat()) for s, e in spans)
+
+
+def months_in_office(spans):
+    return sum(((date.fromisoformat(e) if e else TODAY) - date.fromisoformat(s)).days + 1 for s, e in spans) / 30.44
+
+
 def mandates(ids):
-    """{mep id: {start, end}} of the 10th term, read 50 MEPs a call."""
+    """{mep id: [[start, end], ...]} of the 10th term, read 50 MEPs a call."""
     out = {}
     for i in range(0, len(ids), 50):
         batch = sorted(ids)[i:i + 50]
-        out.update(get("meps/" + ",".join(batch), f"mandate/{batch[0]}_{len(batch)}.json", keep=term_dates)["data"])
+        out.update(get("meps/" + ",".join(batch), f"mandate_mp/{batch[0]}_{len(batch)}.json", keep=term_dates)["data"])
     return out
 
 
