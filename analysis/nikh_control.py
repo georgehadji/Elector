@@ -532,6 +532,12 @@ def main():
                         (f"https://www.hellenicparliament.gr/Koinovouleftikos-Elenchos/Mesa-Koinovouleutikou-Elegxou"
                         f"?pcm_id={a['pcm_id']}")])
 
+    # From here on only ΝΙΚΗ group work counts: an act an expelled MP filed after the expulsion is not ΝΙΚΗ's,
+    # and on a joint act only the signers who were in the group count. The CSV above keeps every act.
+    all_acts, acts = acts, group_acts
+    for a in acts:
+        a["nikh"] = a["in_group"]
+
     p("Κοινοβουλευτικός έλεγχος των βουλευτών που εξελέγησαν με τη ΝΙΚΗ (Ιούνιος 2023)")
     p(f"Πηγές: hellenicparliament.gr (Μέσα Κοινοβουλευτικού Ελέγχου), vouliwatch.gr API. Τελευταία πράξη: {today:%d/%m/%Y}.")
     p("")
@@ -541,19 +547,24 @@ def main():
     p("0. Κάλυψη (πράξεις ανά βουλευτή: που διαβάστηκαν / που μετρά η Βουλή / στο Vouliwatch)")
     for short, s in summary.items():
         p(f"   {short:<15} {s['parliament']:>4} / {s['parliament_total']:>4} / {s.get('vouliwatch', '-'):>4}")
-    p(f"   Μοναδικές πράξεις: {len(index)}· με σελίδα πράξης: {len(acts)}· ταίριαξαν στο Vouliwatch: "
-      f"{sum(1 for a in acts if a['vw'])} (το Vouliwatch έχει μόνο ερωτήσεις, επίκαιρες και αναφορές).")
+    p(f"   Μοναδικές πράξεις: {len(index)}· με σελίδα πράξης: {len(all_acts)}· ταίριαξαν στο Vouliwatch: "
+      f"{sum(1 for a in all_acts if a['vw'])} (το Vouliwatch έχει μόνο ερωτήσεις, επίκαιρες και αναφορές).")
+    p(f"   Μετρούν μόνο όσες κατατέθηκαν όσο ο βουλευτής ήταν στην ΚΟ: {len(acts)}. Έξω μένουν "
+      f"{len(all_acts) - len(acts)} πράξεις των " + " και ".join(EXPELLED)
+      + " μετά τη διαγραφή τους (" + ", ".join(
+          f"{s} {sum(1 for a in all_acts if s in nikh_signers(a['signers']) and s not in a['in_group'])}"
+          for s in EXPELLED) + " υπογραφές).")
     p("")
     # 1. Kind
-    p("1. Ανά είδος (μοναδικές πράξεις· σε παρένθεση όσες κατατέθηκαν ενώ τουλάχιστον ένας υπογράφων ήταν στην ΚΟ)")
-    kc, kg = Counter(a["kind"] for a in acts), Counter(a["kind"] for a in group_acts)
+    p("1. Ανά είδος (μοναδικές πράξεις)")
+    kc = Counter(a["kind"] for a in acts)
     for k, n in kc.most_common():
-        p(f"   {KIND_SHORT.get(k, k):<22} {n:>5} ({kg[k]})")
-    p(f"   {'Σύνολο':<22} {len(acts):>5} ({len(group_acts)})")
+        p(f"   {KIND_SHORT.get(k, k):<22} {n:>5}")
+    p(f"   {'Σύνολο':<22} {len(acts):>5}")
     p("")
     # 2. MP
     p("2. Ανά βουλευτή (κάθε πράξη μετρά σε κάθε υπογράφοντα)")
-    p(f"   {'':<15} {'σύνολο':>6} {'μόνος':>6} {'με ΝΙΚΗ':>8} {'με άλλους':>9} {'μετά τη διαγραφή':>17}  "
+    p(f"   {'':<15} {'σύνολο':>6} {'μόνος':>6} {'με ΝΙΚΗ':>8} {'με άλλους':>9}  "
       + "".join(f"{KIND_SHORT[k]:>19}" for k in kc if k in KIND_SHORT))
     for _, short, _, _ in MPS:
         mine = [a for a in acts if short in a["nikh"]]
@@ -562,9 +573,8 @@ def main():
         alone = sum(1 for a in mine if len(a["signers"]) == 1)
         with_n = sum(1 for a in mine if len(a["nikh"]) > 1)
         with_o = sum(1 for a in mine if len(a["signers"]) > len(a["nikh"]))
-        after = sum(1 for a in mine if short not in a["in_group"])
         kk = Counter(a["kind"] for a in mine)
-        p(f"   {short:<15} {len(mine):>6} {alone:>6} {with_n:>8} {with_o:>9} {after:>17}  "
+        p(f"   {short:<15} {len(mine):>6} {alone:>6} {with_n:>8} {with_o:>9}  "
           + "".join(f"{kk[k]:>19}" for k in kc if k in KIND_SHORT))
     p("")
     # 3. Ministry
@@ -594,26 +604,23 @@ def main():
             p(f"   {short:<15}" + "".join(f"{100 * k[c] / len(mine):>10.0f}" for c in cats))
     p("")
     # 5. Month
-    p("5. Ανά μήνα (μοναδικές πράξεις, σε παρένθεση όσες κατατέθηκαν από μέλη της ΚΟ· █ = 5)")
+    p("5. Ανά μήνα (μοναδικές πράξεις· █ = 5)")
     by_month = Counter(a["date"].strftime("%Y-%m") for a in acts)
-    by_month_g = Counter(a["date"].strftime("%Y-%m") for a in group_acts)
     months = []
     y, m = acts[0]["date"].year, acts[0]["date"].month
     while (y, m) <= (today.year, today.month):
         months.append(f"{y}-{m:02d}")
         y, m = (y + 1, 1) if m == 12 else (y, m + 1)
     for mo in months:
-        p(f"   {mo} {by_month[mo]:>4} ({by_month_g[mo]:>3}) {bar(by_month[mo], 5)}")
+        p(f"   {mo} {by_month[mo]:>4} {bar(by_month[mo], 5)}")
     xs = list(range(len(months) - 1))  # the running month is partial: left out of the trend
-    for label, bm in (("όλες", by_month), ("μέλη της ΚΟ", by_month_g)):
-        ys = [bm[mo] for mo in months[:-1]]
-        half = len(ys) // 2
-        p(f"   Τάση, {label} (ελάχιστα τετράγωνα, χωρίς τον τρέχοντα μήνα): "
-          f"{statistics.linear_regression(xs, ys).slope:+.2f} πράξεις ανά μήνα κάθε μήνα· "
-          f"μέσος όρος πρώτου μισού {statistics.mean(ys[:half]):.1f}, δεύτερου {statistics.mean(ys[half:]):.1f}.")
+    ys = [by_month[mo] for mo in months[:-1]]
+    half = len(ys) // 2
+    p(f"   Τάση (ελάχιστα τετράγωνα, χωρίς τον τρέχοντα μήνα): "
+      f"{statistics.linear_regression(xs, ys).slope:+.2f} πράξεις ανά μήνα κάθε μήνα· "
+      f"μέσος όρος πρώτου μισού {statistics.mean(ys[:half]):.1f}, δεύτερου {statistics.mean(ys[half:]):.1f}.")
     by_year = Counter(a["date"].year for a in acts)
-    by_year_g = Counter(a["date"].year for a in group_acts)
-    p("   Ανά έτος: " + ", ".join(f"{yr}: {n} ({by_year_g[yr]})" for yr, n in sorted(by_year.items())))
+    p("   Ανά έτος: " + ", ".join(f"{yr}: {n}" for yr, n in sorted(by_year.items())))
     p("")
     # 6. Answers
     old = [a for a in acts if a["kind"] in WRITTEN and (today - a["date"]).days >= MIN_AGE]
@@ -622,12 +629,12 @@ def main():
     p("   Ανά είδος: " + ", ".join(
         f"{KIND_SHORT[k]} {100 * sum(a['answered'] for a in old if a['kind'] == k) / max(1, sum(1 for a in old if a['kind'] == k)):.0f}% "
         f"(n={sum(1 for a in old if a['kind'] == k)})" for k in WRITTEN if any(a["kind"] == k for a in old)))
-    chk = sorted((a["answer_est"] - a["answer_date"]).days for a in acts if a["answer_date"] and a["answer_est"])
+    chk = sorted((a["answer_est"] - a["answer_date"]).days for a in all_acts if a["answer_date"] and a["answer_est"])
     p(f"   Ημέρα απάντησης: εκτίμηση από τον αύξοντα αριθμό των αρχείων της Βουλής (βλ. answer_dates). Έλεγχος με τις "
       f"{len(chk)} ημερομηνίες που δίνει το Vouliwatch: διαφορά σε ημέρες " + ", ".join(map(str, chk)) + ".")
     # An act with one answer file was last changed when that file was attached (an unanswered act: about the day
     # after filing), so «Ημ. Τελευταίας Τροποποίησης» is a second check on all of them.
-    lc = sorted((a["answer_est"] - a["last_change"]).days for a in acts
+    lc = sorted((a["answer_est"] - a["last_change"]).days for a in all_acts
                 if len(set(a["answer_ids"])) == 1 and a["last_change"] and a["answer_est"])
     if lc:
         p(f"   Έλεγχος με την «Ημ. Τελευταίας Τροποποίησης» των {len(lc)} πράξεων με ένα αρχείο απάντησης: διάμεσος "
@@ -663,7 +670,7 @@ def main():
           f"{statistics.median((a['sitting'] - a['date']).days for a in deb):.0f} ημέρες από την κατάθεση. Ανά υπουργείο:")
         p("   " + ", ".join(f"{m} {sum(1 for a in deb if m in a['ministries_n'])}/{n}" for m, n in Counter(
             m for a in top_q for m in a["ministries_n"]).most_common() if n >= 10))
-    sample_report(p, {a["pcm_id"]: a for a in acts})
+    sample_report(p, {a["pcm_id"]: a for a in all_acts})
     answers_report(p, old, today)
     p("")
     # 7. Co-signing
@@ -678,7 +685,7 @@ def main():
     p(f"   Πράξεις με υπογράφοντα εκτός ΝΙΚΗΣ: {sum(1 for a in acts if len(a['signers']) > len(a['nikh']))}")
     p("   Έλεγχος των ημερομηνιών διαγραφής με την ομάδα που γράφει η Βουλή στις πράξεις που υπέγραψε μόνος:")
     for short, day in EXPELLED.items():
-        solo = [(a["date"], a["groups"][0]) for a in acts if a["nikh"] == [short] and len(a["signers"]) == 1
+        solo = [(a["date"], a["groups"][0]) for a in all_acts if nikh_signers(a["signers"]) == [short] and len(a["signers"]) == 1
                 and a["groups"]]
         last_n = max((d for d, g in solo if "ΝΙΚΗ" in g), default=None)
         first_i = min((d for d, g in solo if "ΑΝΕΞΑΡΤΗΤ" in g.upper()), default=None)
