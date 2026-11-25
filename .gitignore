@@ -22,3 +22,6 @@ analysis/venues_xls/
 
 # Raw cache of analysis/benchmark_fetch.py: third-party data, not redistributed
 data/benchmark/
+
+# Raw pages of analysis/nikh_control_fetch.py (Parliament site, Vouliwatch API): cache, rebuilt by rerunning
+data/parl_control/
