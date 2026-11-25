@@ -149,6 +149,9 @@ def main(election, ep):
         "parties": {pid: {"name": parties[pid][0], "color": parties[pid][1]} for pid in {c["party"] for c in cand_list}},
         "cands": cand_list, "unmatched": [{"name": u["name"], "unit": u["unit"]} for u in unmatched],
         "coverage": coverage, "geo": {"type": "FeatureCollection", "features": features},
+        # valid votes with no place on the map: special stations (Ε, Μ, Φ) and postal votes (Τ, constituency totals)
+        "off": dict(q("SELECT CASE kind WHEN 'Τ' THEN 'postal' ELSE 'special' END, SUM(valid) FROM station "
+                      "WHERE election=? AND ep_id=? AND kind<>'Κ' AND valid IS NOT NULL GROUP BY 1", ep)),
     }
     out = OUT / f"{slug(election)}_{ep}.html"
     out.parent.mkdir(exist_ok=True)
@@ -225,12 +228,14 @@ def build_all(election):
     """Build every fetched constituency and an index page listing them with match quality."""
     eps = [r[0] for r in sqlite3.connect(DB).execute(
         "SELECT ep_id FROM ep WHERE election=? ORDER BY name", (election,))]
-    rows = []
+    rows, skipped = [], []
     # Constituencies are independent: build them in parallel, each worker loads the boundaries once.
     with ProcessPoolExecutor(max_workers=WORKERS) as pool:
         for ep, (r, log) in zip(eps, pool.map(_build_quiet, [election] * len(eps), eps)):
             print(f"--- EP {ep}\n{log}", end="")
-            if not r.get("skip"):
+            if r.get("skip"):
+                skipped.append(ep)
+            else:
                 rows.append(r)
     save(election, rows)
     write_index()
@@ -239,6 +244,14 @@ def build_all(election):
         f'<td class="n">{r["map_areas"]}</td><td class="n">{r["unmatched"]}</td><td class="n">{r["seat"]}</td>'
         f'<td class="n">{r["coverage"]:.1%}</td></tr>' if r.get("file") else
         f'<tr><td>{r["name"]}</td><td colspan="5">σφάλμα: {r["error"]}</td></tr>' for r in rows)
+    # valid votes with no place on any map: special stations, postal votes, constituencies without map areas (abroad)
+    ids = ",".join(map(str, skipped))
+    with sqlite3.connect(DB) as db:
+        off = dict(db.execute(f"SELECT CASE WHEN ep_id IN ({ids}) THEN 'abroad' WHEN kind='Τ' THEN 'postal' ELSE 'special' END, "
+                              f"SUM(valid) FROM station WHERE election=? AND (kind<>'Κ' OR ep_id IN ({ids})) GROUP BY 1",
+                              (election,)))
+    labels = {"special": "ειδικά τμήματα (ετεροδημότες κ.ά.)", "postal": "επιστολική ψήφος", "abroad": "ψηφοφόροι εξωτερικού"}
+    off_p = " · ".join(f"{name} {off[k]:,}".replace(",", ".") for k, name in labels.items() if off.get(k))
     index_page = OUT / f"index_{slug(election)}.html"
     index_page.write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -255,6 +268,7 @@ main{{max-width:900px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}
 χωρίς αντιστοίχιση ονόματος · Κάλυψη: σταυροί στον χάρτη ως ποσοστό του συνόλου.</p>
 <div class="wrap"><table><thead><tr><th>Περιφέρεια</th><th class="n">Ε.Δ.</th><th class="n">Περιοχές</th><th class="n">Χωρίς χάρτη</th>
 <th class="n">Έδρα</th><th class="n">Κάλυψη</th></tr></thead><tbody>{tr}</tbody></table></div>
+{f"<p>Εκτός χάρτη σε όλη τη χώρα, έγκυρα: {off_p}.</p>" if off_p else ""}
 {footer()}</main></body></html>"""), index_page),
                                                                                           encoding="utf-8")
     ok = [r for r in rows if r.get("file")]

@@ -194,7 +194,9 @@ document.querySelector(".pdf").addEventListener("click", exportPdf);  // no inli
 $("note").textContent =
   `Πηγή: ανεπίσημα αποτελέσματα ΥΠΕΣ ανά εκλογικό τμήμα, ενωμένα ανά εκλογικό διαμέρισμα και όρια κοινοτήτων ΕΛΣΤΑΤ 2021. ` +
   `Απόκλιση: % της περιοχής προς τον μέσο όρο του χάρτη. ` +
-  `Εκτός χάρτη: ${T.off} ετεροδημοτών και ειδικών τμημάτων` +
+  `Εκτός χάρτη: ` + ([D.off.special && `${fmt(D.off.special)} έγκυρα ειδικών τμημάτων (ετεροδημότες κ.ά.)`,
+                     D.off.postal && `${fmt(D.off.postal)} έγκυρα επιστολικής ψήφου (το ΥΠΕΣ τα δίνει μόνο ανά περιφέρεια)`]
+                    .filter(Boolean).join(", ") || "κανένα ειδικό τμήμα") +
   (D.unmatched.length ? `, και ${D.unmatched.length} διαμερίσματα χωρίς αντιστοίχιση (${D.unmatched.map(u => u.name).join(", ")}).` : ".");
 render();
 </script>
