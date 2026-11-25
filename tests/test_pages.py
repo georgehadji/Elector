@@ -175,7 +175,7 @@ class Cards(HTMLParser):
         a = dict(attrs)
         self.pos += 1
         cls = (a.get("class") or "").split()
-        if tag == "section" and "party" in cls:
+        if tag == "section" and a.get("id") == "country":  # the nationwide tools, ahead of the constituency rows
             self.nation_at = self.pos
         elif tag == "h4":
             self.h4 += 1
