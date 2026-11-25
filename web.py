@@ -302,13 +302,16 @@ h3{font-size:var(--text-title);line-height:1.2}
 .tool p{margin:0;max-width:40ch;font-size:var(--t-base);line-height:1.5}
 .tool .fig{margin-top:auto;font-size:var(--text-display);font-weight:600;letter-spacing:-.03em;line-height:.95;font-variant-numeric:tabular-nums}
 .tool.fc p:not(.fig){color:var(--on-deep-2)}
-.seats{display:flex;gap:2px;height:40px;margin-top:var(--space-sm);transform-origin:left}
+.seats{position:relative;display:flex;height:40px;margin-top:var(--space-xl);transform-origin:left}
 .seats span{background:var(--c);min-width:2px}
+.seats span+span{box-shadow:inset 2px 0 0 var(--deep)}
 .seats .rest{background:var(--deep-2)}
+.seats .maj{position:absolute;left:calc(100% * 151 / 300);top:calc(-1 * var(--space-lg));bottom:calc(-1 * var(--space-2xs));padding-left:var(--space-2xs);border-left:2px solid var(--on-deep);background:none;box-shadow:none;font-size:var(--t-base);line-height:1;color:var(--on-deep);white-space:nowrap}
 .sk{display:flex;flex-wrap:wrap;gap:var(--space-2xs) var(--space-md);list-style:none;margin:0;padding:0;font-size:var(--t-base);color:var(--on-deep)}
 .sk li{display:inline-flex;align-items:center;gap:var(--space-xs);font-variant-numeric:tabular-nums}
 .sk i{width:12px;height:12px;background:var(--c)}
 /* Εκλογικές περιφέρειες: a board per region, the region's tile first */
+html{scroll-padding-top:96px}
 .ctl{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-xs);margin-inline:calc(-1 * var(--space-xs));padding:var(--space-sm) var(--space-xs);background:var(--paper)}
 .ctl[hidden]{display:none}
 .ctl .swl{margin-right:var(--space-xs);color:var(--ink-2)}
@@ -321,14 +324,14 @@ h3{font-size:var(--text-title);line-height:1.2}
 .grp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,4fr);gap:var(--board);margin-top:var(--board)}
 .grp:not(:has(li:not([hidden]))){display:none}  /* a region goes with its tiles */
 .eps{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:var(--board);list-style:none;margin:0;padding:0}
-.rt{display:flex;flex-direction:column;gap:var(--space-md);padding:var(--space-lg);background:var(--deep);color:var(--on-deep);scroll-margin-top:96px}
-.reg{font-size:var(--text-title);scroll-margin-top:96px}
+.rt{display:flex;flex-direction:column;gap:var(--space-md);padding:var(--space-lg);background:var(--deep);color:var(--on-deep)}
+.reg{font-size:var(--text-title)}
 .rs{display:flex;flex-direction:column;gap:var(--space-sm);margin-top:auto}
 .rs[hidden]{display:none}
 .strip{display:flex;flex-wrap:wrap;gap:4px;margin:0}
 .strip i{width:20px;height:20px;background:var(--c)}
 .rs p:last-child{margin:0;color:var(--on-deep-2);font-size:var(--t-base);line-height:1.45}
-.eps li{position:relative;display:flex;flex-direction:column;min-height:256px;background:var(--wash);overflow-wrap:break-word;scroll-margin-top:96px}
+.eps li{position:relative;display:flex;flex-direction:column;min-height:256px;background:var(--wash);overflow-wrap:break-word}
 .eps li:hover{background:color-mix(in srgb,var(--wash),var(--ink) 7%)}
 .fp{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:var(--space-2xs);min-height:104px;margin:0;padding:var(--space-md) var(--space-lg);background:var(--c);color:var(--on-dark);font-size:var(--text-title);font-variant-numeric:tabular-nums;line-height:1}
 .fp.dk{color:var(--on-light)}
@@ -417,7 +420,7 @@ body:has(#f:not(:placeholder-shown)) :is(#country,.nks,#cov){display:none}  /* w
   .data .dl{margin-top:var(--space-xl)}
   .tk{flex-basis:100%;margin:0}
 }
-@media (max-width:40rem){.ctl{position:static}}
+@media (max-width:40rem){.ctl{position:static}html{scroll-padding-top:var(--space-md)}}
 @media (max-width:40rem){
   .eps{grid-template-columns:repeat(2,minmax(0,1fr))}
   .eps li{min-height:0}
@@ -486,7 +489,8 @@ const open = e => {
   let x = "";
   sw.querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.e === e); if (b.dataset.e === e) x = b.dataset.x; });
   const tk = document.getElementById("tk"), xb = sw.querySelector(`button[data-e="${x}"]`);
-  if (tk) { tk.hidden = !xb; if (xb) tk.querySelector(".te").textContent = xb.textContent; }
+  if (tk) { tk.hidden = !xb; if (xb) { tk.querySelector(".te").textContent = xb.textContent;
+    tk.querySelector(".tn").textContent = x === e ? "" : ` (${sw.querySelector(`button[data-e="${e}"]`).textContent}: χωρίς σταυρούς ανά τμήμα)`; } }
   for (const li of items) {
     li.querySelector("h4 a").href = (li.querySelector(`.el a[data-e="${e}"]`) || li.querySelector(".el a")).href;
     li.querySelectorAll(".top").forEach(p => { p.hidden = p.dataset.e !== x; });
@@ -667,7 +671,8 @@ def _write_index(order, nikh, elected):
     nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}" aria-label="{html.escape(m["ep_name"])}, {html.escape(m["label"])}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
                          for f, m in tm if "_tm_131-" not in f)
     switch = "".join(f'<button type="button" data-e="{e}" data-x="{crosses_of[e]}" aria-pressed="false">{n}</button>' for e, n in reversed(ELECTION_NAMES.items()))
-    tk = (f'<p class="tk" id="tk">Σταυροί από τις εκλογές <span class="te">{ELECTION_NAMES[crosses_of[default]]}</span></p>'
+    tk = (f'<p class="tk" id="tk">Πρώτοι σε σταυρούς: <span class="te">{ELECTION_NAMES[crosses_of[default]]}</span>'
+          f'<span class="tn">{"" if crosses_of[default] == default else f" ({ELECTION_NAMES[default]}: χωρίς σταυρούς ανά τμήμα)"}</span></p>'
           if crosses_of[default] else "")
     gr = HERE / "out" / "greece_map.html"
     greece = gr.read_text(encoding="utf-8") if gr.exists() else ""  # written by compare.py
@@ -696,10 +701,11 @@ def _write_index(order, nikh, elected):
         fc_fig = f'<p class="fig">{_pct(p_maj, 1 if p_maj < 0.1 else 0)}</p>'
         fc_text = f"πιθανότητα αυτοδυναμίας της ΝΔ σε εκλογές σήμερα, από τον μέσο όρο των δημοσκοπήσεων στις {d.day}/{d.month}/{d.year}."
         total = sum(s for _, s in seats)
-        fc_bar = ('<div class="seats" role="img" aria-label="Διάμεσες έδρες: '
+        fc_bar = ('<div class="seats" role="img" aria-label="Αυτοδυναμία με 151 έδρες. Διάμεσες έδρες: '
                   + ", ".join(f"{names.get(p, p)} {s}" for p, s in seats) + '">'
                   + "".join(f'<span style="--c:{col[p]};flex:{s}"></span>' for p, s in seats)
                   + (f'<span class="rest" style="flex:{300 - total}"></span>' if total < 300 else "")
+                  + '<span class="maj">151 αυτοδυναμία</span>'
                   + '</div><ul class="sk" aria-hidden="true">'
                   + "".join(f'<li><i style="--c:{col[p]}"></i>{html.escape(names.get(p, p))} {s}</li>' for p, s in seats)
                   + "</ul>")
