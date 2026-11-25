@@ -128,6 +128,11 @@ REGIONS = [
 
 # Party colours the ministry data gets wrong for a map: ND and ΠΑΣΟΚ at 3:1 on paper (the ministry's are 2.9 and 2.1).
 PARTY_COLOR = {2: "#1f6fd1", 106: "#1a8f5a"}
+# The forecast's party colours, (light, dark), by forecast key; dict order = slot order = order in the seat bar.
+# forecast_page.py draws with them, and the index's forecast tile repeats its seat bar.
+FORECAST_COLOURS = {"ND": ("#2a78d6", "#3987e5"), "ELAS": ("#eb6834", "#d95926"), "PASOK": ("#1baf7a", "#199e70"),
+                    "EL": ("#eda100", "#c98500"), "KKE": ("#e87ba4", "#d55181"), "PE": ("#008300", "#0ca30c"),
+                    "FL": ("#6250d6", "#9085e9"), "ELPIDA": ("#e34948", "#e66767")}
 
 # NIKH (party 131) MPs elected 25 June 2023 per constituency (iefimerida.gr, 97.75% counted);
 # 10th seat: Apostolakis, Επικρατείας (resigned; replaced by Rakovalis). Vrettos and N. Papadopoulos were expelled from the party but kept their seats.

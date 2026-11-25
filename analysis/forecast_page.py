@@ -32,7 +32,7 @@ import forecast as F
 import pollster_record as PR
 import seats_law as LAW
 
-from config import DB, HERE, slug
+from config import DB, FORECAST_COLOURS, HERE, slug
 from geo import boundary, frame, path
 from matching import boundaries, centroid, match_units
 from web import INDEX_DARK, INDEX_LIGHT, fill, meta, secure
@@ -40,10 +40,7 @@ from web import INDEX_DARK, INDEX_LIGHT, fill, meta, secure
 OUT = HERE / "out" / "forecast.html"
 MAP_ELECTION = "2023/june"  # per-constituency rows link to this election's maps
 WIKI = "https://en.wikipedia.org/wiki/Opinion_polling_for_the_next_Greek_legislative_election"
-# party: (light, dark); dict order = slot order = order in the seat bar
-COLOURS = {"ND": ("#2a78d6", "#3987e5"), "ELAS": ("#eb6834", "#d95926"), "PASOK": ("#1baf7a", "#199e70"),
-           "EL": ("#eda100", "#c98500"), "KKE": ("#e87ba4", "#d55181"), "PE": ("#008300", "#0ca30c"),
-           "FL": ("#6250d6", "#9085e9"), "ELPIDA": ("#e34948", "#e66767")}
+COLOURS = FORECAST_COLOURS  # party: (light, dark); dict order = slot order = order in the seat bar
 MUTE = ("#9a988f", "#6f6d66")
 MONTHS = ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαΐ", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
 WHEN = {"0": "σήμερα", "180": "σε έξι μήνες"}
