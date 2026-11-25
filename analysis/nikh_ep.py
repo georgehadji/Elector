@@ -46,7 +46,7 @@ def slim(x):
     return [slim(v) for v in x] if isinstance(x, list) else x
 
 
-def get(path, cache):
+def get(path, cache, keep=slim):
     """JSON of an API path, cached in CACHE/cache; at most one request a second, retried when the API fails."""
     global _last
     f = CACHE / cache
@@ -69,7 +69,7 @@ def get(path, cache):
     else:
         raise RuntimeError(f"API failed: {path}")
     f.parent.mkdir(parents=True, exist_ok=True)
-    data = slim(data)
+    data = keep(data)
     f.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return data
 
@@ -96,9 +96,30 @@ def fetch():
         get("parliamentary-questions/" + ",".join(batch), f"q/{batch[0]}_{len(batch)}.json")
         if i % 1000 == 0:
             print(f"  {i}/{len(ids)}", flush=True)
+    mandates([m["identifier"] for m in meps])
     for m in meps:
         if m.get("api:country-of-representation") == "GR":
             speeches(m["identifier"])
+
+
+def term_dates(data):
+    """Only the start and end of each MEP's 10th-term mandate: the API also gives birth date, e-mail and the like, never stored."""
+    out = {}
+    for m in data.get("data", []):
+        for x in m.get("hasMembership", []):
+            if x.get("organization") == "org/ep-10":
+                d = x.get("memberDuring", {})
+                out[m["identifier"]] = {"start": d.get("startDate"), "end": d.get("endDate")}
+    return {"data": out}
+
+
+def mandates(ids):
+    """{mep id: {start, end}} of the 10th term, read 50 MEPs a call."""
+    out = {}
+    for i in range(0, len(ids), 50):
+        batch = sorted(ids)[i:i + 50]
+        out.update(get("meps/" + ",".join(batch), f"mandate/{batch[0]}_{len(batch)}.json", keep=term_dates)["data"])
+    return out
 
 
 def speeches(mep):
