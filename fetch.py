@@ -51,7 +51,11 @@ def fetch_station(base, ep, tm_id, k="v"):
     meta = get(f"{base}/stat/{k}/{ep}/tm_{tm_id}.js")
     if meta is None:
         return None
-    return meta, get(f"{base}/dyn/{k}/{ep}/tm_{tm_id}.js"), get(f"{base}/dyn/{k}/{ep}/tm_vc_{tm_id}.js")
+    party = get(f"{base}/dyn/{k}/{ep}/tm_{tm_id}.js")
+    if party is None and meta["EP_ID"] != ep:  # a station of voters registered elsewhere: some elections file its
+        ep = meta["EP_ID"]                       # results under the constituency of registration (2019, June 2023)
+        party = get(f"{base}/dyn/{k}/{ep}/tm_{tm_id}.js")
+    return meta, party, get(f"{base}/dyn/{k}/{ep}/tm_vc_{tm_id}.js")
 
 
 def main(election, ep):
@@ -81,7 +85,8 @@ def main(election, ep):
     ep_meta = get(f"{base}/stat/{k}/ep_{ep}.js")
     db.execute("INSERT OR REPLACE INTO ep VALUES (?,?,?)", (election, ep, accented(ep_meta["Descr"])))
     count = ep_meta["CountTmGeo"]
-    done = {r[0] for r in db.execute("SELECT tm_id FROM station WHERE election=?", (election,))}
+    # a station saved before its results were published has valid NULL: fetch it again
+    done = {r[0] for r in db.execute("SELECT tm_id FROM station WHERE election=? AND valid IS NOT NULL", (election,))}
     todo = [ep * 10000 + s for s in range(1, count + 1) if ep * 10000 + s not in done]
     print(f"{election} EP {ep}: {count} stations, {len(todo)} to fetch", flush=True)
     # Euro 2024 station files omit den_Descr/dhm_Descr; the names are in statics.js.
@@ -96,8 +101,8 @@ def main(election, ep):
             db.execute("INSERT OR REPLACE INTO station VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
                 election, tm, meta["EP_ID"], meta["EP_ID_GEO"], meta["TM_KIND"],
                 meta["EKD_ID"], accented(meta.get("ekd_Descr") or meta.get("EKD_Descr")),
-                meta["DEN_ID"], accented(meta.get("den_Descr") or den[meta["DEN_ID"]]),
-                meta["DHM_ID"], accented(meta.get("dhm_Descr") or dhm[meta["DHM_ID"]]),
+                meta["DEN_ID"], accented(meta.get("den_Descr") or den.get(meta["DEN_ID"])),
+                meta["DHM_ID"], accented(meta.get("dhm_Descr") or dhm.get(meta["DHM_ID"])),
                 accented(meta["Descr"]), meta.get("CATAL_V"), (party or {}).get("Egkyra")))
             for p in (party or {}).get("party", []):
                 db.execute("INSERT OR REPLACE INTO party_votes VALUES (?,?,?,?)",
