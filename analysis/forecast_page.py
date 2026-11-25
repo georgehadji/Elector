@@ -344,7 +344,7 @@ def record():
         cells = "".join(f'<td class="n">{num(r["by"][e]) if e in r["by"] else "·"}</td>' for e in PR.ELECTIONS)
         body_rows.append(f'<tr><td>{html.escape(r["firm"])}</td><td class="n">{len(r["by"])}</td>'
                          f'<td class="n">{num(r["avg"])}</td>{cells}</tr>')
-    return ('<section class="rec" aria-labelledby="rh"><h2 id="rh">Πόσο κοντά έπεσε η κάθε εταιρεία</h2>'
+    return ('<section class="rec" aria-labelledby="rh"><h2 id="rh">Δημοσκοπήσεις και αποτέλεσμα: η διαφορά ανά εταιρεία</h2>'
             '<p class="note">Για κάθε εταιρεία που δημοσκοπεί σήμερα: πόσο απείχε η τελευταία της δημοσκόπηση πριν την κάλπη '
             '(έως 21 ημέρες πριν) από το αποτέλεσμα, στις εκλογές του 2019, του Μαΐου 2023 και του Ιουνίου 2023. Η τιμή είναι η '
             'μέση διαφορά ανά κόμμα με 3% και πάνω, σε ποσοστιαίες μονάδες. Μικρότερη σημαίνει πιο κοντά. «·»: η εταιρεία '
