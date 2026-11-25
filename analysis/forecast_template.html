@@ -34,7 +34,7 @@ main:has(#h180:checked) .h0,main:has(#h0:checked) .h180{display:none}
 .sh .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sh .v{text-align:right}
 .trk{position:relative;height:24px}
-.trk.ax{height:16px;font-size:.6875rem;color:var(--ink-2)}
+.trk.ax{height:18px;font-size:.75rem;color:var(--ink-2)}
 .trk.ax span{position:absolute;transform:translateX(-50%)}
 .trk .rng{position:absolute;top:10px;height:4px;border-radius:2px;background:var(--c);opacity:.5}
 .trk .dot{position:absolute;top:6px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--paper)}
@@ -63,13 +63,21 @@ figcaption{color:var(--ink-2);font-size:.75rem;margin-top:2px}
 .m151{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 3}
 .m151-l{fill:var(--ink);font-weight:600}
 details{margin-top:12px}
-summary{cursor:pointer;color:var(--pen);min-height:32px}
+summary{cursor:pointer;color:var(--pen);min-height:44px;display:flex;align-items:center;gap:6px}
+summary::before{content:"▸"}
+details[open] summary::before{content:"▾"}
+summary::-webkit-details-marker{display:none}
+summary{list-style:none}
 .wrap{overflow-x:auto}
 table{border-collapse:collapse;margin-top:8px;font-size:.8125rem;font-variant-numeric:tabular-nums}
 th,td{padding:3px 12px 3px 0;border-bottom:1px solid var(--line);text-align:left;vertical-align:bottom}
 th{font-weight:600;color:var(--ink-2);font-size:.75rem}
 td.n,th.n{text-align:right}
 .wrap td{white-space:nowrap}
+.wrap tr>:first-child{position:sticky;left:0;background:var(--paper);padding-left:0}
+@media (max-width:600px){details .wrap td:first-child{white-space:normal;min-width:6.5em;max-width:8.5em}}
+.method small{font-size:.75rem}
+.rel a{padding:12px 0}
 td.z{color:var(--ink-2)}
 tr.state td{font-weight:600}
 .sw{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--c);margin-right:5px}

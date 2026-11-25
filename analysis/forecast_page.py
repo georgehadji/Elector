@@ -92,7 +92,7 @@ def shares(r, order, names):
     top = max(r["parties"][p]["share"][2] for p in order)
     scale = 5 * (int(top) // 5 + 1)
     x = lambda v: f"{100 * v / scale:.2f}%"
-    out = [('<div class="sh"><span class="hd l">κόμμα</span><span class="hd l">ποσοστό: διάμεσος και 80% των προσομοιώσεων</span>'
+    out = [('<div class="sh"><span class="hd l">κόμμα</span><span class="hd l">ποσοστό: κουκκίδα ο διάμεσος, γραμμή το 80%</span>'
            '<span class="hd">διάμεσος</span><span class="hd">πιθ. ≥3%</span>')]
     for p in order:
         lo, mid, hi = r["parties"][p]["share"]
@@ -180,8 +180,8 @@ def histograms(r):
     out = []
     for key, title, p in (("hist_nd", "Έδρες της ΝΔ", r["p_nd_majority"]),
                           ("hist_nd_pasok", "Έδρες ΝΔ και ΠΑΣΟΚ μαζί", r["p_nd_pasok_151"])):
-        out.append(f'<figure><h3>{title}</h3><div class="wide">{hist(r[key], 440, 210, 11, 20)}</div>'
-                   f'<div class="narrow">{hist(r[key], 360, 200, 10, 20)}</div>'
+        out.append(f'<figure><h3>{title}</h3><div class="wide">{hist(r[key], 440, 210, 12, 20)}</div>'
+                   f'<div class="narrow">{hist(r[key], 360, 210, 12, 20)}</div>'
                    f'<figcaption>Ποσοστό των προσομοιώσεων ανά αριθμό εδρών. 151 ή περισσότερες: {pct(p)}.</figcaption></figure>')
     return '<div class="two">' + "".join(out) + "</div>"
 
