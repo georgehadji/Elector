@@ -288,6 +288,10 @@ class VercelHeaders(unittest.TestCase):
         # tile.openstreetmap.org refuses requests without a Referer, so never "no-referrer"
         self.assertEqual(self.header("/(.*)", "Referrer-Policy"), "strict-origin-when-cross-origin")
 
+    def test_site_is_not_indexed(self):
+        self.assertEqual(self.header("/(.*)", "X-Robots-Tag"), "noindex, nofollow, noarchive")
+        self.assertFalse((OUT.parent / "robots.txt").exists())  # a Disallow there would stop crawlers reading the noindex
+
     def test_permissions_policy_keeps_copy_button_working(self):
         policy = self.header("/(.*)", "Permissions-Policy")
         for feature in ("camera", "microphone", "geolocation", "payment", "usb", "accelerometer", "gyroscope", "magnetometer",

@@ -163,6 +163,7 @@ def secure(page, path=None):
         "img-src 'self' data: https://tile.openstreetmap.org",
         "connect-src 'none'", "base-uri 'none'", "form-action 'none'", "object-src 'none'", "frame-src 'none'"])
     tags = (f'<meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="referrer" content="strict-origin-when-cross-origin">'
+            f'<meta name="robots" content="noindex, nofollow, noarchive">'  # the X-Robots-Tag header in vercel.json says the same; no robots.txt Disallow, or crawlers never see this
             f'<link rel="icon" href="{FAVICON}">')
     if SITE_URL and home:  # pages outside out/ are not published
         url = f"{SITE_URL}/out/{urllib.parse.quote(Path(path).name)}"
