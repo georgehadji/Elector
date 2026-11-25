@@ -168,17 +168,15 @@ class Cards(HTMLParser):
     def __init__(self):
         super().__init__()
         self.cards, self.cur, self.nation_at, self.eps_at, self.pos, self.groups = [], None, None, None, 0, 0
-        self.jump = self.h4 = 0
+        self.h4 = 0
         self.in_h4 = False
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         self.pos += 1
         cls = (a.get("class") or "").split()
-        if tag == "section" and "country" in cls:
+        if tag == "section" and "party" in cls:
             self.nation_at = self.pos
-        elif tag == "nav" and "jump" in cls:
-            self.jump = self.jump + 1
         elif tag == "h4":
             self.h4 += 1
             self.in_h4 = True
@@ -230,12 +228,12 @@ class Index(unittest.TestCase):
         c.feed(read(OUT / "index.html"))
         self.assertTrue(c.nation_at and c.eps_at and c.nation_at < c.eps_at)
 
-    def test_heading_outline_and_jump_row(self):
+    def test_heading_outline(self):
         s = read(OUT / "index.html")
         c = Cards()
         c.feed(s)
-        self.assertEqual(c.jump, 1)
-        self.assertEqual(len(re.findall(r'<a href="#reg-\d+">', s)), 13)
+        self.assertEqual(len(re.findall(r"<h2[ >]", s)), 4)  # two doors, parties and candidates, constituencies
+        self.assertIn('href="forecast.html"', s)
         self.assertEqual(len(re.findall(r'<h3 class="reg" id="reg-\d+">', s)), 13)
         self.assertEqual(c.h4, len(c.cards))
         self.assertEqual(s.count("<h1>"), 1)

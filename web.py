@@ -13,7 +13,7 @@ import re
 import sqlite3
 import unicodedata
 import urllib.parse
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from config import (
@@ -28,6 +28,7 @@ from config import (
     SITE_URL,
     og_kind,
     slug,
+    source,
 )
 from geo import exteriors, frame, path
 from matching import ep_label
@@ -196,7 +197,7 @@ def render_page(template, data, path=None):
 
 
 # A ballpoint cross in a ballot box, the mark a voter puts next to a candidate: the one decorative element of the site.
-TOP_KEY = "Πρώτος σε σταυρούς, Μάιος 2023"  # said once above the list, and as a screen-reader prefix on each card
+TOP_KEY = "Πρώτος σε σταυρούς"  # screen-reader prefix of each card's leading candidate, followed by the election
 
 def greece_figure(areas, key, caption, size=440):
     """Static map of Greece for the index: `areas` = [(GeoJSON geometry, colour)], `key` = [(name, colour)].
@@ -207,9 +208,10 @@ def greece_figure(areas, key, caption, size=440):
         by_color[color].extend(exteriors(g))
     paths = "".join(f'<path fill="{c}" stroke="{c}" d="{path(rings, to_xy, 0.8, 1.0)}"/>' for c, rings in by_color.items())
     swatches = "".join(f'<span class="k"><i style="background:{c}"></i>{html.escape(n)}</span>' for n, c in key)
+    # the map itself opens the comparison; the index's own "Σύγκριση εκλογών" door says it in words
     return (f'<figure class="gr"><a href="compare.html"><svg viewBox="0 0 {w} {h}" role="img" aria-label="{html.escape(caption)}">'
             f'<g stroke-width=".6" stroke-linejoin="round">{paths}</g></svg></a>'
-            f'<figcaption>{html.escape(caption)}.<span class="keys">{swatches}</span><a class="go" href="compare.html">Σύγκριση εκλογών &rarr;</a></figcaption></figure>')
+            f'<figcaption>{html.escape(caption)}.<span class="keys">{swatches}</span></figcaption></figure>')
 
 INDEX_CSS = """
 /*THEME_TOKENS*/
@@ -224,85 +226,19 @@ a{color:var(--pen)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 h1{font:600 clamp(2.5rem,8vw,4.5rem)/1.05 "IBM Plex Sans",system-ui,sans-serif;letter-spacing:-.025em;margin:0}
 :root{--xm:polygon(14% 0,50% 36%,86% 0,100% 14%,64% 50%,100% 86%,86% 100%,50% 64%,14% 100%,0 86%,36% 50%,0 14%)}
-/* the cross marks what is chosen: the open election, the open region, the leading candidate of a row */
-:is(.sw button[aria-pressed=true],.jump a[aria-current],.eps .who b)::before{content:"";display:inline-block;width:.6em;height:.6em;margin-right:.35em;background:currentColor;clip-path:var(--xm)}
+/* the cross marks what is chosen: the open election, the leading candidate of a row */
+:is(.sw button[aria-pressed=true],.eps .who b,.tk)::before{content:"";display:inline-block;width:.6em;height:.6em;margin-right:.35em;background:currentColor;clip-path:var(--xm)}
 .lede{max-width:34em;margin:16px 0 28px;color:var(--ink-2);font-size:var(--t-lg)}
 .fl{display:block;margin:0 0 6px;font-size:var(--t-sm);font-weight:600;color:var(--ink)}
 #f{width:100%;max-width:560px;min-height:48px;font:inherit;font-size:var(--t-lg);color:var(--ink);background:var(--paper) no-repeat 14px 50% / 20px;
    border:1.5px solid var(--ink-2);border-radius:8px;padding:10px 14px 10px 46px}
-.try{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:12px 0 0;font-size:var(--t-sm);color:var(--ink-2)}
-.try button{font:inherit;color:var(--pen);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
-.try button:hover{border-color:var(--pen);background:var(--wash)}
-.try .brw{margin-left:6px;color:var(--ink-2);display:inline-block;min-height:24px;line-height:24px}
 #f::placeholder{color:var(--ink-2)}
 #f:focus-visible{outline:2px solid var(--pen);outline-offset:2px;border-color:var(--pen)}
 #n{margin:10px 0 0;min-height:1.55em;color:var(--ink-2);font-size:var(--t-sm)}
-/* Ledger: one row per constituency; the columns are shared by every row (subgrid) and by the .lh caption */
-.lh,.eps{display:grid;grid-template-columns:44px minmax(0,1.3fr) minmax(0,1.1fr) 5.5rem;column-gap:20px}
-.lh{margin:20px 0 0;padding-bottom:6px;font-size:var(--t-xs);color:var(--ink-2)}
-.lh :nth-child(1){grid-column:2}.lh :nth-child(2){grid-column:3}.lh :nth-child(3){grid-column:4;text-align:right}
-.eps{list-style:none;margin:0;padding:0}
-.eps li{grid-column:1/-1;display:grid;grid-template-columns:subgrid;align-items:center;position:relative;border-top:1px solid var(--line);padding:12px 0;overflow-wrap:anywhere}
-.eps li:hover{background:var(--wash)}
-.eps h4{grid-column:2;grid-row:1;font:600 1.25rem/1.25 "IBM Plex Sans",system-ui,sans-serif;margin:0}
-.eps h4 a{color:var(--ink);text-decoration:none}
-.eps h4 a:hover{text-decoration:underline;text-underline-offset:4px}
-.eps h4 a::after{content:"";position:absolute;inset:0}  /* the whole row opens the map */
-.top{display:contents;font-size:var(--t-sm);color:var(--ink-2);line-height:1.4}
-.who{grid-column:3;grid-row:1;font-size:var(--t-sm);color:var(--ink-2);line-height:1.4}
-.vt{grid-column:4;grid-row:1;font-size:var(--t-sm);color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
-.top b{color:var(--ink);font-weight:600}
-.country a:active,.eps li a:active,.older summary:active,.fold summary:active{background:var(--wash)}
-.older[open]>:not(summary),.fold[open]>:not(summary){animation:fade .15s ease-out}
-@keyframes fade{from{opacity:0}}
-@media (prefers-reduced-motion:reduce){.older[open]>:not(summary),.fold[open]>:not(summary){animation:none}}
-.acts{grid-column:2/-1;grid-row:3;position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:0 14px;margin-top:6px}  /* every election, until the switcher takes over */
-body.pick .acts{display:none}
-.older summary,.fold summary{display:flex;align-items:center;min-height:32px;cursor:pointer;color:var(--ink-2);font-size:var(--t-sm)}
-.older[open]{flex:1 1 100%}
-.older[open] summary{margin-bottom:4px}
-.dhm{margin:4px 0 0}
-.el{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0}
-.el a{display:inline-flex;align-items:center;min-height:32px;color:var(--ink-2);font-size:var(--t-sm);white-space:nowrap;
-      text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
-.el a:hover{color:var(--pen);text-decoration-color:var(--pen)}
-.el a.now{padding:0 12px;border:1px solid var(--pen);border-radius:16px;color:var(--pen);background:var(--wash);
-          text-decoration:none;font-weight:600}
-.el a.now:hover{background:var(--pen);color:var(--paper)}
-.sil{grid-column:1;grid-row:1;width:44px;height:44px;color:var(--ink-2)}
-.sil path{fill:currentColor;fill-opacity:.22;stroke:currentColor;stroke-width:1;stroke-linejoin:round}
-.reg{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0}  /* the selected tab names the region; this stays as the heading and the scroll target */
-.grp:not(:has(li:not([hidden]))){display:none}  /* a region head goes with its cards */
-.key{display:flex;gap:8px;align-items:center;margin:20px 0 0;font-size:var(--t-sm);color:var(--ink-2)}
-.gr{margin:20px 0 0;max-width:380px}
-.gr a:first-child{display:block;border-radius:8px}
-.gr a:first-child:hover svg{opacity:.88}
-.gr .go{display:inline-flex;align-items:center;min-height:36px;margin:8px 0 0;padding:0 14px;border:1px solid var(--pen);border-radius:16px;background:var(--wash);color:var(--pen);text-decoration:none;font-weight:600}
-.gr .go:hover{background:var(--pen);color:var(--paper)}
-.gr svg{display:block;width:100%;height:auto;max-height:260px}
-.gr figcaption{margin:6px 0 0;font-size:var(--t-xs);color:var(--ink-2)}
-.gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
-.gr .k{display:inline-flex;align-items:center;white-space:nowrap}
-.gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink-2) 75%,var(--paper))}
-@media (min-width:900px){
-  /* one focal point: title and search on the left, the map as tall as the first screen on the right */
-  main>header:not(.bar){display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,540px);column-gap:48px;align-content:center;min-height:calc(100svh - 190px)}
-  main>header:not(.bar)>:not(.gr){grid-column:1}
-  .gr{grid-column:2;grid-row:1/span 5;align-self:center;margin:0;max-width:none}
-  .gr svg{max-height:min(68svh,640px);margin:0 auto}
-}
-.dhm{margin:0 0 8px;color:var(--ink-2);font-size:var(--t-xs);line-height:1.45}
-.eps .dhm{grid-column:2/-1;grid-row:2;margin:4px 0 0;position:relative}
-.sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:20px 0 0;font-size:var(--t-sm);color:var(--ink-2)}
-.sw[hidden]{display:none}
-.sw .swl{margin-right:6px}
-.sw button{font:inherit;color:var(--ink-2);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
-.sw button:hover{color:var(--pen)}
-.sw button:active{background:var(--wash)}
-.sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
-.cap{margin:24px 0 0;max-width:34em;font-size:var(--t-sm);color:var(--ink-2)}
-.cap b{color:var(--ink);font-weight:600}
-.nb{white-space:nowrap}
+#n:empty{min-height:0;margin:0}
+.try{margin:10px 0 0;font-size:var(--t-sm)}
+.try a{display:inline-flex;align-items:center;min-height:24px;color:var(--ink-2);text-underline-offset:3px}
+.try a:hover{color:var(--pen)}
 .sf{position:relative;max-width:560px}
 .sf::before{content:"";position:absolute;left:14px;top:14px;width:20px;height:20px;background:var(--ink-2);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8.5' cy='8.5' r='5.5'/%3E%3Cpath d='M13 13l4.5 4.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8.5' cy='8.5' r='5.5'/%3E%3Cpath d='M13 13l4.5 4.5'/%3E%3C/svg%3E") center/contain no-repeat;pointer-events:none;z-index:1}
 .sug{position:absolute;left:0;right:0;top:100%;z-index:20;list-style:none;margin:4px 0 0;padding:4px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 18%,transparent)}
@@ -312,58 +248,102 @@ body.pick .acts{display:none}
 .sug a span{color:var(--ink-2);font-size:var(--t-sm)}
 .sug a.act,.sug a:hover{background:var(--wash)}
 .sug a.more{min-height:36px;padding:8px 12px;color:var(--pen);font-size:var(--t-sm)}
-.country,#regions{margin-top:96px}
-.country h2,#regions>h2{font:600 1.5rem/1.2 "IBM Plex Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0 0 16px}
-.cg{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:0 48px;align-items:start}
-.cg>div{position:relative;border-top:2px solid var(--ink);padding:12px 0 28px}
-.cg .main h3{font-size:var(--t-xl)}
-.cg .main h3 a{text-decoration:none}
-.cg .main h3 a::after{content:"";position:absolute;inset:0}  /* whole card is the link */
-.cg .main:hover h3 span{transform:translateX(4px)}
-.cg h3 span{display:inline-block;transition:transform .15s}
+/* the two other doors, under the search: whole card is the link */
+.doors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:560px;margin:24px 0 0}
+.door{position:relative;border:1px solid var(--line);border-top:3px solid var(--pen);border-radius:8px;padding:12px 16px 14px}
+.door:hover,.door:has(a:active){background:var(--wash)}
+.door h2{font:600 1.25rem/1.25 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 6px}
+.door h2 a{color:var(--ink);text-decoration:none}
+.door h2 a::after{content:"";position:absolute;inset:0;border-radius:8px}
+.door h2 span{display:inline-block;color:var(--pen);transition:transform .15s}
+.door:hover h2 span{transform:translateX(4px)}
+.door p{margin:0;color:var(--ink-2);font-size:var(--t-sm);line-height:1.45}
+.cap{margin:20px 0 0;max-width:34em;font-size:var(--t-sm);color:var(--ink-2)}
+.cap b{color:var(--ink);font-weight:600}
+.nb{white-space:nowrap}
+.gr{margin:20px 0 0;max-width:380px}
+.gr a:first-child{display:block;border-radius:8px}
+.gr a:first-child:hover svg{opacity:.88}
+.gr svg{display:block;width:100%;height:auto;max-height:260px}
+.gr figcaption{margin:6px 0 0;font-size:var(--t-xs);color:var(--ink-2)}
+.gr .keys{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
+.gr .k{display:inline-flex;align-items:center;white-space:nowrap}
+.gr .k i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink-2) 75%,var(--paper))}
+@media (min-width:900px){
+  /* one focal point: title, search and the two doors on the left, the map as tall as the first screen on the right */
+  main>header:not(.bar){display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,540px);column-gap:48px;align-content:center;min-height:calc(100svh - 190px)}
+  main>header:not(.bar)>:not(.gr){grid-column:1}
+  .gr{grid-column:2;grid-row:1/span 7;align-self:center;margin:0;max-width:none}
+  .gr svg{max-height:min(68svh,640px);margin:0 auto}
+}
+h2.sec{font:600 1.5rem/1.2 "IBM Plex Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0 0 16px}
+/* for parties and candidates: three columns of reports, data and coverage */
+.party,#regions{margin-top:96px}
+.pg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 48px;align-items:start}
+.pg>div{border-top:2px solid var(--ink);padding:12px 0 28px}
+.pg h3{font:600 1.25rem/1.25 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 6px}
+.pg h3 a{color:var(--ink);text-underline-offset:4px}
+.pg p{color:var(--ink-2);margin:0 0 8px}
+.pg ul{margin:0;padding:0;list-style:none}
+.pg li{padding:3px 0}
+.pg li span{color:var(--ink-2);font-size:var(--t-sm)}
+.older summary,.fold summary{display:flex;align-items:center;min-height:32px;cursor:pointer;color:var(--ink-2);font-size:var(--t-sm)}
 .fold summary::before{content:"+";display:inline-block;width:1.25em;font-size:var(--t-lg);line-height:1;transition:transform .15s}
 .fold[open]>summary::before{transform:rotate(45deg)}
-@media (prefers-reduced-motion:reduce){.cg h3 span,.fold summary::before{transition:none}}
-.cg h3{font:600 1.25rem/1.25 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 6px}
-.cg h3 a{color:var(--ink);text-underline-offset:4px}
-.cg p{color:var(--ink-2);margin:0 0 8px;font-size:var(--t-base)}
-.cg .els{font-size:var(--t-sm);margin:0}
-.cg ul{margin:0;padding:0;list-style:none}
-.cg li{padding:3px 0}
-.jump{position:sticky;top:0;z-index:5;display:flex;gap:4px 20px;margin:16px 0 0;padding:10px 0;flex-wrap:wrap;
-      background:var(--paper);border-bottom:1px solid var(--line);font-size:var(--t-sm)}
-.jump a{color:var(--ink-2);text-decoration:none;display:inline-block;min-height:24px;white-space:nowrap}
-.jump a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
-.jump a[aria-current]{color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
-body.tabs:not(:has(#f:not(:placeholder-shown))) .grp:not(.on){display:none}  /* one region at a time; a search looks in all */
-.rsel{display:none;align-items:center;gap:10px;width:100%;color:var(--ink-2)}
-.rsel select{flex:1;min-width:0;min-height:44px;font:inherit;font-size:var(--t-base);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:0 10px}
-.rsel select:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
-@media (max-width:639px){body.tabs .jump a{display:none}body.tabs .rsel{display:flex}.jump{overflow:visible}}  /* phones: one native select instead of a 13-tab row */
-.eps li{scroll-margin-top:64px}
-.reg{scroll-margin-top:calc(var(--jh,64px) + 8px)}  /* --jh: the sticky jump row's height, set by script (it wraps to two lines) */
-body:has(#f:not(:placeholder-shown)) :is(.country,.jump){display:none}  /* results start right under the search */
+.older[open]>:not(summary),.fold[open]>:not(summary){animation:fade .15s ease-out}
+@keyframes fade{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.door h2 span,.fold summary::before{transition:none}.older[open]>:not(summary),.fold[open]>:not(summary){animation:none}}
+.pg a:active,.eps li a:active,.older summary:active,.fold summary:active{background:var(--wash)}
+/* constituencies: every region open, in columns; a row opens the map of the chosen election */
+.sw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0 0 8px;font-size:var(--t-sm);color:var(--ink-2)}
+.sw[hidden]{display:none}
+.sw .swl{margin-right:6px}
+.sw button{font:inherit;color:var(--ink-2);background:none;border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:36px;cursor:pointer}
+.sw button:hover{color:var(--pen)}
+.sw button:active{background:var(--wash)}
+.sw button[aria-pressed=true]{color:var(--pen);border-color:var(--pen);background:var(--wash);font-weight:600}
+.tk{margin:0;font-size:var(--t-sm);color:var(--ink-2)}
+.tk[hidden]{display:none}
+.cols{columns:3 280px;column-gap:40px}
+.grp{break-inside:avoid;padding-top:20px}
+.grp:not(:has(li:not([hidden]))){display:none}  /* a region head goes with its cards */
+.reg{margin:0 0 4px;padding-bottom:6px;border-bottom:2px solid var(--ink);font:600 var(--t-sm)/1.3 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink)}
+.eps{list-style:none;margin:0;padding:0}
+.eps li{display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:12px;position:relative;padding:8px 6px;margin:0 -6px;border-radius:6px;overflow-wrap:anywhere;scroll-margin-top:16px}
+.eps li:hover{background:var(--wash)}
+.sil{grid-column:1;grid-row:1/span 4;width:28px;height:28px;margin-top:1px;color:var(--ink-2)}
+.sil path{fill:currentColor;fill-opacity:.22;stroke:currentColor;stroke-width:1;stroke-linejoin:round}
+.eps h4{grid-column:2;margin:0;font:600 1.0625rem/1.3 "IBM Plex Sans",system-ui,sans-serif}
+.eps h4 a{color:var(--ink);text-decoration:none}
+.eps h4 a:hover{text-decoration:underline;text-underline-offset:4px}
+.eps h4 a::after{content:"";position:absolute;inset:0}  /* the whole row opens the map */
+.top,.eps .dhm,.acts{grid-column:2}
+.top{margin:2px 0 0;font-size:var(--t-xs);color:var(--ink-2);line-height:1.4}
+.top[hidden]{display:none}
+.top b{color:var(--ink);font-weight:600}
+.vt{font-variant-numeric:tabular-nums;white-space:nowrap}
+.eps .dhm{position:relative;margin:2px 0 0;color:var(--ink-2);font-size:var(--t-xs);line-height:1.45}
+.acts{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:0 14px;margin-top:4px}  /* every election, until the switcher takes over */
+body.pick .acts{display:none}
+.older[open]{flex:1 1 100%}
+.older[open] summary{margin-bottom:4px}
+.el{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0}
+.el a{display:inline-flex;align-items:center;min-height:32px;color:var(--ink-2);font-size:var(--t-sm);white-space:nowrap;
+      text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.el a:hover{color:var(--pen);text-decoration-color:var(--pen)}
+.el a.now{padding:0 12px;border:1px solid var(--pen);border-radius:16px;color:var(--pen);background:var(--wash);
+          text-decoration:none;font-weight:600}
+.el a.now:hover{background:var(--pen);color:var(--paper)}
+body:has(#f:not(:placeholder-shown)) .party{display:none}  /* results start right after the first screen */
 body:has(#f:not(:placeholder-shown)) #regions{margin-top:40px}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
-@media (max-width:1023px){.cg{grid-template-columns:repeat(2,minmax(0,1fr))}.cg .main{grid-column:1/-1}}
-@media (max-width:639px){.cg{grid-template-columns:1fr}.country,#regions{margin-top:64px}}
-@media (max-width:759px){
-  .lh{display:none}
-  .eps{grid-template-columns:44px minmax(0,1fr);column-gap:14px}
-  .eps li{padding:10px 0}
-  .sil{grid-row:1/3;align-self:start}
-  .eps h4{grid-row:1}
-  .top{display:block;grid-column:2;grid-row:2;margin:2px 0 0}
-  .who,.vt{display:inline;font-size:var(--t-xs)}
-  .vt::before{content:" · "}
-  .eps .dhm{grid-row:3}
-  .acts{grid-row:4}
-}
-@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:var(--t-base);margin-bottom:20px}#f{font-size:var(--t-base)}.cap{margin-top:16px}}
-@media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.country li a,.jump a,.cg h3 a{display:inline-flex;align-items:center;min-height:44px}}
+@media (max-width:1023px){.pg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:639px){.pg{grid-template-columns:1fr}.party,#regions{margin-top:64px}}
+@media (max-width:599px){main{padding:24px 16px 48px}.lede{font-size:var(--t-base);margin-bottom:20px}#f{font-size:var(--t-base)}
+  .doors{gap:8px}.door{padding:10px 12px 12px}.door h2{font-size:1.0625rem}.cap{margin-top:16px}}
+@media (pointer:coarse){.sw button{min-height:44px}.older summary,.fold summary{min-height:44px}.el a{min-height:44px}.el a.now{padding:0 16px}.pg li a,.pg h3 a,.try a{display:inline-flex;align-items:center;min-height:44px}}
 """
 INDEX_JS = """
-document.querySelectorAll(".try button").forEach(b => b.addEventListener("click", () => { const f = document.getElementById("f"); f.value = b.textContent; f.dispatchEvent(new Event("input")); f.focus(); }));
 document.getElementById("s").hidden = false;
 const f = document.getElementById("f"), n = document.getElementById("n"), items = [...document.querySelectorAll(".eps li")];
 const words = new Map(items.map(li => [li, li.dataset.k.split(" ").map(w => [w, key(w)])]));
@@ -384,7 +364,7 @@ const suggest = (shown, total) => {
     const a = document.createElement("a"), b = document.createElement("b"), s = document.createElement("span");
     a.id = "o" + i; a.href = li.querySelector("h4 a").href; a.setAttribute("role", "option");
     b.textContent = li.querySelector("h4 a").textContent;
-    s.textContent = [li.closest(".grp").querySelector(".reg").textContent, (li.querySelector(".who") || {}).textContent].filter(Boolean).join(" · ");
+    s.textContent = [li.closest(".grp").querySelector(".reg").textContent, (li.querySelector(".top:not([hidden]) .who") || {}).textContent].filter(Boolean).join(" · ");
     a.append(b, s); const item = document.createElement("li"); item.setAttribute("role", "presentation"); item.append(a); sug.append(item);
   });
   if (total > 6) {
@@ -406,42 +386,25 @@ f.addEventListener("input", () => {
   const ranked = items.filter(li => !li.hidden).sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
   qs.length ? suggest(ranked, shown) : closeSug();
   n.textContent = !qs.length ? "" : !shown ? `Καμία περιφέρεια με «${f.value.trim()}». Δοκίμασε το όνομα του δήμου ή του νομού.`
-    : shown === 1 ? "1 περιφέρεια. Enter για τον πιο πρόσφατο χάρτη." : `${shown} περιφέρειες`;
+    : shown === 1 ? "1 περιφέρεια. Enter για τον χάρτη της." : `${shown} περιφέρειες`;
 });
-// Election switcher: every row's name opens the chosen election. Without script each row lists all its elections.
+// Election switcher: every row's name opens the chosen election; its line shows the first candidate of that election,
+// or of the newest earlier one with per-candidate crosses (data-x), named in #tk. Without script each row lists all its elections.
 const sw = document.querySelector(".sw");
 const open = e => {
-  sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.e === e));
-  for (const li of items) li.querySelector("h4 a").href = (li.querySelector(`.el a[data-e="${e}"]`) || li.querySelector(".el a")).href;
+  let x = "";
+  sw.querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.e === e); if (b.dataset.e === e) x = b.dataset.x; });
+  const tk = document.getElementById("tk"), xb = sw.querySelector(`button[data-e="${x}"]`);
+  if (tk) { tk.hidden = !xb; if (xb) tk.querySelector("span").textContent = xb.textContent; }
+  for (const li of items) {
+    li.querySelector("h4 a").href = (li.querySelector(`.el a[data-e="${e}"]`) || li.querySelector(".el a")).href;
+    li.querySelectorAll(".top").forEach(p => { p.hidden = p.dataset.e !== x; });
+  }
 };
 sw.addEventListener("click", ev => { const b = ev.target.closest("button"); if (b) open(b.dataset.e); });
 sw.hidden = false;
 document.body.classList.add("pick");
-open(sw.querySelector("button").dataset.e);
-// Region tabs: the jump row shows one region at a time. Without script every region stays listed.
-const groups = [...document.querySelectorAll(".grp")], tabs = [...document.querySelectorAll(".jump a")];
-const rsel = document.querySelector(".rsel select");
-rsel.replaceChildren(...tabs.map(a => new Option(a.textContent, a.hash.slice(1))));
-rsel.addEventListener("change", () => { try { history.pushState(null, "", "#" + rsel.value); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ } show(rsel.value); });
-const pick = g => {
-  groups.forEach(x => x.classList.toggle("on", x === g));
-  const id = g.querySelector(".reg").id; if (rsel.value !== id) rsel.value = id;
-  tabs.forEach(a => a.hash === "#" + g.querySelector(".reg").id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
-};
-const jump = document.querySelector(".jump"), setJh = () => document.documentElement.style.setProperty("--jh", jump.offsetHeight + "px");
-setJh(); addEventListener("resize", setJh);
-const show = id => {
-  const el = document.getElementById(id), g = el && el.closest(".grp");
-  if (g) { pick(g); if (jump.offsetHeight) setJh(); el.scrollIntoView({behavior: "instant"}); } else if (!location.hash || !document.querySelector(".grp.on")) pick(groups[0]);  // back to the bare address = the first region
-};
-const fromHash = () => show(location.hash.slice(1));
-document.body.classList.add("tabs");
-fromHash();
-addEventListener("hashchange", fromHash);
-document.querySelector(".jump").addEventListener("click", e => {
-  const a = e.target.closest("a");
-  if (a) { e.preventDefault(); try { history.pushState(null, "", a.hash); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ } show(a.hash.slice(1)); }
-});
+open(sw.dataset.d);
 document.addEventListener("click", e => { if (!e.target.closest(".sf")) closeSug(); });
 f.addEventListener("focus", () => { if (f.value.trim()) f.dispatchEvent(new Event("input")); });
 f.addEventListener("keydown", e => {
@@ -455,9 +418,9 @@ f.addEventListener("keydown", e => {
 
 
 def card(ep, name, keys, n_own, lead, note, chips, href, sil=""):
-    """One ledger row. The name opens the newest election (the switcher retargets it); `chips` are the
+    """One constituency row. The name opens the default election (the switcher retargets it); `chips` are the
     election links, newest first: without script they show in the row, the older ones folded into a <details>.
-    `note` is the optional list of municipalities."""
+    `lead` is one line per election with crosses (the switcher shows one); `note` is the optional list of municipalities."""
     now, *older = chips
     folded = (f'<details class="older"><summary>Παλαιότερες εκλογές ({len(older)})</summary>'
               f'<p class="el">{"".join(older)}</p></details>') if older else ""
@@ -465,9 +428,13 @@ def card(ep, name, keys, n_own, lead, note, chips, href, sil=""):
             f'{sil}{lead}{note}<div class="acts"><p class="el">{now}</p>{folded}</div></li>')
 
 def _write_index(order, nikh, elected):
-    """out/index.html: a searchable list of constituencies, each with one link per election."""
+    """out/index.html: search with the two nationwide doors (forecast, comparison) and the map of Greece, the pages
+    for parties and candidates, then every constituency with one link per election."""
     def fold(s):
         return "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn").upper()
+
+    def dots(n):
+        return f"{n:,}".replace(",", ".")
 
     # Municipalities (δήμοι) and municipal units of each constituency: search aliases, so a voter can type a town.
     dhm, den = defaultdict(dict), defaultdict(set)
@@ -476,14 +443,21 @@ def _write_index(order, nikh, elected):
             for e, ep, d, u in con.execute("SELECT DISTINCT election, ep_id, dhm_descr, den_descr FROM station WHERE kind = 'Κ'"):
                 dhm[e, ep][d] = None
                 den[e, ep].add(u)
+    # The candidate with the most crosses, per election and constituency. June 2023 has a few constituencies only (party
+    # leaders' totals) and Euro 2024 none: those elections show the newest earlier election that has them all (`crosses_of`).
     top = {}
     if DB.exists():
         with sqlite3.connect(DB) as con:
-            for ep, cand, pid, party, votes in con.execute(
-                    "SELECT e.name, c.name, p.party_id, p.name, MAX(t.votes) FROM ep_total t JOIN ep e USING(election, ep_id) "
+            for e, ep, cand, pid, party, votes in con.execute(
+                    "SELECT t.election, t.ep_id, c.name, p.party_id, p.name, MAX(t.votes) FROM ep_total t "
                     "JOIN candidate c USING(election, ep_id, party_id, cand_id) JOIN party p USING(election, party_id) "
-                    "WHERE t.election = '2023/may' AND t.cand_id > 0 GROUP BY t.ep_id"):
-                top[ep_label(ep)] = (cand, PARTY_SHORT.get(pid, party), votes)
+                    "WHERE t.cand_id > 0 AND t.votes > 0 GROUP BY t.election, t.ep_id"):
+                top[e, ep] = (cand, PARTY_SHORT.get(pid, party), votes)
+    # Rows open the newest parliamentary election by default: the one the forecast and the candidates are about.
+    default = next(e for e in reversed(ELECTIONS) if source(e)[1] == "v")
+    per = Counter(e for e, _ in top)
+    crossed = [e for e in ELECTIONS if per[e] and per[e] >= 0.9 * max(per.values())]
+    crosses_of = {e: next((c for c in reversed(crossed) if list(ELECTIONS).index(c) <= list(ELECTIONS).index(e)), "") for e in ELECTIONS}
     eps, tm = {}, []
     for f, m in order:
         if "_tm_" in f:
@@ -496,7 +470,7 @@ def _write_index(order, nikh, elected):
     for name in sorted(eps, key=fold):
         links = sorted(eps[name], key=lambda fm: rank.index(fm[1]["election"]) if fm[1]["election"] in rank else -1)
         latest = links[-1][1]
-        # The newest election is the default map; the others are quieter. The name in each link is for screen readers.
+        # The newest election is the first link; the others are quieter. The name in each link is for screen readers.
         chips = [
             f'<a{" class=now" if i == 0 else ""} data-e="{m["election"]}" href="{urllib.parse.quote(f)}">'
             f'{ELECTION_NAMES.get(m["election"], m["election"])}<span class="sr">, {html.escape(name)}</span></a>'
@@ -509,12 +483,15 @@ def _write_index(order, nikh, elected):
         # Attica's sectors are not places people know by name: list their municipalities.
         note = (f'<p class="dhm">Δήμοι {html.escape(", ".join(towns))}</p>'
                 if re.search(r"Αθηνών|Πειραιώς|Αττικής", name) and len(towns) > 1 else "")
-        t = top.get(name)
         # The cross marks the candidate with the most crosses: the one mark on the page that carries data.
-        lead = (f'<p class="top"><span class="sr">{TOP_KEY}: </span><span class="who"><b>{html.escape(t[0])}</b> '
-                f'({html.escape(t[1])})</span> <span class="vt">{f"{t[2]:,}".replace(",", ".")}</span></p>' if t else "")
+        lead = "".join(
+            f'<p class="top" data-e="{m["election"]}"{"" if m["election"] == crosses_of[default] else " hidden"}>'
+            f'<span class="sr">{TOP_KEY}, {ELECTION_NAMES[m["election"]]}: </span><span class="who"><b>{html.escape(t[0])}</b> '
+            f'({html.escape(t[1])})</span> · <span class="vt">{dots(t[2])} σταυροί</span></p>'
+            for _, m in reversed(links) if m["election"] in crossed and (t := top.get((m["election"], m["ep"]))))
+        first = next((f for f, m in links if m["election"] == default), links[-1][0])
         by_region.setdefault(region_of.get(latest["ep"], "Λοιπές"), []).append(
-            card(latest["ep"], name, k, len(own), lead, note, chips, urllib.parse.quote(links[-1][0]), latest.get("sil", "")))
+            card(latest["ep"], name, k, len(own), lead, note, chips, urllib.parse.quote(first), latest.get("sil", "")))
     # the link name carries the note beside it, so two links to the same constituency read differently in a list of links
     nikh_rows = "".join(
         (lambda note: f'<li><a href="{urllib.parse.quote(f)}" aria-label="{html.escape(m["ep_name"])}, {note}">{html.escape(m["ep_name"])}</a> <span>{note}</span></li>')(
@@ -523,23 +500,22 @@ def _write_index(order, nikh, elected):
         for f, m in nikh)
     nikh_rows += "".join(f'<li><a href="{urllib.parse.quote(f)}" aria-label="{html.escape(m["ep_name"])}, {html.escape(m["label"])}">{html.escape(m["ep_name"])}</a> <span>{html.escape(m["label"])}</span></li>'
                          for f, m in tm if "_tm_131-" not in f)
-    groups = "".join(f'<section class="grp"><h3 class="reg" id="reg-{i}">{html.escape(region)}</h3><div class="lh" aria-hidden="true"><span>Περιφέρεια</span><span>{TOP_KEY}</span><span>Σταυροί</span></div><ul class="eps">{"".join(lis)}</ul></section>'
+    groups = "".join(f'<section class="grp"><h3 class="reg" id="reg-{i}">{html.escape(region)}</h3><ul class="eps">{"".join(lis)}</ul></section>'
                      for i, (region, lis) in enumerate(by_region.items()) if lis)
-    jump = "".join(f'<a href="#reg-{i}">{html.escape(region)}</a>' for i, (region, lis) in enumerate(by_region.items()) if lis)
-    switch = "".join(f'<button type="button" data-e="{e}" aria-pressed="false">{n}</button>' for e, n in reversed(ELECTION_NAMES.items()))
+    switch = "".join(f'<button type="button" data-e="{e}" data-x="{crosses_of[e]}" aria-pressed="false">{n}</button>' for e, n in reversed(ELECTION_NAMES.items()))
+    tk = (f'<p class="tk" id="tk">{TOP_KEY}, <span>{ELECTION_NAMES[crosses_of[default]]}</span></p>' if crosses_of[default] else "")
     gr = HERE / "out" / "greece_map.html"
     greece = gr.read_text(encoding="utf-8") if gr.exists() else ""  # written by compare.py
     nikh_n = nikh_rows.count("<li>")
     coverage = "".join(
-        f'<li><a href="index_{e.replace("/", "-")}.html">{name}</a></li>' for e, name in reversed(ELECTION_NAMES.items())
+        f'<li><a href="index_{e.replace("/", "-")}.html">Κάλυψη: {name}</a></li>' for e, name in reversed(ELECTION_NAMES.items())
         if (OUT / f'index_{e.replace("/", "-")}.html').exists())
-    last = list(ELECTIONS)[-1]
+    first_year, last = list(ELECTIONS)[0][:4], list(ELECTIONS)[-1]
     n_tm = None
     if DB.exists():
         with sqlite3.connect(DB) as con:
             n_tm = con.execute("SELECT COUNT(*) FROM station WHERE election=? AND kind='Κ'", (last,)).fetchone()[0]
-    dots = lambda n: f"{n:,}".replace(",", ".")
-    figs = [(len(eps), "εκλογικές περιφέρειες"), (len(ELECTIONS), f"εκλογές ({list(ELECTIONS)[0][:4]}–{last[:4]})")]
+    figs = [(len(eps), "εκλογικές περιφέρειες"), (len(ELECTIONS), f"εκλογές ({first_year}–{last[:4]})")]
     figs += [(n_tm, "εκλογικά τμήματα")] if n_tm else []
     nums = " · ".join(f'<span class="nb"><b>{dots(n)}</b>&nbsp;{label}</span>' for n, label in figs)
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
@@ -556,27 +532,30 @@ def _write_index(order, nikh, elected):
 <div id="s" hidden><label class="fl" for="f">Αναζήτηση περιφέρειας</label>
 <div class="sf"><input id="f" type="search" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
 <ul id="sug" class="sug" role="listbox" aria-label="Προτάσεις" hidden></ul></div>
-<p id="n" aria-live="polite"></p>
-<p class="try">Δοκίμασε: <button type="button">Αθήνα</button><button type="button">Θεσσαλονίκη</button><button type="button">Πάτρα</button><a class="brw" href="#regions">ή περιήγηση ανά περιφέρεια &darr;</a></p></div>
+<p id="n" aria-live="polite"></p></div>
+<p class="try"><a href="#regions">Όλες οι εκλογικές περιφέρειες &darr;</a></p>
+<div class="doors">
+<div class="door"><h2><a href="forecast.html">Πρόβλεψη εκλογών <span aria-hidden="true">&rarr;</span></a></h2><p>Αυτοδυναμία, ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων.</p></div>
+<div class="door"><h2><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h2><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, {first_year}–{last[:4]}.</p></div>
+</div>
 <p class="cap">{nums}</p>
 {greece}
 </header>
-<section class="country" aria-labelledby="ct"><h2 id="ct">Χάρτες και εργαλεία για όλη τη χώρα</h2><div class="cg">
-<div class="main"><h3><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p><p class="els">{" · ".join(ELECTION_NAMES.values())}</p>
-<h3><a href="forecast.html">Πρόβλεψη βουλευτικών εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.</p>
-<h3><a href="abroad.html">Εξωτερικό και επιστολική ψήφος <span aria-hidden="true">&rarr;</span></a></h3><p>Πώς ψήφισαν οι Έλληνες του εξωτερικού ανά χώρα και πόλη, και όσοι ψήφισαν επιστολικά.</p></div>
-<div id="tm"><h3>Αναφορές και εξαγωγές</h3><p>Αναλυτικές αναφορές ανά κόμμα και εκλογή, με δεδομένα για λήψη.</p>
-<ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
-<li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>
-<li><a href="nikh_polls.html">Δημοσκοπήσεις από το 2023</a></li>
-<li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></li></ul>
-<details class="fold"><summary>Περισσότερες αναφορές ({nikh_n + 1})</summary><ul><li><a href="nikh_targets.html">Χάρτης στόχευσης: κάστρα, φθορά, δεξαμενές, έδρες</a></li>{nikh_rows}</ul></details></div>
-<div id="cov"><h3>Κάλυψη χαρτών</h3><p>Πόσοι ψήφοι αποδίδονται στον χάρτη, ανά νομό και εκλογή.</p><ul>{coverage}</ul></div>
+<section class="party" aria-labelledby="pt"><h2 class="sec" id="pt">Για κόμματα και υποψηφίους</h2><div class="pg">
+<div><h3>ΝΙΚΗ</h3><p>Αναφορές, χάρτες και δημοσκοπήσεις του κόμματος.</p>
+<ul><li><a href="NIKH_eklegmenoi_2023.html">Εκλεγμένοι Μαΐου–Ιουνίου 2023</a></li>
+<li><a href="nikh_2023-2024.html">Όλη η χώρα ανά διαμέρισμα, 2019–2024</a></li>
+<li><a href="nikh_targets.html">Χάρτης στόχευσης: κάστρα, φθορά, δεξαμενές, έδρες</a></li>
+<li><a href="nikh_polls.html">Στις δημοσκοπήσεις από το 2023</a></li></ul>
+<details class="fold"><summary>Χάρτες ανά εκλογικό τμήμα ({nikh_n})</summary><ul>{nikh_rows}</ul></details></div>
+<div><h3><a href="abroad.html">Εξωτερικό και επιστολική&nbsp;ψήφος&nbsp;<span aria-hidden="true">&rarr;</span></a></h3><p>Πώς ψήφισαν οι Έλληνες του εξωτερικού ανά χώρα και πόλη, και όσοι ψήφισαν επιστολικά.</p></div>
+<div id="cov"><h3>Δεδομένα και κάλυψη</h3><p>Πόσοι ψήφοι αποδίδονται στον χάρτη, ανά νομό και εκλογή, και δεδομένα για λήψη.</p>
+<ul>{coverage}<li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">ΝΙΚΗ 2023 ανά δημοτική ενότητα (CSV)</a></li></ul></div>
 </div></section>
-<section id="regions" aria-labelledby="rt"><h2 id="rt">Εκλογικές περιφέρειες</h2>
-<div class="sw" role="group" aria-label="Άνοιγμα στην εκλογή" hidden><span class="swl">Άνοιγμα στην εκλογή</span>{switch}</div>
-<nav class="jump" aria-label="Περιφέρειες">{jump}<label class="rsel">Περιφέρεια <select></select></label></nav>
-{groups}
+<section id="regions" aria-labelledby="rt"><h2 class="sec" id="rt">Εκλογικές περιφέρειες</h2>
+<div class="sw" role="group" aria-label="Άνοιγμα στην εκλογή" data-d="{default}" hidden><span class="swl">Άνοιγμα στην εκλογή</span>{switch}</div>
+{tk}
+<div class="cols">{groups}</div>
 </section>
 {footer(" Οι ψήφοι των ειδικών τμημάτων (ετεροδημότες κ.ά.), οι επιστολικές και οι ψήφοι του εξωτερικού δεν έχουν θέση στον χάρτη· οι αριθμοί τους είναι σε κάθε σελίδα «Κάλυψη χαρτών» και η ανάλυσή τους στη σελίδα «Εξωτερικό και επιστολική ψήφος».", home=False)}
 </main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK, current="index"), OUT / "index.html"), encoding="utf-8")
