@@ -147,12 +147,11 @@ def hist_range(h):
     return out
 
 
-# who reaches 151: label, parties, probability key, histogram key, row class; a fixed order from the smallest group up
-GROUPS = (("ΝΔ μόνη της (αυτοδυναμία)", ("ND",), "p_nd_majority", "hist_nd", ' class="nd"'),
-          ("ΝΔ και ΠΑΣΟΚ", ("ND", "PASOK"), "p_nd_pasok_151", "hist_nd_pasok", ""),
-          ("ΝΔ και ΕΛΑΣ", ("ND", "ELAS"), "p_nd_elas_151", "hist_nd_elas", ""),
-          ("ΠΑΣΟΚ και ΕΛΑΣ", ("PASOK", "ELAS"), "p_pasok_elas_151", "hist_pasok_elas", ""),
-          ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", ("ND", "PASOK", "ELAS"), "p_nd_pasok_elas_151", "hist_nd_pasok_elas", ' class="far"'))
+# who reaches 151: label and row class of each of forecast.COALITIONS (its keys come from forecast.p_key / h_key)
+GROUPS = {("ND",): ("ΝΔ μόνη της (αυτοδυναμία)", ' class="nd"'), ("ND", "PASOK"): ("ΝΔ και ΠΑΣΟΚ", ""),
+          ("ND", "ELAS"): ("ΝΔ και ΕΛΑΣ", ""), ("PASOK", "ELAS"): ("ΠΑΣΟΚ και ΕΛΑΣ", ""),
+          ("ND", "PASOK", "ELAS"): ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", ' class="far"')}
+assert set(GROUPS) == set(F.COALITIONS), "a coalition of forecast.COALITIONS has no label here"
 
 
 def odds(r, key):
@@ -161,8 +160,9 @@ def odds(r, key):
     The bar's segments are the parties' mean seats, the widths of the seat bar below."""
     seats = expected(r)
     items = []
-    for title, ps, pk, hk, c in GROUPS:
-        p, (lo, mid, hi) = r[pk], hist_range(r[hk])
+    for ps in F.COALITIONS:
+        title, c = GROUPS[ps]
+        p, (lo, mid, hi) = r[F.p_key(ps)], hist_range(r[F.h_key(ps)])
         ps = sorted(ps, key=list(COLOURS).index)
         n = sum(seats.get(x, 0) for x in ps)
         spans = ("".join(f'<span style="--c:{colour(x)};flex:{seats.get(x, 0)}"></span>' for x in ps)

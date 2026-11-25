@@ -10,19 +10,21 @@ Rules implemented (June 2023 version: 285 constituency + 15 State seats):
   remainder until it reaches its national total; anything left is the first party's.
 - A party never gets more seats in a constituency than it has candidates there (art. 100 §5).
 Simplification: ties are broken arbitrarily.
+The national step (threshold, bonus, Hare over 300) and the number of State seats come from seats_law.py, where the law lives.
 
   python -I -X utf8 analysis/nikh_seats.py data/stavroi.sqlite
 """
-import math
 import sqlite3
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import ELECTED, NIKH, PARTY_SHORT, source
 from fetch import statics
+from seats_law import CURRENT, LAWS, hare, national_seats, qualifying  # noqa: F401 (hare: imported by other scripts)
 
-STATE = 15
+STATE = LAWS[CURRENT]["state"]
 c = sqlite3.connect(sys.argv[1])
 seats = {e[0]: e[4] for e in statics(*source("2023/june"), "ep") if e[4] > 0}
 ep_name = dict(c.execute("SELECT ep_id, name FROM ep WHERE election='2023/june'"))
@@ -41,15 +43,6 @@ def ep_votes(e):
     return out
 
 
-def hare(votes, n):
-    """Largest-remainder split of n seats in proportion to votes."""
-    tot = sum(votes.values())
-    base = {p: v * n // tot for p, v in votes.items()}
-    for p in sorted(votes, key=lambda p: -(votes[p] * n / tot - base[p]))[:n - sum(base.values())]:
-        base[p] += 1
-    return base
-
-
 def allocate(ep_v):
     """{party: {ep or 'state': seats}} for one election given {ep: {party: votes}}."""
     nat = {}
@@ -57,12 +50,9 @@ def allocate(ep_v):
         for p, v in pv.items():
             nat[p] = nat.get(p, 0) + v
     valid = sum(nat.values())
-    qual = {p: v for p, v in nat.items() if v >= 0.03 * valid}
+    qual = qualifying(nat)
     first = max(qual, key=qual.get)
-    share = 100 * qual[first] / valid
-    prop = 300 if share < 25 else 280 - min(30, math.floor((share - 25) / 0.5))
-    total = hare(qual, prop)
-    total[first] += 300 - prop
+    total = national_seats(nat)
 
     sq = sum(qual.values()) // STATE
     state = {p: v // sq for p, v in qual.items()}

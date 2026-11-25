@@ -50,6 +50,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))  # python -I drops the script dir
 import nikh_pollerror as NE
 import nikh_polls as NP
+import seats_law as L
 
 # party code: (column of nikh_polls.csv, Greek name)
 PARTIES = {"ND": ("ND", "ΝΔ"), "ELAS": ("ELAS", "ΕΛΑΣ"), "PASOK": ("PASOK", "ΠΑΣΟΚ"), "EL": ("EL", "Ελληνική Λύση"),
@@ -98,6 +99,72 @@ VARIANTS = {"κύρια (GEO)": GEO,
             | {"ELPIDA": (EURO, 123), "SE": (EURO, 108), "DIMOKRATES": (EURO, 4)}}
 MAIN = next(iter(VARIANTS))
 GEO_SD = 0.10
+# who reaches a majority, as seat sums (arithmetic, not a forecast of who would govern); one place for the page and every run
+COALITIONS = (("ND",), ("ND", "PASOK"), ("ND", "ELAS"), ("PASOK", "ELAS"), ("ND", "PASOK", "ELAS"))
+
+
+def seats_of(st, c):
+    """Summed seats of the parties of coalition c in one draw's seats st {party: seats}."""
+    return sum(st.get(p, 0) for p in c)
+
+
+def p_key(c):
+    """JSON key of the probability that c reaches a majority: p_nd_majority for ND alone, else p_nd_pasok_151."""
+    return "p_nd_majority" if c == ("ND",) else "p_" + "_".join(p.lower() for p in c) + "_151"
+
+
+def h_key(c):
+    """JSON key of the histogram of c's summed seats: hist_nd, hist_nd_pasok, ..."""
+    return "hist_" + "_".join(p.lower() for p in c)
+
+
+def _reaches(c):
+    return lambda sh, st: seats_of(st, c) >= L.majority()
+
+
+# every probability of a run, defined once: name -> fn(shares, seats) -> bool; rates() is the share of draws where it holds
+METRICS = {p_key(COALITIONS[0]): _reaches(COALITIONS[0]),
+           # first party at 25% or more (the largest share, OTHER included: it is never near 25%)
+           "p_bonus": lambda sh, st: sh[max(sh, key=sh.get)] >= L.LAWS[L.CURRENT]["bonus"]["from"],
+           **{p_key(c): _reaches(c) for c in COALITIONS[1:]},
+           "p_nd_30": lambda sh, st: sh["ND"] >= 30}
+# the two sides of parliament, as seat sums only [judgement: by where each party sits; not who would cooperate with whom];
+# parties in neither (ELPIDA, born of the Tempi protest, and OTHER) count as open
+BLOCS = {"right": ("ND", "EL", "NIKI", "SE", "FL", "SPARTIATES"),
+         "left": ("ELAS", "PASOK", "KKE", "PE", "SYRIZA", "MERA25", "NEA_ARISTERA", "DIMOKRATES")}
+GAP_STEP = 0.5  # bin of the histogram of the gap between the two contenders for second place, in points
+
+
+def rates(sims):
+    """{metric: share of the draws where it holds} for draws [(shares, seats, ...)]."""
+    return {k: sum(f(sh, st) for sh, st, *_ in sims) / len(sims) for k, f in METRICS.items()}
+
+
+def counts(xs):
+    """{value: how many times}, sorted by value."""
+    out = {}
+    for x in xs:
+        out[x] = out.get(x, 0) + 1
+    return dict(sorted(out.items()))
+
+
+def partners(sims, base):
+    """When the parties of base fall short of a majority: in how many draws that happens, and for each other party X the
+    share of those draws where base + X reaches it (only X with a share above 0)."""
+    short = [st for _, st, *_ in sims if seats_of(st, base) < L.majority()]
+    p = {x: sum(seats_of(st, (*base, x)) >= L.majority() for st in short) / len(short) for x in PARTIES if x not in base} if short else {}
+    return {"n_short": len(short), "p": {x: v for x, v in sorted(p.items(), key=lambda kv: -kv[1]) if v > 0}}
+
+
+def second_gap(sims, a, b):
+    """{bin: draws} of share(a) - share(b) in points, bins of GAP_STEP (the bin's lower edge)."""
+    return counts(round(math.floor((sh[a] - sh[b]) / GAP_STEP) * GAP_STEP, 1) for sh, *_ in sims)
+
+
+def median_parliament(sims):
+    """{party: seats}: each party's median seats over the draws, rounded by largest remainders so the sum is the law's."""
+    med = {p: q(sorted(st.get(p, 0) for _, st, *_ in sims), .5) for p in PARTIES}
+    return {p: v for p, v in L.hare({p: m for p, m in med.items() if m}, L.LAWS[L.CURRENT]["seats"]).items() if v}
 
 
 def firm_weights(obs):
@@ -230,23 +297,14 @@ def seat_sims(n=10000, horizon_days=0, seed=2026, variant=MAIN):
 def summary(sims):
     """Probabilities, shares and seats of seat_sims() for analysis/forecast.json."""
     n = len(sims)
-    bonus = [sh[max(sh, key=sh.get)] >= 25 for sh, *_ in sims]
-    out = {"n": n, "p_nd_majority": sum(st.get("ND", 0) >= 151 for _, st, _ in sims) / n,
-           "p_bonus": sum(bonus) / n,
-           "p_nd_pasok_151": sum(st.get("ND", 0) + st.get("PASOK", 0) >= 151 for _, st, _ in sims) / n,
-           "p_nd_elas_151": sum(st.get("ND", 0) + st.get("ELAS", 0) >= 151 for _, st, _ in sims) / n,
-           "p_pasok_elas_151": sum(st.get("PASOK", 0) + st.get("ELAS", 0) >= 151 for _, st, _ in sims) / n,
-           "p_nd_pasok_elas_151": sum(st.get("ND", 0) + st.get("PASOK", 0) + st.get("ELAS", 0) >= 151 for _, st, _ in sims) / n,
-           "hist_nd": {}, "hist_nd_pasok": {}, "hist_nd_elas": {}, "hist_pasok_elas": {}, "hist_nd_pasok_elas": {},
-           "parties": {}, "eps": {}}
+    bonus = [METRICS["p_bonus"](sh, st) for sh, st, _ in sims]
+    out = {"n": n, **rates(sims), **{h_key(c): {} for c in COALITIONS}, "parties": {}, "eps": {}}
     for _, st, _ in sims:
-        for k, v in (("hist_nd", st.get("ND", 0)), ("hist_nd_pasok", st.get("ND", 0) + st.get("PASOK", 0)),
-                     ("hist_nd_elas", st.get("ND", 0) + st.get("ELAS", 0)),
-                     ("hist_pasok_elas", st.get("PASOK", 0) + st.get("ELAS", 0)),
-                     ("hist_nd_pasok_elas", st.get("ND", 0) + st.get("PASOK", 0) + st.get("ELAS", 0))):
-            out[k][v] = out[k].get(v, 0) + 1
-    for k in ("hist_nd", "hist_nd_pasok", "hist_nd_elas", "hist_pasok_elas", "hist_nd_pasok_elas"):
-        out[k] = dict(sorted(out[k].items()))
+        for c in COALITIONS:
+            h, v = out[h_key(c)], seats_of(st, c)
+            h[v] = h.get(v, 0) + 1
+    for c in COALITIONS:
+        out[h_key(c)] = dict(sorted(out[h_key(c)].items()))
     rank = [sorted(sh, key=sh.get, reverse=True) for sh, *_ in sims]
     for p in [*PARTIES, OTHER]:
         xs = sorted(sh[p] for sh, *_ in sims)
@@ -257,6 +315,19 @@ def summary(sims):
                 ss = sorted(st.get(p, 0) for (_, st, _), b in zip(sims, bonus, strict=True) if keep(b))
                 d[label] = [q(ss, f) for f in (.1, .5, .9)] if ss else None
         out["parties"][p] = d
+    # second place: the two parties most often second, and the gap between them
+    a, b = sorted((p for p in PARTIES), key=lambda p: -out["parties"][p]["p_second"])[:2]
+    out["second"] = {"pair": [a, b], "gap": second_gap(sims, a, b), "step": GAP_STEP}
+    # third partner: when ND alone, or ND and PASOK, fall short of 151
+    out["partners"] = {"_".join(c): partners(sims, c) for c in (("ND",), ("ND", "PASOK"))}
+    # the 25% threshold: ND's seats and the probabilities with and without a bonus, and the median parliament of each
+    split = {"bonus": [x for x, b in zip(sims, bonus, strict=True) if b], "nobonus": [x for x, b in zip(sims, bonus, strict=True) if not b]}
+    out["scenarios"] = {k: {"n": len(v), "hist_nd": counts(st.get("ND", 0) for _, st, *_ in v), "rates": rates(v) if v else {},
+                            "parliament": median_parliament(v) if v else {}} for k, v in split.items()}
+    # full seat distributions (safe and toss-up seats on the page) and the two sides of parliament
+    out["seat_hist"] = {p: counts(st.get(p, 0) for _, st, *_ in sims) for p in PARTIES}
+    out["blocs"] = {k: {"parties": list(ps), "hist": counts(seats_of(st, ps) for _, st, *_ in sims),
+                        "p_151": sum(seats_of(st, ps) >= L.majority() for _, st, *_ in sims) / n} for k, ps in BLOCS.items()}
     # per constituency (and 'state'): {party: {seats: share of the draws}}, draws where the party has 0 seats there included
     S = seats_module()
     for ep in [*S.seats, "state"]:

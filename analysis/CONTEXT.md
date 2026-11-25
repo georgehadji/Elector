@@ -18,7 +18,9 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | National seat forecast (geography per party, probabilities, seat ranges) | `forecast.GEO`, `forecast.seat_sims(n, H)`; summary in `forecast.json` |
 | Ballot/poll ratios of NIKH | `nikh_polls.euro_miss`, `nikh_polls.miss_2023` |
 | Ballot/poll ratios of other small parties | `nikh_pollerror.ratios(kind)` |
-| Seat allocation, `ep_votes` | `nikh_seats.py` |
+| Electoral law (seats, threshold, bonus, State seats) and national seat totals | `seats_law.LAWS`, `seats_law.national_seats()` (pure, no db) |
+| Seat allocation per constituency, `ep_votes` | `nikh_seats.py` (its national step is `seats_law.national_seats`) |
+| Coalitions and the probabilities of a run (who reaches 151, the bonus) | `forecast.COALITIONS`, `forecast.METRICS`, `forecast.rates()` |
 | Per-community data | `nikh_drivers.load()` over `build.communities()` |
 | Valid votes; 3% threshold in votes | `zones.valid_votes(c, e)`; `zones.threshold(c, e)` (3% of the valid votes, June 2023 by default, from the DB) |
 
@@ -59,5 +61,5 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `samaras.json` (optional), `nikh_polls.csv`, `pollster_record.py`, db (constituency outlines for the map) | `out/forecast.html` | — |
 
 Not NIKH: `field_ops*`, `venue_*`, `client*`, `stats.py` (shared helpers, no catalog entry).
-Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done).
+Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done), `forecast_plan.md` (forecast page sections; in progress).
 Before changing a shared function: rerun the scripts that import it and `cmp` their `.txt` with the committed one.
