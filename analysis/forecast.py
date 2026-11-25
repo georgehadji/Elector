@@ -1,4 +1,5 @@
-"""National forecast, steps 1-2: poll average of every party, then the ballot error, as draws of election-day shares summing to 100.
+"""National forecast, steps 1-3: poll average of every party, the ballot error (draws of election-day shares summing to 100),
+then the seats of each draw under the electoral law.
 
 Step 1, poll average: the model of nikh_polls.py (random-walk level, house effect per firm, q and tau by maximum likelihood),
 fitted on each party of analysis/nikh_polls.csv on its own. The grid of q and tau is wider than NIKH's, because big parties
@@ -14,13 +15,29 @@ with the European ones too as a check). Few pairs: 45 national, 6 of them under 
 the last 15 days, so 2007-2012 give none.
 Draw: each party's level ~ Normal(average, sd at the horizon) (floor 0.05%), times exp(error), OTHER included, then all scaled
 to sum to 100. Errors are independent between parties apart from that scaling (a real election moves blocs together).
+Step 3, seats (needs the database; nikh_seats.allocate, the law of June 2023: 3%, bonus from 25%, 285 constituency + 15 State
+seats). Each draw's national shares are spread over the 59 constituencies of June 2023 by a geography per party (GEO): its own
+results of Euro 2024 where it ran then, SYRIZA June 2023 for ELAS and Spartiates' June 2023 [judgement: ELAS has no past
+geography; the old main party of the left is the nearest], flat for ELPIDA, SE, DIMOKRATES (the poll column starts Nov 2024, so
+it is not Loverdos' Euro 2024 list) and OTHER. Each constituency share gets a lognormal factor (sd GEO_SD) per draw, then the
+party is rescaled to its national share, so national totals are exact. Every party is given a full list in every constituency
+(the June 2023 lists would cap new parties at zero). Every draw is checked to give 300 seats.
+Why Euro 2024 and not June 2023 for most parties: it is the latest election each of them ran in with its present size
+(FL 3.1% then, 0.4% in June 2023; NA did not exist in 2023). National seat totals do not depend on the geography at all
+(Hare over 300 on national votes, full lists), only which constituency each seat lands in; VARIANTS measures that: June 2023
+for every party, and other proxies for the new ones (ELPIDA as PE Euro 2024 [judgement: both run on the Tempi protest],
+SE as EL Euro 2024 [judgement: the nationalist right], DIMOKRATES as SYRIZA Euro 2024 [judgement: its leader came from it],
+ELAS flat).
+Writes analysis/forecast.json: probabilities, shares, national seats, ND and ND+PASOK histograms, per constituency (and State
+list) the distribution of each party's seats there, and the sensitivity table.
 Party columns other than niki come from Wikipedia (polls_wiki.py), not checked against the firms' releases.
 Party codes follow Majorline's (ND, ELAS, NIKI ...), so their estimate (analysis/majorline_parties.csv) sits next to ours.
 Unofficial.
 
-  python -I -X utf8 analysis/forecast.py > analysis/forecast.txt
+  python -I -X utf8 analysis/forecast.py data/stavroi.sqlite [N] > analysis/forecast.txt   # without the db: steps 1-2 only
 """
 import csv
+import json
 import math
 import random
 import sys
@@ -44,6 +61,19 @@ TAUS = NP.TAUS + (1.0, 1.3, 1.7, 2.2)
 A_GRID = tuple(i / 50 for i in range(51))  # a of the ballot error, 0-1
 B_GRID = tuple(i / 1000 for i in range(51))  # b of the ballot error, 0-0.05
 MAJORLINE = HERE / "majorline_parties.csv"
+OUT = HERE / "forecast.json"
+EURO, JUNE = "2024/euro", "2023/june"
+# geography of each party: (election, party id) of past results; parties not listed are flat
+GEO = {"ND": (EURO, 2), "SYRIZA": (EURO, 4), "PASOK": (EURO, 106), "EL": (EURO, 108), "KKE": (EURO, 3), "NIKI": (EURO, 131),
+       "PE": (EURO, 123), "FL": (EURO, 158), "MERA25": (EURO, 122), "NEA_ARISTERA": (EURO, 166),
+       "SPARTIATES": (JUNE, 157), "ELAS": (JUNE, 4)}
+# sensitivity: June 2023 for every party that ran then (NA and ELAS as SYRIZA); other proxies for the parties without a past
+VARIANTS = {"κύρια (GEO)": GEO,
+            "Ιούνιος 2023 για όλα": {p: (JUNE, pid) for p, (_, pid) in GEO.items()} | {"NEA_ARISTERA": (JUNE, 4)},
+            "άλλα proxy για τα νέα": {p: v for p, v in GEO.items() if p != "ELAS"}
+            | {"ELPIDA": (EURO, 123), "SE": (EURO, 108), "DIMOKRATES": (EURO, 4)}}
+MAIN = next(iter(VARIANTS))
+GEO_SD = 0.10
 
 
 @cache
@@ -119,8 +149,126 @@ def majorline():
     return {r["party"]: r for r in rows if r["as_of"] == last and r["share"]}, last
 
 
+@cache
+def seats_module():
+    """nikh_seats, imported on first use: it opens the database named by sys.argv[1]. Every party gets a full list everywhere."""
+    import nikh_seats as S
+    for ep, n in S.seats.items():
+        for p in [*PARTIES, OTHER]:
+            S.cands[ep, p] = n
+    return S
+
+
+@cache
+def geography(variant=MAIN):
+    """(June 2023 valid votes {ep: votes}, {party: {ep: relative share}}) for a key of VARIANTS; 1 = the party's national share."""
+    S = seats_module()
+    V = {ep: sum(pv.values()) for ep, pv in S.ep_votes(JUNE).items()}
+    spec = VARIANTS[variant]
+    past = {e: S.ep_votes(e) for e in {e for e, _ in spec.values()}}
+    geo = {}
+    for p, (e, pid) in spec.items():
+        sh = {ep: past[e][ep].get(pid, 0) / sum(past[e][ep].values()) for ep in V}
+        mean = sum(sh[ep] * V[ep] for ep in V) / sum(V.values())
+        geo[p] = {ep: sh[ep] / mean for ep in V}
+    return V, geo
+
+
+def spread(shares, V, geo, rng=None, sd=GEO_SD):
+    """{ep: {party: votes}} with national shares exactly `shares` (% of V's total); flat geography for parties not in geo."""
+    tot = sum(V.values())
+    out = {ep: {} for ep in V}
+    for p, s in shares.items():
+        g = geo.get(p)
+        w = {ep: (g[ep] if g else 1.0) * (rng.lognormvariate(0, sd) if rng else 1.0) for ep in V}
+        k = s / 100 * tot / sum(w[ep] * V[ep] for ep in V)
+        for ep in V:
+            out[ep][p] = round(k * w[ep] * V[ep])
+    return out
+
+
+def seat_sims(n=10000, horizon_days=0, seed=2026, variant=MAIN):
+    """[(shares, {party: seats}, {party: {ep or 'state': seats}})] for n draws; parties under 3% have no entry."""
+    S, (V, geo), rng = seats_module(), geography(variant), random.Random(seed + 1)
+    out = []
+    for sh in simulate(n, horizon_days, seed=seed):
+        # OTHER is many small lists, never one party at 3%: split in 10 for the law, which counts them in the valid votes only
+        votes = {p: s for p, s in sh.items() if p != OTHER} | {f"{OTHER}{i}": sh[OTHER] / 10 for i in range(10)}
+        res, _ = S.allocate(spread(votes, V, geo, rng))
+        tot = {p: sum(v.values()) for p, v in res.items()}
+        assert sum(tot.values()) == 300 and not any(p.startswith(OTHER) for p in tot), tot
+        out.append((sh, tot, res))
+    return out
+
+
+def summary(sims):
+    """Probabilities, shares and seats of seat_sims() for analysis/forecast.json."""
+    n = len(sims)
+    bonus = [sh[max(sh, key=sh.get)] >= 25 for sh, *_ in sims]
+    out = {"n": n, "p_nd_majority": sum(st.get("ND", 0) >= 151 for _, st, _ in sims) / n,
+           "p_bonus": sum(bonus) / n,
+           "p_nd_pasok_151": sum(st.get("ND", 0) + st.get("PASOK", 0) >= 151 for _, st, _ in sims) / n,
+           "hist_nd": {}, "hist_nd_pasok": {}, "parties": {}, "eps": {}}
+    for _, st, _ in sims:
+        for k, v in (("hist_nd", st.get("ND", 0)), ("hist_nd_pasok", st.get("ND", 0) + st.get("PASOK", 0))):
+            out[k][v] = out[k].get(v, 0) + 1
+    for k in ("hist_nd", "hist_nd_pasok"):
+        out[k] = dict(sorted(out[k].items()))
+    rank = [sorted(sh, key=sh.get, reverse=True) for sh, *_ in sims]
+    for p in [*PARTIES, OTHER]:
+        xs = sorted(sh[p] for sh, *_ in sims)
+        d = {"share": [round(q(xs, f), 2) for f in (.1, .5, .9)], "p_in": sum(x >= 3 for x in xs) / n,
+             "p_first": sum(r[0] == p for r in rank) / n, "p_second": sum(r[1] == p for r in rank) / n}
+        if p != OTHER:
+            for label, keep in (("seats", lambda b: True), ("seats_bonus", lambda b: b), ("seats_nobonus", lambda b: not b)):
+                ss = sorted(st.get(p, 0) for (_, st, _), b in zip(sims, bonus, strict=True) if keep(b))
+                d[label] = [q(ss, f) for f in (.1, .5, .9)] if ss else None
+        out["parties"][p] = d
+    # per constituency (and 'state'): {party: {seats: share of the draws}}, draws where the party has 0 seats there included
+    S = seats_module()
+    for ep in [*S.seats, "state"]:
+        dist = {}
+        for _, _, res in sims:
+            for p, by in res.items():
+                k = by.get(ep, 0)
+                if k:
+                    dist.setdefault(p, {}).setdefault(k, 0)
+                    dist[p][k] += 1
+        dist = {p: {k: round(c / n, 4) for k, c in sorted(d.items())} for p, d in dist.items()}
+        out["eps"][ep] = {"name": "Επικρατείας" if ep == "state" else S.ep_name[ep], "seats": S.STATE if ep == "state" else S.seats[ep],
+                          "dist": dict(sorted(dist.items(), key=lambda kv: -sum(k * f for k, f in kv[1].items())))}
+    return out
+
+
+def mean_seats(dist):
+    """Expected seats from a {seats: share of the draws} dict."""
+    return sum(k * f for k, f in dist.items())
+
+
 def q(xs, f):
     return xs[min(len(xs) - 1, int(f * len(xs)))]
+
+
+def fmt(x, median_only=False):
+    """'10-50-90' (or the median) of a [10%, 50%, 90%] list; '—' for None."""
+    return "—" if not x else str(x[1]) if median_only else f"{x[0]}-{x[1]}-{x[2]}"
+
+
+def check_june():
+    """June 2023 rebuilt from its national shares and each party's own geography (no noise) gives the real allocation."""
+    S = seats_module()
+    june = S.ep_votes(JUNE)
+    V = {ep: sum(pv.values()) for ep, pv in june.items()}
+    nat = {}
+    for pv in june.values():
+        for p, v in pv.items():
+            nat[p] = nat.get(p, 0) + v
+    tot = sum(V.values())
+    geo = {p: {ep: june[ep].get(p, 0) / V[ep] / (nat[p] / tot) for ep in V} for p in nat if nat[p]}
+    got = {p: sum(v.values()) for p, v in S.allocate(spread({p: 100 * v / tot for p, v in nat.items() if v}, V, geo))[0].items()}
+    want = {p: sum(v.values()) for p, v in S.allocate(june)[0].items()}
+    assert got == want, (got, want)
+    return want
 
 
 def selftest():
@@ -203,3 +351,69 @@ if __name__ == "__main__":
     x, _ = estimate("NIKI")
     print(f"  Για 3% από {x:.2f}% χρειάζεται λόγος {3 / x:.2f}: εδώ σ(log) = {math.sqrt(a / x + b):.2f} → "
           f"{math.log(3 / x) / math.sqrt(a / x + b):.1f} σ μόνο από το λάθος της κάλπης.")
+
+    if len(sys.argv) < 2:
+        sys.exit()
+    N = int(sys.argv[2]) if len(sys.argv) > 2 else 10000
+    june = check_june()
+    S = seats_module()
+    print("\n=== Βήμα 3: έδρες (nikh_seats.allocate, νόμος Ιουνίου 2023, γεωγραφία ανά κόμμα: GEO) ===")
+    print("Έλεγχος: ο Ιούνιος 2023 ξαναχτισμένος από τα εθνικά ποσοστά και τη γεωγραφία του δίνει τις ίδιες έδρες με το allocate "
+          "πάνω στα πραγματικά αποτελέσματα: " + ", ".join(f"{S.PARTY_SHORT.get(p, p)} {v}" for p, v in sorted(june.items(), key=lambda kv: -kv[1])))
+    print("  (Επίσημα: ΣΥΡΙΖΑ 48, ΚΚΕ 21, Σπαρτιάτες 12, Πλεύση 8· το allocate είναι απλοποίηση, βλ. nikh_seats.py: ±1 έδρα ανά κόμμα.)")
+    print(f"Γεωγραφία: {', '.join(f'{names[p]} ← {e} {pid}' for p, (e, pid) in GEO.items())}; "
+          f"ομοιόμορφα: {', '.join(names[p] for p in [*PARTIES, OTHER] if p not in GEO)}. Θόρυβος ανά περιφέρεια σ = {GEO_SD}.")
+    res = {}
+    for H in (0, 180):
+        res[H] = summary(seat_sims(N, H))
+        r = res[H]
+        print(f"\n{'Εκλογές σήμερα' if H == 0 else f'Εκλογές σε {H} ημέρες'} ({N:,} προσομοιώσεις, σπόρος 2026)")
+        print(f"  P(αυτοδυναμία ΝΔ, ≥151) {100 * r['p_nd_majority']:.1f}%   P(μπόνους, 1ο κόμμα ≥25%) {100 * r['p_bonus']:.1f}%   "
+              f"P(ΝΔ+ΠΑΣΟΚ ≥151) {100 * r['p_nd_pasok_151']:.1f}%")
+        print(f"  {'κόμμα':<20}{'P 1ο':>6}{'P 2ο':>6}{'έδρες 10-50-90%':>17}{'με μπόνους':>13}{'χωρίς':>13}")
+        for p in order:
+            d = r["parties"][p]
+            print(f"  {names[p]:<20}{100 * d['p_first']:>5.0f}%{100 * d['p_second']:>5.0f}%{fmt(d['seats']):>17}"
+                  f"{fmt(d['seats_bonus']):>13}{fmt(d['seats_nobonus']):>13}")
+    with open(HERE / "majorline_runs.csv", encoding="utf-8") as f:
+        mr = max(csv.DictReader(f), key=lambda r: r["as_of"])
+    r = res[0]
+    print(f"\nΣύγκριση με Majorline (εκτίμηση της {mr['as_of']}; πηγή: Majorline), εκλογές σήμερα:")
+    print(f"  αυτοδυναμία ΝΔ {100 * r['p_nd_majority']:.1f}% έναντι {100 * float(mr['single_party_majority']):.1f}%; "
+          f"χωρίς μπόνους {100 * (1 - r['p_bonus']):.1f}% έναντι {100 * float(mr['no_bonus']):.1f}%; "
+          f"ΝΔ+ΠΑΣΟΚ ≥151 {100 * r['p_nd_pasok_151']:.1f}% έναντι {100 * float(mr['nd_pasok_151']):.1f}%")
+    if ml:
+        print(f"  {'κόμμα':<20}{'διάμεσος με μπόνους':>21}{'Majorline':>11}{'χωρίς':>8}{'Majorline':>11}")
+        for p in order:
+            d, m = r["parties"][p], ml.get(p, {})
+            print(f"  {names[p]:<20}{fmt(d['seats_bonus'], True):>21}{m.get('seats_bonus') or '—':>11}"
+                  f"{fmt(d['seats_nobonus'], True):>8}{m.get('seats_nobonus') or '—':>11}")
+
+    print("\nΑνά περιφέρεια, εκλογές σήμερα: αναμενόμενες έδρες ανά κόμμα (μέσος όρος των προσομοιώσεων, ≥ 0,1)")
+    for e in r["eps"].values():  # ministry order, State seats last
+        means = {p: mean_seats(d) for p, d in e["dist"].items()}
+        assert abs(sum(means.values()) - e["seats"]) < 0.01, (e["name"], means)
+        print(f"  {e['name'][:30]:<31}{e['seats']:>3}  " + ", ".join(f"{names[p]} {m:.1f}" for p, m in means.items() if m >= 0.1))
+
+    print(f"\nΕυαισθησία στη γεωγραφία (εκλογές σήμερα, {N:,} προσομοιώσεις, ίδια μερίδια, ίδιος σπόρος):")
+    for v, spec in VARIANTS.items():
+        flat = [names[p] for p in [*PARTIES, OTHER] if p not in spec]
+        diff = [f"{names[p]} ← {e} {pid}" for p, (e, pid) in spec.items() if GEO.get(p) != (e, pid)]
+        print(f"  {v}: " + (", ".join(diff) if diff else "όπως παραπάνω") + (f"; ομοιόμορφα: {', '.join(flat)}" if flat else ""))
+    watch = ["ND", "ELAS", "PASOK", "PE", "FL", "ELPIDA", "SE", "MERA25"]
+    print("  Οι έδρες κάθε κόμματος στο σύνολο της χώρας βγαίνουν από τα εθνικά ποσοστά (Hare στις 300), άρα η γεωγραφία αλλάζει "
+          "μόνο σε ποια περιφέρεια πάνε. Μέτρο: έδρες που μετακινούνται = ½ Σ_περιφέρειες |αναμενόμενες έδρες − κύρια|.")
+    print(f"  {'παραλλαγή':<24}{'αυτοδ.':>7}{'ΝΔ+ΠΑΣΟΚ':>9}  ίδια σύνολα  μετακινούμενες έδρες: " + ", ".join(names[p] for p in watch))
+    sens = {}
+    for v in VARIANTS:
+        s = r if v == MAIN else summary(seat_sims(N, 0, variant=v))
+        moved = {p: sum(abs(mean_seats(s["eps"][ep]["dist"].get(p, {})) - mean_seats(r["eps"][ep]["dist"].get(p, {})))
+                        for ep in r["eps"]) / 2 for p in watch}
+        same = all(s["parties"][p]["seats"] == r["parties"][p]["seats"] for p in PARTIES)
+        sens[v] = {k: s[k] for k in ("p_nd_majority", "p_bonus", "p_nd_pasok_151")} | {"same_totals": same, "moved": moved}
+        print(f"  {v:<24}{100 * s['p_nd_majority']:>6.1f}%{100 * s['p_nd_pasok_151']:>8.1f}%  {'ναι' if same else 'ΟΧΙ':>11}  "
+              + ", ".join(f"{moved[p]:.1f}" for p in watch))
+    OUT.write_text(json.dumps({"as_of": str(NP.TODAY), "seed": 2026, "geo": {p: list(v) for p, v in GEO.items()},
+                               "names": names, "horizons": {str(H): v for H, v in res.items()}, "sensitivity": sens},
+                              ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"\nΓράφτηκε {OUT.relative_to(HERE.parent).as_posix()}")
