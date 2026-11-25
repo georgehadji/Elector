@@ -56,8 +56,9 @@ def load(col="niki"):
     return sorted(rows)
 
 
-def kfilter(obs, h, q, tau2, upto=None):
-    """Filter over obs [(day, firm, n, y)] sorted by day. Returns lists of (x_f, P_f, x_pred, P_pred), loglik."""
+def kfilter(obs, h, q, tau2, upto=None, wt=None):
+    """Filter over obs [(day, firm, n, y)] sorted by day. Returns lists of (x_f, P_f, x_pred, P_pred), loglik.
+    wt {firm: weight}: the noise of a firm's poll (sampling + tau2) is divided by its weight (none: all 1)."""
     out, ll = [], 0.0
     x, P, t = obs[0][3], 4.0, obs[0][0]
     for d, f, n, y in obs:
@@ -65,7 +66,7 @@ def kfilter(obs, h, q, tau2, upto=None):
             break
         xp, Pp = x, P + q * (d - t).days
         p = min(max(xp, 0.3) / 100, 0.5)
-        S = Pp + p * (1 - p) / n * 1e4 + tau2
+        S = Pp + (p * (1 - p) / n * 1e4 + tau2) / (wt.get(f, 1) if wt else 1)
         v = y - h.get(f, 0) - xp
         K = Pp / S
         x, P, t = xp + K * v, (1 - K) * Pp, d
@@ -83,14 +84,14 @@ def smooth(obs, flt, q):
     return xs
 
 
-def fit(obs, qs=QS, taus=TAUS):
-    """house effects, q, tau2, loglik."""
+def fit(obs, qs=QS, taus=TAUS, wt=None):
+    """house effects, q, tau2, loglik (wt: see kfilter)."""
     h = {}
     best = None
     for _ in range(6):
-        best = max((kfilter(obs, h, q, tau * tau)[1], q, tau * tau) for q in qs for tau in taus)
+        best = max((kfilter(obs, h, q, tau * tau, wt=wt)[1], q, tau * tau) for q in qs for tau in taus)
         _, q, tau2 = best
-        flt, _ = kfilter(obs, h, q, tau2)
+        flt, _ = kfilter(obs, h, q, tau2, wt=wt)
         xs = smooth(obs, flt, q)
         res = {}
         for (d, f, n, y), s in zip(obs, xs, strict=True):
