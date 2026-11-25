@@ -1,6 +1,7 @@
 # Vercel serves only the published site; code, data and analyses stay out of the deployment
 /*
 !/index.html
+!/robots.txt
 !/vercel.json
 !/out
 !/exports

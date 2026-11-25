@@ -290,7 +290,11 @@ class VercelHeaders(unittest.TestCase):
 
     def test_site_is_not_indexed(self):
         self.assertEqual(self.header("/(.*)", "X-Robots-Tag"), "noindex, nofollow, noarchive")
-        self.assertFalse((OUT.parent / "robots.txt").exists())  # a Disallow there would stop crawlers reading the noindex
+        robots = (OUT.parent / "robots.txt").read_text(encoding="utf-8")
+        self.assertIn("Disallow: /", robots)
+        for search_engine in ("Googlebot", "Bingbot", "*"):  # a Disallow for these would stop them reading the noindex
+            self.assertNotIn(f"User-agent: {search_engine}", robots)
+        self.assertIn("!/robots.txt", (OUT.parent / ".vercelignore").read_text(encoding="utf-8"))
 
     def test_permissions_policy_keeps_copy_button_working(self):
         policy = self.header("/(.*)", "Permissions-Policy")
