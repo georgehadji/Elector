@@ -21,6 +21,7 @@ import html
 import json
 import sqlite3
 import sys
+import math
 import unicodedata
 from datetime import date
 from pathlib import Path
@@ -29,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I dro
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import forecast as F
 import pollster_record as PR
+import seats_law as LAW
 
 from config import DB, HERE, slug
 from geo import boundary, frame, path
@@ -301,6 +303,188 @@ def histograms(r):
             '<div class="two">' + "".join(out) + "</div></details>")
 
 
+def partners_html(r, names):
+    """§4, third partner: when ND alone, or ND and PASOK, fall short of 151, how often one more party is enough (a share of
+    those simulations; forecast.partners). Seat sums only."""
+    cols = []
+    for base, title in (("ND", "Όταν η ΝΔ μόνη της δεν φτάνει"), ("ND_PASOK", "Όταν ΝΔ και ΠΑΣΟΚ δεν φτάνουν")):
+        d = r["partners"][base]
+        if not d["n_short"]:
+            continue
+        rows = "".join(f'<li><span class="sw" style="--c:{colour(x)}"></span>{html.escape(names[x])}<b>{pct(p)}</b></li>'
+                       for x, p in d["p"].items() if p >= 0.005)
+        cols.append(f'<div><h3>{title}</h3><p class="note">Συμβαίνει {in_sims(d["n_short"] / r["n"])}. Τότε, πόσο συχνά '
+                    f'φτάνει τις 151 με ένα ακόμη κόμμα:</p><ul class="pl">{rows or "<li>με κανένα</li>"}</ul></div>')
+    if not cols:
+        return ""
+    return (f'<h3 class="sub">Ποιο κόμμα αρκεί, όταν δεν φτάνουν</h3><div class="two">{"".join(cols)}</div>'
+            '<p class="note">Αθροίσματα εδρών, όχι πρόβλεψη για το ποιος θα συνεργαζόταν με ποιον.</p>')
+
+
+def gap_svg(h, step, a, b, w, hgt, fs):
+    """SVG histogram of {gap bin: count} (share(a) - share(b), points): bars right of 0 in a's colour, left in b's."""
+    h = {float(k): v for k, v in h.items()}
+    total = sum(h.values())
+    top = max(h.values()) / total
+    lo, hi = min(min(h), -2 * step), max(max(h), 2 * step) + step
+    tick = next((t for t in (0.005, 0.01, 0.02, 0.05, 0.1) if top / t <= 4), 0.2)
+    ymax = tick * (int(top / tick) + 1)
+    left, right, tp, bottom = 3 * fs, 0.6 * fs, 0.8 * fs, 2 * fs
+    X = lambda v: left + (v - lo) / (hi - lo) * (w - left - right)
+    Y = lambda v: tp + (hgt - tp - bottom) * (1 - v / ymax)
+    out = [f'<svg viewBox="0 0 {w} {hgt}" style="font-size:{fs}px" aria-hidden="true">']
+    k = 0
+    while k * tick <= ymax + 1e-9:
+        out.append(f'<line class="grid" x1="{left}" x2="{w - right}" y1="{Y(k * tick):.1f}" y2="{Y(k * tick):.1f}"/>'
+                   f'<text class="ax-l" x="{left - 0.4 * fs}" y="{Y(k * tick) + 0.35 * fs:.1f}" text-anchor="end">'
+                   f'{num(100 * k * tick, 0 if tick >= 0.01 else 1)}%</text>')
+        k += 1
+    every = 2 if hi - lo <= 24 else 4
+    for v in range(int(lo) - int(lo) % every, int(hi) + 1, every):
+        if lo <= v <= hi:
+            out.append(f'<text class="ax-l" x="{X(v):.1f}" y="{hgt - bottom + 1.3 * fs:.1f}" text-anchor="middle">'
+                       f'{"+" if v > 0 else ""}{v}</text>')
+    bw = X(lo + step) - X(lo)
+    for v, c in sorted(h.items()):
+        f = c / total
+        out.append(f'<rect x="{X(v) + 0.3:.2f}" y="{Y(f):.1f}" width="{max(bw - 0.6, 0.4):.2f}" height="{Y(0) - Y(f):.1f}" '
+                   f'style="fill:{colour(a if v >= 0 else b)}"><title>{num(v)} έως {num(v + step)} μονάδες: {pct(f)}</title></rect>')
+    out.append(f'<line class="base" x1="{left}" x2="{w - right}" y1="{Y(0):.1f}" y2="{Y(0):.1f}"/>'
+               f'<line class="m151" x1="{X(0):.1f}" x2="{X(0):.1f}" y1="{tp:.1f}" y2="{Y(0):.1f}"/>')
+    return "".join(out) + "</svg>"
+
+
+def second_html(r, key, names):
+    """§3, second place: how often each of the two contenders comes second, and the gap between them in the simulations."""
+    a, b = r["second"]["pair"]
+    pa, pb = (r["parties"][x]["p_second"] for x in (a, b))
+    figs = "".join(f'<p><b>{pct(p)}</b><span class="t"><strong><span class="sw" style="--c:{colour(x)}"></span>'
+                   f'{html.escape(names[x])}</strong><small>δεύτερο κόμμα</small></span></p>' for x, p in ((a, pa), (b, pb)))
+    rest = 1 - pa - pb
+    other = f" Άλλο κόμμα δεύτερο: {pct(rest)}." if rest >= 0.001 else ""
+    g = r["second"]
+    na, nb = html.escape(names[a]), html.escape(names[b])
+    cap = f'Ποσοστό {na} μείον ποσοστό {nb}, σε μονάδες, στις προσομοιώσεις. Δεξιά από το 0 μπροστά είναι {na}, αριστερά {nb}.'
+    return (f'<h2>Ποιος έρχεται δεύτερος, εκλογές {WHEN[key]}</h2>'
+            f'<div class="hero duo">{figs}</div>'
+            f'<p class="note">Πόσο συχνά βγαίνει δεύτερο το κάθε κόμμα στις προσομοιώσεις.{other}</p>'
+            f'<figure><div class="wide">{gap_svg(g["gap"], g["step"], a, b, 640, 180, 12)}</div>'
+            f'<div class="narrow">{gap_svg(g["gap"], g["step"], a, b, 360, 180, 12)}</div><figcaption>{cap}</figcaption></figure>')
+
+
+# left to right in the hemicycle [judgement: where each party sits; display only]; parties not listed go after them
+SEAT_ORDER = ("KKE", "MERA25", "NEA_ARISTERA", "PE", "SYRIZA", "ELAS", "DIMOKRATES", "PASOK", "ELPIDA", "ND", "FL", "SE", "EL",
+              "NIKI", "SPARTIATES")
+ROWS = 9
+
+
+def hemicycle(parl, label):
+    """SVG of the 300 seats of {party: seats} in ROWS arcs, parties from left to right in SEAT_ORDER, a line in the middle."""
+    r0, r1, R = 46.0, 100.0, 104.0
+    radii = [r0 + i * (r1 - r0) / (ROWS - 1) for i in range(ROWS)]
+    per = LAW.hare(dict(enumerate(radii)), LAW.LAWS[LAW.CURRENT]["seats"])  # seats per arc in proportion to its length
+    pos = []
+    for i, rr in enumerate(radii):
+        for j in range(per[i]):
+            t = math.pi * (1 - j / (per[i] - 1))
+            pos.append((-t, rr, R + rr * math.cos(t), R - rr * math.sin(t)))
+    pos.sort()  # by angle from the left, then from the inner arc out
+    order = [p for p in SEAT_ORDER if parl.get(p)] + [p for p in parl if p not in SEAT_ORDER and parl[p]]
+    seq = [p for p in order for _ in range(parl[p])]
+    dot = 0.42 * (r1 - r0) / (ROWS - 1)
+    out = [f'<svg viewBox="0 0 {2 * R} {R + 4}" role="img" aria-label="{html.escape(label, quote=True)}">']
+    for (_, _, x, y), p in zip(pos, seq, strict=True):
+        fill = 'var(--mute)' if p in HATCHED else colour(p)  # a pattern fill would not tile on a dot
+        out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{dot:.2f}" style="fill:{fill}"/>')
+    out.append(f'<line class="m151" x1="{R}" x2="{R}" y1="{R - r1 - 4}" y2="{R - r0 + 6}"/></svg>')
+    return "".join(out)
+
+
+def bonus_html(r, key, names):
+    """§5, the 25% threshold: how often no party reaches 25% (no bonus), how often ND alone or with a partner reaches 151 in
+    each case, and the median parliament of each; a worked example of the bonus from seats_law."""
+    sc, p_no = r["scenarios"], 1 - r["p_bonus"]
+    b = LAW.LAWS[LAW.CURRENT]["bonus"]
+    x = r["parties"]["ND"]["share"][1]
+    seats = LAW.bonus_seats(x)
+    example = (f'Με τη ΝΔ στο {num(x)}% (μεσαία τιμή), το μπόνους θα ήταν {b["base"]} + {seats - b["base"]} = {seats} έδρες: '
+               f'{b["base"]} στο {num(b["from"], 0)}% και μία ακόμη για κάθε ολόκληρη μισή μονάδα πάνω από αυτό, έως {b["cap"]}.'
+               if seats else f'Με τη ΝΔ στο {num(x)}% (μεσαία τιμή), κάτω από {num(b["from"], 0)}%, δεν θα υπήρχε μπόνους.')
+    head = ('<tr><th></th><th class="n">πόσο συχνά</th><th class="n">έδρες ΝΔ</th><th class="n">ΝΔ μόνη 151</th>'
+            '<th class="n">ΝΔ και ΠΑΣΟΚ 151</th><th class="n">ΝΔ και ΕΛΑΣ 151</th></tr>')
+    rows, figs = [], []
+    for k, title in (("bonus", "με μπόνους"), ("nobonus", "χωρίς μπόνους")):
+        s = sc[k]
+        if not s["n"]:
+            continue
+        lo, mid, hi = hist_range(s["hist_nd"])
+        rr = s["rates"]
+        rows.append(f'<tr><td>{title}</td><td class="n">{pct(s["n"] / r["n"])}</td><td class="n">{mid} <small>({lo}–{hi})</small></td>'
+                    f'<td class="n">{pct(rr["p_nd_majority"])}</td><td class="n">{pct(rr["p_nd_pasok_151"])}</td>'
+                    f'<td class="n">{pct(rr["p_nd_elas_151"])}</td></tr>')
+        if s["n"] / r["n"] >= 0.01:  # a parliament is drawn only for a case that happens at least once in 100
+            parl = sorted(((p, v) for p, v in s["parliament"].items() if v), key=lambda kv: -kv[1])
+            label = f'Βουλή {title}, μεσαίες έδρες: ' + ", ".join(f'{names[p]} {v}' for p, v in parl)
+            key_ = "".join(f'<li><i style="--c:{colour(p)}"></i>{html.escape(names[p])} <b>{v}</b></li>' for p, v in parl)
+            figs.append(f'<figure><h3>Η Βουλή {title}</h3>{hemicycle(dict(parl), label)}<ul class="legend">{key_}</ul></figure>')
+    return (f'<h2>Το όριο του 25%, εκλογές {WHEN[key]}</h2>'
+            f'<p class="note">Αν το πρώτο κόμμα μείνει κάτω από {num(b["from"], 0)}%, δεν παίρνει μπόνους και οι 300 έδρες '
+            f'μοιράζονται αναλογικά. Αυτό συμβαίνει {in_sims(p_no)}. {example}</p>'
+            f'<div class="wrap"><table><thead>{head}</thead><tbody>{"".join(rows)}</tbody></table></div>'
+            + ('<p class="note">Κάθε Βουλή: η μεσαία τιμή των εδρών κάθε κόμματος στις προσομοιώσεις αυτής της περίπτωσης, '
+               'στρογγυλεμένη ώστε να αθροίζει 300. Η γραμμή στη μέση χωρίζει τις 150 από τις 150.</p>'
+               f'<div class="two">{"".join(figs)}</div>' if figs else ""))
+
+
+# share of the simulations a seat is won in, from the most sure down; the toss-up map uses the floor of "με κλίση"
+TIERS = ((0.95, "ασφαλείς"), (0.75, "πιθανές"), (0.65, "με κλίση"), (0.35, "αμφίρροπες"), (0.05, "δύσκολες"))
+TIER_ALPHA = (1, .72, .52, .32, .16)
+BLOC_NAMES = {"right": "Κεντροδεξιά και δεξιά", "left": "Κεντροαριστερά και αριστερά"}
+assert set(BLOC_NAMES) == set(F.BLOCS), "a side of forecast.BLOCS has no name here"
+
+
+def ladder(h):
+    """Seats per tier from {seats: count}: the k-th seat goes to the first tier whose floor P(seats >= k) reaches."""
+    h = {int(k): v for k, v in h.items()}
+    n = sum(h.values())
+    out = [0] * len(TIERS)
+    for k in range(1, max(h) + 1):
+        p = sum(v for s, v in h.items() if s >= k) / n
+        i = next((i for i, (f, _) in enumerate(TIERS) if p >= f), None)
+        if i is not None:
+            out[i] += 1
+    return out
+
+
+def ladder_html(r, key, names):
+    """§6, safe and toss-up seats: for the three largest parties and the two sides of parliament, how many seats each wins
+    in 95+ of 100 simulations, 75-95, 65-75, 35-65 and 5-35, as one bar on the 300 seats with the 151 line."""
+    big = sorted(F.PARTIES, key=lambda p: -r["parties"][p]["seats"][1])[:3]
+    rows = [(names[p], colour(p), r["seat_hist"][p], None) for p in big]
+    for k, d in r["blocs"].items():
+        known = [p for p in d["parties"] if p in r["parties"]]
+        lead_ = max(known, key=lambda p: r["parties"][p]["seats"][1])
+        rows.append((BLOC_NAMES[k], colour(lead_), d["hist"], d["p_151"]))
+    items = []
+    for title, c, h, p151 in rows:
+        t = ladder(h)
+        spans = "".join(f'<span style="--c:{c};flex:{n};opacity:{a}"></span>' for n, a in zip(t, TIER_ALPHA, strict=True) if n)
+        spans += f'<span class="rest" style="flex:{LAW.LAWS[LAW.CURRENT]["seats"] - sum(t)}"></span>'
+        words = " · ".join(f'{"" if i == 0 else "+"}{n} {w}' for i, (n, (_, w)) in enumerate(zip(t, TIERS, strict=True)) if n or i == 0)
+        extra = f' · 151 και πάνω: {pct(p151)}' if p151 is not None else ""
+        items.append(f'<li><span class="lb"><span>{html.escape(title)}</span><small>{words}{extra}</small></span>'
+                     f'<div class="seatbar mini" role="img" aria-label="{html.escape(title + ": " + words, quote=True)}">{spans}<i></i></div></li>')
+    sides = "· ".join(f'{BLOC_NAMES[k].lower()}: ' + ", ".join(names[p] for p in ps if p in names) for k, ps in F.BLOCS.items())
+    return (f'<h2>Ασφαλείς και αμφίρροπες έδρες, εκλογές {WHEN[key]}</h2>'
+            '<p class="note">Κάθε έδρα με τη σειρά, η 1η, η 2η και ούτω καθεξής, και σε πόσες από τις 100 προσομοιώσεις τη φτάνει '
+            'το κόμμα. Ασφαλείς: 95 ή περισσότερες. Πιθανές: 75 έως 95. Με κλίση: 65 έως 75. Αμφίρροπες: 35 έως 65. '
+            'Δύσκολες: 5 έως 35. Όσο πιο αχνό το χρώμα, τόσο πιο αβέβαιη η έδρα. Η γραμμή είναι οι 151.</p>'
+            f'<ul class="odds ladder">{"".join(items)}</ul>'
+            '<p class="note">Οι πλευρές είναι αθροίσματα εδρών κατά τη θέση των κομμάτων στη Βουλή, όχι πρόβλεψη για το ποιος θα '
+            f'συνεργαζόταν με ποιον ({sides}· η Ελπίδα και τα μικρότερα κόμματα σε καμία). Τα λάθη των κομμάτων κληρώνονται '
+            'ανεξάρτητα, οπότε τα εύρη των πλευρών είναι μάλλον στενότερα από όσο θα έπρεπε.</p>')
+
+
 def per_ep(r, order, names):
     seats = expected(r)
     cols = [p for p in order if seats.get(p)]
@@ -468,6 +652,53 @@ def ep_geometries():
 
 
 MAP_BINS = ((0.5, 40), (1, 58), (2, 76), (float("inf"), 95))  # mean seats below -> % of the party colour
+HELD = TIERS[2][0]  # a party holds its k-th seat of a constituency when it wins it in 65+ of 100 simulations ("με κλίση")
+TOSS_BINS = ((2, 40), (3, 58), (5, 76), (float("inf"), 95))  # toss-up seats below -> % of the ink
+
+
+def at_least(dist):
+    """{k: P(seats >= k)} for k = 1.. from {seats: share} (string keys, as in forecast.json)."""
+    d = {int(k): f for k, f in dist.items()}
+    return {k: sum(f for s, f in d.items() if s >= k) for k in range(1, max(d, default=0) + 1)}
+
+
+def contested(e, parties):
+    """A constituency's toss-up seats: its seats less the seats each party holds (HELD). Contenders: each party's next seat
+    when it wins it in 5 to 65 of 100 simulations. Edge: parties near the 3% (in parliament in 5 to 95 of 100) that win a
+    seat there in 5+ of 100, so the seat also turns on whether they pass the threshold."""
+    held, cont, edge = 0, [], []
+    for p, dist in e["dist"].items():
+        ge = at_least(dist)
+        h = max((k for k, q in ge.items() if q >= HELD), default=0)
+        held += h
+        if ge.get(h + 1, 0) >= TIERS[-1][0]:
+            cont.append((p, h + 1, ge[h + 1]))
+        if 0.05 < parties.get(p, {}).get("p_in", 1) < 0.95 and ge.get(1, 0) >= 0.05:
+            edge.append(p)
+    return {"n": max(0, e["seats"] - held), "cont": sorted(cont, key=lambda c: -c[2]), "edge": edge}
+
+
+def toss_words(t, names):
+    """The contenders and the parties near 3% of one constituency, in words."""
+    out = ", ".join(f"{names[p]} {k}η έδρα {pct(q)}" for p, k, q in t["cont"][:4])
+    out = f"διεκδικούν: {out}" if out else ""
+    if t["edge"]:
+        out += ("· " if out else "") + "κρίνεται και από το αν περάσει το 3%: " + ", ".join(names[p] for p in t["edge"])
+    return out
+
+
+def most_toss(toss, eps, names):
+    """The five constituencies with the most toss-up seats, with their contenders: the map's answer for a screen reader
+    and for a reader who does not tap the map."""
+    top = sorted((ep for ep in eps if toss[ep]["n"]), key=lambda ep: (-toss[ep]["n"], eps[ep]["name"]))[:5]
+    if not top:
+        return ""
+    items = "".join(f'<li><b>{html.escape(eps[ep]["name"])}</b>: {toss[ep]["n"]} από {eps[ep]["seats"]} έδρες'
+                    + (f' <small>({html.escape(toss_words(toss[ep], names))})</small>' if toss_words(toss[ep], names) else "")
+                    + "</li>" for ep in top)
+    total = sum(t["n"] for t in toss.values())
+    return (f'<h3 class="sub">Οι περισσότερες αμφίρροπες έδρες</h3><p class="note">Σε όλες τις περιφέρειες: {total} από τις {sum(e["seats"] for e in eps.values())}.'
+            f'</p><ol class="toss5">{items}</ol>')
 
 
 def ep_map(data, order, names):
@@ -484,6 +715,11 @@ def ep_map(data, order, names):
     means = {key: {ep: {p: mean_seats(d) for p, d in r["eps"][ep]["dist"].items()} for ep in eps} for key, r in hz.items()}
     total = {p: sum(m.get(p, 0) for m in means["0"].values()) for p in names}
     picks = [p for p in sorted(total, key=lambda p: -total[p]) if total[p] >= 1]
+    toss = {key: {ep: contested(r["eps"][ep], r["parties"]) for ep in eps} for key, r in hz.items()}
+
+    def tstep(ep, key):
+        n = toss[key][ep]["n"]
+        return 0 if n == 0 else next(i for i, (hi, _) in enumerate(TOSS_BINS, 1) if n < hi)
 
     def step(ep, key, p):
         m = means[key][ep].get(p, 0)
@@ -491,7 +727,10 @@ def ep_map(data, order, names):
 
     def detail(ep, key):
         m = sorted(((p, v) for p, v in means[key][ep].items() if v >= 0.05), key=lambda pv: -pv[1])
-        return f'{eps[ep]["name"]}, {eps[ep]["seats"]} έδρες: ' + " · ".join(f"{names[p]} {num(v)}" for p, v in m)
+        t = toss[key][ep]
+        words = toss_words(t, names)
+        return (f'{eps[ep]["name"]}, {eps[ep]["seats"]} έδρες: ' + " · ".join(f"{names[p]} {num(v)}" for p, v in m)
+                + f'. Αμφίρροπες: {t["n"]}' + (f" ({words})" if words else "") + ".")
 
     def svg(shown, size, label, box=None, focus=()):
         """`box` (lon, lat, lon, lat): frame only the units inside it; the rest is drawn but falls outside the view."""
@@ -506,7 +745,8 @@ def ep_map(data, order, names):
             if ep is None:
                 out.append(f'<path class="none" d="{d}"/>')
                 continue
-            cls = " ".join(f"h{key}-{p}-{step(ep, key, p)}" for key in hz for p in picks)
+            cls = " ".join([*(f"h{key}-{p}-{step(ep, key, p)}" for key in hz for p in picks),
+                            *(f"h{key}-toss-{tstep(ep, key)}" for key in hz)])
             data_ = "".join(f' data-d{key}="{html.escape(detail(ep, key), quote=True)}"' for key in hz)
             tab = ' tabindex="0"' if ep in focus else ""
             out.append(f'<path class="{cls}" d="{d}" data-ep="{ep}"{tab} aria-label="{html.escape(eps[ep]["name"], quote=True)}"'
@@ -518,25 +758,34 @@ def ep_map(data, order, names):
     zoom = svg(attica, 260, "Αττική σε μεγέθυνση", box=(22.8, 37.6, 24.2, 38.4), focus=attica)  # without Kythira and the far islands
     chips = "".join(f'<label><input type="radio" name="m" id="m-{p}"{" checked" if i == 0 else ""}>'
                     f'<i style="--c:{colour(p)}"></i>{html.escape(names[p])}</label>' for i, p in enumerate(picks))
+    chips += '<label><input type="radio" name="m" id="m-toss"><i style="--c:var(--ink)"></i>Αμφίρροπες έδρες</label>'
     css = "".join(f"main:has(#h{key}:checked):has(#m-{p}:checked) .h{key}-{p}-{b}"
                   f"{{fill:color-mix(in oklab,{'var(--mute)' if p in HATCHED else colour(p)} {k}%,var(--paper))}}"
                   for key in hz for p in picks for b, (_, k) in enumerate(MAP_BINS, 1))
     css += "".join(f"main:has(#m-{p}:checked) .legend.bins{{--c:{'var(--mute)' if p in HATCHED else colour(p)}}}"
                    for p in picks)
+    css += "".join(f"main:has(#h{key}:checked):has(#m-toss:checked) .h{key}-toss-{b}{{fill:color-mix(in oklab,var(--ink) {k}%,var(--paper))}}"
+                   for key in hz for b, (_, k) in enumerate(TOSS_BINS, 1))
+    css += ".tl{display:none}main:has(#m-toss:checked) .tl{display:block}main:has(#m-toss:checked) .sl{display:none}"
     bins = ["κάτω από 0,5", "0,5–1", "1–2", "2 και πάνω"]
+    tkey = ('<li><i class="z"></i>καμία</li>'
+            + "".join(f'<li><i style="background:color-mix(in oklab,var(--ink) {k}%,var(--paper))"></i>{t}</li>'
+                      for (_, k), t in zip(TOSS_BINS, ["1", "2", "3–4", "5 και πάνω"], strict=True)))
     key_ = ('<li><i class="z"></i>σχεδόν καμία</li>'
             + "".join(f'<li><i style="background:color-mix(in oklab,var(--c) {k}%,var(--paper))"></i>{t}</li>'
                       for (_, k), t in zip(MAP_BINS, bins)))
     fold = lambda t: "".join(c for c in unicodedata.normalize("NFD", t) if not unicodedata.combining(c)).upper()
     options = "".join(f'<option value="{ep}">{html.escape(eps[ep]["name"])}</option>'
                       for ep in sorted(eps, key=lambda ep: fold(eps[ep]["name"])))
-    tables = "".join(f'<div class="h{key}">{per_ep(r, order, names)}</div>' for key, r in hz.items())
+    tables = "".join(f'<div class="h{key}">{most_toss(toss[key], eps, names)}{per_ep(r, order, names)}</div>' for key, r in hz.items())
     return css, (f'<h2>Έδρες ανά περιφέρεια, εκλογές <span class="h0">{WHEN["0"]}</span><span class="h180">{WHEN["180"]}</span></h2>'
                  '<p class="note">Πόσες έδρες παίρνει κατά μέσο όρο σε κάθε περιφέρεια το κόμμα που διαλέγεις. Οι μεγάλες '
                  'περιφέρειες έχουν περισσότερες έδρες, γι’ αυτό βγαίνουν συνήθως πιο σκούρες. Οι 15 έδρες Επικρατείας δεν '
-                 'φαίνονται στον χάρτη.</p>'
+                 'φαίνονται στον χάρτη. «Αμφίρροπες έδρες»: πόσες έδρες κάθε περιφέρειας δεν τις κερδίζει κανένα κόμμα σε 65 '
+                 'ή περισσότερες από τις 100 προσομοιώσεις.</p>'
                  f'<fieldset class="pick"><legend>Κόμμα:</legend>{chips}</fieldset>'
-                 f'<p class="legend-t">Μέσος όρος εδρών:</p><ul class="legend bins">{key_}</ul>'
+                 f'<div class="sl"><p class="legend-t">Μέσος όρος εδρών:</p><ul class="legend bins">{key_}</ul></div>'
+                 f'<div class="tl"><p class="legend-t">Αμφίρροπες έδρες:</p><ul class="legend bins">{tkey}</ul></div>'
                  f'<p class="epsel"><label for="ep">Περιφέρεια:</label> <select id="ep"><option value="">διάλεξε…</option>'
                  f'{options}</select></p>'
                  f'<div class="epmap"><figure>{country}</figure>'
@@ -583,12 +832,14 @@ def body(data, order):
     out = []
     for key, r in data["horizons"].items():
         out.append(f'<div class="h{key}">'
-                   + odds(r, key)
+                   + odds(r, key) + partners_html(r, names)
                    + f'<h2>Ποσοστά, εκλογές {WHEN[key]}</h2>' + shares(r, order, names, small)
+                   + second_html(r, key, names)
                    + f'<h2>Έδρες, εκλογές {WHEN[key]}</h2><p class="note">Οι 300 έδρες, με τον μέσο όρο κάθε κόμματος ώστε να '
                      'αθροίζουν σε 300. Τους αριθμούς τους δίνει ο πίνακας. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>'
                      + seatbar(order, names, r)
-                   + seat_table(r, order, names) + histograms(r) + "</div>")
+                   + seat_table(r, order, names) + histograms(r)
+                   + bonus_html(r, key, names) + ladder_html(r, key, names) + "</div>")
     css, section = ep_map(data, order, names)
     return css, "".join(out) + section + samaras(names)
 

@@ -68,6 +68,20 @@ class Metrics(unittest.TestCase):
         self.assertEqual(r["p_pasok_elas_151"], 0)
 
 
+class PageHelpers(unittest.TestCase):
+    def test_ladder(self):  # P(>=1) = P(>=2) = 1, P(>=3) = 0.5, P(>=4) = 0.2
+        import forecast_page as FP
+        self.assertEqual(FP.ladder({"2": 50, "3": 30, "4": 20}), [2, 0, 0, 1, 1])
+
+    def test_contested(self):  # A holds 2 of 4 seats, B holds 1 (its 2nd seat only 0.6): one toss-up seat
+        import forecast_page as FP
+        e = {"seats": 4, "dist": {"A": {"2": .7, "3": .3}, "B": {"1": .4, "2": .6}}}
+        t = FP.contested(e, {"A": {"p_in": 1}, "B": {"p_in": .5}})
+        self.assertEqual(t["n"], 1)
+        self.assertEqual([c[:2] for c in t["cont"]], [("B", 2), ("A", 3)])
+        self.assertEqual(t["edge"], ["B"])
+
+
 @unittest.skipUnless(Path(DB).exists(), "needs data/stavroi.sqlite")
 class AllocateMatchesLaw(unittest.TestCase):
     def test_national_totals(self):
