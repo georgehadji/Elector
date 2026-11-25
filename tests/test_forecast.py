@@ -3,6 +3,7 @@ nikh_seats.allocate gives the same national totals as seats_law.national_seats n
 import random
 import sys
 import unittest
+from datetime import timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -66,6 +67,14 @@ class Metrics(unittest.TestCase):
         self.assertAlmostEqual(r["p_bonus"], 2 / 3)
         self.assertAlmostEqual(r["p_nd_30"], 1 / 3)
         self.assertEqual(r["p_pasok_elas_151"], 0)
+
+
+class AsOf(unittest.TestCase):
+    def test_polls_known_then(self):  # a party with fewer than MIN_POLLS polls by the day is left out of the levels
+        first = F.polls_to("ELAS")[F.MIN_POLLS - 1][0]
+        self.assertTrue(all(o[0] <= first for o in F.polls_to("ND", first)))
+        self.assertNotIn("ELAS", F.levels(as_of=first - timedelta(1)))
+        self.assertIn("ELAS", F.levels(as_of=first))
 
 
 class PageHelpers(unittest.TestCase):

@@ -76,6 +76,7 @@ h3.sub{margin-top:24px}
 .pl{list-style:none;padding:0;margin:4px 0 0}
 .pl li{display:flex;align-items:center;gap:6px;padding:4px 0;max-width:22em}
 .pl b{margin-left:auto;font-variant-numeric:tabular-nums}
+.pl.wide-pl li{max-width:26em}
 .hero.duo{grid-template-columns:repeat(2,minmax(0,16em));margin:16px 0 8px}
 .hero.duo b{font-size:clamp(2rem,1.4rem + 2.4vw,3rem)}
 .ladder li{grid-template-columns:minmax(14em,19em) 1fr}
@@ -180,17 +181,20 @@ a{color:var(--pen)}
 <script>/*SHARED_JS*/</script>
 <script>
 // The view lives in the address, so a shared link opens it again: #180 (in six months), p=<party on the map>,
-// ep=<constituency>, joined by "&" (#180&p=ELAS&ep=45).
+// ep=<constituency>, sam=<level of the Samaras scenario>, joined by "&" (#180&p=ELAS&ep=45).
 const h0 = document.getElementById("h0"), h180 = document.getElementById("h180");
-const parties = [...document.querySelectorAll(".pick input")];
+const parties = [...document.querySelectorAll('input[name="m"]')];
 const sel = document.getElementById("ep");
+const sams = [...document.querySelectorAll('input[name="sam"]')];
 // Map: a tap or focus on a constituency shows its seats for the horizon on screen.
 let on = null;
 // The constituency is marked in both figures (Attica is in each); on a phone the answer sits right under the map.
 const epd = document.querySelector(".epd p"), hint = epd.textContent;
 const save = () => {
   const p = parties.find((r) => r.checked);
-  const s = [h180.checked && "180", p && p !== parties[0] && "p=" + p.id.slice(2), on && "ep=" + on.dataset.ep]
+  const sm = sams.find((r) => r.checked);
+  const s = [h180.checked && "180", p && p !== parties[0] && "p=" + p.id.slice(2), on && "ep=" + on.dataset.ep,
+    sm && !sm.defaultChecked && "sam=" + sm.id.slice(4)]
     .filter(Boolean).join("&");
   history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
 };
@@ -207,6 +211,7 @@ for (const t of location.hash.slice(1).split("&")) {
   if (t === "180") h180.checked = true;
   else if (t.startsWith("p=")) { const r = document.getElementById("m-" + t.slice(2)); if (r) r.checked = true; }
   else if (t.startsWith("ep=") && path(t.slice(3))) show(path(t.slice(3)));
+  else if (t.startsWith("sam=")) { const r = document.getElementById("sam-" + t.slice(4)); if (r) r.checked = true; }
 }
 for (const el of document.querySelectorAll(".epmap path[data-ep]")) {
   el.addEventListener("click", () => { show(el); save(); epd.scrollIntoView({block: "nearest"}); });
@@ -214,7 +219,7 @@ for (const el of document.querySelectorAll(".epmap path[data-ep]")) {
 }
 sel.addEventListener("change", () => { show(sel.value ? path(sel.value) : null); save(); });
 for (const r of [h0, h180]) r.addEventListener("change", () => { if (on) show(on); save(); });
-for (const r of parties) r.addEventListener("change", save);
+for (const r of [...parties, ...sams]) r.addEventListener("change", save);
 </script>
 </body>
 </html>

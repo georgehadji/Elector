@@ -19,7 +19,8 @@ Stands in only while the party has no polls: once its column in nikh_polls.csv h
 forecast.PARTIES (forecast.NEW), this script stops and out/forecast.html shows it as a party of the forecast.
 Unofficial; party columns of the polls come from Wikipedia (polls_wiki.py).
 
-Writes analysis/samaras.json too, for the scenario section of out/forecast.html (forecast_page.py).
+Writes analysis/samaras.json too, for the scenario section of out/forecast.html (forecast_page.py), with a sweep of SAM
+from 2 to 12% (national seats only, main split) for the level chooser there.
 
   python -I -X utf8 analysis/samaras_scenarios.py data/stavroi.sqlite [N] > analysis/samaras_scenarios.txt
 """
@@ -32,6 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
 import forecast as F
+import seats_law as LAW
 
 SAM = "SAM"
 LEVELS = (10, 11, 12)
@@ -46,6 +48,8 @@ OUT = Path(__file__).resolve().parent / "samaras.json"  # read by forecast_page.
 SAM_GEO = ("ΝΔ Ιούνιος 2023", "ΝΔ Ιούνιος 2023, Μεσσηνία ×2", "ΕΛ Ευρωεκλογές 2024", "ομοιόμορφα")
 MAIN_GEO = SAM_GEO[0]
 NAMES = {**{p: n for p, (_, n) in F.PARTIES.items()}, F.OTHER: "Άλλοι", SAM: "Σαμαράς"}
+SWEEP = tuple(range(2, 13))  # levels of the chooser on the page (samaras.json "sweep"; not printed)
+RIGHT = ("EL", "NIKI", "FL", "SE", "SPARTIATES")  # the smaller parties to ND's right, whose 3% SAM puts at risk
 
 
 def shift(sh, level, split):
@@ -107,6 +111,21 @@ def run(draws, level=0, split=None, geo_name=MAIN_GEO):
             for p, v in pv.items():
                 nat[p] = nat.get(p, 0) + v
         out.append((sh, tot, res, bonus_of(nat)))
+    return out
+
+
+def sweep(draws, split):
+    """{level: stats} for every level of SWEEP by the fast path: national seat totals come from the national shares alone
+    (seats_law.national_seats, the same totals as allocate: tests/test_forecast.py), so no constituencies are needed."""
+    out = {}
+    for L in SWEEP:
+        sims = [(s, LAW.national_seats(F.law_votes(s))) for s in (shift(sh, L, split) for sh in draws)]
+        n = len(sims)
+        reach = lambda ps: sum(sum(st.get(x, 0) for x in ps) >= LAW.majority() for _, st in sims) / n
+        out[str(L)] = {"nd": reach(["ND"]), "nd_sam": reach(["ND", SAM]), "nd_pasok": reach(["ND", "PASOK"]),
+                       "nd_elas": reach(["ND", "ELAS"]), "bonus": sum(F.METRICS["p_bonus"](sh, st) for sh, st in sims) / n,
+                       "seats": {x: F.q(sorted(st.get(x, 0) for _, st in sims), .5) for x in ("ND", SAM, "PASOK", "ELAS", *RIGHT)},
+                       "in": {x: sum(x in st for _, st in sims) / n for x in (SAM, *RIGHT)}}
     return out
 
 
@@ -255,4 +274,5 @@ if __name__ == "__main__":
             print(f"  {g:<30}{L:>4}{f"{sum(d > 0 for d in diff)} / {max(diff)}":>12}{moved[SAM]:>11.1f}{moved['ND']:>10.1f}"
                   f"{ep_mean(sims, SAM, MESSINIA):>10.2f}{ep_mean(sims, 'ND', MESSINIA):>9.2f}{ep_mean(sims, SAM, 'state'):>11.2f}")
     print(f"  (χωρίς ΣΑΜ: ΝΔ Μεσσηνία {ep_mean(base, 'ND', MESSINIA):.2f})")
+    js["sweep"] = sweep(draws, SPLITS[MAIN_SPLIT])
     OUT.write_text(json.dumps(js, ensure_ascii=False, indent=1), encoding="utf-8")

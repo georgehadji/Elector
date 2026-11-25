@@ -23,7 +23,7 @@ import sqlite3
 import sys
 import math
 import unicodedata
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
@@ -550,13 +550,40 @@ def dash(a, b):
     return a if a == b else f"{a[:-1]}–{b}" if a[-1] == b[-1] == "%" and a[0].isdigit() and b[0].isdigit() else f"{a}–{b}"
 
 
+def sam_sweep(d, nm):
+    """(css, html): the Samaras party at any level from 2 to 12% (samaras.json "sweep", national seats only), picked with
+    radio chips (#sam=<level> in the address); generated CSS shows the panel of the checked level."""
+    sw = d.get("sweep")
+    if not sw:
+        return "", ""
+    levels = [int(L) for L in sw]
+    first = 10 if 10 in levels else levels[0]
+    chips = "".join(f'<label><input type="radio" name="sam" id="sam-{L}"{" checked" if L == first else ""}>{L}%</label>'
+                    for L in levels)
+    panels = []
+    for L in levels:
+        s = sw[str(L)]
+        seats = " · ".join(f"{html.escape(nm[p])} {v}" for p, v in s["seats"].items() if v)
+        ins = " · ".join(f"{html.escape(nm[p])} {pct(v)}" for p, v in s["in"].items() if p != "SAM")
+        panels.append(f'<div class="slv sl-{L}"><ul class="pl wide-pl">'
+                      f'<li>ΝΔ μόνη 151<b>{pct(s["nd"])}</b></li><li>ΝΔ και κόμμα Σαμαρά 151<b>{pct(s["nd_sam"])}</b></li>'
+                      f'<li>ΝΔ και ΠΑΣΟΚ 151<b>{pct(s["nd_pasok"])}</b></li><li>ΝΔ και ΕΛΑΣ 151<b>{pct(s["nd_elas"])}</b></li>'
+                      f'<li>μπόνους<b>{pct(s["bonus"])}</b></li></ul>'
+                      f'<p class="note">Μεσαίες έδρες: {seats}. Περνούν το 3%: {ins}.</p></div>')
+    css = ".slv{display:none}" + "".join(f"main:has(#sam-{L}:checked) .sl-{L}{{display:block}}" for L in levels)
+    return css, ('<h3 class="sub">Διάλεξε ποσοστό</h3>'
+                 f'<fieldset class="pick"><legend>Κόμμα Σαμαρά:</legend>{chips}</fieldset>' + "".join(panels)
+                 + '<p class="note">Με την κύρια υπόθεση για το από πού έρχονται οι ψήφοι. Μόνο οι έδρες στο σύνολο της χώρας, που '
+                   'βγαίνουν από τα εθνικά ποσοστά. Σενάριο, όχι πρόβλεψη.</p>')
+
+
 def samaras(names):
     """Scenario section from analysis/samaras.json (samaras_scenarios.py): a new party of Antonis Samaras at exactly 10, 11
     or 12%, elections today. Seats and who reaches 151 beside the forecast without it, the two assumptions in words, and how
     much the alternatives move the result. Empty if the file is missing or once the party is in the forecast itself
     (forecast.NEW: it has polls), so a stale scenario never stands beside the real figures."""
     if not SAM_JSON.exists() or "SAM" in names:
-        return ""
+        return "", ""
     d = json.loads(SAM_JSON.read_text(encoding="utf-8"))
     nm = names | {"SAM": "κόμμα Σαμαρά", F.OTHER: "μικρότερα κόμματα"}
     B, levels = d["base"], d["levels"]
@@ -605,7 +632,8 @@ def samaras(names):
     best = ("ND", "SAM", *(p for p in best_c if p not in ("ND", "SAM")))
     for L in levels:
         by[L]["level"] = L
-    return ('<section aria-labelledby="sh"><h2 id="sh">Σενάριο: κόμμα Σαμαρά στο 10, 11 ή 12%, εκλογές σήμερα</h2>'
+    css, chooser = sam_sweep(d, nm)
+    return css, ('<section aria-labelledby="sh"><h2 id="sh">Σενάριο: κόμμα Σαμαρά στο 10, 11 ή 12%, εκλογές σήμερα</h2>'
             '<p class="note">Τι θα γινόταν αν ένα νέο κόμμα του Αντώνη Σαμαρά έπαιρνε ακριβώς 10, 11 ή 12% των έγκυρων ψήφων. '
             'Δεν λέμε ότι θα τα πάρει: το κόμμα δεν έχει δημοσκοπήσεις ούτε εκλογές πίσω του. Είναι οι ίδιες '
             f'{thousands(d["n"])} προσομοιώσεις με παραπάνω, όπου οι ψήφοι του αφαιρούνται από τα άλλα κόμματα.</p>'
@@ -633,7 +661,90 @@ def samaras(names):
             + (f'(διαφορά {worst} έδρας σε έως {differ} από τις {thousands(d["n"])} προσομοιώσεις). ' if differ else
                f'(καμία διαφορά στις {thousands(d["n"])} προσομοιώσεις). ')
             + 'Αλλάζει μόνο σε ποια περιφέρεια '
-            f'εκλέγονται, έως περίπου {num(moved, 0)} έδρες του κόμματος Σαμαρά.</p></details></section>')
+            f'εκλέγονται, έως περίπου {num(moved, 0)} έδρες του κόμματος Σαμαρά.</p></details>' + chooser + '</section>')
+
+
+TREND_JSON = HERE / "analysis" / "forecast_trend.json"
+THERMO_REF = 42  # days back for the change of the 3% thermometer
+THERMO_MIN = 0.05  # a change in the chance of passing 3% of at least this counts as a move
+
+
+def line_svg(pts, series, w, hgt, fs, labels=True):
+    """SVG lines over the dates of pts, y from 0 to 100%: series [(label, colour, dashed, [value 0-1 per point])], each
+    labelled at its right end (labels pushed apart so they do not overlap); labels=False: no labels, for a legend below."""
+    ds = [date.fromisoformat(p["date"]) for p in pts]
+    span = max((ds[-1] - ds[0]).days, 1)
+    left, right, tp, bottom = 2.6 * fs, (9.5 if labels else 0.6) * fs, 0.8 * fs, 2 * fs
+    X = lambda d: left + (d - ds[0]).days / span * (w - left - right)
+    Y = lambda v: tp + (hgt - tp - bottom) * (1 - v)
+    out = [f'<svg viewBox="0 0 {w} {hgt}" style="font-size:{fs}px" aria-hidden="true">']
+    for v in (0, .25, .5, .75, 1):
+        out.append(f'<line class="grid" x1="{left}" x2="{w - right}" y1="{Y(v):.1f}" y2="{Y(v):.1f}"/>'
+                   f'<text class="ax-l" x="{left - 0.4 * fs}" y="{Y(v) + 0.35 * fs:.1f}" text-anchor="end">{round(100 * v)}%</text>')
+    m = date(ds[0].year, ds[0].month, 1)
+    while m <= ds[-1]:
+        if m >= ds[0]:
+            out.append(f'<text class="ax-l" x="{X(m):.1f}" y="{hgt - bottom + 1.3 * fs:.1f}" text-anchor="middle">{MONTHS[m.month - 1]}</text>')
+        m = date(m.year + m.month // 12, m.month % 12 + 1, 1)
+    ends = []
+    for label, c, dashed, ys in series:
+        dash_ = ";stroke-dasharray:5 4" if dashed else ""
+        out.append(f'<polyline points="{" ".join(f"{X(d):.1f},{Y(v):.1f}" for d, v in zip(ds, ys, strict=True))}" '
+                   f'style="fill:none;stroke:{c};stroke-width:2;stroke-linejoin:round{dash_}"/>')
+        ends.append([Y(ys[-1]), label, c, ys[-1]])
+    ends.sort()
+    for i in range(1, len(ends)):  # push labels down so each sits at least one line below the one above
+        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 1.15 * fs)
+    for y, label, c, v in ends if labels else ():
+        out.append(f'<text x="{w - right + 0.5 * fs:.1f}" y="{y + 0.35 * fs:.1f}" style="fill:var(--ink)">'
+                   f'<tspan style="fill:{c}">■</tspan> {html.escape(label)} {pct(v)}</text>')
+    return "".join(out) + "</svg>"
+
+
+def trend_html(names):
+    """§1, the forecast over time (forecast_trend.py): majorities and the bonus, second place, ND at 30%, and the
+    thermometer of the 3%. Elections today only; empty when forecast_trend.json is missing."""
+    if not TREND_JSON.exists():
+        return ""
+    t = json.loads(TREND_JSON.read_text(encoding="utf-8"))
+    pts, last = t["points"], t["points"][-1]
+    if len(pts) < 2:
+        return ""
+    rate = lambda k: [p["rates"][k] for p in pts]
+    main_ = [("ΝΔ μόνη 151", colour("ND"), False, rate("p_nd_majority")),
+             ("ΝΔ και ΠΑΣΟΚ 151", colour("PASOK"), False, rate("p_nd_pasok_151")),
+             ("ΝΔ και ΕΛΑΣ 151", colour("ELAS"), False, rate("p_nd_elas_151")),
+             ("χωρίς μπόνους", "var(--ink-2)", True, [1 - v for v in rate("p_bonus")])]
+    pair = sorted(last["p_second"], key=lambda p: -last["p_second"][p])[:2]
+    second = [(f"{names[p]} δεύτερο", colour(p), False, [x["p_second"].get(p, 0) for x in pts]) for p in pair]
+    second.append(("ΝΔ 30% και πάνω", colour("ND"), True, rate("p_nd_30")))
+    key_ = lambda s: "".join(f'<li><i style="--c:{c}"></i>{html.escape(label)} <b>{pct(ys[-1])}</b></li>' for label, c, _, ys in s)
+    fig = lambda s, cap: (f'<figure><div class="wide">{line_svg(pts, s, 640, 220, 12)}</div>'
+                          f'<div class="narrow">{line_svg(pts, s, 360, 220, 12, labels=False)}<ul class="legend">{key_(s)}</ul></div>'
+                          f'<figcaption>{cap}</figcaption></figure>')
+    # the 3% thermometer: parties whose chance of passing was between 5 and 95 in 100 on some day
+    ref_day = date.fromisoformat(last["date"]) - timedelta(THERMO_REF)
+    ref = next((p for p in reversed(pts) if date.fromisoformat(p["date"]) <= ref_day), pts[0])
+    edge = [p for p in last["p_in"] if any(0.05 < x["p_in"].get(p, 0) < 0.95 for x in pts)]
+    rows = []
+    for p in sorted(edge, key=lambda p: -last["p_in"][p]):
+        now, then = last["p_in"][p], ref["p_in"].get(p)
+        move = ("—" if then is None else "ανεβαίνει" if now - then >= THERMO_MIN else "πέφτει" if then - now >= THERMO_MIN
+                else "περίπου ίδιο")
+        rows.append(f'<tr><td><span class="sw" style="--c:{colour(p)}"></span>{html.escape(names[p])}</td>'
+                    f'<td class="n">{"—" if then is None else pct(then)}</td><td class="n">{pct(now)}</td><td>{move}</td></tr>')
+    thermo = ('<h3 class="sub">Το όριο του 3%: ποιος πλησιάζει</h3>'
+              f'<div class="wrap"><table><thead><tr><th>κόμμα</th><th class="n">περνά, {day(ref["date"])}</th>'
+              f'<th class="n">περνά, {day(last["date"])}</th><th>πορεία</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
+              f'<p class="note">«Ανεβαίνει» ή «πέφτει»: αλλαγή {round(100 * THERMO_MIN)} μονάδων και πάνω στις {THERMO_REF // 7} '
+              'εβδομάδες. «—»: δεν είχε ακόμη αρκετές δημοσκοπήσεις για να μπει στην πρόβλεψη.</p>' if rows else "")
+    return ('<div class="h0"><h2>Πώς άλλαξε η πρόβλεψη</h2>'
+            f'<p class="note">Η ίδια πρόβλεψη, με τη σημερινή μέθοδο και μόνο τις δημοσκοπήσεις που είχαν τελειώσει κάθε '
+            f'ημερομηνία, ανά {t["step"]} ημέρες από τις {day(t["start"])}, όταν η {names[t["anchor"]]} είχε αρκετές '
+            'δημοσκοπήσεις για να μπει. Κόμμα με λίγες δημοσκοπήσεις ως τότε μετρά στα «άλλα».</p>'
+            + fig(main_, 'Σε πόσες από τις 100 προσομοιώσεις, κάθε ημερομηνία. Διακεκομμένη: κανένα κόμμα στο 25%, άρα χωρίς μπόνους.')
+            + fig(second, 'Ποιο κόμμα βγαίνει δεύτερο, και πόσο συχνά η ΝΔ φτάνει το 30%.')
+            + thermo + "</div>")
 
 
 def ep_geometries():
@@ -875,7 +986,8 @@ def body(data, order):
                    + seat_table(r, order, names) + histograms(r)
                    + bonus_html(r, key, names) + ladder_html(r, key, names) + "</div>")
     css, section = ep_map(data, order, names)
-    return css, "".join(out) + section + samaras(names) + rules(data)
+    sam_css, sam = samaras(names)
+    return css + sam_css, "".join(out) + trend_html(names) + section + sam + rules(data)
 
 
 def main():

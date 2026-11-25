@@ -2244,5 +2244,293 @@
     "sam_messinia": 0.9794
    }
   }
+ },
+ "sweep": {
+  "2": {
+   "nd": 0.0043,
+   "nd_sam": 0.0043,
+   "nd_pasok": 0.598,
+   "nd_elas": 0.7688,
+   "bonus": 0.8261,
+   "seats": {
+    "ND": 112,
+    "SAM": 0,
+    "PASOK": 42,
+    "ELAS": 49,
+    "EL": 21,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 0.0,
+    "EL": 1.0,
+    "NIKI": 0.012,
+    "FL": 0.8377,
+    "SE": 0.8347,
+    "SPARTIATES": 0.0029
+   }
+  },
+  "3": {
+   "nd": 0.0018,
+   "nd_sam": 0.0083,
+   "nd_pasok": 0.4282,
+   "nd_elas": 0.6262,
+   "bonus": 0.756,
+   "seats": {
+    "ND": 107,
+    "SAM": 9,
+    "PASOK": 41,
+    "ELAS": 49,
+    "EL": 20,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 0.9248,
+    "EL": 0.9999,
+    "NIKI": 0.0108,
+    "FL": 0.8248,
+    "SE": 0.8236,
+    "SPARTIATES": 0.0027
+   }
+  },
+  "4": {
+   "nd": 0.0009,
+   "nd_sam": 0.0085,
+   "nd_pasok": 0.3267,
+   "nd_elas": 0.5185,
+   "bonus": 0.6696,
+   "seats": {
+    "ND": 104,
+    "SAM": 13,
+    "PASOK": 41,
+    "ELAS": 49,
+    "EL": 20,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.9997,
+    "NIKI": 0.0099,
+    "FL": 0.8101,
+    "SE": 0.8113,
+    "SPARTIATES": 0.0027
+   }
+  },
+  "5": {
+   "nd": 0.0005,
+   "nd_sam": 0.0086,
+   "nd_pasok": 0.2515,
+   "nd_elas": 0.4226,
+   "bonus": 0.5812,
+   "seats": {
+    "ND": 100,
+    "SAM": 16,
+    "PASOK": 42,
+    "ELAS": 50,
+    "EL": 20,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.9992,
+    "NIKI": 0.0092,
+    "FL": 0.795,
+    "SE": 0.7992,
+    "SPARTIATES": 0.0027
+   }
+  },
+  "6": {
+   "nd": 0.0002,
+   "nd_sam": 0.0085,
+   "nd_pasok": 0.1847,
+   "nd_elas": 0.3285,
+   "bonus": 0.4817,
+   "seats": {
+    "ND": 86,
+    "SAM": 19,
+    "PASOK": 42,
+    "ELAS": 50,
+    "EL": 20,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.9987,
+    "NIKI": 0.0085,
+    "FL": 0.7815,
+    "SE": 0.7873,
+    "SPARTIATES": 0.0027
+   }
+  },
+  "7": {
+   "nd": 0.0,
+   "nd_sam": 0.0087,
+   "nd_pasok": 0.1308,
+   "nd_elas": 0.2512,
+   "bonus": 0.39,
+   "seats": {
+    "ND": 81,
+    "SAM": 23,
+    "PASOK": 43,
+    "ELAS": 50,
+    "EL": 19,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.998,
+    "NIKI": 0.0075,
+    "FL": 0.7655,
+    "SE": 0.775,
+    "SPARTIATES": 0.0026
+   }
+  },
+  "8": {
+   "nd": 0.0,
+   "nd_sam": 0.0089,
+   "nd_pasok": 0.0888,
+   "nd_elas": 0.181,
+   "bonus": 0.3047,
+   "seats": {
+    "ND": 79,
+    "SAM": 26,
+    "PASOK": 43,
+    "ELAS": 51,
+    "EL": 19,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.9976,
+    "NIKI": 0.0069,
+    "FL": 0.7532,
+    "SE": 0.7636,
+    "SPARTIATES": 0.0026
+   }
+  },
+  "9": {
+   "nd": 0.0,
+   "nd_sam": 0.0089,
+   "nd_pasok": 0.0577,
+   "nd_elas": 0.1273,
+   "bonus": 0.2246,
+   "seats": {
+    "ND": 76,
+    "SAM": 30,
+    "PASOK": 43,
+    "ELAS": 51,
+    "EL": 19,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.9956,
+    "NIKI": 0.0068,
+    "FL": 0.7399,
+    "SE": 0.7503,
+    "SPARTIATES": 0.0026
+   }
+  },
+  "10": {
+   "nd": 0.0,
+   "nd_sam": 0.0097,
+   "nd_pasok": 0.0381,
+   "nd_elas": 0.0867,
+   "bonus": 0.1663,
+   "seats": {
+    "ND": 74,
+    "SAM": 33,
+    "PASOK": 44,
+    "ELAS": 51,
+    "EL": 19,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.9933,
+    "NIKI": 0.0064,
+    "FL": 0.7235,
+    "SE": 0.737,
+    "SPARTIATES": 0.0025
+   }
+  },
+  "11": {
+   "nd": 0.0,
+   "nd_sam": 0.0097,
+   "nd_pasok": 0.0234,
+   "nd_elas": 0.056,
+   "bonus": 0.1139,
+   "seats": {
+    "ND": 72,
+    "SAM": 37,
+    "PASOK": 44,
+    "ELAS": 52,
+    "EL": 18,
+    "NIKI": 0,
+    "FL": 12,
+    "SE": 12,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.9904,
+    "NIKI": 0.0057,
+    "FL": 0.7092,
+    "SE": 0.723,
+    "SPARTIATES": 0.0023
+   }
+  },
+  "12": {
+   "nd": 0.0,
+   "nd_sam": 0.0104,
+   "nd_pasok": 0.0137,
+   "nd_elas": 0.0344,
+   "bonus": 0.079,
+   "seats": {
+    "ND": 69,
+    "SAM": 40,
+    "PASOK": 44,
+    "ELAS": 52,
+    "EL": 18,
+    "NIKI": 0,
+    "FL": 11,
+    "SE": 11,
+    "SPARTIATES": 0
+   },
+   "in": {
+    "SAM": 1.0,
+    "EL": 0.9854,
+    "NIKI": 0.0052,
+    "FL": 0.694,
+    "SE": 0.7118,
+    "SPARTIATES": 0.0023
+   }
+  }
  }
 }

@@ -174,28 +174,37 @@ def firm_weights(obs):
     return {f: w[PR.firm_of(f)] for f in {o[1] for o in obs} if PR.firm_of(f) in w}
 
 
-@cache
-def _fit(party, weighted):
+def polls_to(party, as_of=None):
+    """The party's polls [(day, firm, n, pct)] that had ended by as_of (all of them when as_of is None)."""
     obs = NP.load(PARTIES[party][0])
+    return obs if as_of is None else [o for o in obs if o[0] <= as_of]
+
+
+@cache
+def _fit(party, weighted, as_of):
+    obs = polls_to(party, as_of)
     return (obs, *NP.fit(obs, QS, TAUS, wt=firm_weights(obs) if weighted else None))
 
 
-def fitted(party, weighted=False):
+def fitted(party, weighted=False, as_of=None):
     """(obs, house effects, q, tau2, loglik) for one party code. weighted: polls of firms with a better record count more.
-    One cache entry per (party, weighted) however it is called."""
-    return _fit(party, bool(weighted))
+    as_of: only the polls ended by that day, so the fit (house effects, q, tau) knows nothing later. One cache entry per
+    (party, weighted, as_of) however it is called."""
+    return _fit(party, bool(weighted), as_of)
 
 
-def estimate(party, horizon_days=0, weighted=False):
-    """(mean, sd) of the party's level (% of valid votes, average firm) at nikh_polls.TODAY + horizon_days."""
-    obs, h, q, tau2, _ = fitted(party, weighted)
+def estimate(party, horizon_days=0, weighted=False, as_of=None):
+    """(mean, sd) of the party's level (% of valid votes, average firm) at as_of (default nikh_polls.TODAY) + horizon_days."""
+    obs, h, q, tau2, _ = fitted(party, weighted, as_of)
     x, P, _, _ = NP.kfilter(obs, h, q, tau2, wt=firm_weights(obs) if weighted else None)[0][-1]
-    return x, math.sqrt(P + q * ((NP.TODAY - obs[-1][0]).days + horizon_days))
+    return x, math.sqrt(P + q * (((as_of or NP.TODAY) - obs[-1][0]).days + horizon_days))
 
 
-def levels(horizon_days=0, weighted=False):
-    """{party: (mean, sd)}; OTHER = 100 - the sum (floor 0.5), sd that of the sum (parties taken as independent)."""
-    out = {p: estimate(p, horizon_days, weighted) for p in PARTIES}
+def levels(horizon_days=0, weighted=False, as_of=None):
+    """{party: (mean, sd)}; OTHER = 100 - the sum (floor 0.5), sd that of the sum (parties taken as independent).
+    With as_of, a party with fewer than MIN_POLLS polls by then is left out (its share is in OTHER), the rule of NEW."""
+    ps = [p for p in PARTIES if as_of is None or len(polls_to(p, as_of)) >= MIN_POLLS]
+    out = {p: estimate(p, horizon_days, weighted, as_of) for p in ps}
     out[OTHER] = (max(0.5, 100 - sum(x for x, _ in out.values())), math.sqrt(sum(sd * sd for _, sd in out.values())))
     return out
 
@@ -235,9 +244,9 @@ def draw(rng, lv, a, b):
     return {p: 100 * v / s for p, v in out.items()}
 
 
-def simulate(n=20000, horizon_days=0, national=True, seed=2026):
-    """n draws of election-day shares (list of dicts)."""
-    rng, lv = random.Random(seed), levels(horizon_days)
+def simulate(n=20000, horizon_days=0, national=True, seed=2026, as_of=None):
+    """n draws of election-day shares (list of dicts); as_of: with the polls known that day (levels)."""
+    rng, lv = random.Random(seed), levels(horizon_days, as_of=as_of)
     a, b, _ = error_fit(national)
     return [draw(rng, lv, a, b) for _ in range(n)]
 
@@ -280,14 +289,18 @@ def spread(shares, V, geo, rng=None, sd=GEO_SD):
     return out
 
 
+def law_votes(sh):
+    """Shares as the law sees them: OTHER is many small lists, never one party at 3%, so it is split in 10, which the law
+    counts in the valid votes only."""
+    return {p: s for p, s in sh.items() if p != OTHER} | {f"{OTHER}{i}": sh[OTHER] / 10 for i in range(10)}
+
+
 def seat_sims(n=10000, horizon_days=0, seed=2026, variant=MAIN):
     """[(shares, {party: seats}, {party: {ep or 'state': seats}})] for n draws; parties under 3% have no entry."""
     S, (V, geo), rng = seats_module(), geography(variant), random.Random(seed + 1)
     out = []
     for sh in simulate(n, horizon_days, seed=seed):
-        # OTHER is many small lists, never one party at 3%: split in 10 for the law, which counts them in the valid votes only
-        votes = {p: s for p, s in sh.items() if p != OTHER} | {f"{OTHER}{i}": sh[OTHER] / 10 for i in range(10)}
-        res, _ = S.allocate(spread(votes, V, geo, rng))
+        res, _ = S.allocate(spread(law_votes(sh), V, geo, rng))
         tot = {p: sum(v.values()) for p, v in res.items()}
         assert sum(tot.values()) == 300 and not any(p.startswith(OTHER) for p in tot), tot
         out.append((sh, tot, res))
