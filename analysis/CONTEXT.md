@@ -54,7 +54,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_census.py` | db, 2021 census | `nikh_census.txt` | 15 |
 | `nikh_map.py` (+ `nikh_map_template.html`) | db | `out/nikh_2023-2024.html` | — |
 | `nikh_polls_page.py` (+ `nikh_polls_template.html`) | `nikh_polls*.csv`, `nikh_polls.py` | `out/nikh_polls.html` | 16 |
-| `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `nikh_polls.csv` | `out/forecast.html` | — |
+| `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `nikh_polls.csv`, db (constituency outlines for the map) | `out/forecast.html` | — |
 
 Not NIKH: `field_ops*`, `venue_*`, `client*`, `stats.py` (shared helpers, no catalog entry).
 Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done).

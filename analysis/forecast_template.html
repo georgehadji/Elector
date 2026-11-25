@@ -105,6 +105,24 @@ tr.state td{font-weight:600}
 .method p{max-width:66ch;margin:6px 0}
 .rel{font-size:.8125rem;margin:18px 0 0;color:var(--ink-2)}
 a{color:var(--pen)}
+.pick{display:flex;flex-wrap:wrap;gap:0 14px;margin:8px 0 0;padding:0;border:0;font-size:.875rem}
+.pick legend{float:left;padding:0;margin-right:4px;font-weight:600;line-height:44px}
+.pick label{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer}
+.pick input{margin:0;accent-color:var(--pen)}
+.pick i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--c)}
+.epmap{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:flex-start}
+.epmap figure{margin:8px 0 0}
+.epmap figure:first-child{flex:1 1 420px;max-width:520px}
+.epmap figure:last-child{flex:0 1 260px}
+.epmap svg{display:block;width:100%;height:auto;overflow:hidden}
+.epmap path{fill:var(--wash);stroke:var(--paper);stroke-width:.7;stroke-linejoin:round;cursor:pointer;outline:none}
+.epmap path.none{cursor:default}
+.epmap path:hover,.epmap path:focus-visible{stroke:var(--ink-2);stroke-width:1.2}
+.epmap path.on{stroke:var(--ink);stroke-width:1.6}
+/*MAP_CSS*/
+.legend.bins i{border-radius:2px}
+.legend.bins i.z{background:var(--wash)}
+.epd{min-height:3em;margin:8px 0 0;font-size:.875rem;max-width:68ch}
 </style>
 </head>
 <body>
@@ -134,6 +152,20 @@ const h0 = document.getElementById("h0"), h180 = document.getElementById("h180")
 if (location.hash === "#180") h180.checked = true;
 for (const r of [h0, h180])
   r.addEventListener("change", () => history.replaceState(null, "", h180.checked ? "#180" : location.pathname + location.search));
+// Map: a tap or focus on a constituency shows its seats for the horizon on screen.
+let on = null;
+const epd = document.querySelector(".epd");
+const show = (el) => {
+  if (on) on.classList.remove("on");
+  on = el;
+  el.classList.add("on");
+  epd.textContent = el.dataset[h180.checked ? "d180" : "d0"];
+};
+for (const el of document.querySelectorAll(".epmap path[tabindex]")) {
+  el.addEventListener("click", () => show(el));
+  el.addEventListener("focus", () => show(el));
+}
+for (const r of [h0, h180]) r.addEventListener("change", () => { if (on) show(on); });
 </script>
 </body>
 </html>

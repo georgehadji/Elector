@@ -1,10 +1,12 @@
 """National election forecast -> out/forecast.html, from analysis/forecast.json (run analysis/forecast.py with the database
 first; this script needs neither the database nor a simulation).
 
-Shown for an election today and in 180 days (radio buttons, CSS :has(), no script): the three probabilities, each party's
+Shown for an election today and in 180 days (radio buttons, CSS :has()): who reaches 151 seats, each party's
 share (median and 80% range, with P(>= 3%); parties under 3% today folded away), expected seats as one 300-seat bar and
 per coalition, seat ranges with and without the bonus, the histograms of ND's seats alone and with PASOK or ELAS, and the
-expected seats per constituency. Charts are HTML/SVG built here (no
+expected seats per constituency as a map (one party at a time, radio buttons again) and a table. The map's outlines are the
+ELSTAT 2021 municipal units of each constituency's polling stations in June 2023, read from the database (data/stavroi.sqlite);
+the rest comes from forecast.json. Charts are HTML/SVG built here (no
 chart library); the histograms have a wide and a narrow drawing, the CSS shows one.
 Party colours: the reference palette of the dataviz skill in its validated order (adjacent pairs in the seat bar pass the
 colour-vision checks in both themes, against INDEX_LIGHT/INDEX_DARK paper); parties past the eighth are grey.
@@ -14,6 +16,7 @@ colour-vision checks in both themes, against INDEX_LIGHT/INDEX_DARK paper); part
 import csv
 import html
 import json
+import sqlite3
 import sys
 from datetime import date
 from pathlib import Path
@@ -22,7 +25,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I dro
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import forecast as F
 
-from config import HERE, slug
+from config import DB, HERE, slug
+from geo import boundary, frame, path
+from matching import boundaries, centroid, match_units
 from web import INDEX_DARK, INDEX_LIGHT, fill, meta, secure
 
 OUT = HERE / "out" / "forecast.html"
@@ -307,6 +312,85 @@ def per_ep(r, order, names):
             + "".join(rows) + "</tbody></table></div></details>")
 
 
+def ep_geometries():
+    """{constituency id: [municipal unit geometries]}: the units of its polling stations in June 2023, matched by name as
+    build.py does; plus the units in no constituency (Mount Athos) under None, drawn blank."""
+    units = boundaries()[0]
+    db = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+    dens = {}
+    for ep, den in db.execute("SELECT DISTINCT ep_id, den_descr FROM station WHERE election=? AND den_descr<>''",
+                              (MAP_ELECTION,)):
+        dens.setdefault(str(ep), set()).add(den)
+    out = {ep: [u["geometry"] for u in match_units(names, units).values()] for ep, names in dens.items()}
+    owned = {id(g) for gs in out.values() for g in gs}
+    out[None] = [u["geometry"] for u in units if id(u["geometry"]) not in owned]
+    return out
+
+
+MAP_BINS = ((0.2, 30), (0.4, 50), (0.6, 72), (1.01, 95))  # share of the constituency's seats -> % of the party colour
+
+
+def ep_map(data, order, names):
+    """Expected seats per constituency on a map of Greece with Attica enlarged beside it: for the party picked (radio
+    buttons), the share of each constituency's seats it wins on average, in four steps of its colour. Each region carries
+    the class of its step per horizon and party; generated CSS lights the classes of the checked pair. A tap or focus
+    shows every party's seats in that constituency below the map."""
+    geoms = ep_geometries()
+    hz = data["horizons"]
+    eps = {ep: e for ep, e in hz["0"]["eps"].items() if ep != "state"}
+    attica = [ep for ep, e in eps.items() if any(w in e["name"] for w in ("Αθην", "Πειρ", "Αττικ"))]
+    means = {key: {ep: {p: mean_seats(d) for p, d in r["eps"][ep]["dist"].items()} for ep in eps} for key, r in hz.items()}
+    total = {p: sum(m.get(p, 0) for m in means["0"].values()) for p in names}
+    picks = [p for p in sorted(total, key=lambda p: -total[p]) if total[p] >= 1]
+
+    def step(ep, key, p):
+        share = means[key][ep].get(p, 0) / eps[ep]["seats"]
+        return 0 if means[key][ep].get(p, 0) < 0.05 else next(i for i, (hi, _) in enumerate(MAP_BINS, 1) if share < hi)
+
+    def detail(ep, key):
+        m = sorted(((p, v) for p, v in means[key][ep].items() if v >= 0.05), key=lambda pv: -pv[1])
+        return f'{eps[ep]["name"]}, {eps[ep]["seats"]} έδρες: ' + " · ".join(f"{names[p]} {num(v)}" for p, v in m)
+
+    def svg(shown, size, label, box=None):
+        """`box` (lon, lat, lon, lat): frame only the units inside it; the rest is drawn but falls outside the view."""
+        inside = [g for ep in shown for g in geoms[ep]
+                  if box is None or box[0] < centroid(g)[0] < box[2] and box[1] < centroid(g)[1] < box[3]]
+        to_xy, w, h = frame(inside, size)
+        out = []
+        for ep in shown:
+            d = path(boundary(geoms[ep]), to_xy, tol=0.5, min_area=0.6)
+            if not d:
+                continue
+            if ep is None:
+                out.append(f'<path class="none" d="{d}"/>')
+                continue
+            cls = " ".join(f"h{key}-{p}-{step(ep, key, p)}" for key in hz for p in picks)
+            data_ = "".join(f' data-d{key}="{html.escape(detail(ep, key), quote=True)}"' for key in hz)
+            out.append(f'<path class="{cls}" d="{d}" tabindex="0" aria-label="{html.escape(eps[ep]["name"], quote=True)}"'
+                       f'{data_}/>')
+        return f'<svg viewBox="0 0 {w} {h}" role="group" aria-label="{label}">' + "".join(out) + "</svg>"
+
+    country = svg([*(ep for ep in eps), None], 440, "Χάρτης της Ελλάδας ανά εκλογική περιφέρεια")
+    zoom = svg(attica, 260, "Αττική σε μεγέθυνση", box=(22.8, 37.6, 24.2, 38.4))  # without Kythira and the far islands
+    chips = "".join(f'<label><input type="radio" name="m" id="m-{p}"{" checked" if i == 0 else ""}>'
+                    f'<i style="--c:{colour(p)}"></i>{html.escape(names[p])}</label>' for i, p in enumerate(picks))
+    css = "".join(f"main:has(#h{key}:checked):has(#m-{p}:checked) .h{key}-{p}-{b}"
+                  f"{{fill:color-mix(in oklab,{'var(--mute)' if p in HATCHED else colour(p)} {k}%,var(--paper))}}"
+                  for key in hz for p in picks for b, (_, k) in enumerate(MAP_BINS, 1))
+    bins = ["κάτω από 20%", "20–40%", "40–60%", "60% και πάνω"]
+    key_ = ('<li><i class="z"></i>καμία</li>'
+            + "".join(f'<li><i style="background:color-mix(in oklab,var(--ink-2) {k}%,var(--paper))"></i>{t}</li>'
+                      for (_, k), t in zip(MAP_BINS, bins)))
+    tables = "".join(f'<div class="h{key}">{per_ep(r, order, names)}</div>' for key, r in hz.items())
+    return css, (f'<h2>Έδρες ανά περιφέρεια, εκλογές <span class="h0">{WHEN["0"]}</span><span class="h180">{WHEN["180"]}</span></h2>'
+                 '<p class="note">Τι μέρος των εδρών κάθε περιφέρειας παίρνει κατά μέσο όρο το κόμμα που διαλέγεις. Πάτησε μια '
+                 'περιφέρεια για τις έδρες όλων των κομμάτων εκεί. Οι 15 έδρες Επικρατείας δεν φαίνονται στον χάρτη.</p>'
+                 f'<fieldset class="pick"><legend>Κόμμα:</legend>{chips}</fieldset>'
+                 f'<div class="epmap"><figure>{country}</figure><figure>{zoom}<figcaption>Αττική σε μεγέθυνση</figcaption></figure></div>'
+                 f'<ul class="legend bins">{key_}</ul>'
+                 '<p class="epd" aria-live="polite">Πάτησε μια περιφέρεια.</p>' + tables)
+
+
 def method(n_sims, n_polls, err, sens):
     a, b, n_pairs = err
     moved = max(max(s["moved"].values()) for s in sens.values())
@@ -349,8 +433,9 @@ def body(data, order):
                    + f'<h2>Έδρες, εκλογές {WHEN[key]}</h2><p class="note">Οι 300 έδρες, με τον μέσο όρο κάθε κόμματος ώστε να '
                      'αθροίζουν σε 300. Τους αριθμούς τους δίνει ο πίνακας. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>'
                      + seatbar(order, names, r)
-                   + seat_table(r, order, names) + histograms(r) + per_ep(r, order, names) + "</div>")
-    return "".join(out)
+                   + seat_table(r, order, names) + histograms(r) + "</div>")
+    css, section = ep_map(data, order, names)
+    return css, "".join(out) + section
 
 
 def main():
@@ -364,11 +449,12 @@ def main():
                '(η ΝΙΚΗ ελεγμένη με τις εταιρείες), αποτελέσματα από το Υπουργείο Εσωτερικών. '
                '<a href="nikh_polls.html">Η ΝΙΚΗ στις δημοσκοπήσεις</a> · <a href="index.html">Όλοι οι χάρτες</a>')
     page = (HERE / "analysis" / "forecast_template.html").read_text(encoding="utf-8")
+    map_css, body_html = body(data, order)
     n_sims = today["n"]
     for a, b in (("<!--META-->", meta("Πρόβλεψη βουλευτικών εκλογών",
                                       "Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.")),
                  ("<!--LEAD-->", leads), ("<!--N-->", thousands(n_sims)), ("<!--ASOF-->", day(data["as_of"])),
-                 ("<!--BODY-->", body(data, order)),
+                 ("<!--BODY-->", body_html), ("/*MAP_CSS*/", map_css),
                  ("<!--METHOD-->", method(n_sims, n_polls, F.error_fit(), data["sensitivity"])), ("<!--SOURCES-->", sources)):
         assert a in page, a
         page = page.replace(a, b)
