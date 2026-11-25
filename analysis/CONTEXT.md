@@ -45,6 +45,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_polls.py` | `nikh_polls*.csv` | `nikh_polls.txt` | 16, 17 |
 | `nikh_pollerror.py` | `nikh_pollerror.csv` | `nikh_pollerror.txt` | 18 |
 | `forecast.py` [db [N]] (national forecast, steps 1-3: poll average of every party, ballot error, seats) | `nikh_polls.csv`, `nikh_polls.py`, `nikh_pollerror.csv`, `nikh_pollerror.py`, db + `nikh_seats.py` (step 3) | `forecast.txt`, `forecast.json` | — |
+| `samaras_scenarios.py` [db [N]] (not NIKH: a Samaras party at 10/11/12%, seats, majorities, bonus; source split and geography are judgement, both varied) | `forecast.py` (`simulate`, `spread`, `geography`), db + `nikh_seats.py` | `samaras_scenarios.txt` | — |
 | `nikh_flows.py` | `nikh_polls.csv` | `nikh_flows.txt` | 19 |
 | `nikh_montecarlo.py` | db, `nikh_polls.py`, `nikh_pollerror.py`, `nikh_seats.py`, `zones.py` | `nikh_montecarlo.txt` | 9, 16, 18 |
 | `nikh_abstention.py` | db | `nikh_abstention.txt` | 10 |
