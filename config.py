@@ -82,6 +82,9 @@ CREATE TABLE IF NOT EXISTS party_votes(election TEXT, tm_id INT, party_id INT, v
     PRIMARY KEY(election, tm_id, party_id));
 CREATE TABLE IF NOT EXISTS cand_votes(election TEXT, tm_id INT, party_id INT, cand_id INT, votes INT,
     PRIMARY KEY(election, tm_id, party_id, cand_id));
+-- Where each station of voters abroad is (from its station file; 2023 on).
+CREATE TABLE IF NOT EXISTS abroad(election TEXT, tm_id INT, continent TEXT, country TEXT, city TEXT,
+    PRIMARY KEY(election, tm_id));
 -- Written by build.py: the ELSTAT 2021 local community (KAL2022 code) each mapped station lies in.
 CREATE TABLE IF NOT EXISTS area_match(election TEXT, tm_id INT, comm_code TEXT, PRIMARY KEY(election, tm_id));
 CREATE INDEX IF NOT EXISTS area_match_comm ON area_match(comm_code);

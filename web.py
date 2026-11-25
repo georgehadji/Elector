@@ -563,7 +563,8 @@ def _write_index(order, nikh, elected):
 </header>
 <section class="country" aria-labelledby="ct"><h2 id="ct">Χάρτες και εργαλεία για όλη τη χώρα</h2><div class="cg">
 <div class="main"><h3><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p><p class="els">{" · ".join(ELECTION_NAMES.values())}</p>
-<h3><a href="forecast.html">Πρόβλεψη βουλευτικών εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.</p></div>
+<h3><a href="forecast.html">Πρόβλεψη βουλευτικών εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.</p>
+<h3><a href="abroad.html">Εξωτερικό και επιστολική ψήφος <span aria-hidden="true">&rarr;</span></a></h3><p>Πώς ψήφισαν οι Έλληνες του εξωτερικού ανά χώρα και πόλη, και όσοι ψήφισαν επιστολικά.</p></div>
 <div id="tm"><h3>Αναφορές και εξαγωγές</h3><p>Αναλυτικές αναφορές ανά κόμμα και εκλογή, με δεδομένα για λήψη.</p>
 <ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
 <li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>
@@ -577,7 +578,7 @@ def _write_index(order, nikh, elected):
 <nav class="jump" aria-label="Περιφέρειες">{jump}<label class="rsel">Περιφέρεια <select></select></label></nav>
 {groups}
 </section>
-{footer(" Οι ψήφοι των ειδικών τμημάτων (ετεροδημότες κ.ά.), οι επιστολικές και οι ψήφοι του εξωτερικού δεν έχουν θέση στον χάρτη· οι αριθμοί τους είναι σε κάθε σελίδα «Κάλυψη χαρτών».", home=False)}
+{footer(" Οι ψήφοι των ειδικών τμημάτων (ετεροδημότες κ.ά.), οι επιστολικές και οι ψήφοι του εξωτερικού δεν έχουν θέση στον χάρτη· οι αριθμοί τους είναι σε κάθε σελίδα «Κάλυψη χαρτών» και η ανάλυσή τους στη σελίδα «Εξωτερικό και επιστολική ψήφος».", home=False)}
 </main><script>/*SHARED_JS*/</script><script>{INDEX_JS}</script></body></html>""", INDEX_LIGHT, INDEX_DARK, current="index"), OUT / "index.html"), encoding="utf-8")
 
 

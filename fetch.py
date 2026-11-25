@@ -104,6 +104,9 @@ def main(election, ep):
                 meta["DEN_ID"], accented(meta.get("den_Descr") or den.get(meta["DEN_ID"])),
                 meta["DHM_ID"], accented(meta.get("dhm_Descr") or dhm.get(meta["DHM_ID"])),
                 accented(meta["Descr"]), meta.get("CATAL_V"), (party or {}).get("Egkyra")))
+            if meta.get("country_Descr"):  # a station of voters abroad: where it is
+                db.execute("INSERT OR REPLACE INTO abroad VALUES (?,?,?,?,?)", (election, tm, accented(meta.get("continent_Descr")),
+                           accented(meta["country_Descr"]), accented(meta.get("city_Descr"))))
             for p in (party or {}).get("party", []):
                 db.execute("INSERT OR REPLACE INTO party_votes VALUES (?,?,?,?)",
                            (election, tm, p["PARTY_ID"], p["VOTES"]))

@@ -22,6 +22,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | Seat allocation per constituency, `ep_votes` | `nikh_seats.py` (its national step is `seats_law.national_seats`) |
 | Coalitions and the probabilities of a run (who reaches 151, the bonus) | `forecast.COALITIONS`, `forecast.METRICS`, `forecast.rates()` |
 | Per-community data | `nikh_drivers.load()` over `build.communities()` |
+| Country and city of each station abroad (2023; none for Euro 2024); postal votes (Euro 2024, one station of kind Τ per constituency, tm_id = ep*10000+9999) | table `abroad`, `station.kind='Τ'` (both written by `fetch.py`) |
 | Valid votes; 3% threshold in votes | `zones.valid_votes(c, e)`; `zones.threshold(c, e)` (3% of the valid votes, June 2023 by default, from the DB) |
 
 ## Scripts
@@ -63,6 +64,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `samaras.json`, `forecast_trend.json` (both optional), `forecast_backtest.json`, `nikh_polls.csv`, `pollster_record.py`, db (constituency outlines for the map) | `out/forecast.html` | — |
 | `nikh_control_fetch.py` (every act of parliamentary oversight of the 11 MPs elected with ΝΙΚΗ or taking its seat; ≤1 request/s, resumable; `baseline` recounts every MP of `nikh_control_baseline.csv` from the Parliament, `answers` reads 50 random answer PDFs, needs PyMuPDF and tesseract) | hellenicparliament.gr «Μέσα Κοινοβουλευτικού Ελέγχου», vouliwatch.gr API | `data/parl_control/` (git-ignored cache, with `baseline_counts.json`, `answer_sample.json`) | 22 |
 | `nikh_control.py` [db] (ministry, topic and place of each act from its title; answers; co-signing; answer day estimated from the Parliament file numbers and checked three ways; who signs the answer; topicals set for debate; Vouliwatch table recounted) | `data/parl_control/`, db (place names), `nikh_control_baseline.csv` (Vouliwatch «Πιο δραστήριοι βουλευτές», acts per MP of every group) | `nikh_control.csv`, `nikh_control.txt` | 22 |
+| `abroad.py` [db] (all parties: voters abroad by continent, country and city, 2023; Euro 2024 postal votes against the ballot box, per constituency) | db (`abroad`, postal stations of kind Τ) | `abroad.txt`, `out/abroad.html` | 23 |
 
 Not NIKH: `field_ops*`, `venue_*`, `client*`, `stats.py` (shared helpers, no catalog entry).
 Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done), `forecast_plan.md` (forecast page sections; in progress).
