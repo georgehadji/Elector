@@ -229,7 +229,8 @@ def histograms(r):
             f" Οι χαμηλές τιμές αριστερά είναι κυρίως οι προσομοιώσεις χωρίς μπόνους ({pct(no_bonus)}), όπου κανένα "
             "κόμμα δεν έφτασε το 25%.")
     for key, title, p in (("hist_nd", "Έδρες της ΝΔ", r["p_nd_majority"]),
-                          ("hist_nd_pasok", "Έδρες ΝΔ και ΠΑΣΟΚ μαζί", r["p_nd_pasok_151"])):
+                          ("hist_nd_pasok", "Έδρες ΝΔ και ΠΑΣΟΚ μαζί", r["p_nd_pasok_151"]),
+                          ("hist_nd_elas", "Έδρες ΝΔ και ΕΛΑΣ μαζί", r["p_nd_elas_151"])):
         out.append(f'<figure><h3>{title}</h3><div class="wide">{hist(r[key], 440, 210, 12, 20)}</div>'
                    f'<div class="narrow">{hist(r[key], 360, 210, 12, 20)}</div>'
                    f'<figcaption>Ποσοστό των προσομοιώσεων ανά αριθμό εδρών. 151 ή περισσότερες: {pct(p)}.{hump}</figcaption></figure>')
@@ -326,7 +327,8 @@ def main():
         page = page.replace(a, b)
     light = INDEX_LIGHT | {"mute": MUTE[0]} | {f"p-{p}": c[0] for p, c in COLOURS.items()}
     dark = INDEX_DARK | {"mute": MUTE[1]} | {f"p-{p}": c[1] for p, c in COLOURS.items()}
-    page = fill(page, light, dark, current="forecast", skip="#main", compact=True)  # not in the nav: nothing marked current
+    page = fill(page, light, dark, current="forecast", skip="#main", compact=True,
+                sources=f'<li>Δημοσκοπήσεις: <a href="{WIKI}" rel="noopener">Wikipedia</a></li>')  # not in the nav: nothing marked current
     OUT.write_text(secure(page, OUT), encoding="utf-8")
     print(f"wrote {OUT} ({thousands(n_sims)} simulations, polls to {data['as_of']})")
 

@@ -57,15 +57,16 @@ def header(current="maps", ctx="", skip="#main"):
             f'<nav aria-label="Κύριο μενού">{nav}</nav>{THEME_BTN}</header>{ctx}')
 
 
-def footer(note="", home=True, compact=False):
-    """Site colophon: sources, notes (`note` adds page-specific caveats), links. `compact` keeps it to a few lines
+def footer(note="", home=True, compact=False, sources=""):
+    """Site colophon: sources (`sources` adds page-specific <li> items), notes (`note` adds page-specific caveats), links. `compact` keeps it to a few lines
     on pages where the map needs the height. `home` is kept for callers; the Χάρτες column always links the index."""
     today = datetime.date.today()
     return (f'<footer class="site{" compact" if compact else ""}"><div class="cols">'
             '<div><h3>Πηγές</h3><ul>'
             '<li>Αποτελέσματα: <a href="https://ekloges.ypes.gr/" rel="noopener">Υπουργείο Εσωτερικών</a></li>'
             '<li>Όρια: <a href="https://www.statistics.gr/" rel="noopener">ΕΛΣΤΑΤ 2021</a></li>'
-            '<li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li></ul></div>'
+            '<li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li>'
+            f'{sources}</ul></div>'
             f'<div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα.{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div>'
             '<div><h3>Χάρτες</h3><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li>'
             '<li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div></div>'
@@ -113,13 +114,13 @@ INDEX_LIGHT = {"paper": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#46453f", "line":
 INDEX_DARK = {"paper": "#15171b", "ink": "#ecebe7", "ink-2": "#c2c1bc", "line": "#33363c", "pen": "#8fb0f0", "wash": "#1e2128"}
 
 
-def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx="", skip="#main", compact=False):
+def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx="", skip="#main", compact=False, sources=""):
     """Shared parts of every page: colour tokens, site CSS and theme script, fonts, header, footer."""
     for placeholder, text in (("/*THEME_TOKENS*/", theme_css(light, dark, print_)),
                               ("/*SITE_CSS*/", (HERE / "fonts.css").read_text(encoding="utf-8") + (HERE / "site.css").read_text(encoding="utf-8")),
                               ("/*THEME_JS*/", (HERE / "theme.js").read_text(encoding="utf-8")),
                               ("/*SHARED_JS*/", (HERE / "shared.js").read_text(encoding="utf-8")),
-                              ("<!--FONTS-->", FONTS), ("<!--HEADER-->", header(current, ctx, skip)), ("<!--FOOTER-->", footer(compact=compact))):
+                              ("<!--FONTS-->", FONTS), ("<!--HEADER-->", header(current, ctx, skip)), ("<!--FOOTER-->", footer(compact=compact, sources=sources))):
         page = page.replace(placeholder, text)
     return page
 

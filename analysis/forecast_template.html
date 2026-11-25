@@ -86,6 +86,9 @@ details[open] summary::before{content:"▾"}
 summary::-webkit-details-marker{display:none}
 summary{list-style:none}
 .wrap{overflow-x:auto}
+details .wrap{max-height:75vh;overflow:auto}
+details thead th{position:sticky;top:0;z-index:1;background:var(--paper)}
+details thead th:first-child{z-index:2}
 table{border-collapse:collapse;margin-top:8px;font-size:.8125rem;font-variant-numeric:tabular-nums}
 th,td{padding:3px 12px 3px 0;border-bottom:1px solid var(--line);text-align:left;vertical-align:bottom}
 th{font-weight:600;color:var(--ink-2);font-size:.75rem}
@@ -124,5 +127,12 @@ a{color:var(--pen)}
 </main>
 <!--FOOTER-->
 <script>/*SHARED_JS*/</script>
+<script>
+// The horizon lives in the address (#180 = in six months), so a shared link opens the same view.
+const h0 = document.getElementById("h0"), h180 = document.getElementById("h180");
+if (location.hash === "#180") h180.checked = true;
+for (const r of [h0, h180])
+  r.addEventListener("change", () => history.replaceState(null, "", h180.checked ? "#180" : location.pathname + location.search));
+</script>
 </body>
 </html>

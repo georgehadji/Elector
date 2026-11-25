@@ -198,11 +198,12 @@ def summary(sims):
            "p_nd_pasok_151": sum(st.get("ND", 0) + st.get("PASOK", 0) >= 151 for _, st, _ in sims) / n,
            "p_nd_elas_151": sum(st.get("ND", 0) + st.get("ELAS", 0) >= 151 for _, st, _ in sims) / n,
            "p_nd_pasok_elas_151": sum(st.get("ND", 0) + st.get("PASOK", 0) + st.get("ELAS", 0) >= 151 for _, st, _ in sims) / n,
-           "hist_nd": {}, "hist_nd_pasok": {}, "parties": {}, "eps": {}}
+           "hist_nd": {}, "hist_nd_pasok": {}, "hist_nd_elas": {}, "parties": {}, "eps": {}}
     for _, st, _ in sims:
-        for k, v in (("hist_nd", st.get("ND", 0)), ("hist_nd_pasok", st.get("ND", 0) + st.get("PASOK", 0))):
+        for k, v in (("hist_nd", st.get("ND", 0)), ("hist_nd_pasok", st.get("ND", 0) + st.get("PASOK", 0)),
+                     ("hist_nd_elas", st.get("ND", 0) + st.get("ELAS", 0))):
             out[k][v] = out[k].get(v, 0) + 1
-    for k in ("hist_nd", "hist_nd_pasok"):
+    for k in ("hist_nd", "hist_nd_pasok", "hist_nd_elas"):
         out[k] = dict(sorted(out[k].items()))
     rank = [sorted(sh, key=sh.get, reverse=True) for sh, *_ in sims]
     for p in [*PARTIES, OTHER]:
