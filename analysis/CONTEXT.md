@@ -59,5 +59,5 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `samaras.json` (optional), `nikh_polls.csv`, `pollster_record.py`, db (constituency outlines for the map) | `out/forecast.html` | — |
 
 Not NIKH: `field_ops*`, `venue_*`, `client*`, `stats.py` (shared helpers, no catalog entry).
-Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done).
+Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done), `stats_plan.md` (open: calibration, signed bias, shared ballot error, house effects over time, herding, undecided, postal vote, turnout).
 Before changing a shared function: rerun the scripts that import it and `cmp` their `.txt` with the committed one.
