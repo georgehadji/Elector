@@ -86,7 +86,10 @@ summary::before{content:"▸"}
 details[open] summary::before{content:"▾"}
 summary::-webkit-details-marker{display:none}
 summary{list-style:none}
-.wrap{overflow-x:auto}
+.wrap{overflow-x:auto;
+  /* a shadow at the right edge while the table can scroll further; the paper layer moves with the content and covers it at the end */
+  background:linear-gradient(to left,var(--paper) 40%,transparent) right/32px 100% no-repeat local,
+    linear-gradient(to left,color-mix(in oklab,var(--ink) 18%,transparent),transparent) right/14px 100% no-repeat scroll}
 details .wrap{max-height:75vh;overflow:auto}
 details thead th{position:sticky;top:0;z-index:1;background:var(--paper)}
 details thead th:first-child{z-index:2}
@@ -96,10 +99,7 @@ th{font-weight:600;color:var(--ink-2);font-size:.75rem}
 td.n,th.n{text-align:right}
 .wrap td{white-space:nowrap}
 .wrap tr>:first-child{position:sticky;left:0;background:var(--paper);padding-left:0}
-@media (max-width:600px){details .wrap td:first-child{white-space:normal;min-width:6.5em;max-width:8.5em}}
-.rec td.rbar{width:30%;min-width:8em;padding-right:14px}
-.rec .meter{height:10px;border-radius:5px;background:var(--wash);overflow:hidden}
-.rec .meter i{display:block;height:100%;min-width:3px;border-radius:5px;background:var(--ink-2)}
+@media (max-width:600px){details .wrap td:first-child{white-space:normal;min-width:6.5em;max-width:8.5em}.pf{display:none}}
 .method small{font-size:.75rem}
 .rel a{padding:12px 0}
 td.z{color:var(--ink-2)}
@@ -120,14 +120,17 @@ a{color:var(--pen)}
 .epmap .epd{order:3;flex:1 1 100%}
 @media (max-width:600px){.epmap .epd{order:0}}
 .epmap svg{display:block;width:100%;height:auto;overflow:hidden}
-.epmap path{fill:var(--wash);stroke:var(--paper);stroke-width:.7;stroke-linejoin:round;cursor:pointer;outline:none}
+.epmap path{fill:var(--wash);stroke:var(--line);stroke-width:.7;stroke-linejoin:round;cursor:pointer;outline:none}
 .epmap path.none{cursor:default}
 .epmap path:hover,.epmap path:focus-visible{stroke:var(--ink-2);stroke-width:1.2}
 .epmap path.on{stroke:var(--ink);stroke-width:1.6}
 /*MAP_CSS*/
 .legend-t{margin:8px 0 0;font-size:.8125rem;font-weight:600}
 .legend.bins{--c:var(--ink-2);margin-top:2px}
-.legend.bins i{border-radius:2px}
+.legend.bins i{border-radius:2px;box-shadow:inset 0 0 0 1px var(--line)}
+.epsel{margin:8px 0 0;font-size:.875rem}
+.epsel label{font-weight:600}
+.epsel select{min-height:44px;max-width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:0 8px}
 .legend.bins i.z{background:var(--wash)}
 .epd{max-width:68ch}
 .epd p{margin:8px 0 0}
@@ -157,26 +160,42 @@ a{color:var(--pen)}
 <!--FOOTER-->
 <script>/*SHARED_JS*/</script>
 <script>
-// The horizon lives in the address (#180 = in six months), so a shared link opens the same view.
+// The view lives in the address, so a shared link opens it again: #180 (in six months), p=<party on the map>,
+// ep=<constituency>, joined by "&" (#180&p=ELAS&ep=45).
 const h0 = document.getElementById("h0"), h180 = document.getElementById("h180");
-if (location.hash === "#180") h180.checked = true;
-for (const r of [h0, h180])
-  r.addEventListener("change", () => history.replaceState(null, "", h180.checked ? "#180" : location.pathname + location.search));
+const parties = [...document.querySelectorAll(".pick input")];
+const sel = document.getElementById("ep");
 // Map: a tap or focus on a constituency shows its seats for the horizon on screen.
 let on = null;
 // The constituency is marked in both figures (Attica is in each); on a phone the answer sits right under the map.
-const epd = document.querySelector(".epd p");
+const epd = document.querySelector(".epd p"), hint = epd.textContent;
+const save = () => {
+  const p = parties.find((r) => r.checked);
+  const s = [h180.checked && "180", p && p !== parties[0] && "p=" + p.id.slice(2), on && "ep=" + on.dataset.ep]
+    .filter(Boolean).join("&");
+  history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
+};
 const show = (el) => {
   for (const x of document.querySelectorAll(".epmap path.on")) x.classList.remove("on");
   on = el;
+  if (!el) { epd.textContent = hint; sel.value = ""; return; }
   for (const x of document.querySelectorAll(`.epmap path[data-ep="${el.dataset.ep}"]`)) x.classList.add("on");
   epd.textContent = el.dataset[h180.checked ? "d180" : "d0"];
+  sel.value = el.dataset.ep;
 };
-for (const el of document.querySelectorAll(".epmap path[tabindex]")) {
-  el.addEventListener("click", () => { show(el); epd.scrollIntoView({block: "nearest"}); });
-  el.addEventListener("focus", () => show(el));
+const path = (ep) => document.querySelector(`.epmap path[data-ep="${CSS.escape(ep)}"]`);
+for (const t of location.hash.slice(1).split("&")) {
+  if (t === "180") h180.checked = true;
+  else if (t.startsWith("p=")) { const r = document.getElementById("m-" + t.slice(2)); if (r) r.checked = true; }
+  else if (t.startsWith("ep=") && path(t.slice(3))) show(path(t.slice(3)));
 }
-for (const r of [h0, h180]) r.addEventListener("change", () => { if (on) show(on); });
+for (const el of document.querySelectorAll(".epmap path[data-ep]")) {
+  el.addEventListener("click", () => { show(el); save(); epd.scrollIntoView({block: "nearest"}); });
+  el.addEventListener("focus", () => { show(el); save(); });
+}
+sel.addEventListener("change", () => { show(sel.value ? path(sel.value) : null); save(); });
+for (const r of [h0, h180]) r.addEventListener("change", () => { if (on) show(on); save(); });
+for (const r of parties) r.addEventListener("change", save);
 </script>
 </body>
 </html>
