@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "analysis"))
 import benchmark_fetch
 
 
-class MajorlineFetch(unittest.TestCase):
+class BenchmarkFetch(unittest.TestCase):
     def test_selftest(self):
         with contextlib.redirect_stdout(io.StringIO()) as out:
             benchmark_fetch.selftest()

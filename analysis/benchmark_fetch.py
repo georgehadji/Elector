@@ -1,9 +1,9 @@
-"""Majorline (majorline.eu) Greek parliamentary forecast -> analysis/benchmark_runs.csv, analysis/benchmark_parties.csv.
+"""Benchmark: an outside Greek parliamentary forecast (site: BASE below) -> analysis/benchmark_runs.csv, analysis/benchmark_parties.csv.
 
 PROTOTYPE, NOT SCHEDULED, NOT RUN AGAINST THE SITE. Plan, legal position and open questions: analysis/benchmark_plan.md.
 Run it against the network only after the site owner has agreed (or the user has decided to use it privately and locally).
 
-Source: https://majorline.eu/data/greece.json, the file the public page greece.html loads itself (robots.txt: Allow: /).
+Source: BASE + /data/greece.json, the file the public page greece.html loads itself (robots.txt: Allow: /).
 Undocumented; no terms of use or licence found (24 Nov 2026). Their estimate is published weekly (Sunday as_of date, file
 changes Monday); the fetch is a conditional GET, so a run with nothing new is one 304.
 - robots.txt is read first and the fetch stops if it disallows the path for us. At most one request per second.
@@ -13,7 +13,7 @@ changes Monday); the fetch is a conditional GET, so a run with nothing new is on
 - benchmark_parties.csv: one row per (as_of, party). src=run: the current run (share, P(>=3%), P(first), P(second), P(third
   party enough for 151), median seats and range with / without the bonus). src=trend: the 15 earlier estimates of the file's
   `trend` list (share, P(>=3%), P(second)); a run row replaces a trend row of the same date.
-- Probabilities are fractions 0-1, shares are % of valid votes, as in the source. Unofficial; attribute: "Majorline".
+- Probabilities are fractions 0-1, shares are % of valid votes, as in the source. Unofficial; attribute it to its source, with the estimate's date.
 
   python -I -X utf8 analysis/benchmark_fetch.py [--force]    # --force ignores the saved ETag
   python -I -X utf8 analysis/benchmark_fetch.py --selftest   # offline, no network
