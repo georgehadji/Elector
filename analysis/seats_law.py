@@ -5,8 +5,10 @@ pages (trend, scenarios, backtest, the rules section) read their numbers from LA
 the national votes of the parties past the threshold (Hare over them, plus the bonus), not on how the votes spread over
 constituencies, so national_seats alone is enough wherever only national totals are needed.
 
-Implemented: ν. 4654/2020 (π.δ. 26/2012 art. 99-100 as amended; elections from June 2023 on). The other laws of past
-elections join LAWS with the backtest, each checked against the official seats of its elections.
+Implemented: ν. 4654/2020 (π.δ. 26/2012 art. 99-100 as amended; elections from June 2023 on), ν. 4406/2016 (no bonus,
+300 seats in proportion; May 2023) and ν. 3636/2008 (a flat 50-seat bonus, 250 in proportion; 2012 to 2019). ELECTION_LAW
+says which law each past election was held under; forecast_backtest.py checks every entry against the seats the Ministry
+of the Interior gives each party in those elections.
 Simplification (as nikh_seats): ties are broken arbitrarily.
 """
 import math
@@ -15,7 +17,12 @@ LAWS = {
     "4654/2020": {"seats": 300, "state": 15, "threshold": 3.0,
                   # first party at `from`% or more: `base` seats, plus 1 per full `step` points above `from`, at most `cap`
                   "bonus": {"from": 25.0, "base": 20, "step": 0.5, "cap": 50}},
+    "4406/2016": {"seats": 300, "state": 15, "threshold": 3.0, "bonus": None},
+    # π.δ. 26/2012 before 4406/2016: the first party gets 50 seats whatever its share (step None: no scale)
+    "3636/2008": {"seats": 300, "state": 12, "threshold": 3.0, "bonus": {"from": 0.0, "base": 50, "step": None, "cap": 50}},
 }
+ELECTION_LAW = {"2015/jan": "3636/2008", "2015/sep": "3636/2008", "2019": "3636/2008", "2023/may": "4406/2016",
+                "2023/june": "4654/2020"}
 CURRENT = "4654/2020"
 
 
@@ -44,7 +51,7 @@ def bonus_seats(first_share, law=CURRENT):
     b = LAWS[law]["bonus"]
     if not b or first_share < b["from"]:
         return 0
-    return min(b["cap"], b["base"] + math.floor((first_share - b["from"]) / b["step"]))
+    return min(b["cap"], b["base"] + (math.floor((first_share - b["from"]) / b["step"]) if b["step"] else 0))
 
 
 def national_seats(votes, law=CURRENT):

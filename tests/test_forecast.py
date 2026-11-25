@@ -1,5 +1,6 @@
 """Checks of analysis/seats_law.py (the law as data) and of the metric table of analysis/forecast.py. The check that
 nikh_seats.allocate gives the same national totals as seats_law.national_seats needs the database and is skipped without it."""
+import json
 import random
 import sys
 import unittest
@@ -89,6 +90,21 @@ class PageHelpers(unittest.TestCase):
         self.assertEqual(t["n"], 1)
         self.assertEqual([c[:2] for c in t["cont"]], [("B", 2), ("A", 3)])
         self.assertEqual(t["edge"], ["B"])
+
+
+class Backtest(unittest.TestCase):
+    def test_law_gives_the_ministry_seats(self):  # forecast_backtest.json: votes and seats as the ministry's site gives them
+        els = json.loads((ROOT / "analysis" / "forecast_backtest.json").read_text(encoding="utf-8"))["elections"]
+        self.assertEqual([e["key"] for e in els], list(L.ELECTION_LAW))
+        for e in els:
+            site = {p["id"]: p["site"] for p in e["parties"] if p["site"]}
+            self.assertEqual(L.national_seats({int(p): v for p, v in e["votes"].items()}, e["law"]), site, e["key"])
+            self.assertEqual(e["state"], L.LAWS[e["law"]]["state"], e["key"])
+            self.assertTrue(e["match"], e["key"])
+
+    def test_flat_bonus(self):
+        self.assertEqual([L.bonus_seats(s, "3636/2008") for s in (10, 35, 45)], [50, 50, 50])
+        self.assertEqual(L.bonus_seats(45, "4406/2016"), 0)
 
 
 @unittest.skipUnless(Path(DB).exists(), "needs data/stavroi.sqlite")

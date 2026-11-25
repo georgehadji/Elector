@@ -940,6 +940,43 @@ def rules(data):
             'αριθμοί είναι αυτοί που χρησιμοποιεί η προσομοίωση.</p></details>')
 
 
+BACKTEST_JSON = HERE / "analysis" / "forecast_backtest.json"
+
+
+def law_words(law):
+    """The bonus rule of one law of seats_law.LAWS, in a few words."""
+    b = LAW.LAWS[law]["bonus"]
+    if not b:
+        return "χωρίς μπόνους, όλες οι έδρες αναλογικά"
+    if not b["step"]:
+        return f"{b['base']} έδρες μπόνους στο πρώτο κόμμα, οι υπόλοιπες αναλογικά"
+    return f"μπόνους {b['base']} έως {b['cap']} έδρες στο πρώτο κόμμα από {num(b['from'], 0)}% και πάνω"
+
+
+def backtest_html():
+    """§11 (a): the seat rule of the forecast on the votes of past elections, against the ministry's seats (closed)."""
+    d = json.loads(BACKTEST_JSON.read_text(encoding="utf-8"))
+    els = d["elections"]
+    ok = sum(e["match"] for e in els)
+    seat = lambda p: (f'<span>{html.escape(p["name"])} {p["site"]}'
+                      + ("" if p["site"] == p["law"] else f' (κανόνας: {p["law"]})') + "</span>")
+    rows = "".join(f'<tr><td>{e["label"]}</td><td>ν. {e["law"]}</td>'
+                   f'<td class="bt">{" · ".join(seat(p) for p in e["parties"])}</td><td>{"ναι" if e["match"] else "όχι"}</td></tr>'
+                   for e in els)
+    laws = "".join(f"<li>ν. {k}: {law_words(k)}, {LAW.LAWS[k]['state']} έδρες Επικρατείας.</li>"
+                   for k in dict.fromkeys(e["law"] for e in els))
+    verdict = (f"ξαναβγάζει ακριβώς τις έδρες κάθε κόμματος και στις {len(els)} εκλογές" if ok == len(els) else
+               f"ξαναβγάζει ακριβώς τις έδρες κάθε κόμματος σε {ok} από τις {len(els)} εκλογές")
+    return ('<details class="rules"><summary>Έλεγχος του κανόνα στις εκλογές 2015 έως 2023</summary>'
+            '<p>Ο κανόνας που μοιράζει τις έδρες στην πρόβλεψη, με τον νόμο που ίσχυε κάθε φορά και τις ψήφους όλης της χώρας '
+            f'όπως τις δίνει το Υπουργείο Εσωτερικών, {verdict}.</p>'
+            '<div class="wrap"><table><thead><tr><th>εκλογές</th><th>νόμος</th><th>έδρες ανά κόμμα (Υπουργείο)</th>'
+            f'<th>ίδιες</th></tr></thead><tbody>{rows}</tbody></table></div><ul>{laws}</ul>'
+            f'<p class="note">Πηγή: τα αποτελέσματα του Υπουργείου Εσωτερικών στο <a href="{d["source"]}">'
+            f'{d["source"].split("//")[1].rstrip("/")}</a>, όπου δεν υπάρχουν οι εκλογές του 2012. Ο έλεγχος αφορά τις έδρες κάθε '
+            'κόμματος σε όλη τη χώρα, όχι σε ποια περιφέρεια πήγε η κάθε έδρα.</p></details>')
+
+
 def method(n_sims, n_polls, err, sens):
     a, b, n_pairs = err
     moved = max(max(s["moved"].values()) for s in sens.values())
@@ -987,7 +1024,7 @@ def body(data, order):
                    + bonus_html(r, key, names) + ladder_html(r, key, names) + "</div>")
     css, section = ep_map(data, order, names)
     sam_css, sam = samaras(names)
-    return css + sam_css, "".join(out) + trend_html(names) + section + sam + rules(data)
+    return css + sam_css, "".join(out) + trend_html(names) + section + sam + rules(data) + backtest_html()
 
 
 def main():
