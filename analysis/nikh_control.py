@@ -340,22 +340,35 @@ ROLES = [("Αναπληρωτής Υπουργός", r"ΑΝΑΠΛΗΡΩΤ(?:ΗΣ
          ("Γενικός Γραμματέας", r"ΓΕΝΙΚ(?:ΟΣ|Η) ΓΡΑΜΜΑΤΕΑΣ|(?<=[ΟΗ] )Γενικ(?:ος|η) Γραμματεας")]
 
 
+# Words a letter's own date follows: the place in the letterhead («ΑΘΗΝΑ 25 02 2026», «ΜΑΡΟΥΣΙ 26 5 2025») or the
+# protocol line of the ministry's system («ΗΜ ΝΙΑ 06 05 2026», «ΥΠΕΘΟΟ 15 07 2026»). Second best: the stamp of the
+# certified copy («ΑΚΡΙΒΕΣ ΑΝΤΙΓΡΑΦΟ 26 02 2026»), made the day of signing or the next.
+LETTER_AT = [r"(?:ΑΘΗΝΑ|ΜΑΡΟΥΣΙ|ΠΕΙΡΑΙΑΣ|ΠΕΙΡΑΙΑ|ΘΕΣΣΑΛΟΝΙΚΗ|ΚΑΛΛΙΘΕΑ|ΧΟΛΑΡΓΟΣ|ΗΜΕΡΟΜΗΝΙΑ|ΗΜ ΝΙΑ|ΥΠΕΘΟΟ) ",
+             r"ΑΚΡΙΒΕΣ ΑΝΤΙΓΡΑΦΟ "]
+
+
 def letter(text, filed, today):
-    """Date and signer of an answer letter: the latest date in the text between the filing day and today
-    («29-10-2025», «12 Μαρτίου 2025»), and the title of the last signature (ROLES; the minister signs the
-    letter itself, a secretary general only when the answer is a service's letter)."""
+    """Date and signer of an answer letter. The date: the latest one between the filing day and today that follows
+    LETTER_AT (first list, then second), else the latest one anywhere in the text («29-10-2025», «12 Μαρτίου
+    2025»): dates in the body can be deadlines or periods that end after the letter («έως 31 10 2025»). The signer:
+    the title of the last signature (ROLES; the minister signs the letter itself, a secretary general only when the
+    answer is a service's letter)."""
     t = norm(text)  # punctuation becomes spaces: «29-10-2025» -> «29 10 2025»
-    days = [(int(y), int(m), int(d)) for d, m, y in re.findall(r"\b(\d{1,2}) (\d{1,2}) (20\d\d)\b", t)]
-    days += [(int(y), MONTHS.index(m) + 1, int(d))
-             for d, m, y in re.findall(r"\b(\d{1,2}) (" + "|".join(MONTHS) + r") (20\d\d)\b", t)]
-    ok = []
-    for y, m, d in days:
-        try:
-            x = date(y, m, d)
-        except ValueError:
-            continue
-        if filed <= x <= today:
-            ok.append(x)
+    numeric, named = r"(\d{1,2}) (\d{1,2}) (20\d\d)\b", r"(\d{1,2}) (" + "|".join(MONTHS) + r") (20\d\d)\b"
+
+    def days(before):
+        found = [(int(y), int(m), int(d)) for d, m, y in re.findall(before + numeric, t)]
+        found += [(int(y), MONTHS.index(m) + 1, int(d)) for d, m, y in re.findall(before + named, t)]
+        ok = []
+        for y, m, d in found:
+            try:
+                x = date(y, m, d)
+            except ValueError:
+                continue
+            if filed <= x <= today:
+                ok.append(x)
+        return ok
+    ok = next((d for d in (days(a) for a in LETTER_AT + [r"\b"]) if d), [])
     caps = " ".join("".join(c for c in unicodedata.normalize("NFD", text) if not unicodedata.combining(c)).split())
     found = [(m.start(), role) for role, pat in ROLES for m in re.finditer(pat, caps)]
     return (max(ok) if ok else None), (max(found)[1] if found else None)
