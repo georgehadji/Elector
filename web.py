@@ -40,7 +40,7 @@ from matching import ep_label
 THEME_BTN = ('<button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true">'
              '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button>')
 FONTS = "".join(f'<link rel="preload" href="fonts/{f}.woff2" as="font" type="font/woff2" crossorigin>'
-                for f in ("ibm-plex-sans-greek", "ibm-plex-sans-latin"))  # the @font-face rules are in fonts.css
+                for f in ("ibm-plex-sans-greek", "ibm-plex-sans-latin", "literata-greek"))  # the @font-face rules are in fonts.css
 MARK = ('<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
         '<path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>')
 NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"),
@@ -416,6 +416,31 @@ body.pick .acts{display:none}
 .mo .seats{transition:transform 1s cubic-bezier(.2,.7,.2,1) .2s}
 @media (prefers-reduced-motion:reduce){.fold summary::after,.dl .fill,.sw button{transition:none}.older[open]>:not(summary),.fold[open]>:not(summary){animation:none}}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+/* Micro-interactions, only when motion is welcome; every state is reachable without them. */
+:root{--ease-out:cubic-bezier(.16,1,.3,1)}
+@media (prefers-reduced-motion:no-preference){
+  /* switching elections: each region's new colours sweep across its tiles, its strip counts them in */
+  .go .fp:not([hidden]){animation:wipe .5s var(--ease-out) both;animation-delay:calc(var(--i,0) * 24ms)}
+  @keyframes wipe{from{clip-path:inset(0 100% 0 0)}}
+  .go .rs:not([hidden]) .strip i{animation:pop .35s var(--ease-out) both;animation-delay:calc(var(--j,0) * 40ms)}
+  @keyframes pop{from{transform:scale(0)}}
+  /* the chosen election's pill glides to the new button (View Transitions); the rest of the page does not cross-fade */
+  .sw button[aria-pressed=true]{view-transition-name:pick}
+  ::view-transition-group(pick){animation-duration:.3s;animation-timing-function:var(--ease-out)}
+  html.vt-pick::view-transition-old(root),html.vt-pick::view-transition-new(root){animation:none}
+  .sug:not([hidden]){animation:drop .16s var(--ease-out)}
+  @keyframes drop{from{opacity:0;transform:translateY(-4px)}}
+  #f{transition:border-color .15s}
+  .sw button,.fold summary,.sug a{transition:background-color .15s,transform .12s ease-out}
+  .tool,.eps li,.mo :is(.tool,.eps li).rise{transition:background-color .15s,transform .6s cubic-bezier(.2,.7,.2,1) var(--d,0ms)}  /* keeps the entrance's timing */
+  @media (pointer:fine){
+    .sil{transition:transform .5s var(--ease-out)}
+    .eps li:hover .sil{transform:translate(-4px,4px) scale(1.08)}
+    .tool.fc:hover{background:color-mix(in srgb,var(--deep),var(--on-deep) 6%)}
+    .tool.cm:hover{background:color-mix(in srgb,var(--field),#fff 8%)}
+    .tool.ab:hover{background:color-mix(in srgb,var(--wash),var(--ink) 7%)}
+  }
+}
 body:has(#f:not(:placeholder-shown)) :is(#country,.nks,#cov){display:none}  /* while searching, the tiles come right after the first screen */
 @media (max-width:60rem){
   .hero{grid-template-columns:minmax(0,1fr);row-gap:var(--space-xl);min-height:0}
@@ -505,7 +530,19 @@ const open = e => {
   }
   document.querySelectorAll(".fp, .rs").forEach(p => { p.hidden = p.dataset.e !== e; });
 };
-sw.addEventListener("click", ev => { const b = ev.target.closest("button"); if (b) open(b.dataset.e); });
+const motion = matchMedia("(prefers-reduced-motion: no-preference)");
+items.forEach(li => li.style.setProperty("--i", Math.min([...li.parentElement.children].indexOf(li), 12)));
+document.querySelectorAll(".strip").forEach(s => [...s.children].forEach((i, j) => i.style.setProperty("--j", Math.min(j, 12))));
+sw.addEventListener("click", ev => {
+  const b = ev.target.closest("button");
+  if (!b || b.getAttribute("aria-pressed") === "true") return;
+  if (!motion.matches) return open(b.dataset.e);
+  document.body.classList.add("go");  // from the first switch on, newly shown bands sweep in
+  if (!document.startViewTransition) return open(b.dataset.e);
+  const root = document.documentElement;
+  root.classList.add("vt-pick");
+  document.startViewTransition(() => open(b.dataset.e)).finished.finally(() => root.classList.remove("vt-pick"));
+});
 ctl.hidden = false;
 document.body.classList.add("pick");
 open(sw.dataset.d);
@@ -521,7 +558,17 @@ f.addEventListener("keydown", e => {
 // Tiles rise into place as they come into view, a few at a time; the bars fill. Nothing is hidden, with or without script.
 if (matchMedia("(prefers-reduced-motion: no-preference)").matches && "IntersectionObserver" in window) {
   document.body.classList.add("mo");
-  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } }),
+  // A figure counts up to its printed value once; the text it ends on is the original, so nothing is ever computed wrong.
+  const count = el => {
+    const t = el.textContent, m = t.match(/[0-9][0-9.]*(,[0-9]+)?/);
+    if (!m) return;
+    const v = parseFloat(m[0].replaceAll(".", "").replace(",", ".")), dec = m[1] ? m[1].length - 1 : 0;
+    const fmt = new Intl.NumberFormat("el-GR", {minimumFractionDigits: dec, maximumFractionDigits: dec}), t0 = performance.now();
+    const step = now => { const k = Math.min((now - t0) / 900, 1);
+      el.textContent = k < 1 ? t.replace(m[0], fmt.format(v * (1 - (1 - k) ** 3))) : t; if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  };
+  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("in"); en.target.querySelectorAll(".fig, .dl b").forEach(count); io.unobserve(en.target); } }),
                                       { rootMargin: "0px 0px -6% 0px" });
   document.querySelectorAll(".rise").forEach(el => {
     const sib = [...el.parentElement.children].filter(c => c.classList.contains("rise"));
@@ -568,7 +615,7 @@ def _write_index(order, nikh, elected):
 
     # Municipalities (δήμοι) and municipal units of each constituency: search aliases, so a voter can type a town.
     dhm, den = defaultdict(dict), defaultdict(set)
-    top, first, colour, mapped, valid = {}, {}, {}, {}, {}
+    top, first, colour, mapped, valid, pname = {}, {}, {}, {}, {}, {}
     n_comm = n_countries = n_tm = None
     last = list(ELECTIONS)[-1]
     if DB.exists():
@@ -584,8 +631,9 @@ def _write_index(order, nikh, elected):
                     "WHERE t.cand_id > 0 AND t.votes > 0 GROUP BY t.election, t.ep_id"):
                 top[e, ep] = (cand, PARTY_SHORT.get(pid, party), votes)
             # Each constituency's first party and its share of the valid votes, per election: the colour of its tile.
-            for e, pid, c in con.execute("SELECT election, party_id, color FROM party"):
+            for e, pid, c, nm in con.execute("SELECT election, party_id, color, name FROM party"):
                 colour[e, pid] = PARTY_COLOR.get(pid) or ("#" + c[2:] if c else "#888888")
+                pname[e, pid] = PARTY_SHORT.get(pid, nm)  # a party without a short name keeps the ministry's name
             ep_valid = {(e, ep): v for e, ep, v in con.execute("SELECT election, ep_id, SUM(valid) FROM station GROUP BY 1, 2")}
             for e, ep, pid, votes in con.execute(
                     "SELECT s.election, s.ep_id, v.party_id, SUM(v.votes) FROM party_votes v JOIN station s USING(election, tm_id) "
@@ -622,7 +670,7 @@ def _write_index(order, nikh, elected):
         pid, share, _ = first[e, ep]
         c = colour.get((e, pid), "#888888")
         return (f'<p class="fp {_on(c)}" data-e="{e}" style="--c:{c}"{"" if e == default else " hidden"}><span class="sr">Πρώτο κόμμα, '
-                f'{ELECTION_NAMES[e]}: </span><b>{html.escape(PARTY_SHORT.get(pid, ""))}</b> <span class="v">{_pct(share)}</span></p>')
+                f'{ELECTION_NAMES[e]}: </span><b>{html.escape(pname.get((e, pid), ""))}</b> <span class="v">{_pct(share)}</span></p>')
 
     for name in sorted(eps, key=fold):
         links = sorted(eps[name], key=lambda fm: rank.index(fm[1]["election"]) if fm[1]["election"] in rank else -1)
@@ -662,7 +710,7 @@ def _write_index(order, nikh, elected):
             return ""
         count = Counter(pids).most_common()
         squares = "".join(f'<i style="--c:{colour.get((e, p), "#888888")}"></i>' * c for p, c in count)
-        words = ", ".join(f"{PARTY_SHORT.get(p, '')} σε {c}" for p, c in count)
+        words = ", ".join(f"{pname.get((e, p), '')} σε {c}" for p, c in count)
         return (f'<div class="rs" data-e="{e}"{"" if e == default else " hidden"}><p class="strip" aria-hidden="true">{squares}</p>'
                 f'<p>Πρώτο κόμμα, {ELECTION_NAMES[e]}: {words} από {len(pids)}.</p></div>')
 
