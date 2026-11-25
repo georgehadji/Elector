@@ -1,22 +1,22 @@
-"""Majorline (majorline.eu) Greek parliamentary forecast -> analysis/majorline_runs.csv, analysis/majorline_parties.csv.
+"""Majorline (majorline.eu) Greek parliamentary forecast -> analysis/benchmark_runs.csv, analysis/benchmark_parties.csv.
 
-PROTOTYPE, NOT SCHEDULED, NOT RUN AGAINST THE SITE. Plan, legal position and open questions: analysis/majorline_plan.md.
+PROTOTYPE, NOT SCHEDULED, NOT RUN AGAINST THE SITE. Plan, legal position and open questions: analysis/benchmark_plan.md.
 Run it against the network only after the site owner has agreed (or the user has decided to use it privately and locally).
 
 Source: https://majorline.eu/data/greece.json, the file the public page greece.html loads itself (robots.txt: Allow: /).
 Undocumented; no terms of use or licence found (24 Nov 2026). Their estimate is published weekly (Sunday as_of date, file
 changes Monday); the fetch is a conditional GET, so a run with nothing new is one 304.
 - robots.txt is read first and the fetch stops if it disallows the path for us. At most one request per second.
-- Raw response bytes are kept in data/majorline/raw/ (git-ignored): the CSVs can be rebuilt from them.
+- Raw response bytes are kept in data/benchmark/raw/ (git-ignored): the CSVs can be rebuilt from them.
 - Fails closed: a missing top-level key stops the run before anything is written; new keys only print a warning.
-- majorline_runs.csv: one row per run (as_of, run_id, their sha256, method, n_polls, three headline probabilities).
-- majorline_parties.csv: one row per (as_of, party). src=run: the current run (share, P(>=3%), P(first), P(second), P(third
+- benchmark_runs.csv: one row per run (as_of, run_id, their sha256, method, n_polls, three headline probabilities).
+- benchmark_parties.csv: one row per (as_of, party). src=run: the current run (share, P(>=3%), P(first), P(second), P(third
   party enough for 151), median seats and range with / without the bonus). src=trend: the 15 earlier estimates of the file's
   `trend` list (share, P(>=3%), P(second)); a run row replaces a trend row of the same date.
 - Probabilities are fractions 0-1, shares are % of valid votes, as in the source. Unofficial; attribute: "Majorline".
 
-  python -I -X utf8 analysis/majorline_fetch.py [--force]    # --force ignores the saved ETag
-  python -I -X utf8 analysis/majorline_fetch.py --selftest   # offline, no network
+  python -I -X utf8 analysis/benchmark_fetch.py [--force]    # --force ignores the saved ETag
+  python -I -X utf8 analysis/benchmark_fetch.py --selftest   # offline, no network
 """
 import csv
 import json
@@ -28,11 +28,11 @@ import urllib.robotparser
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DATA = HERE.parent / "data" / "majorline"
+DATA = HERE.parent / "data" / "benchmark"
 BASE = "https://majorline.eu"
 URL = BASE + "/data/greece.json"
 UA = "elections-research-script/1.0 (public aggregate poll data)"
-RUNS, PARTIES = HERE / "majorline_runs.csv", HERE / "majorline_parties.csv"
+RUNS, PARTIES = HERE / "benchmark_runs.csv", HERE / "benchmark_parties.csv"
 RUN_COLS = ["as_of", "run_id", "sha256", "method", "n_polls", "single_party_majority", "no_bonus", "nd_pasok_151"]
 PARTY_COLS = ["as_of", "party", "src", "share", "p_in", "p_first", "p_second", "p_third_enough",
               "seats_bonus", "lo_bonus", "hi_bonus", "seats_nobonus", "lo_nobonus", "hi_nobonus"]

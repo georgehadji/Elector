@@ -2,7 +2,7 @@
 
 Αφορά το https://majorline.eu (εκλογικές προβλέψεις). Ζητήθηκαν τρία: (1) τα δεδομένα του, (2) η μέθοδός του, (3) προγραμματισμένη εργασία που φέρνει νέα δεδομένα κάθε δύο μέρες. Οι κοινοί κανόνες του `NIKH_plan2.md` ισχύουν και εδώ.
 
-Κατάσταση (24.11.2026, ενημέρωση): ο χρήστης αποφάσισε ότι δεν χρειάζεται άδεια. Ο fetcher έτρεξε μία φορά (εκτίμηση 22.11.2026, `analysis/majorline_runs.csv`, `analysis/majorline_parties.csv`) και το `.github/workflows/majorline.yml` τον τρέχει κάθε δεύτερη μέρα, ανοίγοντας PR όταν αλλάζουν τα CSV (επιλογή Α, §7). Το email του §3 δεν στάλθηκε. Η ασυμφωνία του P(≥3%) εξηγείται στο `NIKH.md` ενότητα 18.
+Κατάσταση (24.11.2026, ενημέρωση): ο χρήστης αποφάσισε ότι δεν χρειάζεται άδεια. Ο fetcher έτρεξε μία φορά (εκτίμηση 22.11.2026, `analysis/benchmark_runs.csv`, `analysis/benchmark_parties.csv`) και το `.github/workflows/benchmark.yml` τον τρέχει κάθε δεύτερη μέρα, ανοίγοντας PR όταν αλλάζουν τα CSV (επιλογή Α, §7). Το email του §3 δεν στάλθηκε. Η ασυμφωνία του P(≥3%) εξηγείται στο `NIKH.md` ενότητα 18.
 
 ## Συμπεράσματα με μια ματιά
 
@@ -64,7 +64,7 @@
 - **Επιτρέπεται, χαμηλός κίνδυνος:** διάβασμα στον browser, και λίγα αιτήματα (το πολύ δύο ανά τρέξιμο) με γενικό User-Agent, με σεβασμό στο `robots.txt`, με τοπική αποθήκευση για έρευνα και σύγκριση.
 - **Χρειάζεται γραπτή άδεια:** (α) commit των αριθμών τους στο δημόσιο repo `georgehadji/Elector` ή δημοσίευση στο site (αναδιανομή· στην ΕΕ υπάρχει και δικαίωμα βάσης δεδομένων, και οι επαναλαμβανόμενες αντιγραφές μικρών μερών μπορούν να μετρηθούν ως ουσιώδες μέρος)· (β) χρήση των αριθμών σε εργασία για πελάτες (εμπορική χρήση, που πουλούν οι ίδιοι).
 - **Κανόνας του χρήστη για λήψεις:** κάθε αποθήκευση αρχείου από το site θέλει ρητή άδεια του χρήστη πριν τρέξει. Ο fetcher δεν τρέχει μέχρι να δοθεί.
-- Αν δεν απαντήσουν: τα δεδομένα μένουν τοπικά (`data/majorline/`, gitignored)· στο repo μπαίνει το πολύ ένα μικρό CSV σύγκρισης (λίγες στήλες για ΝΙΚΗ, ΝΔ, ΠΑΣΟΚ), με πηγή. Αυτό θέλει απόφαση του χρήστη.
+- Αν δεν απαντήσουν: τα δεδομένα μένουν τοπικά (`data/benchmark/`, gitignored)· στο repo μπαίνει το πολύ ένα μικρό CSV σύγκρισης (λίγες στήλες για ΝΙΚΗ, ΝΔ, ΠΑΣΟΚ), με πηγή. Αυτό θέλει απόφαση του χρήστη.
 - Ό,τι πάρουμε το παρουσιάζουμε ως «εκτίμηση Majorline, ημερομηνία», ποτέ ως δικό μας.
 
 ## 4. Χάρτης δεδομένων: `greece.json`
@@ -73,12 +73,12 @@
 
 | Κλειδί | Τι έχει | Πού πηγαίνει |
 |---|---|---|
-| `run` | `run_id`, `as_of`, `sha256` | `majorline_runs.csv` |
-| `method`, `n_polls`, `pollsters` | μέθοδος (κείμενο), 341, 14 εταιρείες | `majorline_runs.csv` (οι εταιρείες: έλεγχος ότι συμφωνούν με το `nikh_polls.csv`) |
-| `vote` | ποσοστό 15 κομμάτων (ΝΔ 29,1, ΕΛΑΣ 15,5, ΠΑΣΟΚ 12,9, ΝΙΚΗ 1,3…). Αθροίζει 96,4%· το υπόλοιπο είναι το περιθώριο νέου κόμματος και τα άλλα | `majorline_parties.csv` (`share`) |
-| `out` | P(αυτοδυναμία ΝΔ) 0,029, P(χωρίς μπόνους) 0,216, P(ΝΔ+ΠΑΣΟΚ ≥151) 0,56· ανά κόμμα `threshold_` (P≥3%), `first_`, `second_`, `third_party_enough_` | `majorline_runs.csv` (τα 3 πρώτα), `majorline_parties.csv` |
-| `scen.bonus`, `scen.no_bonus` | `p` του σεναρίου, `parl` (διάμεσος εδρών ανά κόμμα), `rin` ([κάτω, άνω] εύρος, πιθανώς 80%, δεν τεκμηριώνεται), `pin`, `np151`, `bigMed`, `bigR` | `majorline_parties.csv` (έδρες και εύρος)· τα `pin`, `np151` προς το παρόν όχι |
-| `trend` | 15 εκτιμήσεις από 1.6.2026: `maj`, `nob`, `np`, `pass3`, `second`, `vote` ανά κόμμα. Υπολογισμένες ξανά με τη σημερινή μέθοδο | `majorline_parties.csv` με `src=trend` (backfill) |
+| `run` | `run_id`, `as_of`, `sha256` | `benchmark_runs.csv` |
+| `method`, `n_polls`, `pollsters` | μέθοδος (κείμενο), 341, 14 εταιρείες | `benchmark_runs.csv` (οι εταιρείες: έλεγχος ότι συμφωνούν με το `nikh_polls.csv`) |
+| `vote` | ποσοστό 15 κομμάτων (ΝΔ 29,1, ΕΛΑΣ 15,5, ΠΑΣΟΚ 12,9, ΝΙΚΗ 1,3…). Αθροίζει 96,4%· το υπόλοιπο είναι το περιθώριο νέου κόμματος και τα άλλα | `benchmark_parties.csv` (`share`) |
+| `out` | P(αυτοδυναμία ΝΔ) 0,029, P(χωρίς μπόνους) 0,216, P(ΝΔ+ΠΑΣΟΚ ≥151) 0,56· ανά κόμμα `threshold_` (P≥3%), `first_`, `second_`, `third_party_enough_` | `benchmark_runs.csv` (τα 3 πρώτα), `benchmark_parties.csv` |
+| `scen.bonus`, `scen.no_bonus` | `p` του σεναρίου, `parl` (διάμεσος εδρών ανά κόμμα), `rin` ([κάτω, άνω] εύρος, πιθανώς 80%, δεν τεκμηριώνεται), `pin`, `np151`, `bigMed`, `bigR` | `benchmark_parties.csv` (έδρες και εύρος)· τα `pin`, `np151` προς το παρόν όχι |
+| `trend` | 15 εκτιμήσεις από 1.6.2026: `maj`, `nob`, `np`, `pass3`, `second`, `vote` ανά κόμμα. Υπολογισμένες ξανά με τη σημερινή μέθοδο | `benchmark_parties.csv` με `src=trend` (backfill) |
 | `tsplit`, `second`, `hist`, `blocs`, `tog` | ιστορικό P(μπόνους), διαφορά ΕΛΑΣ−ΠΑΣΟΚ, ιστόγραμμα εδρών ΝΔ, πλευρές (δεξιά/αριστερά), 6 οριακά κόμματα × 62 συνδυασμοί | όχι στην πρώτη έκδοση (επαναλαμβάνουν ή είναι για τη διεπαφή) |
 | `fr` | Γαλλία (Λεπέν 0,967…) μέσα στο ελληνικό αρχείο | εκτός πεδίου |
 
@@ -100,25 +100,25 @@
 
 **Έλεγχος ΝΙΚΗΣ (22.11.2026):** επίπεδο 1,3% (Majorline) έναντι 1,38% (δικό μας, `nikh_polls.estimate`): συμφωνούν. P(≥3%): 4,8% (Majorline, `threshold_NIKI`) έναντι 0,3–0,6% σήμερα και 3,8–5,2% σε 180 ημέρες (δικό μας, `NIKH.md` §18). Η διαφορά 8–16 φορές είναι το μοντέλο σφάλματος: προσθετικό λάθος περίπου 1 μονάδας για κάθε κόμμα εκεί, εμπειρικός λόγος κάλπη/δημοσκόπηση μικρών κομμάτων εδώ. Ανάλυση: `NIKH.md` ενότητα 18, «Σύγκριση με τη Majorline».
 
-## 6. Σχεδίαση του fetcher (`analysis/majorline_fetch.py`, πρωτότυπο γραμμένο)
+## 6. Σχεδίαση του fetcher (`analysis/benchmark_fetch.py`, πρωτότυπο γραμμένο)
 
 - **Stdlib μόνο.** `urllib.request`, `urllib.robotparser`, `csv`, `json`. Γενικό User-Agent `elections-research-script/1.0 (public aggregate poll data)`, όπως το `polls_wiki.py`. Χωρίς επικοινωνία ή όνομα στο UA.
-- **Αιτήματα:** `robots.txt` και `greece.json`, με `time.sleep(1)` ανάμεσα (το πολύ 1/s, 2 ανά τρέξιμο). Conditional GET με `If-None-Match` (ETag στο `data/majorline/state.json`): χωρίς νέα εκτίμηση απαντά 304 και δεν γράφεται τίποτα. `Accept-Encoding: identity`, για να μη χρειάζεται αποσυμπίεση zstd.
+- **Αιτήματα:** `robots.txt` και `greece.json`, με `time.sleep(1)` ανάμεσα (το πολύ 1/s, 2 ανά τρέξιμο). Conditional GET με `If-None-Match` (ETag στο `data/benchmark/state.json`): χωρίς νέα εκτίμηση απαντά 304 και δεν γράφεται τίποτα. `Accept-Encoding: identity`, για να μη χρειάζεται αποσυμπίεση zstd.
 - **Αποτυχία χωρίς εγγραφή.** Αν λείπει κλειδί που διαβάζουμε, ή το `robots.txt` απαγορεύει το path, το τρέξιμο σταματά πριν γραφεί CSV. Νέα κλειδιά: μόνο προειδοποίηση.
-- **Cache ακατέργαστων:** τα ακριβή bytes στο `data/majorline/raw/greece_<as_of>_<sha8>.json` (gitignored). Τα CSV ξαναχτίζονται από αυτά.
+- **Cache ακατέργαστων:** τα ακριβή bytes στο `data/benchmark/raw/greece_<as_of>_<sha8>.json` (gitignored). Τα CSV ξαναχτίζονται από αυτά.
 - **Έξοδος** δίπλα στο `nikh_polls.csv`, και τα δύο με upsert, ταξινομημένα, ώστε το ξανατρέξιμο να μη δίνει διαφορά:
-  - `analysis/majorline_runs.csv`: `as_of, run_id, sha256, method, n_polls, single_party_majority, no_bonus, nd_pasok_151`.
-  - `analysis/majorline_parties.csv`: `as_of, party, src, share, p_in, p_first, p_second, p_third_enough, seats_bonus, lo_bonus, hi_bonus, seats_nobonus, lo_nobonus, hi_nobonus`. Κωδικοί κομμάτων όπως στην πηγή (`ND, ELAS, PASOK, NIKI…`)· ο πίνακας αντιστοίχισης με τα δικά μας (`config.PARTY_SHORT`, στήλες του `nikh_polls.csv`) γράφεται μαζί με τον αναγνώστη.
+  - `analysis/benchmark_runs.csv`: `as_of, run_id, sha256, method, n_polls, single_party_majority, no_bonus, nd_pasok_151`.
+  - `analysis/benchmark_parties.csv`: `as_of, party, src, share, p_in, p_first, p_second, p_third_enough, seats_bonus, lo_bonus, hi_bonus, seats_nobonus, lo_nobonus, hi_nobonus`. Κωδικοί κομμάτων όπως στην πηγή (`ND, ELAS, PASOK, NIKI…`)· ο πίνακας αντιστοίχισης με τα δικά μας (`config.PARTY_SHORT`, στήλες του `nikh_polls.csv`) γράφεται μαζί με τον αναγνώστη.
   - Στο πρώτο τρέξιμο το `trend` δίνει 15 ιστορικές ημερομηνίες (`src=trend`), που αντικαθίστανται από γραμμή `src=run` της ίδιας ημερομηνίας.
 - **Έλεγχος:** `--selftest` (offline, συνθετικό δείγμα): έγινε και πέρασε, μαζί με έλεγχο ότι το upsert είναι σταθερό και ότι η γραμμή `run` νικά την `trend`. `ruff` χωρίς ευρήματα με τους κανόνες του CI. Το δίκτυο δεν δοκιμάστηκε.
-- **Ποιος θα τα διαβάζει:** νέο `analysis/majorline_compare.py` (όχι `nikh_*`, ώστε να μη συγκρουστεί με τη συνεδρία που αλλάζει τα `nikh_*.py`): διαβάζει `majorline_parties.csv` και `nikh_polls.estimate()`, τυπώνει σύγκριση επιπέδου και P(≥3%) ΝΙΚΗΣ, ΝΔ και ΠΑΣΟΚ. Κανένα υπάρχον script δεν αλλάζει. Όταν γίνει, μπαίνει γραμμή στο `CONTEXT.md` (πίνακας «Μία πηγή για κάθε στοιχείο» και πίνακας scripts) και ενότητα στο `NIKH.md`.
+- **Ποιος θα τα διαβάζει:** νέο `analysis/benchmark_compare.py` (όχι `nikh_*`, ώστε να μη συγκρουστεί με τη συνεδρία που αλλάζει τα `nikh_*.py`): διαβάζει `benchmark_parties.csv` και `nikh_polls.estimate()`, τυπώνει σύγκριση επιπέδου και P(≥3%) ΝΙΚΗΣ, ΝΔ και ΠΑΣΟΚ. Κανένα υπάρχον script δεν αλλάζει. Όταν γίνει, μπαίνει γραμμή στο `CONTEXT.md` (πίνακας «Μία πηγή για κάθε στοιχείο» και πίνακας scripts) και ενότητα στο `NIKH.md`.
 - **Τεστ:** το CI τρέχει μόνο `tests/` (το δίκτυο και η βάση δεν υπάρχουν). Το `flatten()` είναι καθαρή συνάρτηση, άρα ένα `tests/test_majorline.py` που εισάγει το module και τρέχει το `selftest()` αρκεί.
 
 ## 7. Πρόγραμμα: τρεις επιλογές
 
 | | Τι κάνει | Υπέρ | Κατά |
 |---|---|---|---|
-| **Α. GitHub Actions `schedule:`** | Workflow τρέχει `majorline_fetch.py`, τα τεστ, και ανοίγει PR αν άλλαξαν τα CSV | Στο ίδιο repo με το CI. Δωρεάν για τέτοια ελαφριά εργασία. Το PR ελέγχεται από άνθρωπο. Δεν αγγίζει το Vercel. | **Το repo είναι δημόσιο:** το PR, τα artifacts και τα logs είναι δημόσια, άρα κάθε αριθμός που μπαίνει εκεί αναδιανέμεται. Τα CI checks δεν τρέχουν στο PR που ανοίγει το `GITHUB_TOKEN` (γεγονότα του token δεν ξεκινούν workflows), άρα τα τεστ τρέχουν μέσα στο ίδιο job. |
+| **Α. GitHub Actions `schedule:`** | Workflow τρέχει `benchmark_fetch.py`, τα τεστ, και ανοίγει PR αν άλλαξαν τα CSV | Στο ίδιο repo με το CI. Δωρεάν για τέτοια ελαφριά εργασία. Το PR ελέγχεται από άνθρωπο. Δεν αγγίζει το Vercel. | **Το repo είναι δημόσιο:** το PR, τα artifacts και τα logs είναι δημόσια, άρα κάθε αριθμός που μπαίνει εκεί αναδιανέμεται. Τα CI checks δεν τρέχουν στο PR που ανοίγει το `GITHUB_TOKEN` (γεγονότα του token δεν ξεκινούν workflows), άρα τα τεστ τρέχουν μέσα στο ίδιο job. |
 | **Β. Vercel Schedules** | Προγραμματισμένη συνάρτηση ή path μέσα στο Vercel project | Τίποτα που να μας χρειάζεται. | **Δεν ταιριάζει.** Το project είναι στατικό και το `.vercelignore` δημοσιεύει μόνο `index.html`, `vercel.json`, `out/`, `exports/`: θα έπρεπε να μπει συνάρτηση στο δημόσιο site. Το σύστημα αρχείων των συναρτήσεων δεν μένει, άρα τα CSV δεν φτάνουν στο repo ούτε στα scripts χωρίς Blob ή token εγγραφής στο GitHub. Public beta. Το αποτέλεσμα (CSV για αναλύσεις) δεν είναι καν προϊόν του site. |
 | **Γ. Τοπικά (Windows Task Scheduler)** | Το ίδιο script στο μηχάνημα του χρήστη | Τα αρχεία μένουν τοπικά και gitignored: **καμία αναδιανομή**, κανένας κίνδυνος deploy. | Θέλει να είναι ανοιχτό το μηχάνημα. Δεν έχει CI ούτε ιστορικό στο repo. |
 
@@ -128,7 +128,7 @@
 - **Commit στο main:** κάθε push στο main γίνεται deploy στο Vercel και το CI δεν το εμποδίζει. Αν και το `analysis/` δεν δημοσιεύεται (`.vercelignore`), κάθε bot commit δημιουργεί deployment. Γι' αυτό PR (κλάδος `bot/majorline-ΗΜΕΡΟΜΗΝΙΑ`), όχι commit στο main. Προαιρετικό: `ignoreCommand` στο `vercel.json`, ώστε commits που αγγίζουν μόνο `analysis/` να μη χτίζουν (να επαληθευτεί στην τεκμηρίωση του Vercel πριν χρησιμοποιηθεί).
 - **Αλλαγή σχήματος πηγής:** ο fetcher αποτυγχάνει δυνατά, το workflow κοκκινίζει, δεν γράφεται τίποτα.
 - **Cron:** το `*/2` στην ημέρα του μήνα ξαναρχίζει από την 1η, άρα στο τέλος του μήνα δύο διαδοχικές μέρες· δεν πειράζει, γιατί χωρίς νέα εκτίμηση το τρέξιμο δεν αλλάζει τίποτα. Τα scheduled workflows τρέχουν μόνο από τον default κλάδο και μπορούν να καθυστερήσουν. Σε δημόσια repos απενεργοποιούνται μετά από ~60 ημέρες χωρίς δραστηριότητα (να επαληθευτεί).
-- **Cache στο CI:** το `data/majorline/` κρατιέται με `actions/cache`, όχι με artifact (το artifact είναι δημόσιο).
+- **Cache στο CI:** το `data/benchmark/` κρατιέται με `actions/cache`, όχι με artifact (το artifact είναι δημόσιο).
 - **Αυτόματο merge:** δεν ενεργοποιείται αν δεν το ζητήσει ο χρήστης.
 
 Σχέδιο workflow (δεν υπάρχει στο repo· τα actions καρφώνονται με SHA όπως στο `ci.yml`):
@@ -149,14 +149,14 @@ jobs:
       - uses: actions/setup-python@<sha>
         with: {python-version: "3.12"}
       - uses: actions/cache@<sha>
-        with: {path: data/majorline, key: "majorline-${{ github.run_id }}", restore-keys: "majorline-"}
-      - run: python -I -X utf8 analysis/majorline_fetch.py
+        with: {path: data/benchmark, key: "benchmark-${{ github.run_id }}", restore-keys: "benchmark-"}
+      - run: python -I -X utf8 analysis/benchmark_fetch.py
       - run: python -I -X utf8 -m unittest discover -s tests
       - env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
         run: |
-          [ -z "$(git status --porcelain -- analysis/majorline_*.csv)" ] && exit 0   # τίποτα νέο: κανένα PR
+          [ -z "$(git status --porcelain -- analysis/benchmark_*.csv)" ] && exit 0   # τίποτα νέο: κανένα PR
           b=bot/majorline-$(date -u +%F)
-          git switch -c "$b" && git add analysis/majorline_*.csv
+          git switch -c "$b" && git add analysis/benchmark_*.csv
           git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -m "Majorline: νέα εκτίμηση"
           git push origin "$b" && gh pr create --fill --base main
 ```
@@ -169,7 +169,7 @@ jobs:
 
 | # | Ιδέα | Τι ακριβώς | Προσπάθεια | Αξία |
 |---|---|---|---|---|
-| 1 | Εβδομαδιαίος έλεγχος ΝΙΚΗΣ έναντι Majorline | `majorline_compare.py`: επίπεδο και P(≥3%) δίπλα στο `estimate()`/`nikh_montecarlo`. Εξηγεί την ασυμφωνία 4,8% έναντι 0,3–0,6% | μικρή | υψηλή (χωρίς αυτό δεν δίνεται αριθμός σε πελάτη) |
+| 1 | Εβδομαδιαίος έλεγχος ΝΙΚΗΣ έναντι Majorline | `benchmark_compare.py`: επίπεδο και P(≥3%) δίπλα στο `estimate()`/`nikh_montecarlo`. Εξηγεί την ασυμφωνία 4,8% έναντι 0,3–0,6% | μικρή | υψηλή (χωρίς αυτό δεν δίνεται αριθμός σε πελάτη) |
 | 2 | Διασταύρωση του κώδικα εδρών | Τα `vote` τους ως είσοδος στο `nikh_seats.allocate`· σύγκριση διαμέσων εδρών με τα `parl` τους (ΝΔ 117/74 με/χωρίς μπόνους, ΕΛΑΣ, ΠΑΣΟΚ). Προσοχή: τα ποσοστά αθροίζουν 96,4%, ο νόμος και ο αριθμός περιφερειών πρέπει να ταιριάζουν | μέτρια | υψηλή (ανεξάρτητος έλεγχος του νόμου, και για τις δύο πλευρές) |
 | 3 | Κάλυψη διαστημάτων | Στο backtest του `nikh_polls.py`: ποιο ποσοστό των πραγματικών δημοσκοπήσεων πέφτει στο 80% διάστημα των 30/90/180 ημερών (η δική τους μετρική «8 στις 10») | μικρή | μέση |
 | 4 | Κλείδωμα των δικών μας προβλέψεων | Ημερομηνιακό αρχείο του `nikh_montecarlo.txt` ανά εβδομάδα (ή git tag) πριν το γεγονός, ώστε να δείχνουμε ιστορικό χωρίς αναδρομική αλλαγή | μικρή | μέση (αξιοπιστία έναντι πελατών) |
@@ -183,8 +183,8 @@ jobs:
 ## 9. Σύσταση και σειρά
 
 0. (έγινε) Έλεγχος, σχέδιο, πρωτότυπο fetcher με self-test.
-1. **Απόφαση χρήστη:** (α) στέλνεται το αίτημα άδειας (§10); (β) επιτρέπεται ένα χειροκίνητο τοπικό τρέξιμο του fetcher (2 αιτήματα, αρχείο στο `data/majorline/`); (γ) τι μπαίνει στο δημόσιο repo μέχρι να απαντήσουν (προτείνεται: τίποτα).
-2. Πρώτο τρέξιμο, backfill, `majorline_compare.py`, ιδέα 1 → νέα ενότητα στο `NIKH.md` και γραμμές στο `CONTEXT.md` (συντονισμός με τη συνεδρία που αλλάζει τα `nikh_*.py`).
+1. **Απόφαση χρήστη:** (α) στέλνεται το αίτημα άδειας (§10); (β) επιτρέπεται ένα χειροκίνητο τοπικό τρέξιμο του fetcher (2 αιτήματα, αρχείο στο `data/benchmark/`); (γ) τι μπαίνει στο δημόσιο repo μέχρι να απαντήσουν (προτείνεται: τίποτα).
+2. Πρώτο τρέξιμο, backfill, `benchmark_compare.py`, ιδέα 1 → νέα ενότητα στο `NIKH.md` και γραμμές στο `CONTEXT.md` (συντονισμός με τη συνεδρία που αλλάζει τα `nikh_*.py`).
 3. Ιδέα 2 (διασταύρωση εδρών) και 3 (κάλυψη διαστημάτων).
 4. Μετά την άδεια: `tests/test_majorline.py`, workflow της §7 (πρώτα μόνο με `workflow_dispatch`, μετά το `schedule:`).
 5. Ιδέες 4–8 κατά προτεραιότητα.

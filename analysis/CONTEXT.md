@@ -40,7 +40,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_regions.py` | db | `nikh_regions.txt` | 7 |
 | `pyei_2019_2023.py --region=N` (per region, 5 election pairs) | db; PyEI venv | `pyei_regions/<base>_to_<target>_<N>.txt` | 7 |
 | `pyei_regions_summary.py` | db, `pyei_regions/*.txt` | `pyei_regions/summary.txt` | 7 |
-| `majorline_fetch.py` (every 2nd day by `.github/workflows/majorline.yml`, PR) | majorline.eu `/data/greece.json` (network) | `majorline_runs.csv`, `majorline_parties.csv` | 18; plan: `majorline_plan.md` |
+| `benchmark_fetch.py` (every 2nd day by `.github/workflows/benchmark.yml`, PR) | majorline.eu `/data/greece.json` (network) | `benchmark_runs.csv`, `benchmark_parties.csv` | 18; plan: `benchmark_plan.md` |
 | `polls_wiki.py` [cache_dir] | Wikipedia poll tables (network) | `nikh_pollerror.csv`; party columns of `nikh_polls.csv` | plan 2, stage 2 |
 | `nikh_polls.py` | `nikh_polls*.csv` | `nikh_polls.txt` | 16, 17 |
 | `nikh_pollerror.py` | `nikh_pollerror.csv` | `nikh_pollerror.txt` | 18 |
