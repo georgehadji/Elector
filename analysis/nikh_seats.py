@@ -34,17 +34,20 @@ for ep, p, n in c.execute("SELECT ep_id, party_id, COUNT(*) FROM candidate WHERE
     cands[ep, p] = n
 
 
-def ep_votes(e):
-    """{ep: {party: votes}} over all stations."""
+def ep_votes(e, abroad=False):
+    """{ep: {party: votes}} over all stations of the constituencies with seats; with abroad, also the constituency of
+    voters abroad (no seats of its own; from 2023 its votes count in the national totals, so allocate counts them)."""
     out = {}
     for ep, pid, v in c.execute("SELECT s.ep_id, pv.party_id, SUM(pv.votes) FROM station s JOIN party_votes pv "
                                 "ON pv.election=s.election AND pv.tm_id=s.tm_id WHERE s.election=? GROUP BY 1, 2", (e,)):
-        out.setdefault(ep, {})[pid] = v
+        if abroad or ep in seats:
+            out.setdefault(ep, {})[pid] = v
     return out
 
 
 def allocate(ep_v):
-    """{party: {ep or 'state': seats}} for one election given {ep: {party: votes}}."""
+    """{party: {ep or 'state': seats}} for one election given {ep: {party: votes}}; a key without seats (abroad) counts
+    in the national totals only."""
     nat = {}
     for pv in ep_v.values():
         for p, v in pv.items():
@@ -59,6 +62,7 @@ def allocate(ep_v):
     for p in sorted(qual, key=lambda p: -(qual[p] - state[p] * sq))[:STATE - sum(state.values())]:
         state[p] += 1
     target = {p: total[p] - state[p] for p in qual}
+    ep_v = {ep: pv for ep, pv in ep_v.items() if ep in seats}
 
     won = {ep: {p: 0 for p in qual} for ep in ep_v}
     rem = {}
@@ -119,7 +123,7 @@ def scenario(base, pct, pattern=None, party=NIKH):
 
 if __name__ == "__main__":
     june = ep_votes("2023/june")
-    res, _ = allocate(june)
+    res, _ = allocate(ep_votes("2023/june", abroad=True))
     print("Ιούνιος 2023, προσομοίωση:", ", ".join(f"{PARTY_SHORT.get(p, p)} {sum(s.values())}" for p, s in
                                                   sorted(res.items(), key=lambda x: -sum(x[1].values()))))
     nikh_eps = {ep for ep in res[NIKH] if ep != "state"}

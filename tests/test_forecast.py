@@ -129,6 +129,19 @@ class AllocateMatchesLaw(unittest.TestCase):
             res, _ = S.allocate(ep_v)
             self.assertEqual({p: sum(v.values()) for p, v in res.items()}, L.national_seats(nat))
 
+    def test_june_2023_with_abroad_gives_the_ministry_seats(self):  # the database holds every valid vote of the site
+        argv, sys.argv = sys.argv, [sys.argv[0], str(DB)]
+        try:
+            S = F.seats_module()
+        finally:
+            sys.argv = argv
+        june = next(e for e in json.loads((ROOT / "analysis" / "forecast_backtest.json").read_text(encoding="utf-8"))
+                    ["elections"] if e["key"] == F.JUNE)
+        ep_v = S.ep_votes(F.JUNE, abroad=True)
+        self.assertEqual(sum(sum(pv.values()) for pv in ep_v.values()), june["valid"])
+        res, _ = S.allocate(ep_v)
+        self.assertEqual({p: sum(v.values()) for p, v in res.items()}, {p["id"]: p["site"] for p in june["parties"]})
+
 
 if __name__ == "__main__":
     unittest.main()
