@@ -393,6 +393,94 @@ def sample_report(p, by_id):
     p("     Υπογράφει: " + ", ".join(f"{k} {n}" for k, n in roles.most_common()))
 
 
+# What an answer says, from its text (all its files): each a sentence that ministries write in a fixed form.
+MARKERS = [
+    ("δηλώνει αναρμοδιότητα (για όλο ή μέρος)",
+     r"ΕΚΦΕΥΓ\w* (?:ΤΩΝ|ΑΠΟ ΤΙΣ) ΑΡΜΟΔΙΟΤ|ΔΕΝ ΕΜΠΙΠΤ\w* ΣΤΙΣ ΑΡΜΟΔΙΟΤ|ΔΕΝ ΑΠΤ\w* ΤΩΝ ΑΡΜΟΔΙΟΤ|"
+     r"ΑΡΜΟΔΙ\w* (?:ΝΑ ΣΑΣ |ΓΙΑ ΝΑ (?:ΣΑΣ )?)?ΑΠΑΝΤΗΣ|ΔΕΝ ΕΧΕΙ ΑΡΜΟΔΙΟΤΗΤΑ|ΔΕΝ ΕΙΝΑΙ ΑΡΜΟΔΙ"),
+    ("αρνείται στοιχεία (απόρρητα, διαβαθμισμένα)",
+     r"(?:ΕΙΝΑΙ|ΑΠΟΤΕΛΟΥΝ|ΧΑΡΑΚΤΗΡΑ ΤΟΥ) (?:\w+ ){0,3}ΑΠΟΡΡΗΤ|ΔΙΑΒΑΘΜΙΣΜΕΝ\w* ΠΛΗΡΟΦΟΡ|"
+     r"ΔΕΝ (?:ΔΥΝΑΝΤΑΙ ΝΑ |ΔΥΝΑΤΑΙ ΝΑ )?ΚΟΙΝΟΠΟΙ(?:ΟΥΝΤΑΙ|ΗΘΟΥΝ|ΗΘΕΙ)|ΕΝΝΟΙΑ ΤΟΥ (?:\w+ )?ΑΠΟΡΡΗΤ|"
+     r"ΕΠΙΒΕΒΑΙΩΝ\w* Η ΔΙΑΨΕΥΔ|ΔΕΝ (?:ΔΥΝΑΤΑΙ|ΔΥΝΑΝΤΑΙ) ΝΑ ΓΝΩΣΤΟΠΟΙΗΘ"),
+    ("παραπέμπει σε όσα ειπώθηκαν στη Βουλή",
+     r"ΚΑΤΑ ΤΗ ΣΥΖΗΤΗΣΗ (?:ΤΗΣ |ΣΧΕΤΙΚΗΣ )(?:\w+ ){0,6}ΕΠΙΚΑΙΡ|ΕΝΗΜΕΡΩΣΕ (?:\w+ ){0,8}(?:ΟΛΟΜΕΛΕΙΑ|ΕΘΝΙΚΗ ΑΝΤΙΠΡΟΣΩΠΕΙΑ)|"
+     r"ΑΠΟΣΠΑΣΜΑΤΑ ΑΠΟ ΤΑ ΠΡΑΚΤΙΚΑ|ΠΡΑΚΤΙΚΑ ΤΗΣ (?:ΟΛΟΜΕΛΕΙΑΣ|ΒΟΥΛΗΣ)"),
+    ("«εξετάζεται, ανάλογα με τα δημοσιονομικά»",
+     r"(?:ΕΞΕΤΑΖ|ΑΞΙΟΛΟΓ|ΣΤΑΘΜΙΖ)\w* (?:\S+ ){0,20}ΔΗΜΟΣΙΟΝΟΜΙΚ\w* (?:ΔΥΝΑΤΟΤΗΤ|ΧΩΡΟ|ΚΟΣΤΟΣ|ΑΝΤΟΧ)|ΟΡΙΩΝ ΚΑΘΑΡΩΝ ΔΑΠΑΝΩΝ"),
+]
+_MARKERS = [(name, re.compile(pat)) for name, pat in MARKERS]
+
+
+def caps(text):
+    """Upper case without accents, one space between words: the form MARKERS and ROLES are written in."""
+    return " ".join("".join(c for c in unicodedata.normalize("NFD", text) if not unicodedata.combining(c))
+                    .upper().split())
+
+
+def markers(text):
+    t = caps(text)
+    return [name for name, pat in _MARKERS if pat.search(t)]
+
+
+def answers_report(p, old, today):
+    """Section 6c: the text of every answer file (nikh_control_fetch.py all_answers, if it was run): the day the
+    letter was signed, who signed it, and the fixed sentences of MARKERS. Files repeated in one act are read once."""
+    folder = CACHE / "answer"
+    if not folder.exists():
+        return
+    texts = {int(f.stem): json.loads(f.read_text(encoding="utf-8")) for f in folder.glob("*.json")}
+    answered = [a for a in old if a["answer_ids"]]
+    read = [a for a in answered if all(i in texts for i in a["answer_ids"])]
+    if not read:
+        return
+    lag, est, roles, found, by_min = [], [], Counter(), Counter(), {}
+    for a in read:
+        files = list({texts[i]["text"]: i for i in sorted(a["answer_ids"], reverse=True)}.items())[::-1]
+        day, role = letter(texts[min(a["answer_ids"])]["text"], a["date"], today)
+        a["letter_day"], a["signer"] = day, role
+        a["markers"] = sorted({m for text, _ in files for m in markers(text)})
+        if day:
+            lag.append((day - a["date"]).days)
+            if a["answer_est"]:
+                est.append((a["answer_est"] - day).days)
+        roles[role or "δεν βρέθηκε"] += 1
+        found.update(a["markers"])
+        for m in a["ministries_n"]:
+            by_min.setdefault(m, []).append(a)
+    lag.sort()
+    est.sort()
+    p(f"   Κείμενο των απαντήσεων: {len(read)} από τις {len(answered)} απαντημένες γραπτές πράξεις "
+      f"({sum(len(set(a['answer_ids'])) for a in read)} αρχεία· "
+      f"σκαναρισμένα, που χρειάστηκαν OCR: {sum(texts[i]['ocr'] for a in read for i in set(a['answer_ids']))}).")
+    if lag:
+        p(f"     Ημέρες από την κατάθεση ως την υπογραφή της πρώτης επιστολής (n = {len(lag)}): διάμεσος "
+          f"{statistics.median(lag):.0f}, ≤25 ημέρες {100 * sum(x <= 25 for x in lag) / len(lag):.0f}%.")
+        p(f"     Εκτίμηση (άφιξη στη Βουλή) μείον υπογραφή: διάμεσος {statistics.median(est):.0f} ημέρες, "
+          f"0–7 ημέρες {100 * sum(0 <= x <= 7 for x in est) / len(est):.0f}%, αρνητική {sum(x < 0 for x in est)}.")
+    p("     Υπογράφει την πρώτη απάντηση: " + ", ".join(f"{k} {n}" for k, n in roles.most_common()))
+    p("     Τι λέει η απάντηση (μια πράξη μπορεί να έχει πολλά): "
+      + ", ".join(f"{k} {n} ({100 * n / len(read):.0f}%)" for k, n in found.most_common()))
+    vw = Counter(((a["vw"] or {}).get("content_coverage") or {}).get("category") or "χωρίς βαθμό" for a in read)
+    p("     Βαθμός Vouliwatch στις πράξεις με κάθε φράση (σε παρένθεση: όλες οι πράξεις με κείμενο " +
+      ", ".join(f"{k} {n}" for k, n in vw.most_common()) + "):")
+    for name, _ in MARKERS:
+        sub = Counter(((a["vw"] or {}).get("content_coverage") or {}).get("category") or "χωρίς βαθμό"
+                      for a in read if name in a["markers"])
+        if sub:
+            p(f"       {name}: " + ", ".join(f"{k} {n}" for k, n in sub.most_common()))
+    p("     Ανά υπουργείο (n ≥ 20· υπογράφει την πρώτη απάντηση, και ποσοστό πράξεων με κάθε φράση):")
+    p(f"       {'':<36} {'n':>4} {'Υπουργός':>9} {'Υφυπ.':>6} {'αναρμ.':>7} {'άρνηση':>7} "
+      f"{'Βουλή':>6} {'δημοσ.':>7}")
+    for m, sub in sorted(by_min.items(), key=lambda kv: -len(kv[1])):
+        if len(sub) < 20:
+            continue
+        def share(test):
+            return f"{100 * sum(1 for a in sub if test(a)) / len(sub):.0f}%"
+        p(f"       {m:<36} {len(sub):>4} {share(lambda a: a['signer'] == 'Υπουργός'):>9} "
+          f"{share(lambda a: a['signer'] == 'Υφυπουργός'):>6} "
+          + " ".join(f"{share(lambda a, k=k: k in a['markers']):>7}" for k, _ in MARKERS))
+
+
 def bar(n, scale):
     return "█" * round(n / scale) if scale else ""
 
@@ -576,6 +664,7 @@ def main():
         p("   " + ", ".join(f"{m} {sum(1 for a in deb if m in a['ministries_n'])}/{n}" for m, n in Counter(
             m for a in top_q for m in a["ministries_n"]).most_common() if n >= 10))
     sample_report(p, {a["pcm_id"]: a for a in acts})
+    answers_report(p, old, today)
     p("")
     # 7. Co-signing
     p("7. Συνυπογραφές")
