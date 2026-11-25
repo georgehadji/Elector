@@ -149,6 +149,11 @@ def seatbar(r, order, names):
             f'<ul class="legend">{legend}</ul>')
 
 
+def seats_range(x):
+    """[10%, median, 90%] as '117 (100–134)'; one number when the range is a single value."""
+    return "—" if not x else str(x[1]) if x[0] == x[2] else f"{x[1]} ({x[0]}–{x[2]})"
+
+
 def seat_table(r, order, names):
     rows = []
     for p in order:
@@ -156,12 +161,13 @@ def seat_table(r, order, names):
         if "seats" not in d or d["seats"][2] == 0:  # OTHER has no seats
             continue
         rows.append(f'<tr><td><span class="sw" style="--c:{colour(p)}"></span>{html.escape(names[p])}</td>'
-                    f'<td class="n">{pct(d["p_first"])}</td><td class="n">{F.fmt(d["seats"])}</td>'
-                    f'<td class="n">{F.fmt(d["seats_bonus"])}</td><td class="n">{F.fmt(d["seats_nobonus"])}</td></tr>')
-    return ('<div class="wrap"><table><thead><tr><th>κόμμα</th><th class="n">πιθ. 1ο</th><th class="n">έδρες</th>'
+                    f'<td class="n">{pct(d["p_first"])}</td><td class="n">{seats_range(d["seats"])}</td>'
+                    f'<td class="n">{seats_range(d["seats_bonus"])}</td><td class="n">{seats_range(d["seats_nobonus"])}</td></tr>')
+    return ('<div class="wrap"><table><thead><tr><th>κόμμα</th><th class="n">βγαίνει πρώτο</th><th class="n">έδρες</th>'
             '<th class="n">αν υπάρχει μπόνους</th><th class="n">χωρίς μπόνους</th></tr></thead><tbody>'
             + "".join(rows) + '</tbody></table></div>'
-            '<p class="note">Έδρες: 10%–διάμεσος–90% των προσομοιώσεων. «Αν υπάρχει μπόνους»: μόνο οι προσομοιώσεις όπου το '
+            '<p class="note">Έδρες: η μεσαία τιμή των προσομοιώσεων και, σε παρένθεση, το εύρος όπου πέφτει στις 8 από τις 10. '
+            '«Αν υπάρχει μπόνους»: μόνο οι προσομοιώσεις όπου το '
             f'πρώτο κόμμα πήρε 25% και πάνω, δηλαδή {pct(r["p_bonus"])} του συνόλου.</p>')
 
 
@@ -200,11 +206,15 @@ def hist(h, w, hgt, fs, every):
 
 def histograms(r):
     out = []
+    no_bonus = 1 - r["p_bonus"]
+    hump = ("" if no_bonus < 0.005 else  # the low values on the left: no party reached 25%, so no bonus seats
+            f" Οι χαμηλές τιμές αριστερά είναι κυρίως οι προσομοιώσεις χωρίς μπόνους ({pct(no_bonus)}), όπου κανένα "
+            "κόμμα δεν έφτασε το 25%.")
     for key, title, p in (("hist_nd", "Έδρες της ΝΔ", r["p_nd_majority"]),
                           ("hist_nd_pasok", "Έδρες ΝΔ και ΠΑΣΟΚ μαζί", r["p_nd_pasok_151"])):
         out.append(f'<figure><h3>{title}</h3><div class="wide">{hist(r[key], 440, 210, 12, 20)}</div>'
                    f'<div class="narrow">{hist(r[key], 360, 210, 12, 20)}</div>'
-                   f'<figcaption>Ποσοστό των προσομοιώσεων ανά αριθμό εδρών. 151 ή περισσότερες: {pct(p)}.</figcaption></figure>')
+                   f'<figcaption>Ποσοστό των προσομοιώσεων ανά αριθμό εδρών. 151 ή περισσότερες: {pct(p)}.{hump}</figcaption></figure>')
     return '<div class="two">' + "".join(out) + "</div>"
 
 
@@ -275,8 +285,10 @@ def main():
     with open(HERE / "analysis" / "nikh_polls.csv", encoding="utf-8") as f:
         n_polls = sum(1 for _ in csv.DictReader(f))
     nd = today["parties"]["ND"]
-    lead = (f"Αν οι εκλογές γίνονταν σήμερα, η ΝΔ θα ήταν πρώτη σε {pct(nd['p_first'])} των προσομοιώσεων, με "
-            f"{num(nd['share'][1])}% και {nd['seats'][1]} έδρες στη μέση περίπτωση. Αυτοδύναμη θα ήταν σε "
+    first = ("σχεδόν σε όλες τις προσομοιώσεις" if nd["p_first"] > 0.999
+             else f"σε {pct(nd['p_first'])} των προσομοιώσεων")
+    lead = (f"Αν οι εκλογές γίνονταν σήμερα, η ΝΔ θα ήταν πρώτη {first}, με "
+            f"{num(nd['share'][1])}% και {nd['seats'][1]} έδρες στη μεσαία περίπτωση. Αυτοδύναμη θα ήταν σε "
             f"{pct(today['p_nd_majority'])}· μαζί με το ΠΑΣΟΚ θα είχε 151 έδρες σε {pct(today['p_nd_pasok_151'])}.")
     sources = (f'Δεδομένα: δημοσκοπήσεις από <a href="{WIKI}">Wikipedia</a> '
                '(η ΝΙΚΗ ελεγμένη με τις εταιρείες), αποτελέσματα από το Υπουργείο Εσωτερικών. '
