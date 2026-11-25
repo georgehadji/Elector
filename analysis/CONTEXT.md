@@ -13,7 +13,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | Polls since Sep 2023 | `nikh_polls.csv` (`niki` column hand-checked; other party columns from `polls_wiki.py`); May/June 2023: `nikh_polls_2023.csv` |
 | Polls and ballots of all parties, 2007-2024 | `nikh_pollerror.csv` (from `polls_wiki.py`) |
 | NIKH level today / in H days | `nikh_polls.estimate(H)` |
-| Level of any party today / in H days (Majorline party codes) | `forecast.estimate(code, H)`; codes and columns: `forecast.PARTIES` |
+| Level of any party today / in H days | `forecast.estimate(code, H)`; codes and columns: `forecast.PARTIES` |
 | Ballot error of any party (log ratio, a/p + b); election-day shares summing to 100 | `forecast.error_fit()`; `forecast.simulate(n, H)` |
 | National seat forecast (geography per party, probabilities, seat ranges) | `forecast.GEO`, `forecast.seat_sims(n, H)`; summary in `forecast.json` |
 | Ballot/poll ratios of NIKH | `nikh_polls.euro_miss`, `nikh_polls.miss_2023` |
@@ -44,7 +44,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `polls_wiki.py` [cache_dir] | Wikipedia poll tables (network) | `nikh_pollerror.csv`; party columns of `nikh_polls.csv` | plan 2, stage 2 |
 | `nikh_polls.py` | `nikh_polls*.csv` | `nikh_polls.txt` | 16, 17 |
 | `nikh_pollerror.py` | `nikh_pollerror.csv` | `nikh_pollerror.txt` | 18 |
-| `forecast.py` [db [N]] (national forecast, steps 1-3: poll average of every party, ballot error, seats) | `nikh_polls.csv`, `nikh_polls.py`, `nikh_pollerror.csv`, `nikh_pollerror.py`, db + `nikh_seats.py` (step 3), `majorline_*.csv` | `forecast.txt`, `forecast.json` | — |
+| `forecast.py` [db [N]] (national forecast, steps 1-3: poll average of every party, ballot error, seats) | `nikh_polls.csv`, `nikh_polls.py`, `nikh_pollerror.csv`, `nikh_pollerror.py`, db + `nikh_seats.py` (step 3) | `forecast.txt`, `forecast.json` | — |
 | `nikh_flows.py` | `nikh_polls.csv` | `nikh_flows.txt` | 19 |
 | `nikh_montecarlo.py` | db, `nikh_polls.py`, `nikh_pollerror.py`, `nikh_seats.py`, `zones.py` | `nikh_montecarlo.txt` | 9, 16, 18 |
 | `nikh_abstention.py` | db | `nikh_abstention.txt` | 10 |
@@ -54,6 +54,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_census.py` | db, 2021 census | `nikh_census.txt` | 15 |
 | `nikh_map.py` (+ `nikh_map_template.html`) | db | `out/nikh_2023-2024.html` | — |
 | `nikh_polls_page.py` (+ `nikh_polls_template.html`) | `nikh_polls*.csv`, `nikh_polls.py` | `out/nikh_polls.html` | 16 |
+| `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `nikh_polls.csv` | `out/forecast.html` | — |
 
 Not NIKH: `field_ops*`, `venue_*`, `client*`, `stats.py` (shared helpers, no catalog entry).
 Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done).

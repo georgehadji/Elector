@@ -547,7 +547,8 @@ def _write_index(order, nikh, elected):
 {greece}
 </header>
 <section class="country" aria-labelledby="ct"><h2 id="ct">Χάρτες και εργαλεία για όλη τη χώρα</h2><div class="cg">
-<div class="main"><h3><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p><p class="els">{" · ".join(ELECTION_NAMES.values())}</p></div>
+<div class="main"><h3><a href="compare.html">Σύγκριση εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πρώτο κόμμα και ποσοστά ανά κοινότητα, για όλες τις αναμετρήσεις.</p><p class="els">{" · ".join(ELECTION_NAMES.values())}</p>
+<h3><a href="forecast.html">Πρόβλεψη βουλευτικών εκλογών <span aria-hidden="true">&rarr;</span></a></h3><p>Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.</p></div>
 <div id="tm"><h3>Αναφορές και εξαγωγές</h3><p>Αναλυτικές αναφορές ανά κόμμα και εκλογή, με δεδομένα για λήψη.</p>
 <ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
 <li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>

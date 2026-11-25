@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Πρόβλεψη βουλευτικών εκλογών</title>
+<!--META-->
+<!--FONTS-->
+<script>/*THEME_JS*/</script>
+<style>
+/*THEME_TOKENS*/
+/*SITE_CSS*/
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:.875rem/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:960px;margin:0 auto;padding:12px 16px 24px}
+h1{font-size:1.25rem;margin:4px 0 6px}
+h2{font-size:1rem;margin:26px 0 2px}
+h3{font-size:.875rem;margin:12px 0 0}
+.lead{margin:0 0 8px;max-width:70ch}
+.note{color:var(--ink-2);font-size:.78125rem;margin:2px 0 8px;max-width:80ch}
+.when{display:flex;flex-wrap:wrap;align-items:center;gap:0 18px;margin:12px 0 0;padding:0;border:0}
+.when legend{float:left;padding:0;margin-right:6px;font-weight:600}
+.when label{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer}
+.when input{margin:0;accent-color:var(--pen);width:16px;height:16px}
+main:has(#h180:checked) .h0,main:has(#h0:checked) .h180{display:none}
+.cards{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;padding:0;list-style:none}
+.cards li{display:flex;flex-direction:column;min-width:170px;padding:6px 14px 8px 10px;border-left:4px solid var(--pen);background:var(--wash)}
+.cards span{font-size:.75rem;color:var(--ink-2)}
+.cards b{font-size:1.5rem;line-height:1.25}
+.sh{display:grid;grid-template-columns:minmax(7.5em,11em) 1fr 4.2em 4.6em;gap:0 10px;align-items:center;margin:8px 0 0;font-variant-numeric:tabular-nums}
+.sh>span{font-size:.8125rem}
+.sh .hd{font-size:.75rem;color:var(--ink-2);text-align:right}
+.sh .hd.l{text-align:left}
+.sh .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh .v{text-align:right}
+.trk{position:relative;height:24px}
+.trk.ax{height:16px;font-size:.6875rem;color:var(--ink-2)}
+.trk.ax span{position:absolute;transform:translateX(-50%)}
+.trk .rng{position:absolute;top:10px;height:4px;border-radius:2px;background:var(--c);opacity:.5}
+.trk .dot{position:absolute;top:6px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--paper)}
+.trk .thr{position:absolute;top:0;bottom:0;border-left:1px dashed var(--ink-2)}
+.seatbar{display:flex;gap:2px;height:34px;margin:16px 0 0;position:relative}
+.seatbar span{display:block;height:100%;background:var(--c)}
+.seatbar span:first-child{border-radius:4px 0 0 4px}
+.seatbar span:nth-last-child(2){border-radius:0 4px 4px 0}
+.seatbar i{position:absolute;left:calc(50.33% - 1px);top:-8px;bottom:-8px;border-left:2px solid var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:2px 16px;margin:8px 0 0;padding:0;list-style:none;font-size:.8125rem}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--c);margin-right:5px;vertical-align:-1px}
+.legend b{font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 28px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+figure{margin:8px 0 0}
+figure svg{display:block;width:100%;height:auto;overflow:visible}
+figcaption{color:var(--ink-2);font-size:.75rem;margin-top:2px}
+.narrow{display:none}
+@media (max-width:600px){.wide{display:none}.narrow{display:block}.sh{grid-template-columns:6.6em 1fr 3.6em 3.9em;gap:0 6px}}
+.grid{stroke:var(--line);stroke-width:1}
+.base{stroke:var(--ink-2);stroke-width:1}
+.ax-l{fill:var(--ink-2)}
+.bar{fill:var(--mute)}
+.bar.win{fill:var(--pen)}
+.bar:hover{opacity:.7}
+.m151{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 3}
+.m151-l{fill:var(--ink);font-weight:600}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--pen);min-height:32px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;margin-top:8px;font-size:.8125rem;font-variant-numeric:tabular-nums}
+th,td{padding:3px 12px 3px 0;border-bottom:1px solid var(--line);text-align:left;vertical-align:bottom}
+th{font-weight:600;color:var(--ink-2);font-size:.75rem}
+td.n,th.n{text-align:right}
+td.z{color:var(--ink-2)}
+tr.state td{font-weight:600}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--c);margin-right:5px}
+.method p{max-width:76ch;margin:6px 0}
+.rel{font-size:.8125rem;margin:18px 0 0;color:var(--ink-2)}
+a{color:var(--pen)}
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main id="main">
+  <h1>Πρόβλεψη βουλευτικών εκλογών</h1>
+  <p class="lead"><!--LEAD--></p>
+  <p class="note">Οι αριθμοί δεν είναι δημοσκόπηση ούτε αποτέλεσμα. Είναι συχνότητες σε <!--N--> εκλογές που προσομοιώσαμε από τον μέσο όρο των δημοσκοπήσεων, με τον εκλογικό νόμο των εκλογών του Ιουνίου 2023. Δημοσκοπήσεις έως <!--ASOF-->. Ανεπίσημο.</p>
+  <fieldset class="when">
+    <legend>Εκλογές:</legend>
+    <label><input type="radio" name="h" id="h0" checked> σήμερα</label>
+    <label><input type="radio" name="h" id="h180"> σε έξι μήνες</label>
+  </fieldset>
+  <p class="note">Σε έξι μήνες οι δημοσκοπήσεις μπορεί να έχουν κινηθεί, οπότε όλα τα εύρη ανοίγουν.</p>
+  <!--BODY-->
+  <section class="method" aria-labelledby="mh">
+    <h2 id="mh">Πώς βγαίνουν οι αριθμοί</h2>
+    <!--METHOD-->
+  </section>
+  <p class="rel"><!--SOURCES--></p>
+</main>
+<!--FOOTER-->
+<script>/*SHARED_JS*/</script>
+</body>
+</html>

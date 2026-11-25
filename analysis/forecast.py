@@ -31,7 +31,6 @@ ELAS flat).
 Writes analysis/forecast.json: probabilities, shares, national seats, ND and ND+PASOK histograms, per constituency (and State
 list) the distribution of each party's seats there, and the sensitivity table.
 Party columns other than niki come from Wikipedia (polls_wiki.py), not checked against the firms' releases.
-Party codes follow Majorline's (ND, ELAS, NIKI ...), so their estimate (analysis/majorline_parties.csv) sits next to ours.
 Unofficial.
 
   python -I -X utf8 analysis/forecast.py data/stavroi.sqlite [N] > analysis/forecast.txt   # without the db: steps 1-2 only
@@ -50,7 +49,7 @@ sys.path.insert(0, str(HERE))  # python -I drops the script dir
 import nikh_pollerror as NE
 import nikh_polls as NP
 
-# Majorline code: (column of nikh_polls.csv, Greek name)
+# party code: (column of nikh_polls.csv, Greek name)
 PARTIES = {"ND": ("ND", "ΝΔ"), "ELAS": ("ELAS", "ΕΛΑΣ"), "PASOK": ("PASOK", "ΠΑΣΟΚ"), "EL": ("EL", "Ελληνική Λύση"),
            "KKE": ("KKE", "ΚΚΕ"), "PE": ("PE", "Πλεύση Ελευθερίας"), "ELPIDA": ("ELPIDA", "Ελπίδα"), "FL": ("FL", "Φωνή Λογικής"),
            "SE": ("SE", "Συμμαχία Ελλήνων"), "MERA25": ("M25", "ΜέΡΑ25"), "SYRIZA": ("SYRIZA", "ΣΥΡΙΖΑ"), "NIKI": ("niki", "ΝΙΚΗ"),
@@ -60,7 +59,6 @@ QS = NP.QS + (0.06, 0.12)
 TAUS = NP.TAUS + (1.0, 1.3, 1.7, 2.2)
 A_GRID = tuple(i / 50 for i in range(51))  # a of the ballot error, 0-1
 B_GRID = tuple(i / 1000 for i in range(51))  # b of the ballot error, 0-0.05
-MAJORLINE = HERE / "majorline_parties.csv"
 OUT = HERE / "forecast.json"
 EURO, JUNE = "2024/euro", "2023/june"
 # geography of each party: (election, party id) of past results; parties not listed are flat
@@ -137,16 +135,6 @@ def simulate(n=20000, horizon_days=0, national=True, seed=2026):
     rng, lv = random.Random(seed), levels(horizon_days)
     a, b, _ = error_fit(national)
     return [draw(rng, lv, a, b) for _ in range(n)]
-
-
-def majorline():
-    """({party: row} of Majorline's latest run, its date), or (None, None) without the csv."""
-    if not MAJORLINE.exists():
-        return None, None
-    with open(MAJORLINE, encoding="utf-8") as f:
-        rows = [r for r in csv.DictReader(f) if r["src"] == "run"]
-    last = max(r["as_of"] for r in rows)
-    return {r["party"]: r for r in rows if r["as_of"] == last and r["share"]}, last
 
 
 @cache
@@ -287,28 +275,24 @@ def selftest():
 
 if __name__ == "__main__":
     selftest()
-    ml, ml_day = majorline()
     names = {**{p: n for p, (_, n) in PARTIES.items()}, OTHER: "Άλλοι"}
 
     print(f"=== Βήμα 1: μέσος όρος δημοσκοπήσεων ανά κόμμα στις {NP.TODAY} (μοντέλο του nikh_polls.py, κάθε κόμμα χωριστά) ===")
     print("Ζώνη 90%: αβεβαιότητα του μέσου όρου μόνο, όχι λάθος της κάλπης. * = q ή τ στο πάνω άκρο του πλέγματος· "
           "° = τ στο ελάχιστο (καθόλου θόρυβος εκτός δειγματοληψίας, ζώνη μάλλον πολύ στενή).")
     head = f"{'κόμμα':<20}{'δημ.':>5}{'εταιρ.':>7}  {'τελευταία':<11}{'επίπεδο':>8}{'90%':>13}{'√q/μήνα':>9}{'τ':>6} "
-    print(head + (f"{'Majorline':>10}{'διαφ.':>7}" if ml else ""))
+    print(head)
     order = sorted(PARTIES, key=lambda p: -estimate(p)[0])
-    tot = tot_ml = 0.0
+    tot = 0.0
     for p in order:
         obs, h, q_, tau2, _ = fitted(p)
         x, sd = estimate(p)
         edge = "*" if q_ == QS[-1] or round(math.sqrt(tau2), 6) == TAUS[-1] else "°" if round(math.sqrt(tau2), 6) == TAUS[0] else " "
         line = (f"{names[p]:<20}{len(obs):>5}{len(h):>7}  {obs[-1][0]!s:<11}{x:>8.1f}{f'{x - 1.645 * sd:.1f}–{x + 1.645 * sd:.1f}':>13}"
                 f"{math.sqrt(q_ * 30):>9.2f}{math.sqrt(tau2):>6.2f}{edge}")
-        if ml and p in ml:
-            line += f"{float(ml[p]['share']):>10.1f}{x - float(ml[p]['share']):>+7.1f}"
-            tot_ml += float(ml[p]["share"])
         tot += x
         print(line)
-    print(f"{'Σύνολο':<43}{tot:>8.1f}" + (f"{'':>29}{tot_ml:>10.1f}" if ml else ""))
+    print(f"{'Σύνολο':<43}{tot:>8.1f}")
     print(f"Άλλοι (100 − σύνολο): {100 - tot:.1f}%")
 
     print("\n=== Βήμα 2: λάθος της κάλπης, log(κάλπη / μέσος όρος δημοσκοπήσεων) ~ Normal(0, a/p + b) ===")
@@ -331,13 +315,11 @@ if __name__ == "__main__":
     a, b, _ = error_fit(True)
     sims = {H: simulate(20000, H) for H in (0, 180)}
     print("\n=== Μερίδια την ημέρα των εκλογών: 20.000 προσομοιώσεις, σπόρος 2026, εθνικό λάθος, άθροισμα 100 ===")
-    print(f"{'κόμμα':<20}{'διάμεσος':>9}{'80% σήμερα':>14}{'P≥3% σήμερα':>13}{'σε 180 ημ.':>11}" + (f"{'Majorline P≥3%':>16}" if ml else ""))
+    print(f"{'κόμμα':<20}{'διάμεσος':>9}{'80% σήμερα':>14}{'P≥3% σήμερα':>13}{'σε 180 ημ.':>11}")
     for p in [*order, OTHER]:
         xs = sorted(s[p] for s in sims[0])
         p3 = {H: sum(s[p] >= 3 for s in sims[H]) / len(sims[H]) for H in sims}
         line = f"{names[p]:<20}{q(xs, .5):>9.1f}{f'{q(xs, .1):.1f}–{q(xs, .9):.1f}':>14}{100 * p3[0]:>12.1f}%{100 * p3[180]:>10.1f}%"
-        if ml and p in ml and ml[p]["p_in"]:
-            line += f"{100 * float(ml[p]['p_in']):>15.1f}%"
         print(line)
 
     print("\n=== Έλεγχος ΝΙΚΗΣ με το NIKH.md §18 ===")
@@ -346,8 +328,6 @@ if __name__ == "__main__":
     print(f"P(ΝΙΚΗ ≥ 3%): σήμερα {100 * ni[0]:.1f}% (με ευρωεκλογές στο λάθος {100 * sum(s['NIKI'] >= 3 for s in alt) / len(alt):.1f}%), "
           f"σε 180 ημέρες {100 * ni[180]:.1f}%")
     print("  §18 (λόγοι 23 μικρών κομμάτων, nikh_montecarlo.py): 0,3-0,6% σήμερα, 3,8-5,2% σε 180 ημέρες.")
-    if ml and "NIKI" in ml:
-        print(f"  Majorline, εκτίμηση της {ml_day}: {100 * float(ml['NIKI']['p_in']):.1f}%. Πηγή: Majorline.")
     x, _ = estimate("NIKI")
     print(f"  Για 3% από {x:.2f}% χρειάζεται λόγος {3 / x:.2f}: εδώ σ(log) = {math.sqrt(a / x + b):.2f} → "
           f"{math.log(3 / x) / math.sqrt(a / x + b):.1f} σ μόνο από το λάθος της κάλπης.")
@@ -375,20 +355,7 @@ if __name__ == "__main__":
             d = r["parties"][p]
             print(f"  {names[p]:<20}{100 * d['p_first']:>5.0f}%{100 * d['p_second']:>5.0f}%{fmt(d['seats']):>17}"
                   f"{fmt(d['seats_bonus']):>13}{fmt(d['seats_nobonus']):>13}")
-    with open(HERE / "majorline_runs.csv", encoding="utf-8") as f:
-        mr = max(csv.DictReader(f), key=lambda r: r["as_of"])
     r = res[0]
-    print(f"\nΣύγκριση με Majorline (εκτίμηση της {mr['as_of']}; πηγή: Majorline), εκλογές σήμερα:")
-    print(f"  αυτοδυναμία ΝΔ {100 * r['p_nd_majority']:.1f}% έναντι {100 * float(mr['single_party_majority']):.1f}%; "
-          f"χωρίς μπόνους {100 * (1 - r['p_bonus']):.1f}% έναντι {100 * float(mr['no_bonus']):.1f}%; "
-          f"ΝΔ+ΠΑΣΟΚ ≥151 {100 * r['p_nd_pasok_151']:.1f}% έναντι {100 * float(mr['nd_pasok_151']):.1f}%")
-    if ml:
-        print(f"  {'κόμμα':<20}{'διάμεσος με μπόνους':>21}{'Majorline':>11}{'χωρίς':>8}{'Majorline':>11}")
-        for p in order:
-            d, m = r["parties"][p], ml.get(p, {})
-            print(f"  {names[p]:<20}{fmt(d['seats_bonus'], True):>21}{m.get('seats_bonus') or '—':>11}"
-                  f"{fmt(d['seats_nobonus'], True):>8}{m.get('seats_nobonus') or '—':>11}")
-
     print("\nΑνά περιφέρεια, εκλογές σήμερα: αναμενόμενες έδρες ανά κόμμα (μέσος όρος των προσομοιώσεων, ≥ 0,1)")
     for e in r["eps"].values():  # ministry order, State seats last
         means = {p: mean_seats(d) for p, d in e["dist"].items()}
