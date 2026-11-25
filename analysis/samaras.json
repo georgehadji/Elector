@@ -38,7 +38,7 @@
  "base": {
   "nd": 0.0083,
   "nd_pasok": 0.6988,
-  "nd_elas": 0.8569,
+  "nd_elas": 0.8568,
   "nd_sam": 0.0083,
   "nd_pasok_elas": 0.9999,
   "bonus": 0.9268,
@@ -247,7 +247,7 @@
    "nd_elas": 0.0867,
    "nd_sam": 0.0097,
    "nd_pasok_elas": 0.9676,
-   "bonus": 0.1663,
+   "bonus": 0.1664,
    "bonus_q": [
     0,
     0,
@@ -452,8 +452,8 @@
       "ND",
       "ELAS"
      ],
-     0.7091,
-     0.7958
+     0.7092,
+     0.7959
     ],
     [
      [
@@ -461,8 +461,8 @@
       "ND",
       "PASOK"
      ],
-     0.5104,
-     0.5487
+     0.5105,
+     0.5488
     ],
     [
      [
@@ -1173,7 +1173,7 @@
     "nd_pasok": 0.0381,
     "nd_elas": 0.0867,
     "nd_sam": 0.0097,
-    "bonus": 0.1663,
+    "bonus": 0.1664,
     "seats": {
      "ND": [
       62,
@@ -2165,82 +2165,82 @@
     "max_diff": 0,
     "moved_sam": 0.0,
     "moved_nd": 0.0,
-    "sam_messinia": 0.9952
+    "sam_messinia": 0.9953
    },
    "12": {
     "differ": 0,
     "max_diff": 0,
     "moved_sam": 0.0,
     "moved_nd": 0.0,
-    "sam_messinia": 0.9962
+    "sam_messinia": 0.9966
    }
   },
   "ΝΔ Ιούνιος 2023, Μεσσηνία ×2": {
    "10": {
-    "differ": 1,
-    "max_diff": 1,
-    "moved_sam": 0.35445,
-    "moved_nd": 0.14110000000000067,
-    "sam_messinia": 1.0156
+    "differ": 4,
+    "max_diff": 15,
+    "moved_sam": 0.34945,
+    "moved_nd": 0.13835000000000022,
+    "sam_messinia": 1.0162
    },
    "11": {
     "differ": 2,
     "max_diff": 1,
-    "moved_sam": 0.4534000000000002,
-    "moved_nd": 0.1613499999999998,
-    "sam_messinia": 1.0639
+    "moved_sam": 0.44420000000000015,
+    "moved_nd": 0.15860000000000002,
+    "sam_messinia": 1.0657
    },
    "12": {
-    "differ": 1,
-    "max_diff": 1,
-    "moved_sam": 0.5627499999999996,
-    "moved_nd": 0.19499999999999998,
-    "sam_messinia": 1.142
+    "differ": 0,
+    "max_diff": 0,
+    "moved_sam": 0.5597000000000001,
+    "moved_nd": 0.19300000000000017,
+    "sam_messinia": 1.1458
    }
   },
   "ΕΛ Ευρωεκλογές 2024": {
    "10": {
-    "differ": 2,
-    "max_diff": 1,
-    "moved_sam": 6.88265,
-    "moved_nd": 3.5452000000000004,
-    "sam_messinia": 0.8307
+    "differ": 3,
+    "max_diff": 15,
+    "moved_sam": 6.901,
+    "moved_nd": 3.53555,
+    "sam_messinia": 0.8206
    },
    "11": {
     "differ": 3,
     "max_diff": 1,
-    "moved_sam": 6.45485,
-    "moved_nd": 3.1613499999999997,
-    "sam_messinia": 0.9211
+    "moved_sam": 6.4747,
+    "moved_nd": 3.1493,
+    "sam_messinia": 0.9165
    },
    "12": {
-    "differ": 3,
+    "differ": 2,
     "max_diff": 1,
-    "moved_sam": 5.9241,
-    "moved_nd": 2.6981499999999996,
-    "sam_messinia": 0.9663
+    "moved_sam": 5.97355,
+    "moved_nd": 2.6872000000000003,
+    "sam_messinia": 0.9637
    }
   },
   "ομοιόμορφα": {
    "10": {
     "differ": 2,
     "max_diff": 1,
-    "moved_sam": 2.34645,
-    "moved_nd": 0.9771999999999998,
-    "sam_messinia": 0.9755
+    "moved_sam": 2.335,
+    "moved_nd": 0.9709000000000003,
+    "sam_messinia": 0.9763
    },
    "11": {
     "differ": 2,
     "max_diff": 1,
-    "moved_sam": 2.44565,
-    "moved_nd": 0.8729500000000003,
-    "sam_messinia": 0.9807
+    "moved_sam": 2.4392,
+    "moved_nd": 0.8673,
+    "sam_messinia": 0.981
    },
    "12": {
     "differ": 1,
-    "max_diff": 1,
-    "moved_sam": 2.5741499999999995,
-    "moved_nd": 0.8935000000000001,
+    "max_diff": 10,
+    "moved_sam": 2.5898,
+    "moved_nd": 0.8950999999999998,
     "sam_messinia": 0.9824
    }
   }

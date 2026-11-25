@@ -114,6 +114,17 @@ def main(election, ep):
             if n % 100 == 0:
                 db.commit()
                 print(f"  {n}/{len(todo)}", flush=True)
+    # Postal votes (Euro 2024) are published only as constituency totals (VOTES_T in ep_{ep}.js):
+    # store them as one pseudo-station of kind Τ, sequence 9999.
+    tot = get(f"{base}/dyn/{k}/ep_{ep}.js") or {}
+    if tot.get("EgkyraT"):
+        tm = ep * 10000 + 9999
+        db.execute("INSERT OR REPLACE INTO station VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+            election, tm, ep, ep, "Τ", None, None, None, None, None, None,
+            "Επιστολική ψήφος (σύνολο περιφέρειας)", tot["GramenoiT"], tot["EgkyraT"]))
+        for p in tot["party"]:
+            db.execute("INSERT OR REPLACE INTO party_votes VALUES (?,?,?,?)", (election, tm, p["PARTY_ID"], p["VOTES_T"]))
+        print(f"postal: {tot['EgkyraT']} valid")
     db.commit()
     print("done")
 
