@@ -45,6 +45,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_polls.py` | `nikh_polls*.csv` | `nikh_polls.txt` | 16, 17 |
 | `nikh_pollerror.py` | `nikh_pollerror.csv` | `nikh_pollerror.txt` | 18 |
 | `forecast.py` [db [N]] (national forecast, steps 1-3: poll average of every party, ballot error, seats) | `nikh_polls.csv`, `nikh_polls.py`, `nikh_pollerror.csv`, `nikh_pollerror.py`, db + `nikh_seats.py` (step 3) | `forecast.txt`, `forecast.json` | — |
+| `samaras_scenarios.py` [db [N]] (not NIKH: a Samaras party at 10/11/12%, seats, majorities, bonus; source split and geography are judgement, both varied) | `forecast.py` (`simulate`, `spread`, `geography`), db + `nikh_seats.py` | `samaras_scenarios.txt`, `samaras.json` (scenario section of `out/forecast.html`) | — |
 | `nikh_flows.py` | `nikh_polls.csv` | `nikh_flows.txt` | 19 |
 | `nikh_montecarlo.py` | db, `nikh_polls.py`, `nikh_pollerror.py`, `nikh_seats.py`, `zones.py` | `nikh_montecarlo.txt` | 9, 16, 18 |
 | `nikh_abstention.py` | db | `nikh_abstention.txt` | 10 |
@@ -55,7 +56,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_map.py` (+ `nikh_map_template.html`) | db | `out/nikh_2023-2024.html` | — |
 | `nikh_polls_page.py` (+ `nikh_polls_template.html`) | `nikh_polls*.csv`, `nikh_polls.py`, `pollster_record.py` (`niki_misses()`: how close each firm fell) | `out/nikh_polls.html` | 16, 18 |
 | `pollster_record.py` (error of each firm's last poll before 2019, May and June 2023; `weights()`; house-effect check) | `nikh_pollerror.csv`, `nikh_polls.csv`, `forecast.py` | stdout (and the track-record section of `out/forecast.html`) | — |
-| `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `nikh_polls.csv`, `pollster_record.py`, db (constituency outlines for the map) | `out/forecast.html` | — |
+| `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `samaras.json` (optional), `nikh_polls.csv`, `pollster_record.py`, db (constituency outlines for the map) | `out/forecast.html` | — |
 
 Not NIKH: `field_ops*`, `venue_*`, `client*`, `stats.py` (shared helpers, no catalog entry).
 Plans: `NIKH_plan.md` (done), `NIKH_plan2.md` (done).
