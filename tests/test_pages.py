@@ -13,7 +13,7 @@ PLACEHOLDER = re.compile(r"/\*[A-Z_]{4,}\*/|<!--[A-Z]{4,}-->")
 # Pages that load shared.js and draw a map or search: the new templates. Station maps and the NIKH report are
 # rebuilt from the venue spreadsheet, so a stale one is not a failure here.
 APP = sorted(p for p in OUT.glob("*.html") if re.fullmatch(r"(2019|2023-may|2023-june|2024-euro)_\d+\.html", p.name))
-SPECIAL = [OUT / "index.html", OUT / "compare.html"]
+SPECIAL = [OUT / "index.html", OUT / "compare.html", OUT / "nikh_polls.html"]
 
 
 def read(p):

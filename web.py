@@ -537,6 +537,7 @@ def _write_index(order, nikh, elected):
 <div id="tm"><h3>Αναφορές και εξαγωγές</h3><p>Αναλυτικές αναφορές ανά κόμμα και εκλογή, με δεδομένα για λήψη.</p>
 <ul><li><a href="NIKH_eklegmenoi_2023.html">Αναφορά Μαΐου–Ιουνίου</a></li>
 <li><a href="nikh_2023-2024.html">Χάρτης όλης της χώρας, 2019–2024</a></li>
+<li><a href="nikh_polls.html">Δημοσκοπήσεις από το 2023</a></li>
 <li><a href="../exports/NIKH_2023_ana_dhm_enotita.csv">CSV ανά δημοτική ενότητα</a></li></ul>
 <details class="fold"><summary>Περισσότερες αναφορές ({nikh_n + 1})</summary><ul><li><a href="nikh_targets.html">Χάρτης στόχευσης: κάστρα, φθορά, δεξαμενές, έδρες</a></li>{nikh_rows}</ul></details></div>
 <div id="cov"><h3>Κάλυψη χαρτών</h3><p>Πόσοι ψήφοι αποδίδονται στον χάρτη, ανά νομό και εκλογή.</p><ul>{coverage}</ul></div>
