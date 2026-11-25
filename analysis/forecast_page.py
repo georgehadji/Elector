@@ -146,7 +146,24 @@ def seatbar(r, order, names):
     return (f'<div class="seatbar" role="img" aria-label="Αναμενόμενες έδρες: {html.escape(label, quote=True)}">{spans}<i></i></div>'
             '<div class="trk ax"><span style="left:0;transform:none">0</span><span style="left:50.33%">151</span>'
             '<span style="right:0;transform:none">300</span></div>'
-            f'<ul class="legend">{legend}</ul>')
+            f'<ul class="legend">{legend}</ul>' + coalitions(seats, names))
+
+
+COALITIONS = (("ΝΔ και ΠΑΣΟΚ", ("ND", "PASOK")), ("ΝΔ και ΕΛΑΣ", ("ND", "ELAS")),
+              ("ΝΔ, ΠΑΣΟΚ και ΕΛΑΣ", ("ND", "PASOK", "ELAS")))
+
+
+def coalitions(seats, names):
+    """The same expected seats, one short bar per coalition against the 151 line, most seats first."""
+    rows = []
+    for title, ps in sorted(COALITIONS, key=lambda c: -sum(seats.get(p, 0) for p in c[1])):
+        n = sum(seats.get(p, 0) for p in ps)
+        spans = ("".join(f'<span style="--c:{colour(p)};flex:{seats.get(p, 0)}"></span>' for p in ps)
+                 + f'<span class="rest" style="flex:{300 - n}"></span>')
+        label = ", ".join(f"{names[p]} {seats.get(p, 0)}" for p in ps)
+        rows.append(f'<li><span>{title} <b>{n}</b></span>'
+                    f'<div class="seatbar mini" role="img" aria-label="{html.escape(label, quote=True)}: {n} έδρες">{spans}<i></i></div></li>')
+    return '<p class="note">Οι ίδιες έδρες ανά συνεργασία, απέναντι στις 151:</p><ul class="coal">' + "".join(rows) + "</ul>"
 
 
 def seats_range(x):
