@@ -1,13 +1,15 @@
 /* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
    Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
+/* The spacing scale the chrome shares with the pages that use it (the index); each value is the length it replaces. */
+:root { --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; }
 /* Site bar: wordmark, nav, theme toggle. Skip link first in tab order. */
-.skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: 8px 12px; color: var(--ink); background: var(--paper, var(--surface)); border: 1px solid var(--ink); border-radius: 6px; }
+.skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: var(--space-xs) var(--space-sm); color: var(--ink); background: var(--paper, var(--surface)); border: 1px solid var(--ink); border-radius: 6px; }
 .skip:focus { top: 8px; }
-.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin: 0 0 12px; min-height: 48px; }
+.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-lg); margin: 0 0 var(--space-sm); min-height: 48px; }
 /* Pages whose bar sits outside <main> (compare, forecast, nikh_*): line up with main's 16px side padding. A page whose main is
    centred sets --page to its max-width, so the bar follows the content instead of the screen edge. */
-body > .bar { padding-inline: calc((100% - min(100%, var(--page, 100%))) / 2 + 16px); }
-.bar .home { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 600 1.125rem/1.2 "IBM Plex Sans", system-ui, sans-serif; text-decoration: none; }
+body > .bar { padding-inline: calc((100% - min(100%, var(--page, 100%))) / 2 + var(--space-md)); }
+.bar .home { display: inline-flex; align-items: center; gap: var(--space-xs); color: var(--ink); font: 600 1.125rem/1.2 "IBM Plex Sans", system-ui, sans-serif; text-decoration: none; }
 .bar .home:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* WCAG 2.5.8: every pointer target is at least 24 by 24 CSS px */
 .bar .home { min-width: 24px; min-height: 24px; }
@@ -17,7 +19,7 @@ body > .bar { padding-inline: calc((100% - min(100%, var(--page, 100%))) / 2 + 1
 .mark rect { stroke-width: 2.4; }
 .mark path { stroke-width: 3.2; }
 .bar nav { display: flex; gap: 20px; font-size: var(--t-sm); }
-.bar nav a { color: var(--ink-2); text-decoration: none; padding: 4px 0; }
+.bar nav a { color: var(--ink-2); text-decoration: none; padding: var(--space-2xs) 0; }
 .bar nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; }
 .bar nav a[aria-current] { color: var(--ink); }
 .bar nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
@@ -26,37 +28,37 @@ body > .bar { padding-inline: calc((100% - min(100%, var(--page, 100%))) / 2 + 1
 #theme:hover, #theme[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); }
 #theme svg { width: 16px; height: 16px; fill: currentColor; }
 @media (max-width: 639px) {
-  .bar { gap: 0 12px; }
+  .bar { gap: 0 var(--space-sm); }
   .bar .home { order: 1; }
   #theme { order: 2; }
-  .bar nav { order: 3; flex: 1 0 100%; gap: 16px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .bar nav { order: 3; flex: 1 0 100%; gap: var(--space-md); overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
   /* map pages: the election switcher is the wayfinding; the footer has the other pages, the map gets the height */
-  .bar.with-ctx { min-height: 44px; margin-bottom: 4px; }
+  .bar.with-ctx { min-height: 44px; margin-bottom: var(--space-2xs); }
   .bar.with-ctx nav { display: none; }
-  .ctx { margin-bottom: 8px; padding-bottom: 4px; }
+  .ctx { margin-bottom: var(--space-xs); padding-bottom: var(--space-2xs); }
 }
 /* Map pages: constituency and its other elections */
-.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: var(--t-sm); }
-.ctx nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2xs) var(--space-md); margin: 0 0 var(--space-sm); padding-bottom: var(--space-xs); border-bottom: 1px solid var(--line); font-size: var(--t-sm); }
+.ctx nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) 14px; }
 .ctx nav a { color: var(--ink-2); text-underline-offset: 4px; }
 .ctx nav a[aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
 /* Colophon */
-.site { margin-top: 64px; padding: 24px 0 32px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: var(--t-xs); line-height: 1.55; }
-.site .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.site { margin-top: var(--space-2xl); padding: var(--space-lg) 0 32px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: var(--t-xs); line-height: 1.55; }
+.site .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-lg); }
 .site h3 { margin: 0 0 6px; font-size: var(--t-xs); font-weight: 600; color: var(--ink); }
-.site p { margin: 0 0 4px; }
+.site p { margin: 0 0 var(--space-2xs); }
 .site ul { margin: 0; padding: 0; list-style: none; }
 .site a { color: inherit; text-underline-offset: 3px; }
-.site .built { display: flex; align-items: center; justify-content: space-between; margin: 24px 0 0; }
+.site .built { display: flex; align-items: center; justify-content: space-between; margin: var(--space-lg) 0 0; }
 .site .built .mark { width: 16px; height: 16px; }
 .site.compact {
-  margin: 0; padding: 6px 16px 8px;
+  margin: 0; padding: 6px var(--space-md) var(--space-xs);
   .cols { display: flex; flex-wrap: wrap; gap: 0 20px; }
   h3, .built { display: none; }
-  ul { display: flex; flex-wrap: wrap; gap: 0 12px; }
+  ul { display: flex; flex-wrap: wrap; gap: 0 var(--space-sm); }
   .cols > div:nth-child(3) li:not(:has(.copy)) { display: none; }  /* the nav above has these */
 }
-@media (max-width: 639px) { .site .cols { grid-template-columns: 1fr; gap: 16px; } .site.compact .cols { display: flex; gap: 0 12px; } }
+@media (max-width: 639px) { .site .cols { grid-template-columns: 1fr; gap: var(--space-md); } .site.compact .cols { display: flex; gap: 0 var(--space-sm); } }
 html, body { overflow-x: clip; }
 h1, h2 { text-wrap: balance; }
 #theme, .site .copy { transition: transform 100ms ease-out; }
