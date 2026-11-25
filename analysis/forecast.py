@@ -74,23 +74,30 @@ MAIN = next(iter(VARIANTS))
 GEO_SD = 0.10
 
 
+def firm_weights(obs):
+    """{firm key of obs: weight} from the firms' past accuracy (pollster_record.weights, shrunk, 0.85-1.3). Firms without a record: 1."""
+    import pollster_record as PR
+    w = PR.weights()
+    return {f: w[PR.firm_of(f)] for f in {o[1] for o in obs} if PR.firm_of(f) in w}
+
+
 @cache
-def fitted(party):
-    """(obs, house effects, q, tau2, loglik) for one party code."""
+def fitted(party, weighted=False):
+    """(obs, house effects, q, tau2, loglik) for one party code. weighted: polls of firms with a better record count more."""
     obs = NP.load(PARTIES[party][0])
-    return (obs, *NP.fit(obs, QS, TAUS))
+    return (obs, *NP.fit(obs, QS, TAUS, wt=firm_weights(obs) if weighted else None))
 
 
-def estimate(party, horizon_days=0):
+def estimate(party, horizon_days=0, weighted=False):
     """(mean, sd) of the party's level (% of valid votes, average firm) at nikh_polls.TODAY + horizon_days."""
-    obs, h, q, tau2, _ = fitted(party)
-    x, P, _, _ = NP.kfilter(obs, h, q, tau2)[0][-1]
+    obs, h, q, tau2, _ = fitted(party, weighted)
+    x, P, _, _ = NP.kfilter(obs, h, q, tau2, wt=firm_weights(obs) if weighted else None)[0][-1]
     return x, math.sqrt(P + q * ((NP.TODAY - obs[-1][0]).days + horizon_days))
 
 
-def levels(horizon_days=0):
+def levels(horizon_days=0, weighted=False):
     """{party: (mean, sd)}; OTHER = 100 - the sum (floor 0.5), sd that of the sum (parties taken as independent)."""
-    out = {p: estimate(p, horizon_days) for p in PARTIES}
+    out = {p: estimate(p, horizon_days, weighted) for p in PARTIES}
     out[OTHER] = (max(0.5, 100 - sum(x for x, _ in out.values())), math.sqrt(sum(sd * sd for _, sd in out.values())))
     return out
 
