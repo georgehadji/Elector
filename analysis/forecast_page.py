@@ -357,7 +357,7 @@ def ep_geometries():
     for ep, den in db.execute("SELECT DISTINCT ep_id, den_descr FROM station WHERE election=? AND den_descr<>''",
                               (MAP_ELECTION,)):
         dens.setdefault(str(ep), set()).add(den)
-    out = {ep: [u["geometry"] for u in match_units(names, units).values()] for ep, names in dens.items()}
+    out = {ep: [u["geometry"] for u in match_units(sorted(names), units).values()] for ep, names in dens.items()}
     owned = {id(g) for gs in out.values() for g in gs}
     out[None] = [u["geometry"] for u in units if id(u["geometry"]) not in owned]
     return out
