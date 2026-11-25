@@ -4,6 +4,9 @@ the 3% threshold, and the ballots (May 2023, June 2023, Euro 2024).
 The line is the Kalman smoother of nikh_polls.py over the polls since Sep 2023 (house effects removed, so it is the
 level of an average firm), with a 90% band from the smoothed variance. The 2023 campaign polls are drawn as dots only.
 The chart is SVG built here (no chart library, no script): one wide and one narrow drawing, the CSS shows one.
+Each poll is marked by its basis (KIND, per firm, from the source checks of NIKH.md section 16): the firm's own vote estimate
+(filled dot), intention divided by (1 - undecided) (open dot), or not checked (square). Checkboxes in the key hide a kind in
+the chart and the table with CSS :has(), no script.
 
   python -I -X utf8 analysis/nikh_polls_page.py
 """
@@ -26,6 +29,13 @@ Z90 = 1.645
 BALLOTS = [(d, p, name) for (d, p), name in zip(
     [nikh_polls.BALLOT_2023["2023/may"], nikh_polls.BALLOT_2023["2023/june"], nikh_polls.EURO],
     ["Εκλογές Μαΐου 2023", "Εκλογές Ιουνίου 2023", "Ευρωεκλογές 2024"], strict=True)]
+# Basis per firm (NIKH.md section 16): "est" the firm publishes a vote estimate (Real Polls a model forecast, Prorata an
+# "estimate with scaling"), "sc" the figure is raw intention / (1 - undecided). Within a firm the basis usually stays, not always.
+KIND = {"Alco": "sc", "GPO": "sc", "Interview": "sc",
+        "Metron Analysis": "est", "Opinion Poll": "est", "Palmos Analysis": "est", "Marc": "est", "Pulse": "est",
+        "Prorata": "est", "Real Polls": "est"}
+KINDS = [("est", "εκτίμηση ψήφου της εταιρείας"), ("sc", "αναγωγή της πρόθεσης ψήφου"), ("unk", "βάση μη ελεγμένη")]
+SHORT = {"Εκλογές Μαΐου 2023": "Μάιος 2023", "Εκλογές Ιουνίου 2023": "Ιούνιος 2023", "Ευρωεκλογές 2024": "Ευρωεκλογές 2024"}
 MONTHS = ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαΐ", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
 
 
@@ -39,6 +49,18 @@ def day(d):
 
 def thousands(n):
     return f"{n:,}".replace(",", ".")
+
+
+def kind(firm):
+    return KIND.get(firm, "unk")
+
+
+def mark(k, cx, cy, r):
+    """Poll marker by basis: filled dot, open dot, small square (shape, not colour alone, tells them apart)."""
+    if k == "unk":
+        a = 0.85 * r
+        return f'<rect class="poll unk" x="{cx - a:.1f}" y="{cy - a:.1f}" width="{2 * a:.1f}" height="{2 * a:.1f}">'
+    return f'<circle class="poll {k}" cx="{cx:.1f}" cy="{cy:.1f}" r="{r}">'
 
 
 def polls_2023():
@@ -86,14 +108,22 @@ def chart(polls, line, w, h, fs, r, ticks_every):
     out.append('<polygon class="band" points="' + " ".join(f"{a:.1f},{b:.1f}" for a, b in band) + '"/>')
     out.append(f'<line class="thr" x1="{left}" x2="{w - right}" y1="{Y(3):.1f}" y2="{Y(3):.1f}"/>'
                f'<text class="thr-l" x="{w - right}" y="{Y(3) - 0.4 * fs:.1f}" text-anchor="end">όριο 3%</text>')
+    for d, _, _ in BALLOTS:  # election day: a rule over the whole plot
+        out.append(f'<line class="eday" x1="{X(d):.1f}" x2="{X(d):.1f}" y1="{top}" y2="{h - bottom}"/>')
+    names = dict(KINDS)
     for d, f, n, y in polls:
         size = f", δείγμα {thousands(n)}" if n else ""
-        out.append(f'<circle class="poll" cx="{X(d):.1f}" cy="{Y(y):.1f}" r="{r}"><title>{html.escape(f)}, {day(d)}{size}: {num(y)}%</title></circle>')
+        k = kind(f)
+        tag = mark(k, X(d), Y(y), r)
+        out.append(f'{tag}<title>{html.escape(f)}, {day(d)}{size}: {num(y)}% ({names[k]})</title></{tag[1:tag.index(" ")]}>')
     out.append('<polyline class="avg" points="' + " ".join(f"{X(d):.1f},{Y(x):.1f}" for d, x, _ in line) + '"/>')
-    for d, y, name in BALLOTS:
-        cx, cy, k = X(d), Y(y), 2.6 * r
+    for i, (d, y, name) in enumerate(BALLOTS):
+        cx, cy, k = X(d), Y(y), 3.4 * r
         out.append(f'<path class="ballot" d="M{cx:.1f} {cy - k:.1f}L{cx + k:.1f} {cy:.1f}L{cx:.1f} {cy + k:.1f}L{cx - k:.1f} {cy:.1f}Z">'
                    f'<title>{name}: {num(y, 2)}%</title></path>')
+        # May sits just under the 3% line and next to June: its label goes below, the others above
+        ly = cy + k + 1.1 * fs if i == 0 else cy - k - 0.5 * fs
+        out.append(f'<text class="ballot-l" x="{cx:.1f}" y="{ly:.1f}" text-anchor="middle">{num(y, 2)}%</text>')
     return "\n".join(out) + "</svg>"
 
 
@@ -106,12 +136,19 @@ def main():
     lead = (f"Μέσος όρος των δημοσκοπήσεων στις {day(last_d)}: <b>{num(last_x)}%</b> "
             f"(90%: {num(last_x - Z90 * last_s)}–{num(last_x + Z90 * last_s)}%). "
             f"Από τον Σεπτέμβριο 2023, {above} από τις {len(recent)} δημοσκοπήσεις έδωσαν 3% ή περισσότερο.")
-    rows = "".join(f"<tr><td>{day(d)}</td><td>{html.escape(f)}</td><td>{thousands(n) if n else '—'}</td><td>{num(y)}%</td></tr>"
-                   for d, f, n, y in reversed(polls))
+    names = dict(KINDS)
+    rows = "".join(f'<tr class="{kind(f)}"><td>{day(d)}</td><td>{html.escape(f)}</td><td>{names[kind(f)]}</td>'
+                   f"<td>{thousands(n) if n else '—'}</td><td>{num(y)}%</td></tr>" for d, f, n, y in reversed(polls))
+    count = {k: sum(1 for p in polls if kind(p[1]) == k) for k, _ in KINDS}
+    toggles = "".join(f'<li><label><input type="checkbox" id="k-{k}" checked> <svg viewBox="0 0 22 12" aria-hidden="true">'
+                      f'{mark(k, 11, 6, 3.5)}</{"rect" if k == "unk" else "circle"}></svg>{t} ({count[k]})</label></li>'
+                      for k, t in KINDS)
+    results = "".join(f"<li><span>{SHORT[name]}</span><b>{num(y, 2)}%</b></li>" for _, y, name in BALLOTS)
     page = (HERE / "analysis" / "nikh_polls_template.html").read_text(encoding="utf-8")
     for a, b in (("<!--META-->", meta("Η ΝΙΚΗ στις δημοσκοπήσεις", "Κάθε δημοσκόπηση για τη ΝΙΚΗ από το 2023, ο μέσος όρος τους και το όριο του 3%.")),
                  ("<!--LEAD-->", lead), ("<!--WIDE-->", chart(polls, line, 900, 380, 12, 3, 3)),
                  ("<!--NARROW-->", chart(polls, line, 360, 300, 10, 2.2, 6)), ("<!--ROWS-->", rows),
+                 ("<!--KINDS-->", toggles), ("<!--RESULTS-->", results),
                  ("<!--N-->", str(len(polls))), ("<!--WIKI-->", WIKI)):
         assert a in page, a
         page = page.replace(a, b)

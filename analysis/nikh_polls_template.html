@@ -14,6 +14,7 @@
 body{margin:0;background:var(--paper);color:var(--ink);font:.875rem/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:960px;margin:0 auto;padding:12px 16px 24px}
 h1{font-size:1.25rem;margin:4px 0 6px}
+h2{font-size:.9375rem;margin:14px 0 0}
 .lead{margin:0 0 4px;max-width:68ch}
 .note{color:var(--ink-2);font-size:.78125rem;margin:0 0 10px;max-width:80ch}
 .key{display:flex;flex-wrap:wrap;gap:4px 16px;margin:8px 0 4px;padding:0;list-style:none;font-size:.8125rem;color:var(--ink-2)}
@@ -28,16 +29,32 @@ figure svg{display:block;width:100%;height:auto;overflow:visible}
 .band{fill:var(--pen);opacity:.16}
 .thr{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:5 4}
 .thr-l{fill:var(--ink);font-weight:600}
-.poll{fill:var(--dot);opacity:.55}
+.poll{opacity:.6}
+.poll.est,.poll.unk{fill:var(--dot)}
+.poll.sc{fill:var(--paper);stroke:var(--dot);stroke-width:1.2;opacity:.8}
+.poll.unk{opacity:.45}
 .poll:hover{opacity:1}
+.key .poll{opacity:.9}
+.kinds li{display:flex}
+.kinds label{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;color:var(--ink)}
+.kinds input{margin:0;accent-color:var(--pen);width:16px;height:16px}
+.kinds input:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+main:has(#k-est:not(:checked)) :is(figure,tbody) .est,main:has(#k-sc:not(:checked)) :is(figure,tbody) .sc,main:has(#k-unk:not(:checked)) :is(figure,tbody) .unk{display:none}
 .avg{fill:none;stroke:var(--pen);stroke-width:2.5;stroke-linejoin:round}
-.ballot{fill:var(--ink);stroke:var(--paper);stroke-width:1.5}
+.eday{stroke:var(--ink);stroke-width:1;stroke-dasharray:2 3;opacity:.5}
+.ballot{fill:var(--ink);stroke:var(--paper);stroke-width:2}
+.ballot-l{fill:var(--ink);font-weight:700;paint-order:stroke;stroke:var(--paper);stroke-width:3px;stroke-linejoin:round}
+.res{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;padding:0;list-style:none}
+.res li{display:flex;flex-direction:column;padding:6px 14px 6px 10px;border-left:4px solid var(--ink);background:var(--wash)}
+.res span{font-size:.75rem;color:var(--ink-2)}
+.res b{font-size:1.25rem;font-variant-numeric:tabular-nums;line-height:1.2}
 figcaption{color:var(--ink-2);font-size:.75rem;margin-top:4px}
 details{margin-top:16px}
 summary{cursor:pointer;color:var(--pen)}
 table{border-collapse:collapse;margin-top:8px;font-size:.8125rem;font-variant-numeric:tabular-nums}
 th,td{padding:3px 12px 3px 0;border-bottom:1px solid var(--line);text-align:left}
-th:nth-child(n+3),td:nth-child(n+3){text-align:right}
+th:nth-child(n+4),td:nth-child(n+4){text-align:right}
+@media (max-width:600px){th:nth-child(3),td:nth-child(3){display:none}}
 .rel{font-size:.8125rem;margin:16px 0 0}
 a{color:var(--pen)}
 </style>
@@ -47,10 +64,15 @@ a{color:var(--pen)}
 <main id="main">
   <h1>Η ΝΙΚΗ στις δημοσκοπήσεις</h1>
   <p class="lead"><!--LEAD--></p>
-  <p class="note">Δημοσκοπήσεις, όχι αποτελέσματα. Οι εταιρείες δεν μετρούν όλες με τον ίδιο τρόπο: άλλες δίνουν εκτίμηση ψήφου, άλλες αναγωγή της πρόθεσης ψήφου.
-    Ο μέσος όρος αφαιρεί τη μόνιμη απόκλιση κάθε εταιρείας και αρχίζει τον Σεπτέμβριο 2023· οι δημοσκοπήσεις του 2023 πριν από τις εκλογές φαίνονται μόνο ως κουκκίδες.</p>
+  <h2>Αποτελέσματα εκλογών</h2>
+  <ul class="res"><!--RESULTS--></ul>
+  <p class="note">Δημοσκοπήσεις, όχι αποτελέσματα. Οι εταιρείες δεν μετρούν όλες με τον ίδιο τρόπο.
+    Η <b>εκτίμηση ψήφου</b> είναι ο αριθμός που δημοσιεύει η ίδια η εταιρεία, αφού μοιράσει τους αναποφάσιστους με τη δική της μέθοδο.
+    Η <b>αναγωγή της πρόθεσης</b> είναι η απλή πρόθεση ψήφου διαιρεμένη με (1 − αναποφάσιστοι), όταν η εταιρεία δεν δίνει εκτίμηση.
+    Η βάση ορίζεται ανά εταιρεία, από έλεγχο με τα δημοσιεύματα· μέσα στην ίδια εταιρεία συνήθως μένει ίδια, όχι πάντα.
+    Ο μέσος όρος αφαιρεί τη μόνιμη απόκλιση κάθε εταιρείας και αρχίζει τον Σεπτέμβριο 2023.</p>
+  <ul class="key kinds" aria-label="Είδος δημοσκόπησης: δείξε ή κρύψε"><!--KINDS--></ul>
   <ul class="key" aria-hidden="true">
-    <li><svg viewBox="0 0 22 12"><circle class="poll" cx="11" cy="6" r="3.5" style="opacity:.8"/></svg>δημοσκόπηση</li>
     <li><svg viewBox="0 0 22 12"><rect class="band" x="0" y="1" width="22" height="10"/><line class="avg" x1="0" x2="22" y1="6" y2="6"/></svg>μέσος όρος, με εύρος 90%</li>
     <li><svg viewBox="0 0 22 12"><path class="ballot" d="M11 0L17 6L11 12L5 6Z"/></svg>αποτέλεσμα εκλογών</li>
     <li><svg viewBox="0 0 22 12"><line class="thr" x1="0" x2="22" y1="6" y2="6"/></svg>όριο 3% για τη Βουλή</li>
@@ -58,12 +80,12 @@ a{color:var(--pen)}
   <figure>
     <div class="wide"><!--WIDE--></div>
     <div class="narrow"><!--NARROW--></div>
-    <figcaption>Ποσοστό της ΝΙΚΗΣ στην εκτίμηση ψήφου κάθε δημοσκόπησης. Με το ποντίκι πάνω σε μια κουκκίδα φαίνονται εταιρεία, ημερομηνία και δείγμα· όλες είναι και στον πίνακα παρακάτω.</figcaption>
+    <figcaption>Ποσοστό της ΝΙΚΗΣ σε κάθε δημοσκόπηση, χωρίς τους αναποφάσιστους. Οι κάθετες γραμμές είναι οι ημέρες των εκλογών. Με το ποντίκι πάνω σε μια κουκκίδα φαίνονται εταιρεία, ημερομηνία και δείγμα· όλες είναι και στον πίνακα παρακάτω.</figcaption>
   </figure>
   <details>
     <summary>Όλες οι δημοσκοπήσεις (<!--N-->)</summary>
     <table>
-      <thead><tr><th scope="col">Λήξη έρευνας</th><th scope="col">Εταιρεία</th><th scope="col">Δείγμα</th><th scope="col">ΝΙΚΗ</th></tr></thead>
+      <thead><tr><th scope="col">Λήξη έρευνας</th><th scope="col">Εταιρεία</th><th scope="col">Βάση</th><th scope="col">Δείγμα</th><th scope="col">ΝΙΚΗ</th></tr></thead>
       <tbody><!--ROWS--></tbody>
     </table>
   </details>
