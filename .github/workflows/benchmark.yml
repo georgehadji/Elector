@@ -2,6 +2,8 @@
 # Nothing goes to main without a human merging the PR. A PR opened with GITHUB_TOKEN does not start CI, so the tests
 # run here. Needs repo setting Actions > General > "Allow GitHub Actions to create and approve pull requests";
 # without it the branch is pushed and the job fails at the PR step.
+# One fixed branch (bot/benchmark): while its PR is open, a newer run only force-pushes the branch, so unmerged
+# estimates never pile up as separate PRs. Checkout does not store the token: only the last step gets it.
 name: benchmark-fetch
 on:
   schedule:
@@ -17,22 +19,26 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
-      - run: pip install xlrd==2.0.1
       # No ETag cache here: without it a run is one 34 KB download, and the upsert gives no diff if nothing is new.
       - run: python -I -X utf8 analysis/benchmark_fetch.py
       - run: python -I -X utf8 -m unittest discover -s tests
-      - name: Open a PR if the CSVs changed
+      - name: Open or update the PR if the CSVs changed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -z "$(git status --porcelain -- 'analysis/benchmark_*.csv')" ]; then echo "no new estimate"; exit 0; fi
-          b="bot/benchmark-$(date -u +%F)"
+          gh auth setup-git
+          b=bot/benchmark
           git switch -c "$b"
           git add analysis/benchmark_*.csv
-          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -m "Benchmark: νέα εκτίμηση"
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -m "Benchmark: νέα εκτίμηση $(date -u +%F)"
           git push --force origin "$b"
-          gh pr create --base main --head "$b" --title "Benchmark: νέα εκτίμηση $(date -u +%F)" \
-            --body "Αυτόματο: analysis/benchmark_fetch.py. Τα τεστ πέρασαν στο job του workflow."
+          if [ -z "$(gh pr list --head "$b" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head "$b" --title "Benchmark: νέα εκτίμηση" \
+              --body "Αυτόματο: analysis/benchmark_fetch.py. Τα τεστ πέρασαν στο job του workflow. Ενώ το PR είναι ανοιχτό, κάθε νέο τρέξιμο ενημερώνει τον ίδιο κλάδο."
+          fi
