@@ -75,6 +75,8 @@
    "p_nd_majority": 0.0083,
    "p_bonus": 0.9268,
    "p_nd_pasok_151": 0.6988,
+   "p_nd_elas_151": 0.8568,
+   "p_nd_pasok_elas_151": 0.9999,
    "hist_nd": {
     "66": 1,
     "67": 1,
@@ -2927,6 +2929,8 @@
    "p_nd_majority": 0.0306,
    "p_bonus": 0.7869,
    "p_nd_pasok_151": 0.5857,
+   "p_nd_elas_151": 0.7117,
+   "p_nd_pasok_elas_151": 0.9964,
    "hist_nd": {
     "51": 1,
     "52": 1,

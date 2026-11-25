@@ -196,6 +196,8 @@ def summary(sims):
     out = {"n": n, "p_nd_majority": sum(st.get("ND", 0) >= 151 for _, st, _ in sims) / n,
            "p_bonus": sum(bonus) / n,
            "p_nd_pasok_151": sum(st.get("ND", 0) + st.get("PASOK", 0) >= 151 for _, st, _ in sims) / n,
+           "p_nd_elas_151": sum(st.get("ND", 0) + st.get("ELAS", 0) >= 151 for _, st, _ in sims) / n,
+           "p_nd_pasok_elas_151": sum(st.get("ND", 0) + st.get("PASOK", 0) + st.get("ELAS", 0) >= 151 for _, st, _ in sims) / n,
            "hist_nd": {}, "hist_nd_pasok": {}, "parties": {}, "eps": {}}
     for _, st, _ in sims:
         for k, v in (("hist_nd", st.get("ND", 0)), ("hist_nd_pasok", st.get("ND", 0) + st.get("PASOK", 0))):
@@ -349,7 +351,8 @@ if __name__ == "__main__":
         r = res[H]
         print(f"\n{'Εκλογές σήμερα' if H == 0 else f'Εκλογές σε {H} ημέρες'} ({N:,} προσομοιώσεις, σπόρος 2026)")
         print(f"  P(αυτοδυναμία ΝΔ, ≥151) {100 * r['p_nd_majority']:.1f}%   P(μπόνους, 1ο κόμμα ≥25%) {100 * r['p_bonus']:.1f}%   "
-              f"P(ΝΔ+ΠΑΣΟΚ ≥151) {100 * r['p_nd_pasok_151']:.1f}%")
+              f"P(ΝΔ+ΠΑΣΟΚ ≥151) {100 * r['p_nd_pasok_151']:.1f}%   P(ΝΔ+ΕΛΑΣ ≥151) {100 * r['p_nd_elas_151']:.1f}%   "
+              f"P(ΝΔ+ΠΑΣΟΚ+ΕΛΑΣ ≥151) {100 * r['p_nd_pasok_elas_151']:.1f}%")
         print(f"  {'κόμμα':<20}{'P 1ο':>6}{'P 2ο':>6}{'έδρες 10-50-90%':>17}{'με μπόνους':>13}{'χωρίς':>13}")
         for p in order:
             d = r["parties"][p]
