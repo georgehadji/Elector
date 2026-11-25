@@ -163,12 +163,13 @@ def text_table(head, rows):
 SECTIONS = []  # html of the page, in order; the text goes to stdout as it is made
 
 
-def emit(title, intro, head, rows, fold=False):
-    """One table: printed, and added to the page (inside <details> when fold, for the long ones)."""
+def emit(title, intro, head, rows, fold=False, chart=""):
+    """One table: printed, and added to the page (inside <details> when fold, for the long ones). A chart of the same
+    numbers goes right above it, outside the fold, so every table has a picture that is always visible."""
     print(f"\n{title}\n" + text_table(head, rows))
     body = (f"<p>{intro}</p>" if intro else "") + table(head, rows)
-    SECTIONS.append(f"<details><summary><h3>{html.escape(title)}</h3></summary>{body}</details>" if fold
-                    else f"<h3>{html.escape(title)}</h3>{body}")
+    SECTIONS.append(f"{chart}<details><summary><h3>{html.escape(title)}</h3></summary>{body}</details>" if fold
+                    else f"{chart}<h3>{html.escape(title)}</h3>{body}")
 
 
 def area_rows(e, gs, parties):
@@ -191,19 +192,40 @@ def abroad_section(e):
             f"δηλαδή {num(100 * ab['valid'] / nat['valid'], 2)}% των εγκύρων όλης της χώρας.")
     print(lead)
     SECTIONS.append(f'<h2 id="ab-{e.replace("/", "-")}">Εξωτερικό · {html.escape(title)}</h2><p>{lead}</p>')
-    rows = [[html.escape(name(e, p)), num(share(ab, p)), num(share(nat, p)), signed(share(ab, p) - share(nat, p))]
-            for p in sorted(ab["votes"], key=lambda p: -ab["votes"][p])
-            if p in parties or 100 * ab["votes"][p] / ab["valid"] >= MIN_SHARE]
+    ps = [p for p in sorted(ab["votes"], key=lambda p: -ab["votes"][p]) if p in parties or 100 * ab["votes"][p] / ab["valid"] >= MIN_SHARE]
+    rows = [[html.escape(name(e, p)), num(share(ab, p)), num(share(nat, p)), signed(share(ab, p) - share(nat, p))] for p in ps]
+    gap = lambda p: share(ab, p) - share(nat, p)
+    hi, lo = max(ps, key=gap), min(ps, key=gap)
+    pts = [(name(e, p), share(nat, p), share(ab, p)) for p in ps]
     emit(f"Κόμματα: εξωτερικό και όλη η χώρα, {title}", "Ποσοστό επί των εγκύρων· διαφορά σε ποσοστιαίες μονάδες.",
-         [("Κόμμα", False), ("Εξωτερικό %", True), ("Όλη η χώρα %", True), ("Διαφορά", True)], rows)
+         [("Κόμμα", False), ("Εξωτερικό %", True), ("Όλη η χώρα %", True), ("Διαφορά", True)], rows,
+         chart=chart_dumbbell(
+             f"Στο εξωτερικό: {name(e, hi)} {signed(gap(hi))}, {name(e, lo)} {signed(gap(lo))} μονάδες",
+             f"{title}. Ποσοστό κάθε κόμματος επί των εγκύρων, σε όλη τη χώρα και στο εξωτερικό.", pts, "Όλη η χώρα", "Εξωτερικό",
+             f"Κόμματα, όλη η χώρα και εξωτερικό, {title}: " + "; ".join(f"{n}: {num(x)}% και {num(y)}%" for n, x, y in pts), sep=" · "))
     head = [("Τμήματα", True), ("Εγγεγραμμένοι", True), ("Έγκυρα", True), ("Έγκυρα / εγγ.", True), ("Πρώτο", False)]
     head += [(name(e, p) + " %", True) for p in parties]
     where = f"s.ep_id={ABROAD}"
-    emit(f"Ανά ήπειρο, {title}", "", [("Ήπειρος", False)] + head, area_rows(e, groups(e, "a.continent", where), parties))
+    top5 = ps[:5]  # the five largest abroad; more party colours would repeat (ΝΔ and Ελληνική Λύση are both blue)
+    gc = groups(e, "a.continent", where)
+    emit(f"Ανά ήπειρο, {title}", "", [("Ήπειρος", False)] + head, area_rows(e, gc, parties),
+         chart=chart_stack(f"Τι ψήφισε κάθε ήπειρος, {title}", "Τα πέντε μεγαλύτερα κόμματα του εξωτερικού, ποσοστό επί των εγκύρων· δίπλα τα έγκυρα.", e, top5,
+                           sorted(gc.items(), key=lambda x: -x[1]["valid"])))
+    gn = groups(e, "a.country", where)
     emit(f"Ανά χώρα, {title}", "Με σειρά εγκύρων. Σε χώρες με λίγες εκατοντάδες ψήφους λίγες ψήφοι αλλάζουν πολύ τα ποσοστά.",
-         [("Χώρα", False)] + head, area_rows(e, groups(e, "a.country", where), parties), fold=True)
-    emit(f"Ανά πόλη, {title}", "", [("Πόλη (χώρα)", False)] + head,
-         area_rows(e, groups(e, "a.city || ' (' || a.country || ')'", where), parties), fold=True)
+         [("Χώρα", False)] + head, area_rows(e, gn, parties), fold=True,
+         chart=chart_stack(f"Τι ψήφισαν οι 12 χώρες με τα περισσότερα έγκυρα, {title}",
+                           "Τα πέντε μεγαλύτερα κόμματα του εξωτερικού, ποσοστό επί των εγκύρων· δίπλα τα έγκυρα. Όλες οι χώρες στον πίνακα που ακολουθεί.",
+                           e, top5,
+                           sorted(gn.items(), key=lambda x: -x[1]["valid"])[:12]))
+    gt = groups(e, "a.city || ' (' || a.country || ')'", where)
+    big = sorted(gt.items(), key=lambda x: -x[1]["valid"])[:15]
+    turnout = lambda d: num(100 * d["valid"] / d["reg"]) + "%" if d["reg"] else "-"
+    emit(f"Ανά πόλη, {title}", "", [("Πόλη (χώρα)", False)] + head, area_rows(e, gt, parties), fold=True,
+         chart=chart_bars(f"Οι 15 πόλεις με τα περισσότερα έγκυρα, {title}",
+                          "Δίπλα τα έγκυρα και πόσοι από τους εγγεγραμμένους ψήφισαν έγκυρα.",
+                          [(g, d["valid"], f"{thousands(d['valid'])} · {turnout(d)}") for g, d in big],
+                          f"Έγκυρα ανά πόλη, {title}: " + "; ".join(f"{g} {thousands(d['valid'])}" for g, d in big)))
 
 
 def postal_section():
@@ -221,24 +243,42 @@ def postal_section():
     SECTIONS.append(f'<h2 id="postal">Επιστολική ψήφος · {html.escape(title)}</h2><p>{lead}</p>')
     rows = [[html.escape(name(EURO, p)), num(share(post, p)), num(share(dom, p)), num(share(box, p)),
              signed(share(dom, p) - share(box, p))] for p in parties]
+    gap = lambda p: share(dom, p) - share(box, p)
+    hi, lo = max(parties, key=gap), min(parties, key=gap)
+    pts = [(name(EURO, p), share(box, p), share(dom, p)) for p in parties]
     emit(f"Κόμματα: επιστολική και κάλπη, {title}",
          "«Επιστολική στην Ελλάδα»: χωρίς το εξωτερικό. Διαφορά: της επιστολικής στην Ελλάδα από την κάλπη, σε μονάδες.",
-         [("Κόμμα", False), ("Επιστολική %", True), ("Επιστολική στην Ελλάδα %", True), ("Κάλπη %", True), ("Διαφορά", True)], rows)
+         [("Κόμμα", False), ("Επιστολική %", True), ("Επιστολική στην Ελλάδα %", True), ("Κάλπη %", True), ("Διαφορά", True)], rows,
+         chart=chart_dumbbell(f"Επιστολική έναντι κάλπης: {name(EURO, hi)} {signed(gap(hi))}, {name(EURO, lo)} {signed(gap(lo))} μονάδες",
+                              f"{title}, μόνο στην Ελλάδα. Ποσοστό κάθε κόμματος επί των εγκύρων.", pts, "Κάλπη", "Επιστολική στην Ελλάδα",
+                              "Κόμματα, κάλπη και επιστολική στην Ελλάδα: " + "; ".join(f"{n}: {num(x)}% και {num(y)}%" for n, x, y in pts),
+                              sep=" · "))
     june, ab = total("2023/june", f"s.ep_id={ABROAD}"), total(EURO, f"s.ep_id={ABROAD}")
     rows = [[html.escape(name(EURO, p)), num(share(ab, p)), num(share(june, p)) if p in june["votes"] else "-"] for p in parties]
+    pts = [(name(EURO, p), share(june, p), share(ab, p)) for p in parties if p in june["votes"]]
     emit("Εξωτερικό: Ευρωεκλογές 2024 (επιστολική) και Ιούνιος 2023 (κάλπη)",
          f"Δύο διαφορετικές αναμετρήσεις, με {thousands(ab['valid'])} και {thousands(june['valid'])} έγκυρα. "
          "Για το 2024 το ΥΠΕΣ δεν δίνει κατανομή ανά χώρα.",
-         [("Κόμμα", False), ("Εξωτερικό 2024 %", True), ("Εξωτερικό Ιούνιος 2023 %", True)], rows)
+         [("Κόμμα", False), ("Εξωτερικό 2024 %", True), ("Εξωτερικό Ιούνιος 2023 %", True)], rows,
+         chart=chart_dumbbell("Το εξωτερικό σε δύο αναμετρήσεις", "Ποσοστό επί των εγκύρων· κόμματα που κατέβηκαν και στις δύο.", pts,
+                              "Ιούνιος 2023 (κάλπη)", "Ευρωεκλογές 2024 (επιστολική)",
+                              "Εξωτερικό, Ιούνιος 2023 και Ευρωεκλογές 2024: " + "; ".join(f"{n}: {num(x)}% και {num(y)}%" for n, x, y in pts),
+                              sep=" · "))
     names = dict(db.execute("SELECT ep_id, name FROM ep WHERE election=?", (EURO,)))
     pb, bb = groups(EURO, "s.ep_id", "s.kind='Τ'"), groups(EURO, "s.ep_id", "s.kind<>'Τ'")
     rows = [[html.escape(names[ep]), thousands(d["reg"]), thousands(d["valid"]), num(100 * d["valid"] / (d["valid"] + bb[ep]["valid"])) + "%"]
             + [f"{num(share(d, p))} ({signed(share(d, p) - share(bb[ep], p))})" for p in parties]
             for ep, d in sorted(pb.items(), key=lambda x: -x[1]["valid"]) if ep != ABROAD]
+    ratio = {ep: 100 * d["valid"] / (d["valid"] + bb[ep]["valid"]) for ep, d in pb.items() if ep != ABROAD}
+    order = sorted(ratio, key=lambda ep: -ratio[ep])
     emit(f"Ανά περιφέρεια, {title}",
          "Για κάθε κόμμα: ποσοστό στην επιστολική και, σε παρένθεση, η διαφορά από την κάλπη της ίδιας περιφέρειας, σε μονάδες.",
          [("Περιφέρεια", False), ("Εγγεγραμμένοι", True), ("Έγκυρα", True), ("% των εγκύρων", True)]
-         + [(name(EURO, p) + " %", True) for p in parties], rows, fold=True)
+         + [(name(EURO, p) + " %", True) for p in parties], rows, fold=True,
+         chart=chart_bars(f"Πού ψήφισαν περισσότερο επιστολικά: {names[order[0]]}, {num(ratio[order[0]])}% των εγκύρων",
+                          f"Οι 15 περιφέρειες με το μεγαλύτερο μερίδιο επιστολικών στα έγκυρα· το μικρότερο: {html.escape(names[order[-1]])}, "
+                          f"{num(ratio[order[-1]])}%.", [(names[ep], ratio[ep], num(ratio[ep]) + "%") for ep in order[:15]],
+                          "Μερίδιο επιστολικών στα έγκυρα ανά περιφέρεια: " + "; ".join(f"{names[ep]} {num(ratio[ep])}%" for ep in order[:15])))
 
 
 # Charts, drawn here as HTML and inline SVG (no script): one purple hue from the map ramp, two shades for a dumbbell.
@@ -291,6 +331,31 @@ def chart_scatter(title, note, pts, xlab, ylab, label, marked=()):
     return figure(title, note, f'<svg class="sc" viewBox="0 0 {W} {H}" aria-hidden="true">{grid}{diag}{dots}{names}{axes}</svg>', label)
 
 
+def color(e, p):
+    """Map colour of party p: config.PARTY_COLOR, else the ministry's (stored as 0xRRGGBB), else grey."""
+    c = PARTY_COLOR.get(p)
+    if not c:
+        c = db.execute("SELECT color FROM party WHERE election=? AND party_id=?", (e, p)).fetchone()[0]
+        c = "#" + c[2:] if c else "#888"
+    return c
+
+
+def chart_stack(title, note, e, parties, rows):
+    """One 100% bar per area, the share of each party shown in its own colour and the rest as «Λοιπά»; rows = [(name, group)]."""
+    key = "".join(f'<span><i style="background:{color(e, p)}"></i>{html.escape(name(e, p))}</span>' for p in parties)
+    key = f'<p class="ck">{key}<span><i class="o"></i>Λοιπά</span></p>'
+    body = ""
+    for g, d in rows:
+        seg = [(name(e, p), share(d, p), color(e, p)) for p in parties]
+        rest = max(0, 100 - sum(s for _, s, _ in seg))
+        bar = "".join(f'<i style="width:{s:.2f}%;background:{c}" title="{html.escape(n)}: {num(s)}%"></i>' for n, s, c in seg if s)
+        body += (f'<div class="cr"><span class="cl">{html.escape(str(g))}</span><span class="cst">{bar}'
+                 f'<i class="o" style="width:{rest:.2f}%" title="Λοιπά: {num(rest)}%"></i></span>'
+                 f'<span class="cv">{thousands(d["valid"])}</span></div>')
+    label = f"{title}: " + "; ".join(f"{g}: " + ", ".join(f"{name(e, p)} {num(share(d, p))}%" for p in parties) for g, d in rows)
+    return figure(title, note, key + body, label)
+
+
 CHART_CSS = """
 .ch{margin:1.2em 0 1.8em;max-width:760px} .ch figcaption{margin-bottom:.6em;color:var(--ink-2)} .ch figcaption b{color:var(--ink)}
 .cr{display:grid;grid-template-columns:minmax(6.5em,10em) 1fr minmax(4.5em,auto);gap:.7em;align-items:center;min-height:26px}
@@ -302,6 +367,9 @@ CHART_CSS = """
 .ch i.a{background:var(--s2)} .ch i.b{background:var(--s6)}
 .ck{display:flex;gap:1.2em;font-size:13px;margin:.2em 0 .5em} .ck i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
 .cs .cd0{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)}
+.cst{display:flex;height:16px} .cst i{display:block;height:100%;border-right:2px solid var(--surface)}
+.cst i:first-child{border-radius:4px 0 0 4px} .cst i:last-child{border-right:0;border-radius:0 4px 4px 0}
+.ch i.o{background:color-mix(in srgb,var(--ink-2) 30%,transparent)} .ck{flex-wrap:wrap;gap:.3em 1.2em}
 .sc{width:100%;max-width:520px;height:auto} .sc text{fill:var(--ink-2);font-size:11px} .sc text.n{fill:var(--ink)}
 .sc .g{stroke:var(--line);stroke-width:1} .sc .d{stroke:var(--ink-2);stroke-dasharray:4 3}
 .sc circle{fill:var(--s4);stroke:var(--surface);stroke-width:1.5} .sc circle.m{fill:var(--s6)}
@@ -349,7 +417,7 @@ def nikh_section():
         "Μάιος 2023", "Ιούνιος 2023", "Ποσοστό ΝΙΚΗΣ ανά χώρα, Μάιος και Ιούνιος 2023: "
         + "; ".join(f"{g}: {num(x)}% και {num(y)}%" for g, x, y in rows)))
 
-    def area(by, label, title, fold):
+    def area(by, label, title, fold, chart=""):
         keys = sorted(set(by[may]) | set(by[june]), key=lambda g: (-by[june].get(g, {"votes": {}})["votes"].get(NIKH, 0), str(g)))
         rows = []
         for g in keys:
@@ -360,9 +428,13 @@ def nikh_section():
         emit(title, "Θέση: η σειρά της ΝΙΚΗΣ ανάμεσα στα κόμματα εκεί. Με λίγα έγκυρα, μία-δύο ψήφοι αλλάζουν πολύ το ποσοστό.",
              [(label, False), ("Μάιος ψήφοι", True), ("Μάιος %", True), ("Μάιος θέση", True), ("Μάιος έγκυρα", True),
               ("Ιούνιος ψήφοι", True), ("Ιούνιος %", True), ("Ιούνιος θέση", True), ("Ιούνιος έγκυρα", True), ("Μεταβολή", True)],
-             rows, fold=fold)
+             rows, fold=fold, chart=chart)
     area(cn, "Χώρα", "ΝΙΚΗ ανά χώρα, Μάιος και Ιούνιος 2023", False)
-    area(ct, "Πόλη (χώρα)", "ΝΙΚΗ ανά πόλη, Μάιος και Ιούνιος 2023", True)
+    jt = sorted(((g, d) for g, d in ct[june].items() if d["votes"].get(NIKH)), key=lambda x: -x[1]["votes"][NIKH])[:12]
+    area(ct, "Πόλη (χώρα)", "ΝΙΚΗ ανά πόλη, Μάιος και Ιούνιος 2023", True, chart_bars(
+        "Ψήφοι της ΝΙΚΗΣ ανά πόλη, Ιούνιος 2023", "Οι 12 πόλεις με τις περισσότερες ψήφους της· δίπλα το ποσοστό της εκεί.",
+        [(g, d["votes"][NIKH], f"{d['votes'][NIKH]} · {num(share(d, NIKH))}%") for g, d in jt],
+        "Ψήφοι ΝΙΚΗΣ ανά πόλη, Ιούνιος 2023: " + "; ".join(f"{g} {d['votes'][NIKH]}" for g, d in jt)))
 
     post, box = groups(EURO, "s.ep_id", "s.kind='Τ'"), groups(EURO, "s.ep_id", "s.kind<>'Τ'")
     names = dict(db.execute("SELECT ep_id, name FROM ep WHERE election=?", (EURO,)))
@@ -414,8 +486,7 @@ def map_data():
         parties = shown(e)
         for p in parties + [p for c in cities for p in c["p"]]:
             if p not in out["parties"]:
-                color = db.execute("SELECT color FROM party WHERE election=? AND party_id=?", (e, p)).fetchone()[0]
-                out["parties"][p] = {"name": name(e, p), "color": PARTY_COLOR.get(p) or ("#" + color[2:] if color else "#888")}
+                out["parties"][p] = {"name": name(e, p), "color": color(e, p)}
         out["els"].append({"key": e.split("/")[1], "name": ELECTION_NAMES[e], "cities": cities, "shown": parties,
                            "missing": len(gs) - len(cities)})
     return json.dumps(out, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
