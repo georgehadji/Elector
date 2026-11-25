@@ -42,7 +42,10 @@ OG_IMAGES = {
 
 
 def og_kind(name):
-    """Which share picture a page file gets: its election's, or one per kind of nationwide page; "site" otherwise."""
+    """Which share picture a page file gets: a constituency map page its own (the file name without .html), the other pages
+    of an election that election's, the nationwide pages one per kind; "site" otherwise."""
+    if re.fullmatch(rf"({'|'.join(map(slug, ELECTIONS))})_\d+\.html", name):
+        return name[:-5]
     m = re.match(r"([^_]+)_\d", name)
     if m and m[1] in OG_IMAGES:
         return m[1]

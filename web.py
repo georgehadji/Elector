@@ -21,7 +21,6 @@ from config import (
     ELECTED,
     ELECTION_NAMES,
     ELECTIONS,
-    OG_IMAGES,
     HERE,
     OUT,
     PARTY_SHORT,
@@ -138,33 +137,40 @@ FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox
            "stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E"
            "%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E")  # the site mark; img-src allows data:
 
-LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/"
+LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/"  # for pages written outside out/: no vendor/ folder beside them
+
 
 def secure(page, path=None):
     """Content-Security-Policy (as a <meta>: GitHub Pages sets no headers), referrer policy, favicon and, when config.SITE_URL
     is set, the page's canonical address, og:url and og:image (`path` = the file the page is written to; one outside out/ gets none).
     Call it last, on the finished page: the inline scripts and styles are allowed by their SHA-256 hash, so injected markup cannot run.
-    Leaflet (cdnjs, also pinned by integrity=) and the OSM tiles are the only outside sources; the fonts are self-hosted (fonts.css, out/fonts/)."""
+    Leaflet (pinned by integrity=) and the fonts are self-hosted in out/, so only the OSM tiles come from outside. A page written
+    anywhere else (a client's map, `path` None) has no vendor/ folder beside it: its Leaflet link and CSP point to cdnjs instead."""
+    home = path is not None and Path(path).resolve().parent == OUT.resolve()
+    if not home:
+        page = page.replace("vendor/leaflet-1.9.4/", LEAFLET)
+    js, css = ("'self'",) * 2 if home else (LEAFLET + "leaflet.min.js", LEAFLET + "leaflet.min.css")
     def hashes(tag):
         return [f"'sha256-{base64.b64encode(hashlib.sha256(m.encode()).digest()).decode()}'"
                 for m in re.findall(rf"<{tag}>(.*?)</{tag}>", page, re.S)]
     csp = "; ".join([
         "default-src 'none'",
-        " ".join(["script-src", *hashes("script"), LEAFLET + "leaflet.min.js"]),
-        " ".join(["style-src-elem", *hashes("style"), LEAFLET + "leaflet.min.css"]),
+        " ".join(["script-src", *hashes("script"), js]),
+        " ".join(["style-src-elem", *hashes("style"), css]),
         "style-src-attr 'unsafe-inline'",  # style="" in markup the pages build (legend swatches, table cells)
         "font-src 'self'",
-        f"img-src 'self' data: https://tile.openstreetmap.org {LEAFLET}",
+        "img-src 'self' data: https://tile.openstreetmap.org",
         "connect-src 'none'", "base-uri 'none'", "form-action 'none'", "object-src 'none'", "frame-src 'none'"])
     tags = (f'<meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="referrer" content="strict-origin-when-cross-origin">'
             f'<link rel="icon" href="{FAVICON}">')
-    if SITE_URL and path is not None and Path(path).resolve().parent == OUT.resolve():  # pages outside out/ are not published
+    if SITE_URL and home:  # pages outside out/ are not published
         url = f"{SITE_URL}/out/{urllib.parse.quote(Path(path).name)}"
         kind = og_kind(Path(path).name)
-        img, alt = f"{SITE_URL}/out/og/{kind}.png", html.escape(". ".join(OG_IMAGES[kind]), quote=True)
+        img = f"{SITE_URL}/out/og/{kind}.png"
+        alt = re.search(r'property="og:title" content="([^"]*)"', page)  # already escaped; the picture says the same
         tags += (f'<link rel="canonical" href="{url}"><meta property="og:url" content="{url}">'
                  f'<meta property="og:image" content="{img}"><meta property="og:image:width" content="1200">'
-                 f'<meta property="og:image:height" content="630"><meta property="og:image:alt" content="{alt}">'
+                 f'<meta property="og:image:height" content="630"><meta property="og:image:alt" content="{alt[1] if alt else "Χάρτες σταυρών"}">'
                  f'<meta name="twitter:image" content="{img}">')
     return page.replace('<meta charset="utf-8">', '<meta charset="utf-8">' + tags, 1)
 

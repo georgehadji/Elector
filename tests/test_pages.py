@@ -73,6 +73,7 @@ class Pages(unittest.TestCase):
         for p in ALL:
             s = read(p)
             img = re.search(r'property="og:image" content="([^"]*)"', s)
+            self.assertTrue((OUT / "og" / f"{og_kind(p.name)}.png").exists(), f"{p.name}: run og_image.py")
             if not SITE_URL:
                 self.assertIsNone(img, p.name)
                 continue
@@ -81,12 +82,26 @@ class Pages(unittest.TestCase):
                 self.assertIn(tag, s, f"{p.name}: {tag}")
 
     def test_og_pictures_are_1200_by_630(self):
-        from config import OG_IMAGES
-        for kind in OG_IMAGES:
-            data = (OUT / "og" / f"{kind}.png").read_bytes()
-            self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n", kind)
-            self.assertEqual(struct.unpack(">II", data[16:24]), (1200, 630), kind)
-            self.assertLess(len(data), 300_000, kind)
+        pictures = sorted((OUT / "og").glob("*.png"))
+        self.assertTrue(pictures)
+        for png in pictures:
+            data = png.read_bytes()
+            self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n", png.name)
+            self.assertEqual(struct.unpack(">II", data[16:24]), (1200, 630), png.name)
+            self.assertLess(len(data), 300_000, png.name)
+
+    def test_leaflet_is_self_hosted_and_pinned(self):
+        import base64
+        import hashlib
+        for p in ALL:
+            s = read(p)
+            self.assertNotIn("cdnjs", s, p.name)
+            for tag in re.findall(r"<(?:script|link)[^>]+leaflet[^>]+>", s):
+                url = re.search(r'(?:src|href)="(vendor/leaflet-1.9.4/[^"]+)"', tag)
+                want = re.search(r'integrity="sha256-([^"]+)"', tag)
+                self.assertTrue(url and want, f"{p.name}: {tag}")
+                digest = base64.b64encode(hashlib.sha256((OUT / url.group(1)).read_bytes()).digest()).decode()
+                self.assertEqual(want.group(1), digest, f"{p.name}: {url.group(1)}")
 
     def test_no_middle_dot_in_titles(self):
         for p in APP:
@@ -226,6 +241,30 @@ class Index(unittest.TestCase):
         self.assertEqual(s.count("<h1>"), 1)
 
 
+class SecureLeaflet(unittest.TestCase):
+    """secure() points Leaflet at out/vendor/ for pages in out/, and at cdnjs for a page written anywhere else."""
+    page = ('<meta charset="utf-8"><link rel="stylesheet" href="vendor/leaflet-1.9.4/leaflet.min.css" integrity="sha256-x">'
+            '<script src="vendor/leaflet-1.9.4/leaflet.min.js" integrity="sha256-y"></script><script>1</script>')
+
+    def test_page_in_out_uses_vendor(self):
+        from web import secure
+        s = secure(self.page, OUT / "x.html")
+        self.assertIn('src="vendor/leaflet-1.9.4/leaflet.min.js"', s)
+        self.assertIn("script-src 'sha256-", s)
+        self.assertIn(" 'self';", s.split("style-src-elem")[0])
+        self.assertNotIn("cdnjs", s)
+
+    def test_page_elsewhere_uses_cdn(self):
+        from web import secure
+        for path in (OUT.parent / "client" / "x.html", None):
+            s = secure(self.page, path)
+            self.assertNotIn("vendor/leaflet-1.9.4", s)
+            self.assertIn('src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"', s)
+            csp = re.search(r'Content-Security-Policy" content="([^"]+)"', s).group(1)
+            self.assertIn("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js", csp)
+            self.assertNotIn("'self';", csp.split("style-src-elem")[0])
+
+
 class VercelHeaders(unittest.TestCase):
     """The headers a <meta> cannot set. Needs no built page: vercel.json is in the repo."""
     rules = json.loads((OUT.parent / "vercel.json").read_text(encoding="utf-8"))["headers"]
@@ -261,6 +300,11 @@ class VercelHeaders(unittest.TestCase):
         self.assertEqual(self.header("/((?!out/og/).*)", "Cross-Origin-Resource-Policy"), "same-origin")
         self.assertEqual(self.header("/out/og/(.*)", "Cross-Origin-Resource-Policy"), "cross-origin")
         self.assertFalse(self.header("/(.*)", "Cross-Origin-Resource-Policy"))  # that rule would also cover out/og/
+
+    def test_vendor_files_cache_for_a_year(self):
+        # safe only because the folder name carries the version: a new Leaflet goes to a new folder
+        self.assertEqual(self.header("/out/vendor/(.*)", "Cache-Control"), "public, max-age=31536000, immutable")
+        self.assertRegex(str(next(p for p in (OUT / "vendor").iterdir() if p.is_dir()).name), r"-\d+\.\d+\.\d+$")
 
 
 if __name__ == "__main__":
