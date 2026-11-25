@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- index.html vercel.json out exports",
   "redirects": [{ "source": "/", "destination": "/out/index.html", "permanent": false }],
   "headers": [
     {
