@@ -677,32 +677,36 @@ VIEW_JS = """(function () {
   var last = {};
   keys.forEach(function (v) { last[v] = els[v][els[v].length - 1] || ''; });
   cur.v = keys[0]; cur.e = last[keys[0]];
-  var bar = document.createElement('div'); bar.className = 'sw';
-  var row1 = document.createElement('div'), row2 = document.createElement('div');
-  row1.setAttribute('role', 'group'); row1.setAttribute('aria-label', 'Τι να δω');
-  row2.setAttribute('role', 'group'); row2.setAttribute('aria-label', 'Εκλογή');
-  bar.appendChild(row1); bar.appendChild(row2);
-  function btn(text, on, fn) {
-    var b = document.createElement('button'); b.type = 'button'; b.textContent = text;
-    b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.addEventListener('click', fn); return b;
+  var bar = document.getElementById('sw'), vrow = document.createElement('div'), erows = {}, vbtn = {}, ebtn = {};
+  vrow.className = 'v'; vrow.setAttribute('role', 'group'); vrow.setAttribute('aria-label', 'Τι να δω'); bar.appendChild(vrow);
+  function btn(text, fn) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = text; b.addEventListener('click', fn); return b;
   }
+  keys.forEach(function (v) {
+    vbtn[v] = btn(labels[v], function () { cur.v = v; cur.e = last[v]; draw(); }); vrow.appendChild(vbtn[v]);
+    if (els[v].length < 2) return;
+    var row = document.createElement('div'); row.className = 'e'; row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Εκλογή');
+    row.style.setProperty('--n', els[v].length); erows[v] = row;
+    els[v].forEach(function (e) { ebtn[e] = btn(elabels[e], function () { cur.e = e; last[v] = e; draw(); }); row.appendChild(ebtn[e]); });
+    bar.appendChild(row);
+  });
   function draw() {
-    row1.textContent = ''; row2.textContent = '';
     keys.forEach(function (v) {
-      row1.appendChild(btn(labels[v], v === cur.v, function () { cur.v = v; cur.e = last[v]; draw(); }));
+      vbtn[v].setAttribute('aria-pressed', v === cur.v ? 'true' : 'false');
+      if (erows[v]) erows[v].hidden = v !== cur.v;
     });
-    var list = els[cur.v]; row2.hidden = list.length < 2;
-    list.forEach(function (e) {
-      row2.appendChild(btn(elabels[e], e === cur.e, function () { cur.e = e; last[cur.v] = e; draw(); }));
-    });
-    views.forEach(function (s) { s.hidden = !(s.dataset.v === cur.v && (!s.dataset.e || s.dataset.e === cur.e)); });
+    if (erows[cur.v]) {
+      els[cur.v].forEach(function (e) { ebtn[e].setAttribute('aria-pressed', e === cur.e ? 'true' : 'false'); });
+      erows[cur.v].style.setProperty('--i', els[cur.v].indexOf(cur.e));
+    }
+    views.forEach(function (s) { s.classList.toggle('on', s.dataset.v === cur.v && (!s.dataset.e || s.dataset.e === cur.e)); });
+    bar.classList.add('ready');
   }
   function reveal(id) {
     var el = id && document.getElementById(decodeURIComponent(id)), s = el && el.closest('.view');
     if (!s) return false;
     cur.v = s.dataset.v; cur.e = s.dataset.e || last[cur.v]; last[cur.v] = cur.e; draw(); return true;
   }
-  views[0].parentNode.insertBefore(bar, views[0]);
   draw();
   if (location.hash && reveal(location.hash.slice(1))) document.getElementById(decodeURIComponent(location.hash.slice(1))).scrollIntoView();
   addEventListener('hashchange', function () { if (reveal(location.hash.slice(1))) document.getElementById(decodeURIComponent(location.hash.slice(1))).scrollIntoView(); });
@@ -722,18 +726,26 @@ def page():
 {FONTS}
 <link rel="stylesheet" href="vendor/leaflet-1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
 <script src="vendor/leaflet-1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
-<script>/*THEME_JS*/</script><style>{common_css()}
+<script>document.documentElement.classList.add("js")</script><script>/*THEME_JS*/</script><style>{common_css()}
 {CHART_CSS}.mctl{{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0}} .mctl select{{margin-left:.4em}}
 .mnum span{{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:12px;font-weight:600;line-height:1;
   color:var(--ink);paint-order:stroke;-webkit-text-stroke:3px var(--surface)}}
 #m-legend{{display:flex;flex-wrap:wrap;gap:.3em 1em;margin:.5em 0 1em;font-size:14px}}
 #m-legend .k i{{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}}
 main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-bottom:1.5em}} h2{{font-size:var(--h2);margin:var(--space-2xl) 0 var(--space-sm)}} h3{{font-size:var(--h3);margin:var(--space-lg) 0 var(--space-xs)}}
-.sw{{display:grid;gap:var(--space-xs);margin:var(--space-lg) 0 0}} .sw div{{display:flex;flex-wrap:wrap;gap:var(--space-xs)}}
-.sw button{{font:inherit;font-size:var(--t-base);min-height:40px;padding:0 var(--space-md);color:var(--ink);background:none;border:1px solid var(--line);border-radius:20px;cursor:pointer}}
-.sw button:hover{{border-color:var(--ink)}} .sw button[aria-pressed=true]{{color:var(--surface);background:var(--ink);border-color:var(--ink)}}
-.sw button:focus-visible{{outline:2px solid var(--ink);outline-offset:2px}} @media (pointer:coarse){{.sw button{{min-height:44px}}}}
-.view[hidden]{{display:none}} .view>h2:first-child{{margin-top:var(--space-xl)}}
+.sw{{display:grid;justify-items:start;gap:var(--space-md);margin:var(--space-lg) 0 0}}
+.sw .v,.sw .e{{display:flex;flex-wrap:wrap}} .sw .v{{gap:var(--space-xs) var(--space-lg)}}
+.sw button{{font:inherit;color:var(--ink-2);background:none;border:0;cursor:pointer;transition:color 150ms ease-out}}
+.sw button:hover,.sw button[aria-pressed=true]{{color:var(--ink)}}
+.sw .v button{{min-height:44px;padding:0;font-size:var(--t-lg);font-weight:600;letter-spacing:-.01em;text-underline-offset:10px;text-decoration-thickness:3px;text-decoration-line:none}}
+.sw .v button[aria-pressed=true]{{text-decoration-line:underline}} .sw .v button:hover:not([aria-pressed=true]){{text-decoration-line:underline;text-decoration-thickness:1px}}
+.sw .e{{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:4px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,var(--paper,var(--surface)))}}
+.sw .e[hidden]{{display:none}}
+.sw .e::before{{content:"";position:absolute;inset:4px auto 4px 4px;width:calc((100% - 8px) / var(--n));border-radius:999px;background:var(--paper,var(--surface));transform:translateX(calc(var(--i) * 100%));transition:transform 280ms cubic-bezier(.16,1,.3,1)}}
+.sw .e button{{position:relative;min-height:36px;padding:0 var(--space-lg);border-radius:999px;font-size:var(--t-sm)}}
+.sw button:focus-visible{{outline:2px solid var(--ink);outline-offset:2px}}
+@media (pointer:coarse){{.sw .e button{{min-height:44px}}}} @media (prefers-reduced-motion:reduce){{.sw button,.sw .e::before{{transition:none}}}}
+.js .view:not(.on){{display:none}} .js .sw:not(.ready){{min-height:112px}} .view>h2:first-child{{margin-top:var(--space-xl)}}
 summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
 @media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}</style></head><body><main id="main">
 {header()}
@@ -745,6 +757,7 @@ summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
 <div class="mctl"><label>Εκλογή<select id="m-el"></select></label><label>Χρώμα<select id="m-col"></select></label><label><input type="checkbox" id="m-num" checked> Αριθμός ψήφων</label></div>
 <div id="map" role="region" aria-label="Χάρτης των πόλεων με εκλογικά τμήματα εξωτερικού· τα ίδια στοιχεία είναι στους πίνακες ανά πόλη"></div>
 <div id="m-legend"></div>
+<div class="sw" id="sw"></div>
 {"".join(SECTIONS)}</div>
 {footer(sources='<li>Θέσεις πόλεων: <a href="https://nominatim.openstreetmap.org/" rel="noopener">Nominatim (OpenStreetMap)</a></li>')}</main>
 <script>/*SHARED_JS*/</script><script>{VIEW_JS}</script><script>{MAP_JS.replace("/*MAPDATA*/null", map_data())}</script></body></html>"""
