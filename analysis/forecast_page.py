@@ -39,7 +39,8 @@ from geo import boundary, frame, path
 from matching import boundaries, centroid, match_units
 from web import INDEX_DARK, INDEX_LIGHT, fill, meta, secure
 
-OUT = HERE / "out" / "forecast.html"
+OUT = HERE / "out" / "forecast.html"  # its folder is where the maps are looked up
+H180_NOTE = ('<p class="note h180">Σε έξι μήνες οι δημοσκοπήσεις μπορεί να έχουν κινηθεί, οπότε όλα τα εύρη ανοίγουν. Γι’ αυτό ό,τι σήμερα είναι απίθανο γίνεται λίγο πιθανότερο, και ό,τι είναι σχεδόν βέβαιο λίγο λιγότερο.</p>')
 MAP_ELECTION = "2023/june"  # per-constituency rows link to this election's maps
 WIKI = "https://en.wikipedia.org/wiki/Opinion_polling_for_the_next_Greek_legislative_election"
 COLOURS = FORECAST_COLOURS  # party: (light, dark); dict order = slot order = order in the seat bar
@@ -1034,9 +1035,49 @@ def body(data, order, tail=""):
         chapter("scenario", "Σενάριο Σαμαρά", 15, sam),
         chapter("method", "Δημοσκοπήσεις και μέθοδος", 260, rules(data) + backtest_html() + tail, quiet=True),
     ]
-    nav = ('<nav class="chap" aria-label="Ενότητες">'
-           + "".join(f'<a href="#ch-{k}" style="--hue:{h}">{html.escape(lab)}</a>' for _, (k, lab, h) in chapters) + "</nav>")
-    return css + sam_css, nav, "".join(c for c, _ in chapters)
+    return {k: (c, lab, h) for c, (k, lab, h) in chapters}, {"regions": css, "scenario": sam_css}  # html by chapter key; css of the chapters that bring their own
+
+
+# The forecast is one data set shown on four pages (the six chapters were 620 KB on one): the first holds the headline answer,
+# the others the detail. The bar of chapters links across them; a chapter of this page is a jump link, one of another page a link to it.
+PAGES = [
+    {"file": "forecast.html", "chapters": ["151", "shares"], "h1": "Ποσοστά και έδρες από τις δημοσκοπήσεις", "lead": True, "when": True,
+     "title": "Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων",
+     "desc": "Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων."},
+    {"file": "forecast_seats.html", "chapters": ["seats"], "h1": "Έδρες κάθε κόμματος", "lead": False, "when": True,
+     "title": "Πρόβλεψη: έδρες κάθε κόμματος από τον μέσο όρο των δημοσκοπήσεων",
+     "desc": f"Οι {SEATS} έδρες ανά κόμμα, εύρη, κατανομές και βαθμίδες, από τον μέσο όρο των δημοσκοπήσεων."},
+    {"file": "forecast_regions.html", "chapters": ["regions"], "h1": "Έδρες ανά περιφέρεια", "lead": False, "when": True,
+     "title": "Πρόβλεψη: έδρες ανά εκλογική περιφέρεια",
+     "desc": "Πόσες έδρες παίρνει κάθε κόμμα σε κάθε εκλογική περιφέρεια και ποιες έδρες είναι αμφίρροπες."},
+    {"file": "forecast_scenarios.html", "chapters": ["scenario", "method"], "h1": "Σενάρια και μέθοδος", "lead": False, "when": False,
+     "title": "Πρόβλεψη: σενάριο Σαμαρά, δημοσκοπήσεις και μέθοδος",
+     "desc": "Το σενάριο ενός νέου κόμματος του Σαμαρά, οι δημοσκοπήσεις ανά εταιρεία και πώς βγαίνουν οι αριθμοί."},
+]
+LABELS = {"151": "Αυτοδυναμία", "shares": "Ποσοστά", "seats": "Έδρες", "regions": "Περιφέρειες", "scenario": "Σενάριο Σαμαρά",
+          "method": "Δημοσκοπήσεις και μέθοδος"}
+
+
+def chapnav(page, chaps):
+    """The bar of chapters of one page. First chapter of a page = its link carries the view (#180, ...), see the script."""
+    first = {pg["chapters"][0]: pg for pg in PAGES}
+    out = []
+    for pg in PAGES:
+        for k in pg["chapters"]:
+            hue = chaps[k][2]
+            if pg is page:
+                cur = ' aria-current="true"' if k == page["chapters"][0] else ""
+                out.append(f'<a href="#ch-{k}" style="--hue:{hue}"{cur}>{html.escape(chaps[k][1])}</a>')
+            else:
+                href = pg["file"] if k in first else f'{pg["file"]}#ch-{k}'
+                out.append(f'<a href="{href}" style="--hue:{hue}"{" data-view" if k in first else ""}>{html.escape(chaps[k][1])}</a>')
+    return '<nav class="chap" aria-label="Ενότητες">' + "".join(out) + "</nav>"
+
+
+def when(shown):
+    return ('<fieldset class="when"' + ("" if shown else " hidden") + '><legend>Εκλογές:</legend>'
+            '<label><input type="radio" name="h" id="h0" checked> σήμερα</label>'
+            '<label><input type="radio" name="h" id="h180"> σε έξι μήνες</label></fieldset>')
 
 
 def main():
@@ -1049,23 +1090,27 @@ def main():
     sources = (f'Δεδομένα: δημοσκοπήσεις από <a href="{WIKI}">Wikipedia</a> '
                '(η ΝΙΚΗ ελεγμένη με τις εταιρείες), αποτελέσματα από το Υπουργείο Εσωτερικών. '
                '<a href="nikh_polls.html">Η ΝΙΚΗ στις δημοσκοπήσεις</a> · <a href="index.html">Όλοι οι χάρτες</a>')
-    page = (HERE / "analysis" / "forecast_template.html").read_text(encoding="utf-8")
+    template = (HERE / "analysis" / "forecast_template.html").read_text(encoding="utf-8")
     n_sims = today["n"]
     tail = (record() + '<section class="method" aria-labelledby="mh"><h2 id="mh">Πώς βγαίνουν οι αριθμοί</h2>'
             + method(n_sims, n_polls, F.error_fit(), data["sensitivity"]) + "</section>")
-    map_css, chapnav, body_html = body(data, order, tail)
-    for a, b in (("<!--META-->", meta("Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων",
-                                      "Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.")),
-                 ("<!--LEAD-->", leads), ("<!--N-->", thousands(n_sims)), ("<!--ASOF-->", day(data["as_of"])),
-                 ("<!--CHAPNAV-->", chapnav), ("<!--BODY-->", body_html), ("/*MAP_CSS*/", map_css), ("<!--SOURCES-->", sources)):
-        assert a in page, a
-        page = page.replace(a, b)
+    chaps, css = body(data, order, tail)
     light = INDEX_LIGHT | {"mute": MUTE[0]} | {f"p-{p}": c[0] for p, c in COLOURS.items()}
     dark = INDEX_DARK | {"mute": MUTE[1]} | {f"p-{p}": c[1] for p, c in COLOURS.items()}
-    page = fill(page, light, dark, current="forecast", skip="#main",
-                sources=f'<li>Δημοσκοπήσεις: <a href="{WIKI}" rel="noopener">Wikipedia</a></li>')  # not in the nav: nothing marked current
-    OUT.write_text(secure(page, OUT), encoding="utf-8")
-    print(f"wrote {OUT} ({thousands(n_sims)} simulations, polls to {data['as_of']})")
+    for pg in PAGES:
+        out = HERE / "out" / pg["file"]
+        page = template
+        for a, b in (("<!--TITLE-->", html.escape(pg["title"])), ("<!--META-->", meta(pg["title"], pg["desc"])), ("<!--H1-->", html.escape(pg["h1"])), ("<!--WHEN-->", when(pg["when"])),
+                     ("<!--H180NOTE-->", H180_NOTE if pg["when"] else ""), ("<!--LEAD-->", leads if pg["lead"] else ""),
+                     ("<!--N-->", thousands(n_sims)), ("<!--ASOF-->", day(data["as_of"])), ("<!--CHAPNAV-->", chapnav(pg, chaps)),
+                     ("<!--BODY-->", "".join(chaps[k][0] for k in pg["chapters"])),
+                     ("/*MAP_CSS*/", "".join(css.get(k, "") for k in pg["chapters"])), ("<!--SOURCES-->", sources)):
+            assert a in page, a
+            page = page.replace(a, b)
+        page = fill(page, light, dark, current="forecast", skip="#main",
+                    sources=f'<li>Δημοσκοπήσεις: <a href="{WIKI}" rel="noopener">Wikipedia</a></li>')
+        out.write_text(secure(page, out), encoding="utf-8")
+        print(f"wrote {out} ({thousands(n_sims)} simulations, polls to {data['as_of']})")
 
 
 if __name__ == "__main__":
