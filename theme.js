@@ -4,7 +4,10 @@
   const root = document.documentElement;
   let dark = false;
   try { dark = localStorage.getItem("theme") === "dark"; } catch {}
-  const show = () => dark ? root.dataset.theme = "dark" : root.removeAttribute("data-theme");
+  const show = () => {
+    dark ? root.dataset.theme = "dark" : root.removeAttribute("data-theme");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#15171b" : "#fbfaf6");  // the browser bar follows the page
+  };
   show();
   addEventListener("DOMContentLoaded", () => {
     const b = document.getElementById("theme");

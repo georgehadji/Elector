@@ -716,9 +716,9 @@ VIEW_JS = """(function () {
 def page():
     # the sections sit in a <div>: common.css moves "main > h2" to the end on phones (a rule for the map pages)
     title = "Ψηφοφόροι εξωτερικού και επιστολική ψήφος"
-    jump = " · ".join([f'<a href="#ab-{e.replace("/", "-")}">Εξωτερικό, {html.escape(ELECTION_NAMES[e])}</a>' for e in ABROAD_ELECTIONS]
+    jump = "".join([f'<a href="#ab-{e.replace("/", "-")}">Εξωτερικό, {html.escape(ELECTION_NAMES[e])}</a>' for e in ABROAD_ELECTIONS]
                       + ['<a href="#postal">Επιστολική ψήφος, Ευρωεκλογές 2024</a>', '<a href="#nikh">ΝΙΚΗ: αναλυτικά</a>'])
-    jump = '<a href="#map-h">Χάρτης πόλεων</a> · ' + jump
+    jump = '<a href="#map-h">Χάρτης πόλεων</a>' + jump
     return f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
@@ -754,7 +754,7 @@ summary h3{{display:inline}} details{{margin:1em 0}}
 <h1>{title}</h1>
 <p>Από τα ανεπίσημα αποτελέσματα του ΥΠΕΣ. Οι ψήφοι αυτές δεν έχουν θέση στους χάρτες των περιφερειών, μετρούν όμως στα σύνολα.
 «Εγγεγραμμένοι» στο εξωτερικό και στην επιστολική ψήφο είναι όσοι έκαναν αίτηση, άρα τα έγκυρα ως ποσοστό τους είναι κοντά στη συμμετοχή.</p>
-<p>{jump}</p>
+<nav class="jump" aria-label="Μετάβαση στην ενότητα">{jump}</nav>
 <div><h2 id="map-h">Χάρτης πόλεων του εξωτερικού</h2>
 <div class="mctl"><label>Εκλογή<select id="m-el"></select></label><label>Χρώμα<select id="m-col"></select></label><label><input type="checkbox" id="m-num" checked> Αριθμός ψήφων</label></div>
 <div id="map" role="region" aria-label="Χάρτης των πόλεων με εκλογικά τμήματα εξωτερικού· τα ίδια στοιχεία είναι στους πίνακες ανά πόλη"></div>

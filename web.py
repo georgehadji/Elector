@@ -180,12 +180,14 @@ def secure(page, path=None):
         " ".join(["script-src", *hashes("script"), js]),
         " ".join(["style-src-elem", *hashes("style"), css]),
         "style-src-attr 'unsafe-inline'",  # style="" in markup the pages build (legend swatches, table cells)
-        "font-src 'self'",
+        "font-src 'self'", "manifest-src 'self'",
         "img-src 'self' data: https://tile.openstreetmap.org",
         "connect-src 'none'", "base-uri 'none'", "form-action 'none'", "object-src 'none'", "frame-src 'none'"])
     tags = (f'<meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="referrer" content="strict-origin-when-cross-origin">'
             f'<meta name="robots" content="noindex, nofollow, noarchive">'  # the X-Robots-Tag header in vercel.json says the same; no robots.txt Disallow, or crawlers never see this
-            f'<link rel="icon" href="{FAVICON}">')
+            f'<link rel="icon" href="{FAVICON}"><meta name="theme-color" content="{INDEX_LIGHT["paper"]}">')
+    if home:  # the web app manifest sits beside the pages
+        tags += '<link rel="manifest" href="manifest.webmanifest">'
     if SITE_URL and home:  # pages outside out/ are not published
         url = f"{SITE_URL}/out/{urllib.parse.quote(Path(path).name)}"
         kind = og_kind(Path(path).name)

@@ -24,6 +24,10 @@ button { cursor: pointer; }
 .seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 .pdf { margin-left: auto; }
+.share { display: none; }  /* phones only: the footer has the same button, far down */
+.filters > summary > span:last-child { flex: 1; min-width: 0; margin-inline: var(--space-sm); color: var(--ink-2); font-weight: 400; text-align: end; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.filters > .controls { margin-top: var(--space-xs); }
+@media (min-width: 600px) { .filters > summary { display: none; } .filters > .controls { margin-top: 0; } }
 /* The four figures are a caption under the map, one flowing line of "value label" pairs. */
 .stats { display: flex; flex-wrap: wrap; gap: 2px 20px; margin: var(--space-sm) 0 var(--space-2xs); font-size: var(--t-sm); color: var(--ink-2); }
 .stats b { font-weight: 600; color: var(--ink); }
@@ -104,6 +108,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
   .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
   .seg button { padding: 6px 4px; font-size: var(--t-sm); line-height: 1.2; }
   .pdf { display: none; }  /* print-to-PDF is a desktop task */
+  .share { display: block; width: 100%; margin: 0 0 var(--space-md); }
   .mapwrap #map { height: 55svh; min-height: 300px; }  /* beats the station page's own #map height */
   #tbl th:nth-child(2), #tbl td:nth-child(2) { display: none; }  /* Δημ. ενότητα */
   #tbl th:first-child, #tbl td:first-child { position: sticky; left: 0; background: var(--surface); }

@@ -1,0 +1,12 @@
+{
+  "name": "Χάρτες Ψήφων",
+  "short_name": "Χάρτες Ψήφων",
+  "description": "Σταυροί προτίμησης και ποσοστά κομμάτων ανά περιοχή και εκλογικό τμήμα.",
+  "lang": "el",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbfaf6",
+  "theme_color": "#fbfaf6",
+  "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
+}
