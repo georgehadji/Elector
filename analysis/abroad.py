@@ -167,12 +167,13 @@ SECTIONS = []  # html of the page, in order; the text goes to stdout as it is ma
 
 
 def emit(title, intro, head, rows, fold=False, chart=""):
-    """One table: printed, and added to the page (inside <details> when fold, for the long ones). A chart of the same
-    numbers goes right above it, outside the fold, so every table has a picture that is always visible."""
+    """One table: printed, and added to the page under its heading. A chart of the same numbers goes between the heading
+    and the table, outside the fold, so every table has a picture that is always visible and clearly its own."""
     print(f"\n{title}\n" + text_table(head, rows))
-    body = (f"<p>{intro}</p>" if intro else "") + table(head, rows)
-    SECTIONS.append(f"{chart}<details><summary><h3>{html.escape(title)}</h3></summary>{body}</details>" if fold
-                    else f"{chart}<h3>{html.escape(title)}</h3>{body}")
+    h = f"<h3>{html.escape(title)}</h3>"
+    intro = f"<p>{intro}</p>" if intro else ""
+    SECTIONS.append(f"{h}{chart}<details><summary>Ο πίνακας με τους αριθμούς</summary>{intro}{table(head, rows)}</details>" if fold
+                    else f"{h}{intro}{chart}{table(head, rows)}")
 
 
 def area_rows(e, gs, parties):
