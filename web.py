@@ -73,14 +73,14 @@ def footer(note="", home=True, compact=False, sources=""):
     return (f'<footer class="site{" compact" if compact else ""}">'
             f'<p class="name">{MARK}Χάρτες Ψήφων</p>'
             '<p class="what">Σταυροί και ποσοστά των κομμάτων ανά κοινότητα και εκλογικό τμήμα, από το 2019 έως το 2024.</p>'
-            f'<div class="cols"><div><h3>Χάρτες</h3><ul>{pages}'
+            f'<div class="cols"><div><h2>Χάρτες</h2><ul>{pages}'
             '<li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div>'
-            '<div><h3>Πηγές</h3><ul>'
+            '<div><h2>Πηγές</h2><ul>'
             '<li>Αποτελέσματα: <a href="https://ekloges.ypes.gr/" rel="noopener">Υπουργείο Εσωτερικών</a></li>'
             '<li>Όρια: <a href="https://www.statistics.gr/" rel="noopener">ΕΛΣΤΑΤ 2021</a></li>'
             '<li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li>'
             f'{sources}</ul></div>'
-            f'<div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα.{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div></div>'
+            f'<div><h2>Σημειώσεις</h2><p>Ανεπίσημα αποτελέσματα.{note} Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div></div>'
             f'<p class="built">Ενημέρωση: {today.day} {MONTHS[today.month - 1]} {today.year}</p></footer>')
 
 

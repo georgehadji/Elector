@@ -232,7 +232,7 @@ class Index(unittest.TestCase):
         s = read(OUT / "index.html")
         c = Cards()
         c.feed(s)
-        self.assertEqual(len(re.findall(r"<h2[ >]", s)), 4)  # two doors, parties and candidates, constituencies
+        self.assertEqual(len(re.findall(r"<h2[ >]", s)), 7)  # two doors, parties and candidates, constituencies, and the footer's three columns
         self.assertIn('href="forecast.html"', s)
         self.assertEqual(len(re.findall(r'<h3 class="reg" id="reg-\d+">', s)), 13)
         self.assertEqual(c.h4, len(c.cards))

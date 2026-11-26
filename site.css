@@ -57,7 +57,7 @@ html { scrollbar-gutter: stable; }
 .site .name .mark path { stroke-width: 2.6; }
 .site .what { max-width: 46ch; margin: var(--space-md) 0 0; color: var(--foot-ink-2); font-size: 1.125rem; }
 .site .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-xl); margin-top: var(--space-2xl); }
-.site h3 { margin: 0 0 var(--space-xs); font-size: var(--t-base); font-weight: 600; color: var(--foot-ink); }
+.site h2 { margin: 0 0 var(--space-xs); font-size: var(--t-base); line-height: inherit; letter-spacing: normal; font-weight: 600; color: var(--foot-ink); }
 .site p { margin: 0 0 var(--space-2xs); }
 .site .cols p, .site li { color: var(--foot-ink-2); }
 .site ul { display: grid; gap: var(--space-2xs); margin: 0; padding: 0; list-style: none; }
@@ -68,7 +68,7 @@ html { scrollbar-gutter: stable; }
 /* Compact (pages where the map needs the height): one line on the same field */
 .site.compact {
   margin: 0; padding: var(--space-xs) var(--space-md); font-size: var(--t-sm);
-  .name, .what, h3, .built { display: none; }
+  .name, .what, h2, .built { display: none; }
   .cols { display: flex; flex-wrap: wrap; gap: 0 var(--space-lg); margin: 0; }
   ul { display: flex; flex-wrap: wrap; gap: 0 var(--space-sm); }
   .cols > div:first-child li:not(:has(.copy)) { display: none; }  /* the nav above has these */
