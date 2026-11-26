@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-/B2da/ij0BTOlQdZuzaFeo6ersM4X0X9ZZ7eEqQOMgw=' 'self'; style-src-elem 'sha256-trZnFYU3oVqH4lhv8MTiiqv1SxlmPO2QY+TIuGyNPT0=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/2023-may_5.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2023-may_5.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2023-may_5.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Σταυροί προτίμησης, Καβάλας"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2023-may_5.png">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-/B2da/ij0BTOlQdZuzaFeo6ersM4X0X9ZZ7eEqQOMgw=' 'self'; style-src-elem 'sha256-dMF+e3nVl+Edu0vyJ6KaKIehzIbraxJ/OvLKfVrQy3E=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/2023-may_5.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2023-may_5.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2023-may_5.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Σταυροί προτίμησης, Καβάλας"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2023-may_5.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
@@ -41,7 +41,8 @@
 :root { accent-color: var(--link); }
 .legend, .tip b { overflow-wrap: anywhere; }
 body { margin: 0; font: 1rem/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
-main { max-width: 1200px; margin: 0 auto; padding: var(--space-lg) var(--space-md) 0; }
+main { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-md); }
+main > .bar { margin-bottom: calc(var(--space-sm) + var(--space-lg)); }  /* header at the very top like on every page; the gap under it stays */
 h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.1 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.03em; margin: 0 0 var(--space-xs); }
 /* Self-hosted subsets (Greek, Latin) of IBM Plex Sans (variable 100-700 file, used at 400 and 600), SIL OFL. fonts/ sits next to the pages. */
 @font-face { font-family: "IBM Plex Sans"; font-weight: 400 600; font-style: normal; font-display: swap; src: url(fonts/ibm-plex-sans-greek.woff2) format("woff2"); unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF; }
@@ -59,7 +60,6 @@ h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.1 "IBM Plex Sans", syst
 .skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: var(--space-xs) var(--space-sm); color: var(--ink); background: var(--paper, var(--surface)); border: 2px solid var(--ink); }
 .skip:focus { top: 8px; }
 .bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-xl); margin: 0 0 var(--space-sm); min-height: 64px; }
-.bar.with-ctx { min-height: 52px; }  /* map pages: the map gets the height */
 /* The bar is the same on every page: it spans the screen whatever holds it (the same trick as the footer) and its content sits
    in one 1100px column, so the wordmark and links never move when the page changes. The gutter keeps a scrollbar from shifting it. */
 html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -87,7 +87,7 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
   #theme { order: 2; }
   .bar nav { order: 3; flex: 1 0 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-md); padding-bottom: var(--space-2xs); }  /* four links, two rows */
   /* map pages: the election switcher is the wayfinding; the footer has the other pages, the map gets the height */
-  .bar.with-ctx { min-height: 44px; margin-bottom: var(--space-2xs); }
+  .bar.with-ctx { margin-bottom: var(--space-2xs); }
   .bar.with-ctx nav { display: none; }
   .ctx { margin-bottom: var(--space-xs); }
 }
@@ -171,8 +171,14 @@ h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
    and controls stay in IBM Plex Sans. Plain paragraphs only: a classed or id'd one is part of a component. */
 :root { --font-text: "Literata", Georgia, serif; }
 main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--font-text); }
-main p:not([class], [id]):not(.site *) { font-size: 1.0625rem; line-height: 1.6; }
+main p:not([class], [id]):not(.site *) { font-size: 1.125rem; line-height: 1.6; }
 p, li, dd { text-wrap: pretty; }
+
+/* Dropdowns: a firm border and bold text so a closed select reads as a control, not as a line of text */
+select:not([multiple]) { border: 1.5px solid color-mix(in srgb, var(--ink) 55%, transparent); font-weight: 600; cursor: pointer; transition: border-color 150ms ease-out, box-shadow 150ms ease-out; }
+select:not([multiple]):hover { border-color: var(--ink); }
+select:not([multiple]):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { select:not([multiple]) { transition: none; } }
 
 h2 { font-size: var(--t-base); margin: 0 0 8px; }
 a { color: var(--link); }
@@ -256,7 +262,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
 /* Phones: full-width controls so the map starts higher; the table drops its least useful column. */
 @media (max-width: 599px) {
   /* The whole map fits the first screen: stats go below it, labels are for screen readers only. */
-  main { padding: 12px; display: flex; flex-direction: column; }
+  main { padding: 0 12px 12px; display: flex; flex-direction: column; }
   main > .stats { order: 1; margin-top: 4px; }
   main > h2:not(.who), main > .tablewrap, main > .note, main > #detail { order: 2; }
   main > .site { order: 3; }

@@ -6,7 +6,6 @@
 .skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: var(--space-xs) var(--space-sm); color: var(--ink); background: var(--paper, var(--surface)); border: 2px solid var(--ink); }
 .skip:focus { top: 8px; }
 .bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-xl); margin: 0 0 var(--space-sm); min-height: 64px; }
-.bar.with-ctx { min-height: 52px; }  /* map pages: the map gets the height */
 /* The bar is the same on every page: it spans the screen whatever holds it (the same trick as the footer) and its content sits
    in one 1100px column, so the wordmark and links never move when the page changes. The gutter keeps a scrollbar from shifting it. */
 html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -34,7 +33,7 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
   #theme { order: 2; }
   .bar nav { order: 3; flex: 1 0 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-md); padding-bottom: var(--space-2xs); }  /* four links, two rows */
   /* map pages: the election switcher is the wayfinding; the footer has the other pages, the map gets the height */
-  .bar.with-ctx { min-height: 44px; margin-bottom: var(--space-2xs); }
+  .bar.with-ctx { margin-bottom: var(--space-2xs); }
   .bar.with-ctx nav { display: none; }
   .ctx { margin-bottom: var(--space-xs); }
 }
@@ -118,5 +117,11 @@ h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
    and controls stay in IBM Plex Sans. Plain paragraphs only: a classed or id'd one is part of a component. */
 :root { --font-text: "Literata", Georgia, serif; }
 main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--font-text); }
-main p:not([class], [id]):not(.site *) { font-size: 1.0625rem; line-height: 1.6; }
+main p:not([class], [id]):not(.site *) { font-size: 1.125rem; line-height: 1.6; }
 p, li, dd { text-wrap: pretty; }
+
+/* Dropdowns: a firm border and bold text so a closed select reads as a control, not as a line of text */
+select:not([multiple]) { border: 1.5px solid color-mix(in srgb, var(--ink) 55%, transparent); font-weight: 600; cursor: pointer; transition: border-color 150ms ease-out, box-shadow 150ms ease-out; }
+select:not([multiple]):hover { border-color: var(--ink); }
+select:not([multiple]):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { select:not([multiple]) { transition: none; } }
