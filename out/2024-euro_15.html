@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-UxI0w1jD9NxwuP961GBYCk1uAO09cvl5ImI6atUKO8c=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-LnsA5Igg0aIFU2d01y8BvEUr++sl0Vpf89qdzu3Mk7Q=' 'self'; style-src-elem 'sha256-jX5HaHfWEYg4M76cPHqqN7hFwrRoQYjzkPWxSGLkDc8=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/2024-euro_15.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2024-euro_15.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2024-euro_15.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Ψήφοι κομμάτων, Κοζάνης"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2024-euro_15.png">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VFbUqEuVE3r2eI+XpxNa8q+r3TuVGhj5L1nHLckeZUI=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-LnsA5Igg0aIFU2d01y8BvEUr++sl0Vpf89qdzu3Mk7Q=' 'self'; style-src-elem 'sha256-8iBI6ZEkvzBFQPFKvy1OD9xv9VW+6LtgTSUpeiIJes0=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/2024-euro_15.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2024-euro_15.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2024-euro_15.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Ψήφοι κομμάτων, Κοζάνης"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2024-euro_15.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
@@ -15,6 +15,14 @@
   };
   show();
   addEventListener("DOMContentLoaded", () => {
+    // Phones: #menu shows the site's pages under the bar. Escape, a click outside or a link closes it.
+    const m = document.getElementById("menu");
+    if (m) {
+      const open = on => m.setAttribute("aria-expanded", on);
+      m.onclick = () => open(m.getAttribute("aria-expanded") !== "true");
+      addEventListener("keydown", e => { if (e.key === "Escape" && m.getAttribute("aria-expanded") === "true") { open(false); m.focus(); } });
+      addEventListener("click", e => { if (!m.parentNode.contains(e.target) || e.target.closest("nav a")) open(false); });
+    }
     const b = document.getElementById("theme");
     if (!b) return;
     const sync = () => b.setAttribute("aria-pressed", dark);
@@ -80,20 +88,33 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
 .bar nav a { display: inline-flex; align-items: center; min-height: 32px; color: var(--ink); text-decoration: none; }
 .bar nav a:hover, .bar nav a[aria-current] { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 8px; }
 .bar nav a[aria-current="page"] { font-weight: 600; }
-#theme { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 40px; height: 40px; padding: 0;
+#theme, #menu { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 40px; height: 40px; padding: 0;
          color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); border: 0; border-radius: 50%; cursor: pointer; }
-#theme:hover, #theme[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 14%, var(--paper, var(--surface))); }
+#theme:hover, #theme[aria-pressed="true"], #menu:hover, #menu[aria-expanded="true"] { background: color-mix(in srgb, var(--ink) 14%, var(--paper, var(--surface))); }
 #theme svg { width: 18px; height: 18px; fill: currentColor; }
+#menu svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+#menu { display: none; }
+#menu[aria-expanded="false"] .close, #menu[aria-expanded="true"] .open { display: none; }
+/* Phones: the four pages go into a panel under the bar, opened by #menu (theme.js). It covers the page instead of pushing it,
+   so a map keeps its size; z-index 1100 is above Leaflet's controls (1000). Without JS it stays shut; the footer lists the same pages. */
 @media (max-width: 639px) {
-  .bar { gap: 0 var(--space-sm); min-height: 56px; }
-  .bar .home { order: 1; font-size: 1.125rem; }
-  #theme { order: 2; }
-  .bar nav { order: 3; flex: 1 0 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-md); padding-bottom: var(--space-2xs); }  /* four links, two rows */
-  /* map pages: the election switcher is the wayfinding; the footer has the other pages, the map gets the height */
+  .bar { position: relative; gap: 0 var(--space-xs); min-height: 56px; }
+  .bar .home { font-size: 1.125rem; }
+  #menu { display: inline-flex; }
+  #menu ~ #theme { margin-left: 0; }
+  .bar nav { position: absolute; z-index: 1100; top: 100%; left: 0; right: 0; display: none; flex-direction: column; gap: 0;
+             padding: 0 0 var(--space-xs); padding-inline: inherit; background: var(--paper, var(--surface)); border-bottom: 1px solid var(--line); }
+  #menu[aria-expanded="true"] + nav { display: flex; }
+  .bar nav a { min-height: 48px; font-size: 1.125rem; }
+  .bar nav a:hover, .bar nav a[aria-current] { text-underline-offset: 6px; }
+  /* map pages: the map gets the height */
   .bar.with-ctx { margin-bottom: var(--space-2xs); }
-  .bar.with-ctx nav { display: none; }
   .ctx { margin-bottom: var(--space-xs); }
 }
+@media (max-width: 639px) and (prefers-reduced-motion: no-preference) {
+  #menu[aria-expanded="true"] + nav { animation: menu-in .16s ease-out; }
+}
+@keyframes menu-in { from { opacity: 0; translate: 0 -4px; } }
 /* In-page jump links (abroad): the same bordered pills as the election switcher, so every page shows links to other places one way. */
 .jump { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin: 0 0 var(--space-lg); font-size: var(--t-sm); }
 .jump a { display: inline-flex; align-items: center; min-height: 44px; }
@@ -149,13 +170,13 @@ h1, h2, h3 { font-family: "IBM Plex Sans", system-ui, sans-serif; font-weight: 6
 h1 { font-family: var(--font-text); font-size: var(--h1); line-height: 1.15; letter-spacing: -.015em; }
 h2 { font-size: var(--h2); line-height: 1.2; letter-spacing: -.02em; }
 h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
-#theme, .site .copy { transition: transform 100ms ease-out; }
-#theme:active { transform: scale(.97); }
+#theme, #menu, .site .copy { transition: transform 100ms ease-out; }
+#theme:active, #menu:active { transform: scale(.97); }
 .site .copy { padding: 0; font: inherit; background: none; border: 0; text-decoration: underline; cursor: pointer; }
 .site .copy:active { transform: scale(.97); }
 .copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
 @media (prefers-reduced-motion: no-preference) { #theme svg { transition: transform .45s cubic-bezier(.16,1,.3,1); } #theme[aria-pressed="true"] svg { transform: rotate(180deg); } }  /* the half-moon turns over */
-@media (prefers-reduced-motion: reduce) { #theme, .site .copy, .ctx nav a, .jump a { transition: none; } #theme:active, .site .copy:active, .ctx nav a:active, .jump a:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { #theme, #menu, .site .copy, .ctx nav a, .jump a { transition: none; } #theme:active, #menu:active, .site .copy:active, .ctx nav a:active, .jump a:active { transform: none; } }
 /* theme switch: short cross-fade instead of a brightness jump (View Transitions, where supported) */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
 @media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none; } }
@@ -166,7 +187,7 @@ h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
 }
 @media (pointer: coarse) {
   .site .copy { min-height: 44px; }
-  #theme { width: 44px; height: 44px; }
+  #theme, #menu { width: 44px; height: 44px; }
   .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
   select, input[type=search] { min-height: 44px; }
   .bar .home, .bar nav a, .site a, .ctx nav a, .jump a { display: inline-flex; align-items: center; min-height: 44px; }
@@ -355,7 +376,7 @@ button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
 </head>
 <body>
 <main>
-<a class="skip" href="#map">Μετάβαση στον χάρτη</a><header class="bar with-ctx"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</a><nav aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="forecast.html">Πρόβλεψη</a><a href="abroad.html">Εξωτερικό</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header><div class="ctx"><b>Κοζάνης</b><nav aria-label="Εκλογές αυτής της περιφέρειας"><a href="2024-euro_15.html" aria-current="page">Ευρωεκλογές 2024</a><a href="2023-june_15.html">Ιούνιος 2023</a><a href="2023-may_15.html">Μάιος 2023</a><a href="2019_15.html">2019</a></nav></div>
+<a class="skip" href="#map">Μετάβαση στον χάρτη</a><header class="bar with-ctx"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</a><button id="menu" type="button" aria-expanded="false" aria-controls="nav" aria-label="Μενού"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="open" d="M2 4h12M2 8h12M2 12h12"/><path class="close" d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button><nav id="nav" aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="forecast.html">Πρόβλεψη</a><a href="abroad.html">Εξωτερικό</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header><div class="ctx"><b>Κοζάνης</b><nav aria-label="Εκλογές αυτής της περιφέρειας"><a href="2024-euro_15.html" aria-current="page">Ευρωεκλογές 2024</a><a href="2023-june_15.html">Ιούνιος 2023</a><a href="2023-may_15.html">Μάιος 2023</a><a href="2019_15.html">2019</a></nav></div>
   <h1 id="title"></h1>
   <h2 class="who" id="who"></h2>
   <p class="sub" id="sub"></p>

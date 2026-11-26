@@ -10,6 +10,14 @@
   };
   show();
   addEventListener("DOMContentLoaded", () => {
+    // Phones: #menu shows the site's pages under the bar. Escape, a click outside or a link closes it.
+    const m = document.getElementById("menu");
+    if (m) {
+      const open = on => m.setAttribute("aria-expanded", on);
+      m.onclick = () => open(m.getAttribute("aria-expanded") !== "true");
+      addEventListener("keydown", e => { if (e.key === "Escape" && m.getAttribute("aria-expanded") === "true") { open(false); m.focus(); } });
+      addEventListener("click", e => { if (!m.parentNode.contains(e.target) || e.target.closest("nav a")) open(false); });
+    }
     const b = document.getElementById("theme");
     if (!b) return;
     const sync = () => b.setAttribute("aria-pressed", dark);

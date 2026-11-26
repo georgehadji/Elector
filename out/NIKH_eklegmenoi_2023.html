@@ -1,14 +1,25 @@
 <!doctype html>
-<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'self'; style-src-elem 'sha256-ZtWc0sF7QB788r7CtA67Ui/lXCPCW9YX/DyP+hYbY3g=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/NIKH_eklegmenoi_2023.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/NIKH_eklegmenoi_2023.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/nikh.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="ΝΙΚΗ 2023: Μάιος και Ιούνιος"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/nikh.png"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VFbUqEuVE3r2eI+XpxNa8q+r3TuVGhj5L1nHLckeZUI=' 'self'; style-src-elem 'sha256-IICrn8xRmF0ZMk07GiyltMOORSZGz4FZHrkTQOPsHuc=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/NIKH_eklegmenoi_2023.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/NIKH_eklegmenoi_2023.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/nikh.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="ΝΙΚΗ 2023: Μάιος και Ιούνιος"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/nikh.png"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ΝΙΚΗ 2023</title><meta name="description" content="Η ΝΙΚΗ στις εννέα περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο 2023, σε σύγκριση με τον Μάιο, ανά περιφέρεια, δημοτική ενότητα και εκλογικό τμήμα."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες Ψήφων"><meta property="og:locale" content="el_GR"><meta property="og:title" content="ΝΙΚΗ 2023: Μάιος και Ιούνιος"><meta property="og:description" content="Η ΝΙΚΗ στις εννέα περιφέρειες όπου εξέλεξε βουλευτή τον Ιούνιο 2023, σε σύγκριση με τον Μάιο, ανά περιφέρεια, δημοτική ενότητα και εκλογικό τμήμα."><meta name="twitter:card" content="summary_large_image"><script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
 (() => {
   const root = document.documentElement;
   let dark = false;
   try { dark = localStorage.getItem("theme") === "dark"; } catch {}
-  const show = () => dark ? root.dataset.theme = "dark" : root.removeAttribute("data-theme");
+  const show = () => {
+    dark ? root.dataset.theme = "dark" : root.removeAttribute("data-theme");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#15171b" : "#fbfaf6");  // the browser bar follows the page
+  };
   show();
   addEventListener("DOMContentLoaded", () => {
+    // Phones: #menu shows the site's pages under the bar. Escape, a click outside or a link closes it.
+    const m = document.getElementById("menu");
+    if (m) {
+      const open = on => m.setAttribute("aria-expanded", on);
+      m.onclick = () => open(m.getAttribute("aria-expanded") !== "true");
+      addEventListener("keydown", e => { if (e.key === "Escape" && m.getAttribute("aria-expanded") === "true") { open(false); m.focus(); } });
+      addEventListener("click", e => { if (!m.parentNode.contains(e.target) || e.target.closest("nav a")) open(false); });
+    }
     const b = document.getElementById("theme");
     if (!b) return;
     const sync = () => b.setAttribute("aria-pressed", dark);
@@ -74,6 +85,36 @@ html { scrollbar-gutter: stable; }
   .bar.with-ctx nav { display: none; }
   .ctx { margin-bottom: var(--space-xs); }
 }
+/* phone menu (laid over this page's older site CSS) */
+#theme, #menu { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 40px; height: 40px; padding: 0;
+         color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); border: 0; border-radius: 50%; cursor: pointer; }
+#theme:hover, #theme[aria-pressed="true"], #menu:hover, #menu[aria-expanded="true"] { background: color-mix(in srgb, var(--ink) 14%, var(--paper, var(--surface))); }
+#theme svg { width: 18px; height: 18px; fill: currentColor; }
+#menu svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+#menu { display: none; }
+#menu[aria-expanded="false"] .close, #menu[aria-expanded="true"] .open { display: none; }
+/* Phones: the four pages go into a panel under the bar, opened by #menu (theme.js). It covers the page instead of pushing it,
+   so a map keeps its size; z-index 1100 is above Leaflet's controls (1000). Without JS it stays shut; the footer lists the same pages. */
+@media (max-width: 639px) {
+  .bar { position: relative; gap: 0 var(--space-xs); min-height: 56px; }
+  .bar .home { font-size: 1.125rem; }
+  #menu { display: inline-flex; }
+  #menu ~ #theme { margin-left: 0; }
+  .bar nav { position: absolute; z-index: 1100; top: 100%; left: 0; right: 0; display: none; flex-direction: column; gap: 0;
+             padding: 0 0 var(--space-xs); padding-inline: inherit; background: var(--paper, var(--surface)); border-bottom: 1px solid var(--line); }
+  #menu[aria-expanded="true"] + nav { display: flex; }
+  .bar nav a { min-height: 48px; font-size: 1.125rem; }
+  .bar nav a:hover, .bar nav a[aria-current] { text-underline-offset: 6px; }
+  /* map pages: the map gets the height */
+  .bar.with-ctx { margin-bottom: var(--space-2xs); }
+  .ctx { margin-bottom: var(--space-xs); }
+}
+@media (max-width: 639px) and (prefers-reduced-motion: no-preference) {
+  #menu[aria-expanded="true"] + nav { animation: menu-in .16s ease-out; }
+}
+@keyframes menu-in { from { opacity: 0; translate: 0 -4px; } }
+@media (max-width: 639px) { .bar .home, #menu, #theme { order: 0; } }
+@media (pointer: coarse) { #menu { width: 44px; height: 44px; } }
 /* Map pages: constituency and its other elections */
 .ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2xs) var(--space-md); margin: 0 0 var(--space-md); font-size: var(--t-sm); }
 .ctx nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) 14px; }
@@ -161,7 +202,7 @@ th{color:var(--ink-2);font-size:.875rem;font-weight:600;border-bottom-color:var(
 @media(max-width:639px){th{font-size:.8125rem}td{font-size:.875rem}th,td{padding:var(--space-xs)}}
 @media print{h2{break-after:avoid} tr{break-inside:avoid} a{color:inherit}}
 </style></head><body><main id="main">
-<a class="skip" href="#main">Μετάβαση στο περιεχόμενο</a><header class="bar"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</a><nav aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="forecast.html">Πρόβλεψη</a><a href="abroad.html">Εξωτερικό</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header>
+<a class="skip" href="#main">Μετάβαση στο περιεχόμενο</a><header class="bar"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</a><button id="menu" type="button" aria-expanded="false" aria-controls="nav" aria-label="Μενού"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="open" d="M2 4h12M2 8h12M2 12h12"/><path class="close" d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button><nav id="nav" aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="forecast.html">Πρόβλεψη</a><a href="abroad.html">Εξωτερικό</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header>
 <h1>ΝΙΚΗ: οι 9 περιφέρειες με εκλεγμένο βουλευτή (Ιούνιος 2023)</h1>
 <p>Πηγή: ΥΠΕΣ (ekloges-prev.singularlogic.eu), αποτελέσματα ανά εκλογικό τμήμα. Ποσοστό = ψήφοι ΝΙΚΗ / έγκυρα. Μάιος 2023: 2,92% πανελλαδικά, εκτός Βουλής. Ιούνιος 2023: 3,70%, 10 έδρες. Τον Ιούνιο δεν δημοσιεύτηκαν σταυροί ανά τμήμα, γι&#x27; αυτό οι σταυροί είναι του Μαΐου.</p>
 <div class=tw><table><thead><tr><th>Περιφέρεια</th><th>Βουλευτής</th><th class=n>Μάιος %</th><th class=n>Ιούνιος %</th><th class=n>Δ μον.</th><th class=n>Ψήφοι Ιουν.</th><th>Σταυροί Μαΐου (θέση)</th></tr></thead><tbody><tr><td>Β1&#x27; Βόρειου Τομέα Αθηνών</td><td>Κουρουπάκη Ασπασία</td><td class=n>2.07</td><td class=n>2.73</td><td class=n>+0.67</td><td class=n>8,775</td><td>3,806 (1η/5)</td></tr><tr><td>Β2&#x27; Δυτικού Τομέα Αθηνών</td><td>Βορύλλας Ανδρέας</td><td class=n>2.24</td><td class=n>2.80</td><td class=n>+0.57</td><td class=n>5,768</td><td>1,813 (1η/8)</td></tr><tr><td>Β3&#x27; Νότιου Τομέα Αθηνών</td><td>Βρεττός Νικόλαος</td><td class=n>2.06</td><td class=n>2.73</td><td class=n>+0.67</td><td class=n>9,545</td><td>2,721 (1η/14)</td></tr><tr><td>Α&#x27; Ανατολικής Αττικής</td><td>Οικονομόπουλος Τάσος</td><td class=n>2.34</td><td class=n>3.18</td><td class=n>+0.84</td><td class=n>7,096</td><td>3,632 (2η/5) στην περιφέρεια Β1&#x27; Βόρειου Τομέα Αθηνών</td></tr><tr><td>Αχαΐας</td><td>Τσιρώνης Σπυρίδων</td><td class=n>3.72</td><td class=n>4.34</td><td class=n>+0.63</td><td class=n>6,538</td><td>2,170 (1η/10)</td></tr><tr><td>Α&#x27; Θεσσαλονίκης</td><td>Νατσιός Δημήτριος</td><td class=n>4.58</td><td class=n>5.37</td><td class=n>+0.80</td><td class=n>15,493</td><td>15,145 (1η/16)</td></tr><tr><td>Β&#x27; Θεσσαλονίκης</td><td>Παπαδόπουλος Νικόλαος</td><td class=n>5.63</td><td class=n>6.50</td><td class=n>+0.87</td><td class=n>11,554</td><td>4,908 (1η/11)</td></tr><tr><td>Λάρισας</td><td>Ρούντας Γεώργιος</td><td class=n>3.31</td><td class=n>4.12</td><td class=n>+0.81</td><td class=n>5,855</td><td>1,315 (1η/4) στην περιφέρεια Κορινθίας</td></tr><tr><td>Πιερίας</td><td>Δελβερούδης Κομνηνός</td><td class=n>7.46</td><td class=n>9.30</td><td class=n>+1.83</td><td class=n>6,469</td><td>2,219 (1η/6)</td></tr></tbody></table></div>

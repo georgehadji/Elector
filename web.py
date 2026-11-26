@@ -42,6 +42,9 @@ from matching import ep_label
 # Site header and footer of every page. The toggle's pressed state means dark; theme.js keeps it in sync.
 THEME_BTN = ('<button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true">'
              '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button>')
+# Phones only (site.css hides it from 640px): opens the nav as a panel under the bar; theme.js toggles aria-expanded.
+MENU_BTN = ('<button id="menu" type="button" aria-expanded="false" aria-controls="nav" aria-label="Μενού"><svg viewBox="0 0 16 16" aria-hidden="true">'
+            '<path class="open" d="M2 4h12M2 8h12M2 12h12"/><path class="close" d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button>')
 FONTS = "".join(f'<link rel="preload" href="fonts/{f}.woff2" as="font" type="font/woff2" crossorigin>'
                 for f in ("ibm-plex-sans-greek", "ibm-plex-sans-latin", "literata-greek"))  # the @font-face rules are in fonts.css
 MARK = ('<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
@@ -57,14 +60,14 @@ def nav(current="maps"):
     cur = ("index", "true") if current == "maps" else (current, "page")
     links = "".join(f'<a href="{href}"' + (f' aria-current="{cur[1]}"' if cur[0] == key else "") + f">{label}</a>"
                     for key, href, label in NAV)
-    return f'<nav aria-label="Κύριο μενού">{links}</nav>'
+    return f'<nav id="nav" aria-label="Κύριο μενού">{links}</nav>'
 
 def header(current="maps", ctx="", skip="#main"):
     """Site bar: wordmark, nav, theme toggle, skip link; `ctx` is the wayfinding row of map pages."""
     to = "στον χάρτη" if skip == "#map" else "στο περιεχόμενο"
     home = f'<a class="home" href="index.html">{MARK}Χάρτες Ψήφων</a>'  # the same on every page, so the nav never moves
     return (f'<a class="skip" href="{skip}">Μετάβαση {to}</a><header class="bar{" with-ctx" if ctx else ""}">{home}'
-            f'{nav(current)}{THEME_BTN}</header>{ctx}')
+            f'{MENU_BTN}{nav(current)}{THEME_BTN}</header>{ctx}')
 
 
 def footer(note="", home=True, compact=False, sources=""):
