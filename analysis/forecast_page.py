@@ -575,55 +575,57 @@ METHOD_EL = {"CATI": "τηλέφωνο", "MIXED": "τηλέφωνο και δι�
              "UNKNOWN": "μέθοδος άγνωστη"}
 
 
-def _axis(w, fs, left, right, top, hgt, bottom, X, ticks, fmt):
-    """Vertical grid lines with a label under each, shared by the two dot charts of the models chapter."""
-    return "".join(f'<line class="grid" x1="{X(t):.1f}" x2="{X(t):.1f}" y1="{top:.1f}" y2="{hgt - bottom:.1f}"/>'
-                   f'<text class="ax-l" x="{X(t):.1f}" y="{hgt - bottom + 1.4 * fs:.1f}" text-anchor="middle">{fmt(t)}</text>' for t in ticks)
+def _vframe(ps, names, w, hgt, fs, lo, hi, ticks, fmt, left=3.2, right=0.6, top=0.8, bottom=8.5):
+    """Frame of the two dot charts: parties along the bottom (names turned 45 degrees), values up the side.
+    Returns (svg head, X(i) centre of party i, Y(value), column width)."""
+    L, R, T, B = left * fs, right * fs, top * fs, (bottom if w > 400 else bottom + 2.5) * fs  # upright names on a phone are taller
+    X = lambda i: L + (i + 0.5) * (w - L - R) / len(ps)
+    Y = lambda v: T + (hgt - T - B) * (1 - (v - lo) / (hi - lo))
+    out = [f'<svg viewBox="0 0 {w} {hgt}" style="font-size:{fs}px" aria-hidden="true">']
+    for t in ticks:
+        out.append(f'<line class="grid" x1="{L:.1f}" x2="{w - R:.1f}" y1="{Y(t):.1f}" y2="{Y(t):.1f}"/>'
+                   f'<text class="ax-l" x="{L - 0.4 * fs:.1f}" y="{Y(t) + 0.35 * fs:.1f}" text-anchor="end">{fmt(t)}</text>')
+    for i, p in enumerate(ps):
+        rot = -45 if w > 400 else -90  # on a phone the columns are too close for slanted names, so they stand upright
+        x, y = X(i) + (0 if rot == -45 else 0.35 * fs), hgt - B + 0.9 * fs
+        out.append(f'<text class="ax-l" transform="rotate({rot} {x:.1f} {y:.1f})" x="{x:.1f}" y="{y:.1f}" text-anchor="end">{html.escape(names[p])}</text>')
+    return out, X, Y, (w - L - R) / len(ps)
 
 
 def models_shares_svg(M, names, order, w, fs=12):
-    """Dumbbell per party: the forecast's 8-in-10 range as a pale band, the forecast as a ring, A (correction) as a dot, B (weights) as a square."""
+    """One column per party: the forecast's 8-in-10 range as a pale band, the forecast as a ring, A (correction) as a dot, B (weights) as a square."""
     ps = [p for p in order if p in M["base"]["shares"]]
-    row, left, right, top, bottom = 2.3 * fs, 15 * fs, 1.2 * fs, 0.4 * fs, 2.2 * fs
-    xmax = 5 * (int(max(M[k]["shares"][p][2] for k in ("base", "coef", "weights") for p in ps) / 5) + 1)
-    hgt = top + row * len(ps) + bottom
-    X = lambda v: left + v / xmax * (w - left - right)
-    out = [f'<svg viewBox="0 0 {w} {hgt:.0f}" style="font-size:{fs}px" aria-hidden="true">',
-           _axis(w, fs, left, right, top, hgt, bottom, X, range(0, xmax + 1, 5), lambda t: f"{t}%")]
+    top = 5 * (int(max(M[k]["shares"][p][2] for k in ("base", "coef", "weights") for p in ps) / 5) + 1)
+    hgt = (22 if w > 400 else 24.5) * fs
+    out, X, Y, cw = _vframe(ps, names, w, hgt, fs, 0, top, range(0, top + 1, 5), lambda t: f"{t}%")
+    bw = min(1.1 * fs, cw * 0.7)
     for i, p in enumerate(ps):
-        y = top + row * (i + 0.5)
+        x, c = X(i), colour(p)
         lo, mid, hi = M["base"]["shares"][p]
-        c = colour(p)
         a, b = M["coef"]["shares"][p][1], M["weights"]["shares"][p][1]
         tip = f'{names[p]}: πρόβλεψη {num(mid)}%, Α {num(a)}%, Β {num(b)}%'
         out.append(f'<g><title>{html.escape(tip)}</title>'
-                   f'<text class="ax-l" x="{left - 0.6 * fs:.1f}" y="{y + 0.35 * fs:.1f}" text-anchor="end">{html.escape(names[p])}</text>'
-                   f'<rect x="{X(lo):.1f}" y="{y - 0.55 * fs:.1f}" width="{X(hi) - X(lo):.1f}" height="{1.1 * fs:.1f}" rx="{0.55 * fs:.1f}" style="fill:{c};opacity:.22"/>'
-                   f'<circle cx="{X(mid):.1f}" cy="{y:.1f}" r="{0.38 * fs:.1f}" style="fill:var(--paper);stroke:var(--ink);stroke-width:1.6"/>'
-                   f'<circle cx="{X(a):.1f}" cy="{y:.1f}" r="{0.3 * fs:.1f}" style="fill:{c}"/>'
-                   f'<rect x="{X(b) - 0.3 * fs:.1f}" y="{y - 0.3 * fs:.1f}" width="{0.6 * fs:.1f}" height="{0.6 * fs:.1f}" style="fill:{c};stroke:var(--paper);stroke-width:1"/></g>')
+                   f'<rect x="{x - bw / 2:.1f}" y="{Y(hi):.1f}" width="{bw:.1f}" height="{Y(lo) - Y(hi):.1f}" rx="{bw / 2:.1f}" style="fill:{c};opacity:.22"/>'
+                   f'<circle cx="{x:.1f}" cy="{Y(mid):.1f}" r="{0.38 * fs:.1f}" style="fill:var(--paper);stroke:var(--ink);stroke-width:1.6"/>'
+                   f'<circle cx="{x:.1f}" cy="{Y(a):.1f}" r="{0.3 * fs:.1f}" style="fill:{c}"/>'
+                   f'<rect x="{x - 0.3 * fs:.1f}" y="{Y(b) - 0.3 * fs:.1f}" width="{0.6 * fs:.1f}" height="{0.6 * fs:.1f}" style="fill:{c};stroke:var(--paper);stroke-width:1"/></g>')
     return "".join(out) + "</svg>"
 
 
 def models_coef_svg(d, shown, names, w, fs=12):
-    """Strip chart: one dot per firm for each party, at the party's coefficient (1 = the firm was right on average)."""
+    """Strip chart: one column per party, one dot per firm at the party's coefficient (1 = the firm was right on average)."""
     firms = sorted(d["coef"][shown[0]])
     vals = [d["coef"][p][f] for p in shown for f in firms]
     lo, hi = min(min(vals), 0.9), max(max(vals), 1.1)
     lo, hi = int(lo * 10) / 10, -int(-hi * 10) / 10
-    row, left, right, top, bottom = 2.1 * fs, 15 * fs, 1.2 * fs, 0.4 * fs, 2.2 * fs
-    hgt = top + row * len(shown) + bottom
-    X = lambda v: left + (v - lo) / (hi - lo) * (w - left - right)
     ticks = [round(lo + 0.1 * k, 1) for k in range(int(round((hi - lo) / 0.1)) + 1)]
-    out = [f'<svg viewBox="0 0 {w} {hgt:.0f}" style="font-size:{fs}px" aria-hidden="true">',
-           _axis(w, fs, left, right, top, hgt, bottom, X, ticks, lambda t: num(t)),
-           f'<line class="m151" x1="{X(1):.1f}" x2="{X(1):.1f}" y1="{top:.1f}" y2="{hgt - bottom:.1f}"/>']
+    out, X, Y, cw = _vframe(shown, names, w, (20 if w > 400 else 22.5) * fs, fs, lo, hi, ticks, num)
+    out.append(f'<line class="m151" x1="{X(0) - cw / 2:.1f}" x2="{X(len(shown) - 1) + cw / 2:.1f}" y1="{Y(1):.1f}" y2="{Y(1):.1f}"/>')
     for i, p in enumerate(shown):
-        y = top + row * (i + 0.5)
-        out.append(f'<text class="ax-l" x="{left - 0.6 * fs:.1f}" y="{y + 0.35 * fs:.1f}" text-anchor="end">{html.escape(names[p])}</text>')
-        for f in firms:
+        for k, f in enumerate(firms):
             v = d["coef"][p][f]
-            out.append(f'<circle cx="{X(v):.1f}" cy="{y:.1f}" r="{0.32 * fs:.1f}" style="fill:{colour(p)};opacity:.6"><title>'
+            dx = ((k % 3) - 1) * min(0.45 * fs, cw / 4)  # three lanes, so firms with the same value do not hide each other
+            out.append(f'<circle cx="{X(i) + dx:.1f}" cy="{Y(v):.1f}" r="{0.3 * fs:.1f}" style="fill:{colour(p)};opacity:.6"><title>'
                        f'{html.escape(names[p])}, {html.escape(f.split("|")[0])}: {num(v, 2)}</title></circle>')
     return "".join(out) + "</svg>"
 
@@ -703,7 +705,7 @@ def models(names, order):
             'σημαίνει ότι η δημοσκόπηση μετράει διπλά, βάρος 0,5 μισή.</p>'
             '<h3>Ποσοστά</h3><p class="note">Το πιθανότερο ποσοστό και, σε παρένθεση, το εύρος όπου πέφτει 8 φορές στις 10, '
             'για εκλογές σήμερα.</p>'
-            + two_sizes(models_shares_svg, 'Κάθε γραμμή είναι ένα κόμμα. Η απαλή ταινία είναι το εύρος της πρόβλεψης, ο κύκλος το πιθανότερο ποσοστό της, η τελεία το ποσοστό με τη διόρθωση και το τετράγωνο το ποσοστό με τα βάρη.', M, names, [p for p in order if p in M["base"]["shares"]])
+            + two_sizes(models_shares_svg, 'Κάθε στήλη είναι ένα κόμμα. Η απαλή ταινία είναι το εύρος της πρόβλεψης, ο κύκλος το πιθανότερο ποσοστό της, η τελεία το ποσοστό με τη διόρθωση και το τετράγωνο το ποσοστό με τα βάρη.', M, names, [p for p in order if p in M["base"]["shares"]])
             + MODEL_KEY
             + f'<div class="wrap"><table>{head}<tbody>{rows}</tbody></table></div>'
             '<h3>Έδρες και πιθανότητες</h3>' + two_sizes(models_prob_svg, 'Η πιθανότητα κάθε ενδεχομένου, για εκλογές σήμερα.', M, probs) + PROB_KEY
@@ -714,7 +716,7 @@ def models(names, order):
             'που έκαναν όλες οι εταιρείες μαζί σε μία εκλογή και δεν είναι βέβαιο ότι θα ξαναγίνουν. Δεν μετράμε τις ευρωεκλογές: '
             'και στις τρεις (2014, 2019, 2024) το κόμμα της κυβέρνησης πήρε λιγότερα από τις δημοσκοπήσεις, ενώ στις εθνικές '
             'εκλογές αυτό δεν έγινε σταθερά. Οι έδρες είναι οι εθνικές, χωρίς κατανομή στις περιφέρειες.</p>'
-            + '<h3>Πόσο έπεσαν έξω οι εταιρείες</h3>' + two_sizes(models_coef_svg, 'Κάθε τελεία είναι μια εταιρεία. Στο 1 η εταιρεία έπεσε μέσα κατά μέσο όρο· δεξιά του 1 το κόμμα πήρε στην κάλπη περισσότερα από όσα έδειχνε, αριστερά λιγότερα.', d, shown, names)
+            + '<h3>Πόσο έπεσαν έξω οι εταιρείες</h3>' + two_sizes(models_coef_svg, 'Κάθε τελεία είναι μια εταιρεία. Στο 1 η εταιρεία έπεσε μέσα κατά μέσο όρο· πάνω από το 1 το κόμμα πήρε στην κάλπη περισσότερα από όσα έδειχνε, κάτω από το 1 λιγότερα.', d, shown, names)
             + fold('Συντελεστής / βάρος κάθε εταιρείας που δημοσκοπεί σήμερα',
                    '<p class="note">Με τη μέθοδο της τελευταίας της δημοσκόπησης. Πρώτος αριθμός ο συντελεστής της διόρθωσης, δεύτερος '
                    'το βάρος.</p>' f'<div class="wrap"><table>{k_head}<tbody>{k_rows}</tbody></table></div>'))
