@@ -21,6 +21,8 @@
   <h2 class="who" id="who"></h2>
   <p class="sub" id="sub"></p>
   <nav class="views" id="views" aria-label="Άλλοι χάρτες"></nav>
+  <details class="filters" open>
+  <summary><span>Φίλτρα</span><span id="fsum"></span></summary>
   <div class="controls">
     <label for="party">Κόμμα</label>
     <select id="party"></select>
@@ -34,12 +36,14 @@
     </div>
     <button class="pdf" type="button">Εξαγωγή PDF</button>
   </div>
+  </details>
   <div class="mapwrap">
     <div id="map" role="region" aria-label="Χάρτης σταυρών ανά περιοχή"></div>
     <div class="hint" id="hint" aria-hidden="true">Χρησιμοποιήστε δύο δάχτυλα για να μετακινήσετε τον χάρτη</div>
   </div>
   <div class="stats" id="stats"></div>
   <div class="legend" id="legend"></div>
+  <button type="button" class="copy share">Αντιγραφή συνδέσμου</button>
   <h2>Ανά περιοχή</h2>
   <div class="tablewrap" role="region" aria-label="Πίνακας περιοχών" tabindex="0"><table id="tbl" aria-label="Πίνακας περιοχών"></table></div>
   <p class="note" id="note"></p>
@@ -94,6 +98,10 @@ function fillCands(keep) {
 const h = new URLSearchParams(location.hash.slice(1));
 const fromHash = D.cands.find(c => c.k === `${h.get("party")}:${h.get("cand")}`);
 const start = fromHash || (D.parties[h.get("party")] ? topCand(D.cands.filter(c => c.party == h.get("party"))) : topCand(D.cands));
+if (["dev", "votes"].includes(h.get("m"))) {  // the view is part of the link
+  metric = h.get("m");
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === metric));
+}
 partySel.value = start.party;
 fillCands(start.k);
 
@@ -116,7 +124,8 @@ function render() {
   const c = D.cands.find(x => x.k === sel.value);
   if (!c) return;
   partySel.value = c.party;
-  try { history.replaceState(null, "", `#party=${c.party}&cand=${c.k.split(":")[1]}`); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ }
+  $("fsum").textContent = [document.querySelector(".seg [aria-pressed=true]").textContent, D.parties[c.party].name].join(" · ")  // the candidate is already in the heading;
+  try { history.replaceState(null, "", `#party=${c.party}&cand=${c.k.split(":")[1]}${metric === "share" ? "" : "&m=" + metric}`); } catch { /* sandboxed srcdoc viewers forbid history calls: the page works, only the link does not follow */ }
   const feats = D.geo.features, props = feats.map(f => f.properties);
   const sumPv = props.reduce((s, p) => s + den(p, c), 0);
   const mean = sumPv ? c.mapped / sumPv : 0;
@@ -178,6 +187,9 @@ document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
   $("tbl")._sort = null;
   render();
 });
+const filters = document.querySelector(".filters"), narrow = matchMedia("(max-width: 599px)");
+const syncFilters = () => { filters.open = !narrow.matches; };  // phones start folded; wider screens always show the controls
+syncFilters(); narrow.addEventListener("change", syncFilters);
 partySel.onchange = () => { q.value = ""; fillCands(); render(); };
 q.oninput = () => { fillCands(sel.value); render(); };
 sel.onchange = render;
