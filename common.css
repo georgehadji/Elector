@@ -118,7 +118,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
 @media (pointer: coarse) {
   select, button, input { min-height: 44px; }
   select, input { font-size: var(--t-base); }  /* iOS zooms into fields under 16px */
-  .views a { display: inline-block; padding: 12px 0; }
+  .views a { display: inline-block; padding: 8px 0; }
   th button { display: flex; align-items: center; min-height: 44px; width: 100%; }
   th.n button { justify-content: flex-end; }
   .rowlink { display: inline-flex; align-items: center; min-height: 44px; }
