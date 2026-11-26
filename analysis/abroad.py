@@ -750,7 +750,7 @@ main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-b
 .js .view:not(.on){{display:none}} .js .sw:not(.ready){{min-height:112px}} .view>h2:first-child{{margin-top:var(--space-xl)}}
 summary h3{{display:inline}}
 @media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}</style></head><body><main id="main">
-{header()}
+{header("abroad")}
 <h1>{title}</h1>
 <p>Από τα ανεπίσημα αποτελέσματα του ΥΠΕΣ. Οι ψήφοι αυτές δεν έχουν θέση στους χάρτες των περιφερειών, μετρούν όμως στα σύνολα.
 «Εγγεγραμμένοι» στο εξωτερικό και στην επιστολική ψήφο είναι όσοι έκαναν αίτηση, άρα τα έγκυρα ως ποσοστό τους είναι κοντά στη συμμετοχή.</p>
