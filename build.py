@@ -259,8 +259,8 @@ def build_all(election):
 {meta(f"Κάλυψη χαρτών, {ELECTION_NAMES.get(election, election)}", "Πόσα εκλογικά διαμερίσματα κάθε περιφέρειας έχουν θέση στον χάρτη και πόσα μένουν εκτός.")}
 {FONTS}
 <script>/*THEME_JS*/</script><style>{common_css()}
-main{{max-width:900px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto}}
-@media (max-width:599px){{th,td{{padding:6px 4px}} th{{font-size:11px}} td{{font-size:13px}}}}
+main{{max-width:1040px}} p{{color:var(--ink-2);max-width:68ch}} .wrap{{overflow-x:auto}}
+@media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}
 @media (pointer:coarse){{td a{{display:inline-block;padding:13px 0}}}}</style></head><body><main id="main">
 {header()}
 <h1>Κάλυψη χαρτών · {ELECTION_NAMES.get(election, election)}</h1>
