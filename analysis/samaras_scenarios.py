@@ -33,7 +33,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
 import forecast as F
-import seats_law as LAW
 
 SAM = "SAM"
 LEVELS = tuple(range(4, 15))  # every level of the chooser on the page: full statistics at each
