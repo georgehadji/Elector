@@ -3,14 +3,14 @@
 * { box-sizing: border-box; }
 :root { accent-color: var(--link); }
 .legend, .tip b { overflow-wrap: anywhere; }
-body { margin: 0; font: 1rem/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
+body { margin: 0; font: 1rem/1.6 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
 main { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-md); }
 main > .bar { margin-bottom: calc(var(--space-sm) + var(--space-lg)); }  /* header at the very top like on every page; the gap under it stays */
-h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.15 var(--font-text); letter-spacing: -.015em; margin: 0 0 var(--space-sm); }
+h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.15 var(--font-text); letter-spacing: -.015em; margin: 0 0 var(--space-md); }
 /*SITE_CSS*/
-h2 { font-size: var(--t-base); margin: 0 0 var(--space-sm); }
+h2 { font-size: var(--t-base); margin: 0 0 var(--space-md); }
 a { color: var(--link); }
-.sub { color: var(--ink-2); margin: 0 0 var(--space-md); max-width: 65ch; }  /* 45-90 characters a line */
+.sub { color: var(--ink-2); margin: 0 0 var(--space-lg); max-width: 65ch; }  /* 45-90 characters a line */
 .views { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; font-size: var(--t-sm); }
 .views a { display: inline-flex; align-items: center; min-height: 24px; }
 .views:empty { display: none; }
@@ -29,7 +29,7 @@ button { cursor: pointer; }
 .filters > .controls { margin-top: var(--space-xs); }
 @media (min-width: 600px) { .filters > summary { display: none; } .filters > .controls { margin-top: 0; } }
 /* The four figures are a caption under the map, one flowing line of "value label" pairs. */
-.stats { display: flex; flex-wrap: wrap; gap: 2px 20px; margin: var(--space-md) 0 var(--space-2xs); font-size: var(--t-sm); color: var(--ink-2); }
+.stats { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-lg); margin: var(--space-lg) 0 var(--space-xs); font-size: var(--t-sm); color: var(--ink-2); }
 .stats b { font-weight: 600; color: var(--ink); }
 .stats b::after { content: "\00a0"; }  /* the number stays with its label */
 .who { font: 600 clamp(1.5rem, 1.2rem + 1.2vw, 2rem)/1.15 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.02em; margin: 0 0 var(--space-xs); }
@@ -51,7 +51,7 @@ button { cursor: pointer; }
         background: var(--scrim); color: var(--on-scrim); font-weight: 600; border-radius: 8px; pointer-events: none;
         opacity: 0; transition: opacity .2s; }
 .hint.on { opacity: 1; }
-.legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: var(--space-md) 0 var(--space-lg); font-size: var(--t-sm); color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-xs); align-items: center; margin: var(--space-lg) 0; font-size: var(--t-sm); color: var(--ink-2); }
 .legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink-2) 75%, var(--surface)); }  /* border >= 3:1 on the paper, so the palest step still shows */
 .legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
 .legend .k { display: inline-flex; align-items: center; white-space: nowrap; }
@@ -69,7 +69,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
 .rowlink:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .m { color: var(--ink-2); }
 .tablewrap { max-height: 520px; overflow: auto; }
-.note { color: var(--ink-2); font-size: var(--t-xs); margin-top: 16px; max-width: 65ch; }
+.note { color: var(--ink-2); font-size: var(--t-xs); line-height: 1.6; margin-top: var(--space-lg); max-width: 65ch; }
 /* Tooltip (mouse hover) and details panel (tap, click, table row) */
 .leaflet-container .leaflet-tooltip { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: 0 2px 8px var(--shadow); }
 .leaflet-tooltip-left::before { border-left-color: var(--surface); }

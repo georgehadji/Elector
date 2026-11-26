@@ -258,7 +258,7 @@ INDEX_CSS = """
 *,*::before,*::after{box-sizing:border-box}
 html{scrollbar-gutter:stable}
 html,body{overflow-x:clip}
-body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 var(--font-body)}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.65 var(--font-body)}
 a{color:var(--pen)}
 :focus-visible{outline:2px solid var(--pen);outline-offset:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
