@@ -1,0 +1,307 @@
+Συντελεστές αποτέλεσμα / δημοσκόπηση: 11148 τιμές κόμματος από 1566 δημοσκοπήσεις της Wikipedia (19 με ωμή πρόθεση ψήφου έξω) και 128 ελεγμένες τιμές της ΝΙΚΗΣ,
+12 εκλογές 2007-2024, 36 εταιρείες. k = αποτέλεσμα / δημοσκόπηση,
+h = ίδιο προς τις άλλες εταιρείες στις ίδιες εκλογές (house effect). Πίνακας ανά κόμμα: εταιρείες με >= 2 εκλογές.
+
+k ανά κόμμα (όλες οι εταιρείες) και πόσες μέρες πριν τις εκλογές:
+κόμμα                           0-30         31-90        91-365          366+
+ΝΔ                        0.97 (334)    1.01 (166)    0.96 (397)    0.93 (669)
+ΚΚΕ                       0.96 (334)    0.90 (166)    0.90 (397)    0.92 (669)
+ΣΥΡΙΖΑ                    1.03 (334)    1.02 (166)    1.03 (397)    1.14 (669)
+ΠΑΣΟΚ                     1.01 (334)    1.00 (166)    0.99 (397)    0.81 (590)
+ΧΑ                        1.06 (233)    0.98 (116)    1.02 (152)    1.12 (237)
+ΛΑΟΣ                      0.94 ( 82)    0.80 ( 43)    0.72 (177)    0.80 (238)
+ΑΝΕΛ                      1.13 (210)    0.96 ( 97)    0.80 ( 95)    0.75 (121)
+Ελληνική Λύση             1.10 ( 80)    1.17 ( 54)    1.22 (120)    1.52 (221)
+ΔΗΜΑΡ                     0.68 (100)    0.56 ( 77)    0.42 (115)    0.51 (165)
+ΜέΡΑ25                    0.89 ( 80)    1.30 ( 48)    1.43 ( 84)    1.30 (201)
+Οικολόγοι Πράσινοι        0.83 ( 69)    0.66 ( 39)    0.72 (130)    1.11 (131)
+Ποτάμι                    0.80 (167)    0.71 ( 71)    0.68 ( 82)              
+Ένωση Κεντρώων            0.81 ( 85)    0.74 ( 20)    0.90 ( 58)    0.37 (112)
+Πλεύση Ελευθερίας         1.06 ( 66)    1.05 ( 26)    1.12 ( 26)    1.16 (108)
+Δημοκρατική Συμμαχία      1.00 ( 19)    0.96 ( 24)    0.99 ( 56)    0.93 ( 29)
+ΝΙΚΗ                      1.38 ( 63)    1.12 ( 20)    1.24 ( 45)              
+Εθνική Δημιουργία         0.57 ( 12)    0.54 ( 11)    0.59 ( 49)    0.57 ( 25)
+ΛΑΕ                       0.68 ( 63)    0.41 (  3)                            
+ΚΙΔΗΣΟ                    0.97 ( 64)    3.57 (  1)                            
+Νέα Αριστερά              0.76 (  8)    0.80 ( 18)    0.78 ( 16)              
+Δημιουργία ξανά           0.61 ( 23)    0.71 ( 10)                            
+Δημοκράτες                0.68 (  8)    0.72 ( 16)                            
+Σπαρτιάτες                1.86 ( 19)                                          
+Φωνή Λογικής              1.12 (  8)    1.65 ( 10)                            
+Κόσμος                    1.10 (  1)    1.17 (  4)                            
+Πατριώτες                 1.08 (  2)                                          
+
+ΝΔ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Data RC             0.94  0.89   0.09     4  2012/june 2015/jan 2015/sep
+  Metrisi             0.90  0.93   0.14    23  2014/euro 2015/jan 2015/sep
+  ToThePoint          0.80  0.96   0.19     2  2012/may 2015/jan
+  Opinion Poll        0.95  0.96   0.08    45  2007 2009 2019 2023/june 2023/may 2024/euro
+  E-Voice             0.94  0.96   0.11    12  2014/euro 2015/jan 2015/sep
+  Public Issue        0.95  0.98   0.18   100  2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019
+  GPO                 0.93  0.98   0.14   138  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2023/june 2023/may 2024/euro
+  MRB                 0.95  0.99   0.16   154  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Rass                0.97  0.99   0.18    86  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may
+  Interview           0.98  0.99   0.08    69  2009 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Alco                0.96  0.99   0.16   169  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may 2024/euro
+  Kapa Research       0.98  1.00   0.17    94  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may
+  Pulse RC            0.96  1.00   0.14   136  2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Marc                0.96  1.00   0.14   133  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  VPRC                0.94  1.01   0.18    79  2007 2009 2012/june 2012/may 2014/euro 2015/jan
+  Metron Analysis     0.97  1.01   0.13   162  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  ProRata             1.03  1.02   0.12    41  2015/jan 2015/sep 2019 2023/may 2024/euro
+  Palmos Analysis     0.97  1.03   0.22    43  2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may 2024/euro
+  PAMAK               1.09  1.03   0.02    36  2015/jan 2015/sep 2019
+  Focus               0.85  1.04   0.23     5  2009 2012/may
+  Real Polls          1.05  1.04   0.14     4  2023/june 2023/may
+  AUEB-STAT           1.15  1.24   0.20     6  2012/may 2015/jan 2019
+
+ΣΥΡΙΖΑ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  ToThePoint          1.21  0.71   0.20     2  2012/may 2015/jan
+  AUEB-STAT           1.30  0.84   0.11     6  2012/may 2015/jan 2019
+  ProRata             0.96  0.93   0.20    41  2015/jan 2015/sep 2019 2023/may 2024/euro
+  Public Issue        1.06  0.95   0.50   100  2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019
+  Metrisi             1.00  0.95   0.17    23  2014/euro 2015/jan 2015/sep
+  Opinion Poll        0.88  0.96   0.48    45  2007 2009 2019 2023/june 2023/may 2024/euro
+  Real Polls          0.79  0.96   0.16     4  2023/june 2023/may
+  VPRC                1.08  0.96   0.44    79  2007 2009 2012/june 2012/may 2014/euro 2015/jan
+  Metron Analysis     1.01  0.96   0.31   162  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Data RC             1.04  0.98   0.06     4  2012/june 2015/jan 2015/sep
+  Marc                1.04  0.99   0.35   133  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  MRB                 1.05  1.00   0.41   154  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  GPO                 1.04  1.01   0.44   138  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2023/june 2023/may 2024/euro
+  Rass                1.08  1.02   0.46    86  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may
+  Kapa Research       1.08  1.02   0.48    94  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may
+  Interview           0.96  1.03   0.16    69  2009 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  E-Voice             1.08  1.03   0.05    12  2014/euro 2015/jan 2015/sep
+  Palmos Analysis     1.17  1.04   0.54    43  2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may 2024/euro
+  Alco                1.10  1.04   0.40   169  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may 2024/euro
+  PAMAK               1.22  1.06   0.22    36  2015/jan 2015/sep 2019
+  Pulse RC            1.11  1.07   0.30   136  2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Focus               1.50  1.25   1.42     5  2009 2012/may
+
+ΚΚΕ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  ToThePoint          0.75  0.87   0.17     2  2012/may 2015/jan
+  GPO                 0.88  0.93   0.16   138  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2023/june 2023/may 2024/euro
+  PAMAK               0.81  0.93   0.14    36  2015/jan 2015/sep 2019
+  Kapa Research       0.87  0.94   0.19    94  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may
+  Rass                0.87  0.95   0.11    86  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may
+  Alco                0.91  0.97   0.14   169  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may 2024/euro
+  VPRC                0.86  0.97   0.16    79  2007 2009 2012/june 2012/may 2014/euro 2015/jan
+  Data RC             0.86  0.99   0.08     4  2012/june 2015/jan 2015/sep
+  Marc                0.91  0.99   0.15   133  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  E-Voice             0.91  1.00   0.15    12  2014/euro 2015/jan 2015/sep
+  ProRata             0.96  1.01   0.16    41  2015/jan 2015/sep 2019 2023/may 2024/euro
+  Metron Analysis     0.93  1.01   0.12   162  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Metrisi             0.92  1.01   0.02    23  2014/euro 2015/jan 2015/sep
+  Public Issue        0.87  1.02   0.07   100  2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019
+  Pulse RC            0.93  1.02   0.17   136  2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  AUEB-STAT           0.86  1.03   0.06     6  2012/may 2015/jan 2019
+  MRB                 0.95  1.03   0.14   154  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Opinion Poll        1.03  1.04   0.14    45  2007 2009 2019 2023/june 2023/may 2024/euro
+  Interview           1.00  1.06   0.17    69  2009 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Palmos Analysis     1.00  1.06   0.16    43  2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may 2024/euro
+  Focus               0.97  1.12   0.13     5  2009 2012/may
+  Real Polls          1.27  1.15   0.01     4  2023/june 2023/may
+
+ΠΑΣΟΚ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Focus               0.55  0.71   1.06     5  2009 2012/may
+  Public Issue        0.85  0.90   0.32    99  2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019
+  Pulse RC            0.89  0.93   0.23   127  2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Real Polls          0.96  0.94   0.06     4  2023/june 2023/may
+  GPO                 0.91  0.95   0.29   138  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2023/june 2023/may 2024/euro
+  Rass                0.92  0.96   0.33    84  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may
+  Kapa Research       0.92  0.96   0.32    85  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may
+  PAMAK               0.95  0.97   0.27    19  2015/jan 2015/sep 2019
+  Palmos Analysis     0.92  0.98   0.51    40  2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may 2024/euro
+  E-Voice             1.07  0.99   0.19    12  2014/euro 2015/jan 2015/sep
+  MRB                 0.96  1.00   0.29   146  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Alco                0.96  1.00   0.28   158  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2023/june 2023/may 2024/euro
+  Marc                0.98  1.02   0.27   126  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Metron Analysis     0.98  1.03   0.22   155  2007 2009 2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  Data RC             0.98  1.03   0.13     4  2012/june 2015/jan 2015/sep
+  Interview           1.08  1.06   0.12    68  2009 2015/jan 2015/sep 2019 2019/euro 2023/june 2023/may 2024/euro
+  ProRata             1.06  1.06   0.14    40  2015/jan 2015/sep 2019 2023/may 2024/euro
+  VPRC                0.96  1.08   0.35    79  2007 2009 2012/june 2012/may 2014/euro 2015/jan
+  Opinion Poll        1.11  1.09   0.11    43  2007 2009 2019 2023/june 2023/may 2024/euro
+  Metrisi             1.19  1.11   0.41    23  2014/euro 2015/jan 2015/sep
+  AUEB-STAT           0.72  1.14   0.03     5  2012/may 2015/jan
+  ToThePoint          0.97  1.52   0.41     2  2012/may 2015/jan
+
+ΧΑ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  AUEB-STAT           0.57  0.68   0.88     6  2012/may 2015/jan 2019
+  Pulse RC            0.80  0.88   0.49    79  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro
+  Kapa Research       0.86  0.88   0.52    51  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019
+  Metrisi             0.87  0.93   0.26    23  2014/euro 2015/jan 2015/sep
+  GPO                 1.10  0.94   0.28    30  2012/june 2012/may 2014/euro 2015/jan 2015/sep
+  PAMAK               0.64  0.95   0.59    36  2015/jan 2015/sep 2019
+  Marc                0.89  0.97   0.50    57  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro
+  MRB                 0.89  0.97   0.53    55  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro
+  Alco                0.97  1.00   0.64    78  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019
+  Palmos Analysis     0.77  1.03   0.42    37  2014/euro 2015/jan 2015/sep 2019
+  VPRC                1.27  1.05   0.81    26  2012/june 2012/may 2014/euro 2015/jan
+  Metron Analysis     0.98  1.06   0.48    79  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019 2019/euro
+  Rass                1.03  1.07   0.53    42  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019
+  E-Voice             1.02  1.09   0.15    12  2014/euro 2015/jan 2015/sep
+  ProRata             0.75  1.12   0.43    16  2015/jan 2015/sep 2019
+  Data RC             1.14  1.12   0.08     4  2012/june 2015/jan 2015/sep
+  Interview           0.80  1.20   0.39    23  2015/jan 2015/sep 2019 2019/euro
+  Public Issue        1.17  1.21   0.73    57  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019
+  ToThePoint          1.63  1.31   0.76     2  2012/may 2015/jan
+
+ΛΑΟΣ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  GPO                 0.65  0.74   0.40    59  2007 2009 2012/june 2012/may
+  Kapa Research       0.74  0.84   0.38    41  2007 2009 2012/june 2012/may
+  Marc                0.79  0.90   0.39    39  2007 2009 2012/june 2012/may
+  Focus               0.68  0.92   0.76     5  2009 2012/may
+  Metron Analysis     0.83  0.94   0.37    62  2007 2009 2012/june 2012/may
+  Pulse RC            0.82  0.96   0.48    18  2009 2012/june 2012/may
+  Alco                0.85  0.97   0.42    63  2007 2009 2012/june 2012/may
+  Rass                0.85  0.97   0.39    45  2007 2009 2012/june 2012/may
+  Public Issue        0.76  1.02   0.56    55  2009 2012/may
+  MRB                 0.92  1.05   0.39    73  2007 2009 2012/june 2012/may
+  Opinion Poll        1.14  1.11   0.10     4  2007 2009
+  VPRC                1.10  1.26   0.60    68  2007 2009 2012/june 2012/may
+
+ΑΝΕΛ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Metrisi             0.78  0.77   0.31    23  2014/euro 2015/jan 2015/sep
+  VPRC                0.87  0.86   0.26    16  2012/june 2012/may 2014/euro 2015/jan
+  Marc                0.89  0.87   0.13    39  2012/june 2012/may 2014/euro 2015/jan 2015/sep
+  GPO                 0.91  0.88   0.18    30  2012/june 2012/may 2014/euro 2015/jan 2015/sep
+  AUEB-STAT           1.03  0.89   0.21     5  2012/may 2015/jan
+  MRB                 0.89  0.94   0.23    36  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019/euro
+  Alco                0.98  0.95   0.17    53  2012/june 2012/may 2014/euro 2015/jan 2015/sep
+  Metron Analysis     0.90  0.96   0.26    56  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019/euro
+  Rass                1.01  0.98   0.11    30  2012/june 2012/may 2014/euro 2015/jan 2015/sep
+  Kapa Research       1.01  0.98   0.18    36  2012/june 2012/may 2014/euro 2015/jan 2015/sep
+  Pulse RC            0.94  1.00   0.35    50  2012/june 2012/may 2014/euro 2015/jan 2015/sep 2019/euro
+  Palmos Analysis     1.02  1.01   0.15    30  2014/euro 2015/jan 2015/sep
+  E-Voice             1.06  1.05   0.30    12  2014/euro 2015/jan 2015/sep
+  Interview           1.04  1.13   0.57    17  2015/jan 2015/sep 2019/euro
+  Public Issue        1.17  1.14   0.15    43  2012/june 2012/may 2014/euro 2015/jan 2015/sep
+  ProRata             1.37  1.21   0.17    11  2015/jan 2015/sep
+  Data RC             1.31  1.21   0.26     4  2012/june 2015/jan 2015/sep
+  PAMAK               1.49  1.31   0.05    18  2015/jan 2015/sep
+
+Ελληνική Λύση: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Interview           1.11  0.87   0.30    51  2019 2019/euro 2023/june 2023/may 2024/euro
+  Opinion Poll        1.01  0.87   0.11    37  2019 2023/june 2023/may 2024/euro
+  Palmos Analysis     1.11  0.95   0.21     7  2019 2023/june 2023/may 2024/euro
+  Kapa Research       1.16  0.96   0.24    12  2019 2023/june 2023/may
+  Metron Analysis     1.24  0.97   0.28    47  2019 2019/euro 2023/june 2023/may 2024/euro
+  MRB                 1.29  1.00   0.38    43  2019 2019/euro 2023/june 2023/may 2024/euro
+  Pulse RC            1.29  1.00   0.28    67  2019 2019/euro 2023/june 2023/may 2024/euro
+  Rass                1.23  1.02   0.25    12  2019 2023/june 2023/may
+  ProRata             1.21  1.03   0.09    29  2019 2023/may 2024/euro
+  Alco                1.20  1.03   0.24    45  2019 2023/june 2023/may 2024/euro
+  Marc                1.34  1.04   0.33    58  2019 2019/euro 2023/june 2023/may 2024/euro
+  GPO                 1.11  1.05   0.07    52  2023/june 2023/may 2024/euro
+  Real Polls          1.33  1.25   0.14     4  2023/june 2023/may
+
+ΔΗΜΑΡ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Metrisi             0.23  0.74   0.09    15  2014/euro 2015/jan
+  Metron Analysis     0.46  0.80   0.95    38  2012/june 2012/may 2014/euro 2015/jan
+  GPO                 0.48  0.82   1.05    26  2012/june 2012/may 2014/euro 2015/jan
+  Marc                0.48  0.83   0.90    36  2012/june 2012/may 2014/euro 2015/jan
+  VPRC                0.50  0.87   1.12    31  2012/june 2012/may 2014/euro 2015/jan
+  Alco                0.52  0.89   0.98    54  2012/june 2012/may 2014/euro 2015/jan
+  MRB                 0.52  0.90   1.00    39  2012/june 2012/may 2014/euro 2015/jan
+  Pulse RC            0.54  0.93   0.90    41  2012/june 2012/may 2014/euro 2015/jan
+  Public Issue        0.56  0.96   0.81    56  2012/june 2012/may 2014/euro 2015/jan
+  Rass                0.57  0.98   1.03    33  2012/june 2012/may 2014/euro 2015/jan
+  Kapa Research       0.59  1.03   1.02    30  2012/june 2012/may 2014/euro 2015/jan
+  Palmos Analysis     0.34  1.06   0.44    16  2014/euro 2015/jan
+  AUEB-STAT           0.56  1.10   0.65     4  2012/may 2015/jan
+  E-Voice             0.45  1.42   0.40     6  2014/euro 2015/jan
+
+ΜέΡΑ25: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Rass                0.86  0.86   0.29     8  2019 2023/june 2023/may
+  Marc                1.05  0.88   0.22    50  2019 2019/euro 2023/june 2023/may 2024/euro
+  MRB                 1.08  0.90   0.49    38  2019 2019/euro 2023/june 2023/may 2024/euro
+  Pulse RC            1.10  0.91   0.38    52  2019 2019/euro 2023/june 2023/may 2024/euro
+  Metron Analysis     1.10  0.92   0.41    39  2019 2019/euro 2023/june 2023/may 2024/euro
+  Palmos Analysis     0.82  0.93   0.46     4  2023/june 2023/may
+  Real Polls          0.87  0.98   0.04     4  2023/june 2023/may
+  Opinion Poll        1.06  1.04   0.29    36  2019 2023/june 2023/may 2024/euro
+  GPO                 1.01  1.07   0.17    52  2023/june 2023/may 2024/euro
+  Alco                1.10  1.08   0.29    42  2019 2023/june 2023/may 2024/euro
+  Kapa Research       1.11  1.11   0.34     9  2019 2023/june 2023/may
+  Interview           1.42  1.19   0.79    45  2019 2019/euro 2023/june 2023/may 2024/euro
+  ProRata             1.22  1.19   0.41    28  2019 2023/may 2024/euro
+
+Οικολόγοι Πράσινοι: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Kapa Research       0.62  0.84   0.35    18  2009 2012/june 2012/may
+  Metron Analysis     0.66  0.89   0.32    40  2009 2012/june 2012/may
+  VPRC                0.66  0.89   0.22    31  2009 2012/june 2012/may
+  Rass                0.70  0.95   0.19    41  2009 2012/june 2012/may
+  Alco                0.78  1.06   0.22    51  2009 2012/june 2012/may
+  Marc                0.80  1.09   0.29    32  2009 2012/june 2012/may
+  Focus               0.88  1.09   0.63     3  2009 2012/may
+  Public Issue        0.81  1.10   0.28    48  2009 2012/june 2012/may
+  Pulse RC            0.82  1.10   0.12    18  2009 2012/june 2012/may
+  MRB                 0.84  1.14   0.31    49  2009 2012/june 2012/may
+  GPO                 1.14  1.53   0.24    29  2009 2012/june 2012/may
+
+Ποτάμι: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Metron Analysis     0.69  0.87   0.05    31  2014/euro 2015/jan 2015/sep 2019/euro
+  PAMAK               0.70  0.89   0.06    18  2015/jan 2015/sep
+  MRB                 0.70  0.90   0.05    18  2014/euro 2015/jan 2015/sep 2019/euro
+  Kapa Research       0.70  0.93   0.09    22  2014/euro 2015/jan 2015/sep
+  Rass                0.71  0.95   0.21    14  2014/euro 2015/jan 2015/sep
+  Palmos Analysis     0.73  0.97   0.11    24  2014/euro 2015/jan 2015/sep
+  ProRata             0.77  0.98   0.16    11  2015/jan 2015/sep
+  GPO                 0.76  1.01   0.12    18  2014/euro 2015/jan 2015/sep
+  Data RC             0.79  1.01   0.10     2  2015/jan 2015/sep
+  Pulse RC            0.80  1.03   0.17    30  2014/euro 2015/jan 2015/sep 2019/euro
+  Metrisi             0.81  1.03   0.33    14  2015/jan 2015/sep
+  Public Issue        0.78  1.04   0.02    23  2014/euro 2015/jan 2015/sep
+  Alco                0.79  1.05   0.15    29  2014/euro 2015/jan 2015/sep
+  Marc                0.85  1.08   0.18    19  2014/euro 2015/jan 2015/sep 2019/euro
+  E-Voice             0.84  1.11   0.16    12  2014/euro 2015/jan 2015/sep
+  Interview           0.94  1.15   0.19    17  2015/jan 2015/sep 2019/euro
+
+Ένωση Κεντρώων: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  PAMAK               0.52  0.78   0.51    23  2015/sep 2019
+  Kapa Research       0.58  0.88   0.63    20  2015/sep 2019
+  MRB                 0.61  0.90   0.47    24  2015/sep 2019 2019/euro
+  Palmos Analysis     0.62  0.93   0.57     9  2015/sep 2019
+  Pulse RC            0.66  0.98   0.29    36  2015/sep 2019 2019/euro
+  Rass                0.66  0.98   0.70    13  2015/sep 2019
+  Alco                0.66  0.98   0.70    29  2015/sep 2019
+  Interview           0.67  0.99   0.17     9  2015/sep 2019 2019/euro
+  Metron Analysis     0.68  1.00   0.48    33  2015/sep 2019 2019/euro
+  Marc                0.74  1.09   0.58    26  2015/sep 2019 2019/euro
+  ProRata             0.76  1.14   0.38    12  2015/sep 2019
+  Public Issue        0.82  1.22   0.62    11  2015/sep 2019
+
+Πλεύση Ελευθερίας: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Metron Analysis     0.92  0.87   0.36    21  2019 2023/june 2023/may 2024/euro
+  Marc                0.96  0.90   0.37    27  2019 2023/june 2023/may 2024/euro
+  MRB                 0.97  0.91   0.58    18  2019 2023/june 2023/may 2024/euro
+  Palmos Analysis     0.99  0.93   0.56     6  2019 2023/june 2023/may 2024/euro
+  Alco                0.99  0.93   0.48    42  2019 2023/june 2023/may 2024/euro
+  Opinion Poll        1.02  0.96   0.47    17  2019 2023/june 2023/may 2024/euro
+  Rass                0.77  0.99   0.03     4  2019 2023/june
+  Pulse RC            1.17  1.04   0.39    27  2019 2019/euro 2023/june 2023/may 2024/euro
+  Kapa Research       1.14  1.04   0.73    11  2019 2023/june 2023/may
+  GPO                 1.27  1.06   0.46    13  2023/june 2023/may 2024/euro
+  Interview           1.04  1.09   0.22    11  2019 2019/euro 2023/june 2024/euro
+  ProRata             1.14  1.33   0.39     5  2019 2024/euro
+  Real Polls          2.15  1.63   0.74     2  2023/june 2023/may
+
+ΝΙΚΗ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Marc                1.31  0.92   0.19    16  2023/june 2023/may 2024/euro
+  Interview           1.33  0.93   0.31    10  2023/june 2023/may 2024/euro
+  Alco                1.11  0.94   0.02    10  2023/june 2024/euro
+  MRB                 1.13  0.95   0.16    11  2023/june 2024/euro
+  Pulse RC            1.36  0.95   0.39    15  2023/june 2023/may 2024/euro
+  Opinion Poll        1.14  0.96   0.03    12  2023/june 2024/euro
+  Palmos Analysis     1.17  0.98   0.18     3  2023/june 2024/euro
+  Metron Analysis     1.42  1.00   0.46    17  2023/june 2023/may 2024/euro
+  Kapa Research       1.68  1.08   0.65     2  2023/june 2023/may
+  GPO                 1.59  1.11   0.45    18  2023/june 2023/may 2024/euro
+  Real Polls          1.52  1.27   0.15     2  2023/june 2024/euro
+
+ΛΑΕ: εταιρεία, k, h, sd(log) μεταξύ εκλογών, δημοσκοπήσεις, εκλογές
+  Pulse RC            0.52  0.98   0.37     8  2015/sep 2019/euro
+  Metron Analysis     0.54  1.02   0.52     7  2015/sep 2019/euro
+  Interview           0.60  1.13   0.37     3  2015/sep 2019/euro

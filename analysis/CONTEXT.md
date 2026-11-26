@@ -18,6 +18,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | National seat forecast (geography per party, probabilities, seat ranges) | `forecast.GEO`, `forecast.seat_sims(n, H)`; summary in `forecast.json` |
 | Ballot/poll ratios of NIKH | `nikh_polls.euro_miss`, `nikh_polls.miss_2023` |
 | Ballot/poll ratios of other small parties | `nikh_pollerror.ratios(kind)` |
+| Ballot/poll coefficient of each firm and party, every poll 2007-2024 (k; house effect h) | `pollster_coef.csv` (from `pollster_coef.py`) |
 | Electoral law (seats, threshold, bonus, State seats) and national seat totals | `seats_law.LAWS`, `seats_law.national_seats()` (pure, no db) |
 | Seat allocation per constituency, `ep_votes` | `nikh_seats.py` (its national step is `seats_law.national_seats`) |
 | Coalitions and the probabilities of a run (who reaches 151, the bonus) | `forecast.COALITIONS`, `forecast.METRICS`, `forecast.rates()` |
@@ -60,6 +61,7 @@ Run: `python -I -X utf8 analysis/<script>.py data/stavroi.sqlite` (stdlib only u
 | `nikh_census.py` | db, 2021 census | `nikh_census.txt` | 15 |
 | `nikh_map.py` (+ `nikh_map_template.html`) | db | `out/nikh_2023-2024.html` | — |
 | `nikh_polls_page.py` (+ `nikh_polls_template.html`) | `nikh_polls*.csv`, `nikh_polls.py`, `pollster_record.py` (`niki_misses()`: how close each firm fell) | `out/nikh_polls.html` | 16, 18 |
+| `pollster_coef.py` (ballot / poll of each firm and party over all polls of 12 elections, any lead time; house effect; by lead time) | `nikh_pollerror.csv`; NIKH from `nikh_polls_2023.csv`, `nikh_polls.csv`, `nikh_polls.py` | `pollster_coef.csv`, `pollster_coef.txt` | 25 |
 | `pollster_record.py` (error of each firm's last poll before 2019, May and June 2023; `weights()`; house-effect check) | `nikh_pollerror.csv`, `nikh_polls.csv`, `forecast.py` | stdout (and the track-record section of `out/forecast.html`) | — |
 | `forecast_page.py` (+ `forecast_template.html`) | `forecast.json` (run `forecast.py` with the db first), `samaras.json`, `forecast_trend.json` (both optional), `forecast_backtest.json`, `nikh_polls.csv`, `pollster_record.py`, db (constituency outlines for the map) | `out/forecast.html` | — |
 | `nikh_control_fetch.py` (every act of parliamentary oversight of the 11 MPs elected with ΝΙΚΗ or taking its seat; ≤1 request/s, resumable; `baseline` recounts every MP of `nikh_control_baseline.csv` from the Parliament, `answers` reads 50 random answer PDFs, needs PyMuPDF and tesseract) | hellenicparliament.gr «Μέσα Κοινοβουλευτικού Ελέγχου», vouliwatch.gr API | `data/parl_control/` (git-ignored cache, with `baseline_counts.json`, `answer_sample.json`) | 22 |
