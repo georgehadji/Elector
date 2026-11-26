@@ -59,8 +59,7 @@ def nav(current="maps"):
 def header(current="maps", ctx="", skip="#main"):
     """Site bar: wordmark, nav, theme toggle, skip link; `ctx` is the wayfinding row of map pages."""
     to = "στον χάρτη" if skip == "#map" else "στο περιεχόμενο"
-    home = (f'<a class="home" href="index.html" aria-label="Χάρτες Ψήφων">{MARK}</a>' if current == "index"  # the h1 below says it
-            else f'<a class="home" href="index.html">{MARK}Χάρτες Ψήφων</a>')
+    home = f'<a class="home" href="index.html">{MARK}Χάρτες Ψήφων</a>'  # the same on every page, so the nav never moves
     return (f'<a class="skip" href="{skip}">Μετάβαση {to}</a><header class="bar{" with-ctx" if ctx else ""}">{home}'
             f'{nav(current)}{THEME_BTN}</header>{ctx}')
 
@@ -373,7 +372,7 @@ body.pick .acts{display:none}
 .nkg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--board)}
 .nka{display:flex;flex-direction:column;justify-content:space-between;gap:var(--space-xl);min-height:520px;padding:var(--space-xl);background:var(--c);color:var(--on-light)}
 .nka.lt{color:var(--on-dark)}
-.nka h2{font-size:var(--text-display);letter-spacing:-.04em;line-height:.85}
+.nka h2{font-size:var(--text-section);letter-spacing:-.04em;line-height:.95}
 .nka .lead{color:inherit;max-width:28ch}
 .nk{display:grid;grid-auto-rows:1fr;list-style:none;margin:0;padding:0}
 .nk li{position:relative;display:flex;flex-direction:column;justify-content:center;gap:var(--space-xs);padding:var(--space-lg) var(--space-xl);background:var(--deep);color:var(--on-deep)}
