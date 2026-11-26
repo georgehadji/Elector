@@ -340,22 +340,35 @@ ROLES = [("Αναπληρωτής Υπουργός", r"ΑΝΑΠΛΗΡΩΤ(?:ΗΣ
          ("Γενικός Γραμματέας", r"ΓΕΝΙΚ(?:ΟΣ|Η) ΓΡΑΜΜΑΤΕΑΣ|(?<=[ΟΗ] )Γενικ(?:ος|η) Γραμματεας")]
 
 
+# Words a letter's own date follows: the place in the letterhead («ΑΘΗΝΑ 25 02 2026», «ΜΑΡΟΥΣΙ 26 5 2025») or the
+# protocol line of the ministry's system («ΗΜ ΝΙΑ 06 05 2026», «ΥΠΕΘΟΟ 15 07 2026»). Second best: the stamp of the
+# certified copy («ΑΚΡΙΒΕΣ ΑΝΤΙΓΡΑΦΟ 26 02 2026»), made the day of signing or the next.
+LETTER_AT = [r"(?:ΑΘΗΝΑ|ΜΑΡΟΥΣΙ|ΠΕΙΡΑΙΑΣ|ΠΕΙΡΑΙΑ|ΘΕΣΣΑΛΟΝΙΚΗ|ΚΑΛΛΙΘΕΑ|ΧΟΛΑΡΓΟΣ|ΗΜΕΡΟΜΗΝΙΑ|ΗΜ ΝΙΑ|ΥΠΕΘΟΟ) ",
+             r"ΑΚΡΙΒΕΣ ΑΝΤΙΓΡΑΦΟ "]
+
+
 def letter(text, filed, today):
-    """Date and signer of an answer letter: the latest date in the text between the filing day and today
-    («29-10-2025», «12 Μαρτίου 2025»), and the title of the last signature (ROLES; the minister signs the
-    letter itself, a secretary general only when the answer is a service's letter)."""
+    """Date and signer of an answer letter. The date: the latest one between the filing day and today that follows
+    LETTER_AT (first list, then second), else the latest one anywhere in the text («29-10-2025», «12 Μαρτίου
+    2025»): dates in the body can be deadlines or periods that end after the letter («έως 31 10 2025»). The signer:
+    the title of the last signature (ROLES; the minister signs the letter itself, a secretary general only when the
+    answer is a service's letter)."""
     t = norm(text)  # punctuation becomes spaces: «29-10-2025» -> «29 10 2025»
-    days = [(int(y), int(m), int(d)) for d, m, y in re.findall(r"\b(\d{1,2}) (\d{1,2}) (20\d\d)\b", t)]
-    days += [(int(y), MONTHS.index(m) + 1, int(d))
-             for d, m, y in re.findall(r"\b(\d{1,2}) (" + "|".join(MONTHS) + r") (20\d\d)\b", t)]
-    ok = []
-    for y, m, d in days:
-        try:
-            x = date(y, m, d)
-        except ValueError:
-            continue
-        if filed <= x <= today:
-            ok.append(x)
+    numeric, named = r"(\d{1,2}) (\d{1,2}) (20\d\d)\b", r"(\d{1,2}) (" + "|".join(MONTHS) + r") (20\d\d)\b"
+
+    def days(before):
+        found = [(int(y), int(m), int(d)) for d, m, y in re.findall(before + numeric, t)]
+        found += [(int(y), MONTHS.index(m) + 1, int(d)) for d, m, y in re.findall(before + named, t)]
+        ok = []
+        for y, m, d in found:
+            try:
+                x = date(y, m, d)
+            except ValueError:
+                continue
+            if filed <= x <= today:
+                ok.append(x)
+        return ok
+    ok = next((d for d in (days(a) for a in LETTER_AT + [r"\b"]) if d), [])
     caps = " ".join("".join(c for c in unicodedata.normalize("NFD", text) if not unicodedata.combining(c)).split())
     found = [(m.start(), role) for role, pat in ROLES for m in re.finditer(pat, caps)]
     return (max(ok) if ok else None), (max(found)[1] if found else None)
@@ -391,6 +404,94 @@ def sample_report(p, by_id):
           f"ημέρες, 10%–90% {made[len(made) // 10]}–{made[9 * len(made) // 10]}· "
           f"0–7 ημέρες {100 * sum(0 <= x <= 7 for x in made) / len(made):.0f}%.")
     p("     Υπογράφει: " + ", ".join(f"{k} {n}" for k, n in roles.most_common()))
+
+
+# What an answer says, from its text (all its files): each a sentence that ministries write in a fixed form.
+MARKERS = [
+    ("δηλώνει αναρμοδιότητα (για όλο ή μέρος)",
+     r"ΕΚΦΕΥΓ\w* (?:ΤΩΝ|ΑΠΟ ΤΙΣ) ΑΡΜΟΔΙΟΤ|ΔΕΝ ΕΜΠΙΠΤ\w* ΣΤΙΣ ΑΡΜΟΔΙΟΤ|ΔΕΝ ΑΠΤ\w* ΤΩΝ ΑΡΜΟΔΙΟΤ|"
+     r"ΑΡΜΟΔΙ\w* (?:ΝΑ ΣΑΣ |ΓΙΑ ΝΑ (?:ΣΑΣ )?)?ΑΠΑΝΤΗΣ|ΔΕΝ ΕΧΕΙ ΑΡΜΟΔΙΟΤΗΤΑ|ΔΕΝ ΕΙΝΑΙ ΑΡΜΟΔΙ"),
+    ("αρνείται στοιχεία (απόρρητα, διαβαθμισμένα)",
+     r"(?:ΕΙΝΑΙ|ΑΠΟΤΕΛΟΥΝ|ΧΑΡΑΚΤΗΡΑ ΤΟΥ) (?:\w+ ){0,3}ΑΠΟΡΡΗΤ|ΔΙΑΒΑΘΜΙΣΜΕΝ\w* ΠΛΗΡΟΦΟΡ|"
+     r"ΔΕΝ (?:ΔΥΝΑΝΤΑΙ ΝΑ |ΔΥΝΑΤΑΙ ΝΑ )?ΚΟΙΝΟΠΟΙ(?:ΟΥΝΤΑΙ|ΗΘΟΥΝ|ΗΘΕΙ)|ΕΝΝΟΙΑ ΤΟΥ (?:\w+ )?ΑΠΟΡΡΗΤ|"
+     r"ΕΠΙΒΕΒΑΙΩΝ\w* Η ΔΙΑΨΕΥΔ|ΔΕΝ (?:ΔΥΝΑΤΑΙ|ΔΥΝΑΝΤΑΙ) ΝΑ ΓΝΩΣΤΟΠΟΙΗΘ"),
+    ("παραπέμπει σε όσα ειπώθηκαν στη Βουλή",
+     r"ΚΑΤΑ ΤΗ ΣΥΖΗΤΗΣΗ (?:ΤΗΣ |ΣΧΕΤΙΚΗΣ )(?:\w+ ){0,6}ΕΠΙΚΑΙΡ|ΕΝΗΜΕΡΩΣΕ (?:\w+ ){0,8}(?:ΟΛΟΜΕΛΕΙΑ|ΕΘΝΙΚΗ ΑΝΤΙΠΡΟΣΩΠΕΙΑ)|"
+     r"ΑΠΟΣΠΑΣΜΑΤΑ ΑΠΟ ΤΑ ΠΡΑΚΤΙΚΑ|ΠΡΑΚΤΙΚΑ ΤΗΣ (?:ΟΛΟΜΕΛΕΙΑΣ|ΒΟΥΛΗΣ)"),
+    ("«εξετάζεται, ανάλογα με τα δημοσιονομικά»",
+     r"(?:ΕΞΕΤΑΖ|ΑΞΙΟΛΟΓ|ΣΤΑΘΜΙΖ)\w* (?:\S+ ){0,20}ΔΗΜΟΣΙΟΝΟΜΙΚ\w* (?:ΔΥΝΑΤΟΤΗΤ|ΧΩΡΟ|ΚΟΣΤΟΣ|ΑΝΤΟΧ)|ΟΡΙΩΝ ΚΑΘΑΡΩΝ ΔΑΠΑΝΩΝ"),
+]
+_MARKERS = [(name, re.compile(pat)) for name, pat in MARKERS]
+
+
+def caps(text):
+    """Upper case without accents, one space between words: the form MARKERS and ROLES are written in."""
+    return " ".join("".join(c for c in unicodedata.normalize("NFD", text) if not unicodedata.combining(c))
+                    .upper().split())
+
+
+def markers(text):
+    t = caps(text)
+    return [name for name, pat in _MARKERS if pat.search(t)]
+
+
+def answers_report(p, old, today):
+    """Section 6c: the text of every answer file (nikh_control_fetch.py all_answers, if it was run): the day the
+    letter was signed, who signed it, and the fixed sentences of MARKERS. Files repeated in one act are read once."""
+    folder = CACHE / "answer"
+    if not folder.exists():
+        return
+    texts = {int(f.stem): json.loads(f.read_text(encoding="utf-8")) for f in folder.glob("*.json")}
+    answered = [a for a in old if a["answer_ids"]]
+    read = [a for a in answered if all(i in texts for i in a["answer_ids"])]
+    if not read:
+        return
+    lag, est, roles, found, by_min = [], [], Counter(), Counter(), {}
+    for a in read:
+        files = list({texts[i]["text"]: i for i in sorted(a["answer_ids"], reverse=True)}.items())[::-1]
+        day, role = letter(texts[min(a["answer_ids"])]["text"], a["date"], today)
+        a["letter_day"], a["signer"] = day, role
+        a["markers"] = sorted({m for text, _ in files for m in markers(text)})
+        if day:
+            lag.append((day - a["date"]).days)
+            if a["answer_est"]:
+                est.append((a["answer_est"] - day).days)
+        roles[role or "δεν βρέθηκε"] += 1
+        found.update(a["markers"])
+        for m in a["ministries_n"]:
+            by_min.setdefault(m, []).append(a)
+    lag.sort()
+    est.sort()
+    p(f"   Κείμενο των απαντήσεων: {len(read)} από τις {len(answered)} απαντημένες γραπτές πράξεις "
+      f"({sum(len(set(a['answer_ids'])) for a in read)} αρχεία· "
+      f"σκαναρισμένα, που χρειάστηκαν OCR: {sum(texts[i]['ocr'] for a in read for i in set(a['answer_ids']))}).")
+    if lag:
+        p(f"     Ημέρες από την κατάθεση ως την υπογραφή της πρώτης επιστολής (n = {len(lag)}): διάμεσος "
+          f"{statistics.median(lag):.0f}, ≤25 ημέρες {100 * sum(x <= 25 for x in lag) / len(lag):.0f}%.")
+        p(f"     Εκτίμηση (άφιξη στη Βουλή) μείον υπογραφή: διάμεσος {statistics.median(est):.0f} ημέρες, "
+          f"0–7 ημέρες {100 * sum(0 <= x <= 7 for x in est) / len(est):.0f}%, αρνητική {sum(x < 0 for x in est)}.")
+    p("     Υπογράφει την πρώτη απάντηση: " + ", ".join(f"{k} {n}" for k, n in roles.most_common()))
+    p("     Τι λέει η απάντηση (μια πράξη μπορεί να έχει πολλά): "
+      + ", ".join(f"{k} {n} ({100 * n / len(read):.0f}%)" for k, n in found.most_common()))
+    vw = Counter(((a["vw"] or {}).get("content_coverage") or {}).get("category") or "χωρίς βαθμό" for a in read)
+    p("     Βαθμός Vouliwatch στις πράξεις με κάθε φράση (σε παρένθεση: όλες οι πράξεις με κείμενο " +
+      ", ".join(f"{k} {n}" for k, n in vw.most_common()) + "):")
+    for name, _ in MARKERS:
+        sub = Counter(((a["vw"] or {}).get("content_coverage") or {}).get("category") or "χωρίς βαθμό"
+                      for a in read if name in a["markers"])
+        if sub:
+            p(f"       {name}: " + ", ".join(f"{k} {n}" for k, n in sub.most_common()))
+    p("     Ανά υπουργείο (n ≥ 20· υπογράφει την πρώτη απάντηση, και ποσοστό πράξεων με κάθε φράση):")
+    p(f"       {'':<36} {'n':>4} {'Υπουργός':>9} {'Υφυπ.':>6} {'αναρμ.':>7} {'άρνηση':>7} "
+      f"{'Βουλή':>6} {'δημοσ.':>7}")
+    for m, sub in sorted(by_min.items(), key=lambda kv: -len(kv[1])):
+        if len(sub) < 20:
+            continue
+        def share(test):
+            return f"{100 * sum(1 for a in sub if test(a)) / len(sub):.0f}%"
+        p(f"       {m:<36} {len(sub):>4} {share(lambda a: a['signer'] == 'Υπουργός'):>9} "
+          f"{share(lambda a: a['signer'] == 'Υφυπουργός'):>6} "
+          + " ".join(f"{share(lambda a, k=k: k in a['markers']):>7}" for k, _ in MARKERS))
 
 
 def bar(n, scale):
@@ -444,6 +545,12 @@ def main():
                         (f"https://www.hellenicparliament.gr/Koinovouleftikos-Elenchos/Mesa-Koinovouleutikou-Elegxou"
                         f"?pcm_id={a['pcm_id']}")])
 
+    # From here on only ΝΙΚΗ group work counts: an act an expelled MP filed after the expulsion is not ΝΙΚΗ's,
+    # and on a joint act only the signers who were in the group count. The CSV above keeps every act.
+    all_acts, acts = acts, group_acts
+    for a in acts:
+        a["nikh"] = a["in_group"]
+
     p("Κοινοβουλευτικός έλεγχος των βουλευτών που εξελέγησαν με τη ΝΙΚΗ (Ιούνιος 2023)")
     p(f"Πηγές: hellenicparliament.gr (Μέσα Κοινοβουλευτικού Ελέγχου), vouliwatch.gr API. Τελευταία πράξη: {today:%d/%m/%Y}.")
     p("")
@@ -453,19 +560,24 @@ def main():
     p("0. Κάλυψη (πράξεις ανά βουλευτή: που διαβάστηκαν / που μετρά η Βουλή / στο Vouliwatch)")
     for short, s in summary.items():
         p(f"   {short:<15} {s['parliament']:>4} / {s['parliament_total']:>4} / {s.get('vouliwatch', '-'):>4}")
-    p(f"   Μοναδικές πράξεις: {len(index)}· με σελίδα πράξης: {len(acts)}· ταίριαξαν στο Vouliwatch: "
-      f"{sum(1 for a in acts if a['vw'])} (το Vouliwatch έχει μόνο ερωτήσεις, επίκαιρες και αναφορές).")
+    p(f"   Μοναδικές πράξεις: {len(index)}· με σελίδα πράξης: {len(all_acts)}· ταίριαξαν στο Vouliwatch: "
+      f"{sum(1 for a in all_acts if a['vw'])} (το Vouliwatch έχει μόνο ερωτήσεις, επίκαιρες και αναφορές).")
+    p(f"   Μετρούν μόνο όσες κατατέθηκαν όσο ο βουλευτής ήταν στην ΚΟ: {len(acts)}. Έξω μένουν "
+      f"{len(all_acts) - len(acts)} πράξεις των " + " και ".join(EXPELLED)
+      + " μετά τη διαγραφή τους (" + ", ".join(
+          f"{s} {sum(1 for a in all_acts if s in nikh_signers(a['signers']) and s not in a['in_group'])}"
+          for s in EXPELLED) + " υπογραφές).")
     p("")
     # 1. Kind
-    p("1. Ανά είδος (μοναδικές πράξεις· σε παρένθεση όσες κατατέθηκαν ενώ τουλάχιστον ένας υπογράφων ήταν στην ΚΟ)")
-    kc, kg = Counter(a["kind"] for a in acts), Counter(a["kind"] for a in group_acts)
+    p("1. Ανά είδος (μοναδικές πράξεις)")
+    kc = Counter(a["kind"] for a in acts)
     for k, n in kc.most_common():
-        p(f"   {KIND_SHORT.get(k, k):<22} {n:>5} ({kg[k]})")
-    p(f"   {'Σύνολο':<22} {len(acts):>5} ({len(group_acts)})")
+        p(f"   {KIND_SHORT.get(k, k):<22} {n:>5}")
+    p(f"   {'Σύνολο':<22} {len(acts):>5}")
     p("")
     # 2. MP
     p("2. Ανά βουλευτή (κάθε πράξη μετρά σε κάθε υπογράφοντα)")
-    p(f"   {'':<15} {'σύνολο':>6} {'μόνος':>6} {'με ΝΙΚΗ':>8} {'με άλλους':>9} {'μετά τη διαγραφή':>17}  "
+    p(f"   {'':<15} {'σύνολο':>6} {'μόνος':>6} {'με ΝΙΚΗ':>8} {'με άλλους':>9}  "
       + "".join(f"{KIND_SHORT[k]:>19}" for k in kc if k in KIND_SHORT))
     for _, short, _, _ in MPS:
         mine = [a for a in acts if short in a["nikh"]]
@@ -474,9 +586,8 @@ def main():
         alone = sum(1 for a in mine if len(a["signers"]) == 1)
         with_n = sum(1 for a in mine if len(a["nikh"]) > 1)
         with_o = sum(1 for a in mine if len(a["signers"]) > len(a["nikh"]))
-        after = sum(1 for a in mine if short not in a["in_group"])
         kk = Counter(a["kind"] for a in mine)
-        p(f"   {short:<15} {len(mine):>6} {alone:>6} {with_n:>8} {with_o:>9} {after:>17}  "
+        p(f"   {short:<15} {len(mine):>6} {alone:>6} {with_n:>8} {with_o:>9}  "
           + "".join(f"{kk[k]:>19}" for k in kc if k in KIND_SHORT))
     p("")
     # 3. Ministry
@@ -506,26 +617,23 @@ def main():
             p(f"   {short:<15}" + "".join(f"{100 * k[c] / len(mine):>10.0f}" for c in cats))
     p("")
     # 5. Month
-    p("5. Ανά μήνα (μοναδικές πράξεις, σε παρένθεση όσες κατατέθηκαν από μέλη της ΚΟ· █ = 5)")
+    p("5. Ανά μήνα (μοναδικές πράξεις· █ = 5)")
     by_month = Counter(a["date"].strftime("%Y-%m") for a in acts)
-    by_month_g = Counter(a["date"].strftime("%Y-%m") for a in group_acts)
     months = []
     y, m = acts[0]["date"].year, acts[0]["date"].month
     while (y, m) <= (today.year, today.month):
         months.append(f"{y}-{m:02d}")
         y, m = (y + 1, 1) if m == 12 else (y, m + 1)
     for mo in months:
-        p(f"   {mo} {by_month[mo]:>4} ({by_month_g[mo]:>3}) {bar(by_month[mo], 5)}")
+        p(f"   {mo} {by_month[mo]:>4} {bar(by_month[mo], 5)}")
     xs = list(range(len(months) - 1))  # the running month is partial: left out of the trend
-    for label, bm in (("όλες", by_month), ("μέλη της ΚΟ", by_month_g)):
-        ys = [bm[mo] for mo in months[:-1]]
-        half = len(ys) // 2
-        p(f"   Τάση, {label} (ελάχιστα τετράγωνα, χωρίς τον τρέχοντα μήνα): "
-          f"{statistics.linear_regression(xs, ys).slope:+.2f} πράξεις ανά μήνα κάθε μήνα· "
-          f"μέσος όρος πρώτου μισού {statistics.mean(ys[:half]):.1f}, δεύτερου {statistics.mean(ys[half:]):.1f}.")
+    ys = [by_month[mo] for mo in months[:-1]]
+    half = len(ys) // 2
+    p(f"   Τάση (ελάχιστα τετράγωνα, χωρίς τον τρέχοντα μήνα): "
+      f"{statistics.linear_regression(xs, ys).slope:+.2f} πράξεις ανά μήνα κάθε μήνα· "
+      f"μέσος όρος πρώτου μισού {statistics.mean(ys[:half]):.1f}, δεύτερου {statistics.mean(ys[half:]):.1f}.")
     by_year = Counter(a["date"].year for a in acts)
-    by_year_g = Counter(a["date"].year for a in group_acts)
-    p("   Ανά έτος: " + ", ".join(f"{yr}: {n} ({by_year_g[yr]})" for yr, n in sorted(by_year.items())))
+    p("   Ανά έτος: " + ", ".join(f"{yr}: {n}" for yr, n in sorted(by_year.items())))
     p("")
     # 6. Answers
     old = [a for a in acts if a["kind"] in WRITTEN and (today - a["date"]).days >= MIN_AGE]
@@ -534,12 +642,12 @@ def main():
     p("   Ανά είδος: " + ", ".join(
         f"{KIND_SHORT[k]} {100 * sum(a['answered'] for a in old if a['kind'] == k) / max(1, sum(1 for a in old if a['kind'] == k)):.0f}% "
         f"(n={sum(1 for a in old if a['kind'] == k)})" for k in WRITTEN if any(a["kind"] == k for a in old)))
-    chk = sorted((a["answer_est"] - a["answer_date"]).days for a in acts if a["answer_date"] and a["answer_est"])
+    chk = sorted((a["answer_est"] - a["answer_date"]).days for a in all_acts if a["answer_date"] and a["answer_est"])
     p(f"   Ημέρα απάντησης: εκτίμηση από τον αύξοντα αριθμό των αρχείων της Βουλής (βλ. answer_dates). Έλεγχος με τις "
       f"{len(chk)} ημερομηνίες που δίνει το Vouliwatch: διαφορά σε ημέρες " + ", ".join(map(str, chk)) + ".")
     # An act with one answer file was last changed when that file was attached (an unanswered act: about the day
     # after filing), so «Ημ. Τελευταίας Τροποποίησης» is a second check on all of them.
-    lc = sorted((a["answer_est"] - a["last_change"]).days for a in acts
+    lc = sorted((a["answer_est"] - a["last_change"]).days for a in all_acts
                 if len(set(a["answer_ids"])) == 1 and a["last_change"] and a["answer_est"])
     if lc:
         p(f"   Έλεγχος με την «Ημ. Τελευταίας Τροποποίησης» των {len(lc)} πράξεων με ένα αρχείο απάντησης: διάμεσος "
@@ -575,7 +683,8 @@ def main():
           f"{statistics.median((a['sitting'] - a['date']).days for a in deb):.0f} ημέρες από την κατάθεση. Ανά υπουργείο:")
         p("   " + ", ".join(f"{m} {sum(1 for a in deb if m in a['ministries_n'])}/{n}" for m, n in Counter(
             m for a in top_q for m in a["ministries_n"]).most_common() if n >= 10))
-    sample_report(p, {a["pcm_id"]: a for a in acts})
+    sample_report(p, {a["pcm_id"]: a for a in all_acts})
+    answers_report(p, old, today)
     p("")
     # 7. Co-signing
     p("7. Συνυπογραφές")
@@ -589,7 +698,7 @@ def main():
     p(f"   Πράξεις με υπογράφοντα εκτός ΝΙΚΗΣ: {sum(1 for a in acts if len(a['signers']) > len(a['nikh']))}")
     p("   Έλεγχος των ημερομηνιών διαγραφής με την ομάδα που γράφει η Βουλή στις πράξεις που υπέγραψε μόνος:")
     for short, day in EXPELLED.items():
-        solo = [(a["date"], a["groups"][0]) for a in acts if a["nikh"] == [short] and len(a["signers"]) == 1
+        solo = [(a["date"], a["groups"][0]) for a in all_acts if nikh_signers(a["signers"]) == [short] and len(a["signers"]) == 1
                 and a["groups"]]
         last_n = max((d for d, g in solo if "ΝΙΚΗ" in g), default=None)
         first_i = min((d for d, g in solo if "ΑΝΕΞΑΡΤΗΤ" in g.upper()), default=None)
