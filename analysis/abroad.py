@@ -403,19 +403,19 @@ def chart_strip(title, note, pts, label, refs, marked=(), dec=2):
 
 CHART_CSS = """
 .ch{margin:1.2em 0 1.8em;max-width:760px} .ch figcaption{margin-bottom:.6em;color:var(--ink-2)} .ch figcaption b{color:var(--ink)}
-.cr{display:grid;grid-template-columns:minmax(6.5em,10em) 1fr minmax(4.5em,auto);gap:.7em;align-items:center;min-height:26px}
-.cl{font-size:14px;overflow-wrap:anywhere} .cv{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cr{display:grid;grid-template-columns:minmax(7em,11em) 1fr minmax(4.5em,auto);gap:.7em;align-items:center;min-height:30px}
+.cl{font-size:16px;overflow-wrap:anywhere} .cv{font-size:15px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
 .cb{height:14px} .cb i{display:block;height:100%;min-width:2px;background:var(--s5);border-radius:0 4px 4px 0}
 .cd{position:relative;height:1px;background:var(--line)} .cd i{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;
   transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--surface)} .cd i.ln{height:3px;border-radius:0;transform:translateY(-50%);
   box-shadow:none;background:var(--s2)}
 .ch i.a{background:var(--s2)} .ch i.b{background:var(--s6)}
-.ck{display:flex;gap:1.2em;font-size:13px;margin:.2em 0 .5em} .ck i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
-.cs .cd0{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2)}
+.ck{display:flex;gap:1.2em;font-size:15px;margin:.2em 0 .5em} .ck i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.cs .cd0{display:flex;justify-content:space-between;font-size:15px;color:var(--ink-2)}
 .cst{display:flex;height:16px} .cst i{display:block;height:100%;border-right:2px solid var(--surface)}
 .cst i:first-child{border-radius:4px 0 0 4px} .cst i:last-child{border-right:0;border-radius:0 4px 4px 0}
 .ch i.o{background:color-mix(in srgb,var(--ink-2) 30%,transparent)} .ck{flex-wrap:wrap;gap:.3em 1.2em}
-.sc{width:100%;max-width:520px;height:auto} .sc.st{max-width:600px} .sc text{fill:var(--ink-2);font-size:12px} .sc text.n{fill:var(--ink)}
+.sc{width:100%;max-width:520px;height:auto} .sc.st{max-width:600px} .sc text{fill:var(--ink-2);font-size:13px} .sc text.n{fill:var(--ink)}
 .sc .g{stroke:var(--line);stroke-width:1} .sc .d{stroke:var(--ink-2);stroke-dasharray:4 3}
 .sc circle{fill:var(--s4);stroke:var(--surface);stroke-width:1.5} .sc circle.m{fill:var(--s6)}
 """
@@ -742,7 +742,7 @@ main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-b
 .sw .e{{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:4px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,var(--paper,var(--surface)))}}
 .sw .e[hidden]{{display:none}}
 .sw .e::before{{content:"";position:absolute;inset:4px auto 4px 4px;width:calc((100% - 8px) / var(--n));border-radius:999px;background:var(--paper,var(--surface));transform:translateX(calc(var(--i) * 100%));transition:transform 280ms cubic-bezier(.16,1,.3,1)}}
-.sw .e button{{position:relative;min-height:36px;padding:0 var(--space-lg);border-radius:999px;font-size:var(--t-sm)}}
+.sw .e button{{position:relative;min-height:36px;padding:0 var(--space-lg);border-radius:999px;font-size:var(--t-base)}}
 .sw button:focus-visible{{outline:2px solid var(--ink);outline-offset:2px}}
 @media (pointer:coarse){{.sw .e button{{min-height:44px}}}} @media (prefers-reduced-motion:reduce){{.sw button,.sw .e::before{{transition:none}}}}
 .js .view:not(.on){{display:none}} .js .sw:not(.ready){{min-height:112px}} .view>h2:first-child{{margin-top:var(--space-xl)}}
