@@ -4,7 +4,8 @@
 :root { accent-color: var(--link); }
 .legend, .tip b { overflow-wrap: anywhere; }
 body { margin: 0; font: 1rem/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
-main { max-width: 1200px; margin: 0 auto; padding: var(--space-lg) var(--space-md) 0; }
+main { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-md); }
+main > .bar { margin-bottom: calc(var(--space-sm) + var(--space-lg)); }  /* header at the very top like on every page; the gap under it stays */
 h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.1 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.03em; margin: 0 0 var(--space-xs); }
 /*SITE_CSS*/
 h2 { font-size: var(--t-base); margin: 0 0 8px; }
@@ -89,7 +90,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
 /* Phones: full-width controls so the map starts higher; the table drops its least useful column. */
 @media (max-width: 599px) {
   /* The whole map fits the first screen: stats go below it, labels are for screen readers only. */
-  main { padding: 12px; display: flex; flex-direction: column; }
+  main { padding: 0 12px 12px; display: flex; flex-direction: column; }
   main > .stats { order: 1; margin-top: 4px; }
   main > h2:not(.who), main > .tablewrap, main > .note, main > #detail { order: 2; }
   main > .site { order: 3; }
