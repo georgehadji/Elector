@@ -416,7 +416,7 @@ def bonus_html(r, key, names):
             continue
         lo, mid, hi = hist_range(s["hist_nd"])
         rr = s["rates"]
-        rows.append(f'<tr><td>{title}</td><td class="n">{pct(s["n"] / r["n"])}</td><td class="n">{mid} <small>({lo}–{hi})</small></td>'
+        rows.append(f'<tr><th scope="row">{title}</th><td class="n">{pct(s["n"] / r["n"])}</td><td class="n">{mid} <small>({lo}–{hi})</small></td>'
                     f'<td class="n">{pct(rr["p_nd_majority"])}</td><td class="n">{pct(rr["p_nd_pasok_151"])}</td>'
                     f'<td class="n">{pct(rr["p_nd_elas_151"])}</td></tr>')
         if s["n"] / r["n"] >= 0.01:  # a parliament is drawn only for a case that happens at least once in 100
@@ -590,7 +590,7 @@ def samaras(names):
     head = ('<tr><th></th><th class="n">χωρίς</th>' + "".join(f'<th class="n">{L}%</th>' for L in levels) + "</tr>")
 
     seated = [p for p in ("ND", "SAM", *(p for p in B["seats"] if p not in ("ND", "SAM"))) if any(s["seats"].get(p, [0, 0, 0])[1] for _, s in cols)]
-    seat_rows = "".join(f'<tr><td><span class="sw" style="--c:{colour(p)}"></span>{html.escape(nm[p])}</td>'
+    seat_rows = "".join(f'<tr><th scope="row"><span class="sw" style="--c:{colour(p)}"></span>{html.escape(nm[p])}</th>'
                         + "".join(f'<td class="n">{"—" if L is None and p == "SAM" else seats_range(s["seats"][p])}</td>' for L, s in cols)
                         + "</tr>" for p in seated)
     join = lambda ps: nm[ps[0]] if len(ps) == 1 else ", ".join(nm[p] for p in ps[:-1]) + " και " + nm[ps[-1]]
@@ -609,8 +609,8 @@ def samaras(names):
     for ps, k in groups:
         cells = "".join(f'<td class="n">{"—" if L is None and "SAM" in ps else pct(s[k] if isinstance(k, str) else co[L][k])}</td>'
                         for L, s in cols)
-        rows151.append(f"<tr><td>{html.escape(join(ps))}</td>{cells}</tr>")
-    rows151.append('<tr><td>μπόνους (πρώτο κόμμα 25% και πάνω)</td>'
+        rows151.append(f'<tr><th scope="row">{html.escape(join(ps))}</th>{cells}</tr>')
+    rows151.append('<tr><th scope="row">μπόνους (πρώτο κόμμα 25% και πάνω)</th>'
                    + "".join(f'<td class="n">{pct(s["bonus"])}</td>' for _, s in cols) + "</tr>")
 
     from_ = lambda sp: ", ".join(f"{nm[p]} {num(100 * w, 0)}%" for p, w in sp.items())
@@ -857,7 +857,7 @@ def ep_map(data, order, names):
                             *(f"h{key}-toss-{tstep(ep, key)}" for key in hz)])
             data_ = "".join(f' data-d{key}="{html.escape(detail(ep, key), quote=True)}"' for key in hz)
             tab = ' tabindex="0"' if ep in focus else ""
-            out.append(f'<path class="{cls}" d="{d}" data-ep="{ep}"{tab} aria-label="{html.escape(eps[ep]["name"], quote=True)}"'
+            out.append(f'<path class="{cls}" d="{d}" data-ep="{ep}"{tab} role="img" aria-label="{html.escape(eps[ep]["name"], quote=True)}"'
                        f'{data_}/>')
         return f'<svg viewBox="0 0 {w} {h}" role="group" aria-label="{label}">' + "".join(out) + "</svg>"
 

@@ -165,6 +165,14 @@ def text_table(head, rows):
 
 SECTIONS = []  # html of the page, in order; the text goes to stdout as it is made
 
+def view(fn, *args, **attrs):
+    """Run one section builder and wrap what it added in a <section class="view">; the script on the page shows one view at a time
+    (without script every view stays open). v/vl: the view and its label, e/el: the election inside it and its label."""
+    start = len(SECTIONS)
+    fn(*args)
+    a = " ".join(f'data-{k}="{html.escape(x, quote=True)}"' for k, x in attrs.items())
+    SECTIONS[start:] = [f'<section class="view" {a}>{"".join(SECTIONS[start:])}</section>']
+
 
 def emit(title, intro, head, rows, fold=True, chart=""):  # fold: kept for the callers; every table opens on demand
     """One table: printed, and added to the page under its heading. A chart of the same numbers goes between the heading
@@ -657,6 +665,50 @@ draw();
 """
 
 
+VIEW_JS = """(function () {
+  var views = [].slice.call(document.querySelectorAll('.view')), cur = {};
+  if (!views.length) return;
+  var keys = [], els = {}, labels = {}, elabels = {};
+  views.forEach(function (s) {
+    var v = s.dataset.v, e = s.dataset.e;
+    if (keys.indexOf(v) < 0) { keys.push(v); els[v] = []; labels[v] = s.dataset.vl; }
+    if (e) { els[v].push(e); elabels[e] = s.dataset.el; }
+  });
+  var last = {};
+  keys.forEach(function (v) { last[v] = els[v][els[v].length - 1] || ''; });
+  cur.v = keys[0]; cur.e = last[keys[0]];
+  var bar = document.createElement('div'); bar.className = 'sw';
+  var row1 = document.createElement('div'), row2 = document.createElement('div');
+  row1.setAttribute('role', 'group'); row1.setAttribute('aria-label', 'Τι να δω');
+  row2.setAttribute('role', 'group'); row2.setAttribute('aria-label', 'Εκλογή');
+  bar.appendChild(row1); bar.appendChild(row2);
+  function btn(text, on, fn) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = text;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.addEventListener('click', fn); return b;
+  }
+  function draw() {
+    row1.textContent = ''; row2.textContent = '';
+    keys.forEach(function (v) {
+      row1.appendChild(btn(labels[v], v === cur.v, function () { cur.v = v; cur.e = last[v]; draw(); }));
+    });
+    var list = els[cur.v]; row2.hidden = list.length < 2;
+    list.forEach(function (e) {
+      row2.appendChild(btn(elabels[e], e === cur.e, function () { cur.e = e; last[cur.v] = e; draw(); }));
+    });
+    views.forEach(function (s) { s.hidden = !(s.dataset.v === cur.v && (!s.dataset.e || s.dataset.e === cur.e)); });
+  }
+  function reveal(id) {
+    var el = id && document.getElementById(decodeURIComponent(id)), s = el && el.closest('.view');
+    if (!s) return false;
+    cur.v = s.dataset.v; cur.e = s.dataset.e || last[cur.v]; last[cur.v] = cur.e; draw(); return true;
+  }
+  views[0].parentNode.insertBefore(bar, views[0]);
+  draw();
+  if (location.hash && reveal(location.hash.slice(1))) document.getElementById(decodeURIComponent(location.hash.slice(1))).scrollIntoView();
+  addEventListener('hashchange', function () { if (reveal(location.hash.slice(1))) document.getElementById(decodeURIComponent(location.hash.slice(1))).scrollIntoView(); });
+  document.addEventListener('click', function (ev) { var a = ev.target.closest && ev.target.closest('a[href^="#"]'); if (a && a.hash.length > 1) reveal(a.hash.slice(1)); });
+})();"""
+
 def page():
     # the sections sit in a <div>: common.css moves "main > h2" to the end on phones (a rule for the map pages)
     title = "Ψηφοφόροι εξωτερικού και επιστολική ψήφος"
@@ -677,6 +729,11 @@ def page():
 #m-legend{{display:flex;flex-wrap:wrap;gap:.3em 1em;margin:.5em 0 1em;font-size:14px}}
 #m-legend .k i{{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}}
 main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-bottom:1.5em}} h2{{font-size:var(--h2);margin:var(--space-2xl) 0 var(--space-sm)}} h3{{font-size:var(--h3);margin:var(--space-lg) 0 var(--space-xs)}}
+.sw{{display:grid;gap:var(--space-xs);margin:var(--space-lg) 0 0}} .sw div{{display:flex;flex-wrap:wrap;gap:var(--space-xs)}}
+.sw button{{font:inherit;font-size:var(--t-base);min-height:40px;padding:0 var(--space-md);color:var(--ink);background:none;border:1px solid var(--line);border-radius:20px;cursor:pointer}}
+.sw button:hover{{border-color:var(--ink)}} .sw button[aria-pressed=true]{{color:var(--surface);background:var(--ink);border-color:var(--ink)}}
+.sw button:focus-visible{{outline:2px solid var(--ink);outline-offset:2px}} @media (pointer:coarse){{.sw button{{min-height:44px}}}}
+.view[hidden]{{display:none}} .view>h2:first-child{{margin-top:var(--space-xl)}}
 summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
 @media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}</style></head><body><main id="main">
 {header()}
@@ -690,14 +747,14 @@ summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
 <div id="m-legend"></div>
 {"".join(SECTIONS)}</div>
 {footer(sources='<li>Θέσεις πόλεων: <a href="https://nominatim.openstreetmap.org/" rel="noopener">Nominatim (OpenStreetMap)</a></li>')}</main>
-<script>/*SHARED_JS*/</script><script>{MAP_JS.replace("/*MAPDATA*/null", map_data())}</script></body></html>"""
+<script>/*SHARED_JS*/</script><script>{VIEW_JS}</script><script>{MAP_JS.replace("/*MAPDATA*/null", map_data())}</script></body></html>"""
 
 
 def main():
     for e in ABROAD_ELECTIONS:
-        abroad_section(e)
-    postal_section()
-    nikh_section()
+        view(abroad_section, e, v="kalpi", vl="Εξωτερικό (κάλπη)", e=e.replace("/", "-"), el=ELECTION_NAMES[e])
+    view(postal_section, v="postal", vl="Επιστολική ψήφος")
+    view(nikh_section, v="nikh", vl="ΝΙΚΗ")
     PAGE.write_text(secure(fill(page(), current="abroad"), PAGE), encoding="utf-8")
     print(f"\nwrote {PAGE}", file=sys.stderr)
 

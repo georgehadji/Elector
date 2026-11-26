@@ -263,7 +263,7 @@ main{{max-width:1040px}} p{{color:var(--ink-2);max-width:68ch}} .wrap{{overflow-
 @media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}
 @media (pointer:coarse){{td a{{display:inline-block;padding:13px 0}}}}</style></head><body><main id="main">
 {header()}
-<h1>Κάλυψη χαρτών · {ELECTION_NAMES.get(election, election)}</h1>
+<h1>Κάλυψη χαρτών&nbsp;· {ELECTION_NAMES.get(election, election)}</h1>
 <p>Ε.Δ.: εκλογικά διαμερίσματα · Περιοχές: κοινότητες στον χάρτη · Έδρα: διαμερίσματα που μπήκαν στην κοινότητα-έδρα
 χωρίς αντιστοίχιση ονόματος · Κάλυψη: σταυροί στον χάρτη ως ποσοστό του συνόλου.</p>
 <div class="wrap"><table><thead><tr><th>Περιφέρεια</th><th class="n">Ε.Δ.</th><th class="n">Περιοχές</th><th class="n">Χωρίς χάρτη</th>
