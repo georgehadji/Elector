@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VFbUqEuVE3r2eI+XpxNa8q+r3TuVGhj5L1nHLckeZUI=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-omfyOMHYJGmMwuhe5LVw+Jo0qqiHQJ3qDKNqjl+AXaI=' 'self'; style-src-elem 'sha256-S6w0FC2jv9c5Je9XHvGnZmtCr5/CQX5adogXvuxCk6o=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/forecast.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/forecast.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/site.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/site.png">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VFbUqEuVE3r2eI+XpxNa8q+r3TuVGhj5L1nHLckeZUI=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-omfyOMHYJGmMwuhe5LVw+Jo0qqiHQJ3qDKNqjl+AXaI=' 'self'; style-src-elem 'sha256-FRSbj+cfuV5aj4M1C8BH8F5o2bvimF0inmmnPLAtEw8=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/forecast.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/forecast.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/site.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/site.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων</title>
 <meta name="description" content="Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες Ψήφων"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων"><meta property="og:description" content="Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων."><meta name="twitter:card" content="summary_large_image">
@@ -59,7 +59,7 @@
 /* Site bar: wordmark, the site's pages, theme toggle. Skip link first in tab order. */
 .skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: var(--space-xs) var(--space-sm); color: var(--ink); background: var(--paper, var(--surface)); border: 2px solid var(--ink); }
 .skip:focus { top: 8px; }
-.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-xl); margin: 0 0 var(--space-sm); min-height: 64px; }
+.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-xl); margin: 0 0 var(--space-md); min-height: 64px; }
 /* The bar is the same on every page: it spans the screen whatever holds it (the same trick as the footer) and its content sits
    in one 1100px column, so the wordmark and links never move when the page changes. The gutter keeps a scrollbar from shifting it. */
 html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -105,10 +105,10 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
 }
 @keyframes menu-in { from { opacity: 0; translate: 0 -4px; } }
 /* In-page jump links (abroad): the same bordered pills as the election switcher, so every page shows links to other places one way. */
-.jump { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin: 0 0 var(--space-lg); font-size: var(--t-sm); }
+.jump { display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-xs); margin: 0 0 var(--space-xl); font-size: var(--t-sm); }
 .jump a { display: inline-flex; align-items: center; min-height: 44px; }
 /* Map pages: constituency and its other elections */
-.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2xs) var(--space-md); margin: 0 0 var(--space-md); font-size: var(--t-sm); }
+.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-md); margin: 0 0 var(--space-lg); font-size: var(--t-sm); }
 .ctx nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) 14px; }
 .ctx nav a, .jump a { padding: 0 14px; transition: transform 100ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out; color: var(--ink); font-weight: 600; text-decoration: none; border: 2px solid color-mix(in srgb, var(--ink) 40%, transparent); border-radius: 999px; }
 .ctx nav a:active, .jump a:active { transform: scale(.97); }
@@ -190,7 +190,7 @@ h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
    and controls stay in IBM Plex Sans. Plain paragraphs only: a classed or id'd one is part of a component. */
 :root { --font-text: "Literata", Georgia, serif; }
 main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--font-text); }
-main p:not([class], [id]):not(.site *) { font-size: 1.125rem; line-height: 1.6; }
+main p:not([class], [id]):not(.site *) { font-size: 1.125rem; line-height: 1.7; margin-block: 0 var(--space-md); }
 /* low specificity: any component rule overrides it */
 :where(p, li, dd) { text-wrap: pretty; }
 
