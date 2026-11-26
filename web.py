@@ -49,8 +49,8 @@ FONTS = "".join(f'<link rel="preload" href="fonts/{f}.woff2" as="font" type="fon
                 for f in ("ibm-plex-sans-greek", "ibm-plex-sans-latin", "literata-greek"))  # the @font-face rules are in fonts.css
 MARK = ('<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/>'
         '<path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>')
-NAV = (("index", "index.html", "Περιφέρειες"), ("compare", "compare.html", "Σύγκριση εκλογών"),
-       ("postal", "postal.html", "Επιστολική"), ("abroad", "abroad.html", "Εξωτερικό"), ("forecast", "forecast.html", "Πρόβλεψη"))
+NAV = (("index", "index.html", "Περιφέρειες"), ("postal", "postal.html", "Επιστολική"), ("abroad", "abroad.html", "Εξωτερικό"),
+       ("compare", "compare.html", "Σύγκριση εκλογών"), ("forecast", "forecast.html", "Πρόβλεψη"))
 MONTHS = ("Ιανουαρίου", "Φεβρουαρίου", "Μαρτίου", "Απριλίου", "Μαΐου", "Ιουνίου",
           "Ιουλίου", "Αυγούστου", "Σεπτεμβρίου", "Οκτωβρίου", "Νοεμβρίου", "Δεκεμβρίου")
 
