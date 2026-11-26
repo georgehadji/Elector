@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'self'; style-src-elem 'sha256-XB+yTUN+kLZ4PjtyVe8Xzy+pOkPpRvcO5wpKp8UzOZc=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/nikh_polls.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/nikh_polls.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/nikh.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Η ΝΙΚΗ στις δημοσκοπήσεις"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/nikh.png">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'self'; style-src-elem 'sha256-mZvUJ5OWIvKYzYYD7vmtrcCfhJRLiALisRrhJivqv4Y=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/nikh_polls.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/nikh_polls.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/nikh.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Η ΝΙΚΗ στις δημοσκοπήσεις"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/nikh.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Η ΝΙΚΗ στις δημοσκοπήσεις</title>
 <meta name="description" content="Κάθε δημοσκόπηση για τη ΝΙΚΗ από το 2023, ο μέσος όρος τους και το όριο του 3%."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες Ψήφων"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Η ΝΙΚΗ στις δημοσκοπήσεις"><meta property="og:description" content="Κάθε δημοσκόπηση για τη ΝΙΚΗ από το 2023, ο μέσος όρος τους και το όριο του 3%."><meta name="twitter:card" content="summary_large_image">
@@ -156,14 +156,17 @@ main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--f
 p, li, dd { text-wrap: pretty; }
 
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:.875rem/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-:root{--page:960px}
-main{max-width:var(--page);margin:0 auto;padding:12px 16px 24px}
-h1{font-size:1.25rem;margin:4px 0 6px}
-h2{font-size:.9375rem;margin:14px 0 0}
-.lead{margin:0 0 4px;max-width:68ch}
-.note{color:var(--ink-2);font-size:.78125rem;margin:0 0 10px;max-width:80ch}
-.key{display:flex;flex-wrap:wrap;gap:4px 16px;margin:8px 0 4px;padding:0;list-style:none;font-size:.8125rem;color:var(--ink-2)}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+:root{--page:1040px}
+main{max-width:var(--page);margin:0 auto;padding:var(--space-lg) var(--space-md) 0}
+h1{font-size:clamp(1.75rem,1.1rem + 2.6vw,3rem);line-height:1.1;letter-spacing:-.03em;margin:var(--space-md) 0 var(--space-lg)}
+h2{font-size:1.375rem;line-height:1.3;margin:var(--space-2xl) 0 var(--space-xs)}
+.big{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-2xs) var(--space-md);margin:0 0 var(--space-md)}
+.big b{font-size:clamp(3.5rem,2rem + 6vw,6rem);font-weight:600;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.big span{font-size:1.125rem;color:var(--ink-2)}
+.lead{margin:0 0 var(--space-md);max-width:60ch;font-size:1.25rem;line-height:1.45}
+.note{color:var(--ink-2);font-size:1rem;margin:0 0 var(--space-md);max-width:68ch}
+.key{display:flex;flex-wrap:wrap;gap:4px 16px;margin:var(--space-xs) 0 var(--space-2xs);padding:0;list-style:none;font-size:.875rem;color:var(--ink-2)}
 .key svg{width:22px;height:12px;vertical-align:-1px;margin-right:4px}
 figure{margin:0}
 figure svg{display:block;width:100%;height:auto;overflow:visible}
@@ -190,15 +193,15 @@ main:has(#k-est:not(:checked)) :is(figure,tbody) .est,main:has(#k-sc:not(:checke
 .eday{stroke:var(--ink);stroke-width:1;stroke-dasharray:2 3;opacity:.5}
 .ballot{fill:var(--ink);stroke:var(--paper);stroke-width:2}
 .ballot-l{fill:var(--ink);font-weight:700;paint-order:stroke;stroke:var(--paper);stroke-width:3px;stroke-linejoin:round}
-.res{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;padding:0;list-style:none}
-.res li{display:flex;flex-direction:column;padding:6px 14px 6px 10px;border-left:4px solid var(--ink);background:var(--wash)}
-.res span{font-size:.75rem;color:var(--ink-2)}
-.res b{font-size:1.25rem;font-variant-numeric:tabular-nums;line-height:1.2}
-figcaption{color:var(--ink-2);font-size:.75rem;margin-top:4px}
-details{margin-top:16px}
+.res{display:flex;flex-wrap:wrap;gap:var(--space-sm);margin:var(--space-sm) 0 var(--space-md);padding:0;list-style:none}
+.res li{display:flex;flex-direction:column;padding:var(--space-sm) var(--space-lg) var(--space-sm) var(--space-md);border-left:4px solid var(--ink);background:var(--wash)}
+.res span{font-size:.875rem;color:var(--ink-2)}
+.res b{font-size:1.75rem;font-variant-numeric:tabular-nums;line-height:1.2}
+figcaption{color:var(--ink-2);font-size:.875rem;margin-top:var(--space-xs);max-width:68ch}
+details{margin-top:var(--space-lg)}
 summary{cursor:pointer;color:var(--pen)}
-table{border-collapse:collapse;margin-top:8px;font-size:.8125rem;font-variant-numeric:tabular-nums}
-th,td{padding:3px 12px 3px 0;border-bottom:1px solid var(--line);text-align:left}
+table{border-collapse:collapse;margin-top:var(--space-xs);font-size:.9375rem;font-variant-numeric:tabular-nums}
+th,td{padding:var(--space-xs) var(--space-sm) var(--space-xs) 0;border-bottom:1px solid var(--line);text-align:left}
 th:nth-child(n+4),td:nth-child(n+4){text-align:right}
 @media (max-width:600px){th:nth-child(3),td:nth-child(3){display:none}}
 .rec table{width:100%;max-width:720px}
@@ -206,7 +209,7 @@ th:nth-child(n+4),td:nth-child(n+4){text-align:right}
 .rec th:first-child,.rec td:first-child{text-align:left}
 @media (max-width:600px){.rec th:nth-child(3),.rec td:nth-child(3){display:table-cell}}
 .rec .note{max-width:68ch}
-.rel{font-size:.8125rem;margin:16px 0 0}
+.rel{font-size:.9375rem;margin:var(--space-xl) 0 0}
 a{color:var(--pen)}
 </style>
 </head>
@@ -214,7 +217,8 @@ a{color:var(--pen)}
 <a class="skip" href="#main">Μετάβαση στο περιεχόμενο</a><header class="bar"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</a><nav aria-label="Κύριο μενού"><a href="index.html" aria-current="true">Περιφέρειες</a><a href="compare.html">Σύγκριση εκλογών</a><a href="forecast.html">Πρόβλεψη</a><a href="abroad.html">Εξωτερικό</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header>
 <main id="main">
   <h1>Η ΝΙΚΗ στις δημοσκοπήσεις</h1>
-  <p class="lead">Μέσος όρος των δημοσκοπήσεων στις 19 Νοε 2026: <b>1,4%</b> (90%: 1,1–1,7%). Από τον Σεπτέμβριο 2023, 180 από τις 337 δημοσκοπήσεις έδωσαν 3% ή περισσότερο.</p>
+  <p class="big"><b>1,4%</b><span>μέσος όρος δημοσκοπήσεων, 19 Νοε 2026</span></p>
+  <p class="lead">Με εύρος 90% από 1,1 έως 1,7%. Από τον Σεπτέμβριο 2023, 180 από τις 337 δημοσκοπήσεις έδωσαν 3% ή περισσότερο.</p>
   <h2>Αποτελέσματα εκλογών</h2>
   <ul class="res"><li><span>Μάιος 2023</span><b>2,92%</b></li><li><span>Ιούνιος 2023</span><b>3,70%</b></li><li><span>Ευρωεκλογές 2024</span><b>4,37%</b></li></ul>
   <p class="note">Δημοσκοπήσεις, όχι αποτελέσματα. Οι εταιρείες δεν μετρούν όλες με τον ίδιο τρόπο.
@@ -1056,7 +1060,7 @@ a{color:var(--pen)}
   <p class="rel">Πηγή δημοσκοπήσεων: <a href="https://en.wikipedia.org/wiki/Opinion_polling_for_the_next_Greek_legislative_election" rel="noopener">Wikipedia</a> (CC BY-SA 4.0), με έλεγχο της στήλης της ΝΙΚΗΣ.
     Δες και: <a href="nikh_targets.html">χάρτης στόχευσης</a> · <a href="nikh_2023-2024.html">χάρτης 2019–2024</a></p>
 </main>
-<footer class="site compact"><p class="name"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</p><p class="what">Σταυροί και ποσοστά των κομμάτων ανά κοινότητα και εκλογικό τμήμα, από το 2019 έως το 2024.</p><div class="cols"><div><h3>Χάρτες</h3><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li><li><a href="forecast.html">Πρόβλεψη</a></li><li><a href="abroad.html">Εξωτερικό</a></li><li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div><div><h3>Πηγές</h3><ul><li>Αποτελέσματα: <a href="https://ekloges.ypes.gr/" rel="noopener">Υπουργείο Εσωτερικών</a></li><li>Όρια: <a href="https://www.statistics.gr/" rel="noopener">ΕΛΣΤΑΤ 2021</a></li><li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li></ul></div><div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div></div><p class="built">Ενημέρωση: 25 Νοεμβρίου 2026</p></footer>
+<footer class="site compact"><p class="name"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</p><p class="what">Σταυροί και ποσοστά των κομμάτων ανά κοινότητα και εκλογικό τμήμα, από το 2019 έως το 2024.</p><div class="cols"><div><h3>Χάρτες</h3><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li><li><a href="forecast.html">Πρόβλεψη</a></li><li><a href="abroad.html">Εξωτερικό</a></li><li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div><div><h3>Πηγές</h3><ul><li>Αποτελέσματα: <a href="https://ekloges.ypes.gr/" rel="noopener">Υπουργείο Εσωτερικών</a></li><li>Όρια: <a href="https://www.statistics.gr/" rel="noopener">ΕΛΣΤΑΤ 2021</a></li><li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li></ul></div><div><h3>Σημειώσεις</h3><p>Ανεπίσημα αποτελέσματα. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div></div><p class="built">Ενημέρωση: 26 Νοεμβρίου 2026</p></footer>
 <script>// Pure helpers used by more than one page; inlined into pages by web.fill(). No DOM access at load time.
 // Search: accents and case folded, Greeklish read as Greek, case endings stripped.
 const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();

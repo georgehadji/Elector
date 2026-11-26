@@ -165,8 +165,7 @@ def main():
     polls = polls_2023() + recent
     last_d, last_x, last_s = line[-1]
     above = sum(1 for p in recent if p[3] >= 3)
-    lead = (f"Μέσος όρος των δημοσκοπήσεων στις {day(last_d)}: <b>{num(last_x)}%</b> "
-            f"(90%: {num(last_x - Z90 * last_s)}–{num(last_x + Z90 * last_s)}%). "
+    lead = (f"Με εύρος 90% από {num(last_x - Z90 * last_s)} έως {num(last_x + Z90 * last_s)}%. "
             f"Από τον Σεπτέμβριο 2023, {above} από τις {len(recent)} δημοσκοπήσεις έδωσαν 3% ή περισσότερο.")
     names = dict(KINDS)
     rows = "".join(f'<tr class="{kind(f)}"><td>{day(d)}</td><td>{html.escape(f)}</td><td>{names[kind(f)]}</td>'
@@ -178,7 +177,7 @@ def main():
     results = "".join(f"<li><span>{SHORT[name]}</span><b>{num(y, 2)}%</b></li>" for _, y, name in BALLOTS)
     page = (HERE / "analysis" / "nikh_polls_template.html").read_text(encoding="utf-8")
     for a, b in (("<!--META-->", meta("Η ΝΙΚΗ στις δημοσκοπήσεις", "Κάθε δημοσκόπηση για τη ΝΙΚΗ από το 2023, ο μέσος όρος τους και το όριο του 3%.")),
-                 ("<!--LEAD-->", lead), ("<!--WIDE-->", chart(polls, line, 900, 380, 12, 3, 3)),
+                 ("<!--LEAD-->", lead), ("<!--FIG-->", f"{num(last_x)}%"), ("<!--DATE-->", day(last_d)), ("<!--WIDE-->", chart(polls, line, 900, 380, 12, 3, 3)),
                  ("<!--NARROW-->", chart(polls, line, 360, 300, 10, 2.2, 6)), ("<!--ROWS-->", rows),
                  ("<!--KINDS-->", toggles), ("<!--RESULTS-->", results), ("<!--RECORD-->", record()),
                  ("<!--N-->", str(len(polls))), ("<!--WIKI-->", WIKI)):
