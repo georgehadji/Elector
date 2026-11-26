@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-KUoav6m8/GJqUl4rkKQb00OUwoqJcRRavHMU0NJOCA0=' 'self'; style-src-elem 'sha256-FWmtZy7oLEtnb5xlPbATyUmmT/Cz+X95cOvmzj2TDJc=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/2023-may_45.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2023-may_45.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2023-may_45.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Σταυροί προτίμησης, Αρκαδίας"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2023-may_45.png">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-KUoav6m8/GJqUl4rkKQb00OUwoqJcRRavHMU0NJOCA0=' 'self'; style-src-elem 'sha256-y90raUxmKuZ4u/Hqc2xjKJqdaNiQFs84cLrDnsVf21c=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/2023-may_45.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2023-may_45.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2023-may_45.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Σταυροί προτίμησης, Αρκαδίας"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2023-may_45.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
@@ -173,13 +173,28 @@ h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
 :root { --font-text: "Literata", Georgia, serif; }
 main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--font-text); }
 main p:not([class], [id]):not(.site *) { font-size: 1.125rem; line-height: 1.6; }
-p, li, dd { text-wrap: pretty; }
+/* low specificity: any component rule overrides it */
+:where(p, li, dd) { text-wrap: pretty; }
 
 /* Dropdowns: a firm border and bold text so a closed select reads as a control, not as a line of text */
 select:not([multiple]) { border: 1.5px solid color-mix(in srgb, var(--ink) 55%, transparent); font-weight: 600; cursor: pointer; transition: border-color 150ms ease-out, box-shadow 150ms ease-out; }
 select:not([multiple]):hover { border-color: var(--ink); }
 select:not([multiple]):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { select:not([multiple]) { transition: none; } }
+
+/* Closed <details> on every page: one button-like summary (the index's .fold/.older have their own look). Zero specificity in a low
+   layer: a page's own rule overrides it without a selector fight. */
+@layer components {
+  :where(details:not(.fold, .older)) > summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 14px; font-weight: 600; color: var(--ink);
+    border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); list-style: none; transition: background-color 150ms ease-out; }
+  :where(details:not(.fold, .older)) > summary::-webkit-details-marker { display: none; }
+  :where(details:not(.fold, .older)) > summary::after { content: "+"; flex: none; font-size: 1.375rem; line-height: 1; }
+  :where(details:not(.fold, .older)[open]) > summary::after { content: "−"; }
+  :where(details:not(.fold, .older)[open]) > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  :where(details:not(.fold, .older)) > summary:hover { background: color-mix(in srgb, var(--ink) 12%, var(--paper, var(--surface))); }
+  :where(details:not(.fold, .older)) > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { :where(details) > summary { transition: none; } }
 
 h2 { font-size: var(--t-base); margin: 0 0 8px; }
 a { color: var(--link); }
@@ -227,14 +242,14 @@ button { cursor: pointer; }
 table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: var(--space-xs) var(--space-sm); border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--ink-2); font-weight: 600; font-size: var(--t-sm); position: sticky; top: 0; background: var(--surface); z-index: 1; }
-th button { all: unset; cursor: pointer; display: inline-block; min-height: 24px; }
+th button { padding: 0; font: inherit; color: inherit; background: none; border: 0; border-radius: 0; text-align: inherit; cursor: pointer; display: inline-block; min-height: 24px; }
 th button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 th[aria-sort="ascending"] button::after { content: " ▲"; font-size: var(--t-xs); }
 th[aria-sort="descending"] button::after { content: " ▼"; font-size: var(--t-xs); }
 td.n, th.n { text-align: right; }
 tbody tr:hover { background: var(--chip); }
 tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
-.rowlink { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
+.rowlink { padding: 0; font: inherit; color: inherit; background: none; border: 0; border-radius: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
 .rowlink:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .m { color: var(--ink-2); }
 .tablewrap { max-height: 520px; overflow: auto; }
