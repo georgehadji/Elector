@@ -570,6 +570,68 @@ def record():
             f'μετράνε λίγο περισσότερο οι πιο κοντινές: {tested}</p></section>')
 
 
+MODELS_JSON = HERE / "analysis" / "forecast_models.json"
+METHOD_EL = {"CATI": "τηλέφωνο", "MIXED": "τηλέφωνο και διαδίκτυο", "CAWI": "διαδίκτυο", "IVR": "αυτόματες κλήσεις",
+             "UNKNOWN": "μέθοδος άγνωστη"}
+
+
+def models(names, order):
+    """Chapter of the two other forecasts (forecast_models.py): polls corrected by each firm's, method's and party's past
+    ballot / poll coefficient (A), and polls weighted by how close that firm and method fell for that party (B), beside the
+    forecast. Empty if the file is missing."""
+    if not MODELS_JSON.exists():
+        return ""
+    d = json.loads(MODELS_JSON.read_text(encoding="utf-8"))
+    M = d["models"]
+    keys = ("base", "coef", "weights")
+    head = ('<thead><tr><th>κόμμα</th><th class="n">πρόβλεψη</th><th class="n">Α. διόρθωση</th>'
+            '<th class="n">Β. βάρη</th></tr></thead>')
+    span = lambda s: f'{num(s[1])}% <span class="pf">({num(s[0])}–{num(s[2])})</span>'
+    rows = "".join(f'<tr><td>{html.escape(names[p])}</td>' + "".join(f'<td class="n">{span(M[k]["shares"][p])}</td>' for k in keys)
+                   + "</tr>" for p in order if p in M["base"]["shares"])
+    seat_rows = "".join(f'<tr><td>{html.escape(names[p])}</td>' + "".join(f'<td class="n">{M[k]["seats"].get(p, 0)}</td>' for k in keys)
+                        + "</tr>" for p in order if any(M[k]["seats"].get(p) for k in keys))
+    probs = (("p_nd_majority", "ΝΔ μόνη της 151 έδρες"), ("p_nd_pasok_151", "ΝΔ και ΠΑΣΟΚ μαζί 151"),
+             ("p_nd_elas_151", "ΝΔ και ΕΛΑΣ μαζί 151"), ("p_bonus", "πρώτο κόμμα με 25% και πάνω (μπόνους)"))
+    prob_rows = "".join(f'<tr><td>{lab}</td>' + "".join(f'<td class="n">{pct(M[k]["rates"][key])}</td>' for k in keys) + "</tr>"
+                        for key, lab in probs)
+    shown = [p for p in order if p in d["coef"] and any(abs(v - 1) > 0.005 for v in d["coef"][p].values())][:9]
+    firms = sorted(next(iter(d["coef"].values())))
+    k_rows = "".join(f'<tr><td>{html.escape(f.split("|")[0])} <span class="pf">({METHOD_EL[f.split("|")[1]]})</span></td>'
+                     + "".join(f'<td class="n">{num(d["coef"][p][f], 2)} / {num(d["weight"][p][f], 2)}</td>' for p in shown) + "</tr>"
+                     for f in firms)
+    # which parties the correction moves by half a point or more, said from the data so the words follow the polls
+    delta = {p: M["coef"]["shares"][p][1] - M["base"]["shares"][p][1] for p in order if p in M["base"]["shares"]}
+    nm = lambda ps: ", ".join(names[p] for p in ps[:-1]) + " και " + names[ps[-1]] if len(ps) > 1 else names[ps[0]]
+    up, down = [p for p in delta if delta[p] >= 0.5], [p for p in delta if delta[p] <= -0.5]
+    moved = "".join(f"Η διόρθωση {verb} {'τα κόμματα' if len(ps) > 1 else 'το κόμμα'} {nm(ps)} μισή μονάδα ή περισσότερο. "
+                    for verb, ps in (("ανεβάζει", up), ("κατεβάζει", down)) if ps)
+    k_head = "<thead><tr><th>εταιρεία (μέθοδος)</th>" + "".join(f'<th class="n">{html.escape(names[p])}</th>' for p in shown) + "</tr></thead>"
+    return ('<h2>Δύο άλλοι τρόποι να μετρήσουμε τις δημοσκοπήσεις</h2>'
+            '<p class="note">Η πρόβλεψη βγαίνει από τον μέσο όρο των δημοσκοπήσεων και κάθε δημοσκόπηση μετράει το ίδιο. Εδώ '
+            'δοκιμάζουμε δύο άλλους τρόπους με τα ίδια δεδομένα. Και οι δύο στηρίζονται στο πόσο απείχαν οι δημοσκοπήσεις κάθε '
+            'εταιρείας από το αποτέλεσμα στις εθνικές εκλογές από το 2007 έως το 2023, χωριστά για κάθε κόμμα και για κάθε μέθοδο '
+            'έρευνας: με τηλέφωνο, με τηλέφωνο και διαδίκτυο μαζί, ή μόνο με διαδίκτυο.</p>'
+            '<p class="note"><b>Α. Διόρθωση.</b> Κάθε δημοσκόπηση πολλαπλασιάζεται με έναν συντελεστή: το αποτέλεσμα που πήρε το '
+            'κόμμα διά το ποσοστό που του έδινε η εταιρεία με την ίδια μέθοδο. Συντελεστής 1,10 σημαίνει ότι το κόμμα πήρε στην '
+            'κάλπη 10% περισσότερο από όσο έδειχνε η εταιρεία. <b>Β. Βάρη.</b> Οι αριθμοί μένουν όπως δημοσιεύτηκαν, αλλά στον μέσο όρο '
+            'μετράνε περισσότερο οι εταιρείες που για εκείνο το κόμμα έπεσαν πιο κοντά από τις άλλες στις ίδιες εκλογές. Βάρος 2 '
+            'σημαίνει ότι η δημοσκόπηση μετράει διπλά, βάρος 0,5 μισή.</p>'
+            '<h3>Ποσοστά</h3><p class="note">Το πιθανότερο ποσοστό και, σε παρένθεση, το εύρος όπου πέφτει 8 φορές στις 10, '
+            'για εκλογές σήμερα.</p>'
+            f'<div class="wrap"><table>{head}<tbody>{rows}</tbody></table></div>'
+            f'<h3>Έδρες και πιθανότητες</h3><div class="wrap"><table>{head}<tbody>{seat_rows}{prob_rows}</tbody></table></div>'
+            f'<p class="note">Οι διαφορές από την πρόβλεψη είναι μικρές μπροστά στα εύρη. {moved}Η μέθοδος έρευνας αλλάζει '
+            'τους συντελεστές λίγο: για τα μεγάλα κόμματα έως 2% πάνω ή κάτω, για μερικά μικρότερα έως 8%. Τα κόμματα '
+            'χωρίς προηγούμενες εκλογές (ΕΛΑΣ, Ελπίδα, Συμμαχία Ελλήνων) μένουν όπως στην πρόβλεψη. Η διόρθωση φέρνει μαζί και λάθη '
+            'που έκαναν όλες οι εταιρείες μαζί σε μία εκλογή και δεν είναι βέβαιο ότι θα ξαναγίνουν. Δεν μετράμε τις ευρωεκλογές: '
+            'και στις τρεις (2014, 2019, 2024) το κόμμα της κυβέρνησης πήρε λιγότερα από τις δημοσκοπήσεις, ενώ στις εθνικές '
+            'εκλογές αυτό δεν έγινε σταθερά. Οι έδρες είναι οι εθνικές, χωρίς κατανομή στις περιφέρειες.</p>'
+            + fold('Συντελεστής / βάρος κάθε εταιρείας που δημοσκοπεί σήμερα',
+                   '<p class="note">Με τη μέθοδο της τελευταίας της δημοσκόπησης. Πρώτος αριθμός ο συντελεστής της διόρθωσης, δεύτερος '
+                   'το βάρος.</p>' f'<div class="wrap"><table>{k_head}<tbody>{k_rows}</tbody></table></div>'))
+
+
 SAM_JSON = HERE / "analysis" / "samaras.json"
 
 
@@ -1033,6 +1095,7 @@ def body(data, order, tail=""):
         chapter("seats", "Έδρες", 85, hz(seats)),
         chapter("regions", "Περιφέρειες", 145, section),
         chapter("scenario", "Σενάριο Σαμαρά", 15, sam),
+        chapter("models", "Άλλοι δύο τρόποι", 320, models(names, order)),
         chapter("method", "Δημοσκοπήσεις και μέθοδος", 260, rules(data) + backtest_html() + tail, quiet=True),
     ]
     return {k: (c, lab, h) for c, (k, lab, h) in chapters}, {"regions": css, "scenario": sam_css}  # html by chapter key; css of the chapters that bring their own
@@ -1050,11 +1113,11 @@ PAGES = [
     {"file": "forecast_regions.html", "chapters": ["regions"], "h1": "Έδρες ανά περιφέρεια", "lead": False, "when": True,
      "title": "Πρόβλεψη: έδρες ανά εκλογική περιφέρεια",
      "desc": "Πόσες έδρες παίρνει κάθε κόμμα σε κάθε εκλογική περιφέρεια και ποιες έδρες είναι αμφίρροπες."},
-    {"file": "forecast_scenarios.html", "chapters": ["scenario", "method"], "h1": "Σενάρια και μέθοδος", "lead": False, "when": False,
-     "title": "Πρόβλεψη: σενάριο Σαμαρά, δημοσκοπήσεις και μέθοδος",
-     "desc": "Το σενάριο ενός νέου κόμματος του Σαμαρά, οι δημοσκοπήσεις ανά εταιρεία και πώς βγαίνουν οι αριθμοί."},
+    {"file": "forecast_scenarios.html", "chapters": ["scenario", "models", "method"], "h1": "Σενάρια και μέθοδος", "lead": False, "when": False,
+     "title": "Πρόβλεψη: σενάριο Σαμαρά, δύο άλλα μοντέλα, δημοσκοπήσεις και μέθοδος",
+     "desc": "Το σενάριο ενός νέου κόμματος του Σαμαρά, δύο άλλοι τρόποι μέτρησης των δημοσκοπήσεων, οι δημοσκοπήσεις ανά εταιρεία και πώς βγαίνουν οι αριθμοί."},
 ]
-LABELS = {"151": "Αυτοδυναμία", "shares": "Ποσοστά", "seats": "Έδρες", "regions": "Περιφέρειες", "scenario": "Σενάριο Σαμαρά",
+LABELS = {"151": "Αυτοδυναμία", "shares": "Ποσοστά", "seats": "Έδρες", "regions": "Περιφέρειες", "scenario": "Σενάριο Σαμαρά", "models": "Άλλοι δύο τρόποι",
           "method": "Δημοσκοπήσεις και μέθοδος"}
 
 

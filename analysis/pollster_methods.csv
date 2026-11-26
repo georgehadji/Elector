@@ -1,0 +1,56 @@
+firm,from,to,mode,notes,source_url,source_date
+Alco,2007,2023-04,CATI,"inferred: telephone interviews; thesis (Univ. of Athens 2018): CATI used by Greek pollsters since 2004 (VPRC first, then all firms)",https://pergamos.lib.uoa.gr/uoa/dl/object/2815471/file.pdf,2018-07
+Alco,2023-05,2025-08,CATI,"Alco president 2023: numbers generated and interviews via online-linked systems, reaching people not only by landline; no separate web sample named; no per-poll sheet found for 2023-05..2025-08, treated as CATI (inferred)",https://www.iefimerida.gr/politiki/dimoskopisi-o-panagopoylos-tis-alco-sto-iefimerida,2023-05-13
+Alco,2025-09,,MIXED,"CATI + electronic questionnaire (Alpha polls, n=1000); polls for other clients can be CATI only (flash.gr Nov 2026), so mode varies by client",https://www.parapolitika.gr/politiki/article/1565215/dimoskopisi-alco-protia-gia-ti-nd-me-247-derbi-gia-ti-deuteri-thesi/,2025-09
+Alco,2026-11,2026-11,CATI,flash.gr poll 13-17 Nov 2026 telephone only (per-client exception),https://newsit.gr/politikh/dimoskopisi-alco-nd-23-7-elas-13-5-pasok-11-3-ti-lene-oi-polites-gia-samara-kai-kasidiari/4826428,2026-11
+Metron Analysis,2007,2012,CATI,"inferred; thesis (Univ. of Athens 2018): CATI used by Greek pollsters since 2004 (VPRC first, then all firms)",https://pergamos.lib.uoa.gr/uoa/dl/object/2815471/file.pdf,2018-07
+Metron Analysis,2013,2020,CATI,"inferred from neighbours: CATI telephone RDD in Jan 2021, mixed design only from Nov 2021",https://www.dianeosis.org/wp-content/uploads/2021/01/presentation_fanaras_january_2021.pdf,2021-01
+Metron Analysis,2021-01,2021-10,CATI,"telephone CATI RDD 70% landline/30% mobile, n=1205 (Dianeosis survey)",https://www.dianeosis.org/wp-content/uploads/2021/01/presentation_fanaras_january_2021.pdf,2021-01
+Metron Analysis,2021-11,,MIXED,"CATI RDD (landline+mobile, ~75%) + online panel quota sample (~25%); 2022-11: 962 phone+340 online; 2023-11: 1000+303; 2025-03: 1001+308; 2021-11 wave reported 1201+302 (search summary of Mega pdf)",https://www.iefimerida.gr/sites/default/files/2023-11/metron-november2023.pdf,2023-11
+GPO,2007,2012,CATI,"inferred; thesis (Univ. of Athens 2018): CATI used by Greek pollsters since 2004 (VPRC first, then all firms)",https://pergamos.lib.uoa.gr/uoa/dl/object/2815471/file.pdf,2018-07
+GPO,2013,2020,CATI,"phone interviews with CATI system, structured questionnaire (Mega Anatropi 2013-10; Parapolitika 2020-05 per search summary); 2014-2019 inferred",https://www.tanea.gr/files/1/2013/Anatropi7102013.pdf,2013-10-07
+GPO,2021,2025-05,UNKNOWN,no methodology sheet found between 2020 and mid-2025; date of change to mixed not established,,
+GPO,2025-06,,MIXED,"CATI 70% + online panel (CAWI) 30%, n=1000 (Parapolitika June 2025); Feb 2026 and Jul 2026 sheets: 65% CATI / 35% online panel",https://www.naftemporiki.gr/wp-content/uploads/2025/06/dimoskopisi.pdf,2025-06
+MRB,2007,2018,UNKNOWN,"MRB TASEIS barometer historically in-person; TV polls likely CATI, no dated sheet found",,
+MRB,2019,2021,MIXED,"CATI (random dialing) + CAWI panel (KAS poll May 2019, n=1001); a 2021 MRB poll for thetoc reported as CATI only (search summary, not verified)",https://www.in.gr/wp-content/uploads/2019/05/Poll_findings_European_Elections_MRB___Konrad_Adenauer_Stiftung_Greece.pdf,2019-05
+MRB,2022-06,2024-07,MIXED,TASEIS barometer n=2000: 1000 face-to-face at home + 1000 CAWI (June 2022); same design July 2024,https://www.enikos.gr/wp-content/uploads/2022/07/%CE%A3%CE%A5%CE%9D%CE%9F%CE%A0%CE%A4%CE%99%CE%9A%CE%97-%CE%A0%CE%91%CE%A1%CE%9F%CE%A5%CE%A3%CE%99%CE%91%CE%A3%CE%97-%CE%95%CE%A5%CE%A1%CE%97%CE%9C%CE%91%CE%A4%CE%A9%CE%9D-%CE%A4%CE%91%CE%A3%CE%95%CE%99%CE%A3-%CE%99%CE%9F%CE%A5%CE%9D%CE%99%CE%9F%CE%A3-2022.pdf,2022-07-07
+MRB,2024-08,,MIXED,"OPEN polls: CATI + online (CAWI), n=1000 (2026 report); TASEIS face-to-face + CAWI (2024-07 sheet https://air.euro2day.gr/media/files/1475716-mrb.pdf)",https://www.greece2day.org/3371497_dimoskopisi-mrb-statheres-i-nd-kai-i-el-as-kerdi-gia-to-pasok-megali-ptosi-gia-karistianou,2026
+Pulse RC,2007,2018,CATI,"inferred; thesis (Univ. of Athens 2018): CATI used by Greek pollsters since 2004 (VPRC first, then all firms)",https://pergamos.lib.uoa.gr/uoa/dl/object/2815471/file.pdf,2018-07
+Pulse RC,2019,2021-07,CATI,"enhanced C.A.T.I./C.A.S.I., structured electronic questionnaire, n~1300 (SKAI sheet July 2021; 2019 sheets similar per search summary)",https://www.skai.gr/sites/default/files/attachments/2021-07/%CE%94%CE%97%CE%9C%CE%9F%CE%A3%CE%9A%CE%9F%CE%A0%CE%97%CE%A3%CE%97%20%CE%A3%CE%9A%CE%91%CE%AA%20%CE%99%CE%9F%CE%A5%CE%9B%CE%99%CE%9F%CE%A3.pdf,2021-07
+Pulse RC,2021-08,2023-09,UNKNOWN,change from CATI to CATI+CAWI happened between 2021-07 and 2023-10; date not found,,
+Pulse RC,2023-10,,MIXED,"telephone (enhanced CATI/CASI) + web/online CAWI, n~1100-1200; Sept 2026 phone and online",https://www.skai.gr/sites/default/files/attachments/2023-10/%CE%94%CE%97%CE%9C%CE%9F%CE%A3%CE%9A%CE%9F%CE%A0%CE%97%CE%A3%CE%97%20311023.pdf,2023-10-31
+Marc,2007,2020,CATI,"inferred; Marc lists telephone CATI research among its services; thesis (Univ. of Athens 2018): CATI used by Greek pollsters since 2004 (VPRC first, then all firms)",https://www.marc.gr/page.php?id=10&lang=1&sub1=2,
+Marc,2021,2021,CATI,"Marc states its ANT1 poll used telephone interviews by trained interviewers, n=1200 households",https://www.marc.gr/files/researches/%CE%91%CE%9D%CE%91%CE%9A%CE%9F%CE%99%CE%9D%CE%A9%CE%A3%CE%97%20MARC.pdf,2021
+Marc,2022,,UNKNOWN,no methodology sheet found for recent Marc/ANT1 polls (n=1100-1300); mode not stated in media reports,,
+Interview,2007,2021,UNKNOWN,firm polls from ~2018; no dated sheet found before 2022,,
+Interview,2022-05,2025-12,MIXED,"phone (landline+mobile, random numbers) + online panel, electronic questionnaire (2022-05 n=1485 per search summary; 2023-01; 2024-02; 2024-08 n=2805 with phone boost; 2025-06 n=1825)",https://air.euro2day.gr/media/files/1475803-POLITIC_GR.pdf,2024-08
+Interview,2026-01,,CAWI,"online survey via Interview web panel only, n=3129-3519 (Politic.gr Jan, Feb, Jun 2026)",https://www.thetoc.gr/Content/RelatedFiles/d7/d7a03958c28b4f2389403018dd1d3724.pdf,2026-01
+Public Issue,2007,2013,CATI,"nationwide telephone survey, n~1000-1030 (Barometer Oct 2009, Sep 2013); CATI inferred from telephone",https://www.publicissue.gr/varometro-oct-2009/,2009-10-16
+Public Issue,2014,2019,CATI,"telephone surveys n~1000 (2018, Feb 2019 elections poll)",https://www.newsit.gr/wp-content/uploads/2019/02/publicissue_ekloges022019.pdf,2019-02
+Public Issue,2020,,UNKNOWN,no recent methodology sheet found,,
+Kapa Research,2007,2024,UNKNOWN,no vote-intention methodology sheet found,,
+Kapa Research,2025-09,,MIXED,"Sept 2025 national opinion survey: 714 CATI + 581 CAWI (own panel); not a vote-intention poll, extended by inference",https://gr.boell.org/sites/default/files/2025-10/polites-kai-politeia-empistosyni-anisotita-eykairion-politiki-symmetohi.pdf,2025-10
+Rass,2014,2019,CATI,"CATI from own call centre, OTE directory frame, n~1000 (2014-10, 2018-03, 2019-06)",https://www.newsit.gr/wp-content/uploads/2019/07/dimoskopisirass.pdf,2019-06
+Rass,2020,2022,CATI,"CATI (Converso), Attica poll 2022-12 (2020-2021 inferred)",https://www.thetoc.gr/Content/RelatedFiles/45/45905cc929a0447892673ccb164acbbb.pdf,2022-12
+Rass,2023-06,,MIXED,"CATI 803 (587 landline+216 mobile) + 202 online, n=1005 (June 2023); later years not checked",https://www.iefimerida.gr/sites/default/files/2023-06/RASS_report_IEFIMERIDA.pdf,2023-06
+VPRC,2004,2013,CATI,telephone interviews at households with random numbers (2004 Kathimerini poll; 2013 TVXS sheet); VPRC introduced telephone mode in Greece in 2004,https://eleftheriaonline.gr/pdf/TAFTOTITA.pdf,2013
+VPRC,2014,,UNKNOWN,no recent sheet found,,
+Opinion Poll,2007,2022-11,UNKNOWN,firm polls from ~2019; no earlier sheet found,,
+Opinion Poll,2022-12,,MIXED,"CATI (RDD landline+mobile) + CAWI web panel, ~700 phone + 300 online (Dec 2022, Jan 2024, Dec 2024, Sep 2025)",https://www.protothema.gr/files/2025-09-11/dimoskopisi-opinion-poll.pdf,2025-09-11
+ProRata,2014,2022,UNKNOWN,no sheet found before 2023,,
+ProRata,2023-01,,MIXED,"mixed model CATI + CAWI, structured questionnaire, n=1000 (Attica TV)",https://air.euro2day.gr/media/files/1475301-PRORATA.pdf,2023-01
+Palmos Analysis,2013,2017,CATI,"telephone CATI, stratified sample n~1000 (TVXS 2014-05; 2016 and 2017 TVXS polls telephone per search summary)",https://eclass.uoa.gr/modules/document/file.php/MEDIA237/Dimoskopiseis/Palmos_Analysis_TVXS_03-05-2014.pdf,2014-05-03
+Palmos Analysis,2018,,UNKNOWN,"firm website lists call centre, online panel and CAPI; mode of recent polls not found",https://palmosanalysis.com/en/?p=537,
+PAMAK,2015,2017,CATI,"quantitative telephone interviews, structured questionnaire, n~1100 for SKAI (sheet Nov 2017)",https://www.iefimerida.gr/sites/default/files/archive-files/dimoskopisi_0.pdf,2017-11-16
+Real Polls,2023,,UNKNOWN,"dates and samples (n=1358-1894) known, mode not stated in found sources",,
+Metrisi,2015,2015,CATI,"telephone interviews, n~1008-1108 (Jan 2015; Apr 2015)",https://www.dnews.gr/ekloges-2015/48712/kleinei-i-psalida-se-dimoskopisi-tis-metrisi,2015-01
+Metrisi,2016,,UNKNOWN,later polls not documented,,
+E-Voice,2014,2014,IVR,"automated electronic phone interviews (E-Talk), published numbers, n=1016 (Paraskinio 2014-05)",https://eclass.uoa.gr/modules/document/file.php/MEDIA237/Dimoskopiseis/EVOICE_PARASKINIO_2-05-14.pdf,2014-05-02
+Good Affairs,2024,,CAWI,"online questionnaires from designed web panel, n>2000 (To Vima; Mar 2025 poll; May 2024 Euro study)",https://www.parapolitika.gr/politiki/article/1530242/dimoskopisi-goodaffairs-statheri-dipsifia-diafora-gia-ti-nd-mahi-trion-kommaton-gia-ti-deuteri-thesi-me-molis-duo-monades-diafora/,2025-03
+AUEB-STAT,2012,2015,UNKNOWN,"large samples (1731 in 2012, 5593-6589 in 2015); mode not found",,
+Focus,2007,,UNKNOWN,no source found,,
+Bridging Europe,2015,,UNKNOWN,July 2015 nationwide poll; mode not stated in found text,https://www.ertopen.com/show/item/35699-bridging-europe-nationwide-poll-on-latest-political-developments-in-greece-july-2015,2015-07
+Vox Pop Analysis,2018,,UNKNOWN,registered with ESR 2018; no methodology found,,
+Data RC,2015,2015,CATI,"telephone interviews, n=1025 for Peloponnisos (Jan 2015); CATI inferred from telephone",https://www.dnews.gr/ekloges-2015/47689/nea-dimoskopisi-dinei-provadisma-4-5-ston-syriza,2015-01
+ToThePoint,2025,,UNKNOWN,"samples known (1224-1284), mode not found",,
+Data Consultants,2022,2022,CATI,"telephone interviews, semi-structured questionnaire, households (28/3-15/4/2022); CATI inferred from telephone",https://www.tanea.gr/2022/04/19/politics/dimoskopisi-se-monopsifio-pososto-i-diafora-nd-syriza-ti-ginetai-me-to-kinal/,2022-04-19

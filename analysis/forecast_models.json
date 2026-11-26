@@ -1,0 +1,867 @@
+{
+ "n": 10000,
+ "models": {
+  "base": {
+   "shares": {
+    "ND": [
+     25.43,
+     28.95,
+     32.84
+    ],
+    "ELAS": [
+     13.1,
+     15.57,
+     18.38
+    ],
+    "PASOK": [
+     11.17,
+     13.45,
+     16.03
+    ],
+    "EL": [
+     5.42,
+     6.9,
+     8.76
+    ],
+    "KKE": [
+     5.4,
+     6.85,
+     8.6
+    ],
+    "PE": [
+     3.53,
+     4.78,
+     6.38
+    ],
+    "ELPIDA": [
+     3.21,
+     4.43,
+     5.98
+    ],
+    "FL": [
+     2.68,
+     3.71,
+     5.01
+    ],
+    "SE": [
+     2.84,
+     3.82,
+     5.03
+    ],
+    "MERA25": [
+     2.01,
+     2.82,
+     3.95
+    ],
+    "SYRIZA": [
+     1.37,
+     2.18,
+     3.3
+    ],
+    "NIKI": [
+     0.79,
+     1.3,
+     2.1
+    ],
+    "DIMOKRATES": [
+     0.5,
+     0.95,
+     1.67
+    ],
+    "SPARTIATES": [
+     0.43,
+     0.9,
+     1.64
+    ],
+    "NEA_ARISTERA": [
+     0.21,
+     0.54,
+     1.15
+    ]
+   },
+   "seats": {
+    "ND": 117,
+    "ELAS": 48,
+    "PASOK": 42,
+    "EL": 22,
+    "KKE": 22,
+    "PE": 14,
+    "ELPIDA": 13,
+    "FL": 11,
+    "SE": 11
+   },
+   "p_in": {
+    "ND": 1.0,
+    "ELAS": 1.0,
+    "PASOK": 1.0,
+    "EL": 1.0,
+    "KKE": 1.0,
+    "PE": 0.9738,
+    "ELPIDA": 0.9399,
+    "FL": 0.7969,
+    "SE": 0.8495,
+    "MERA25": 0.4118,
+    "SYRIZA": 0.1638,
+    "NIKI": 0.0119,
+    "DIMOKRATES": 0.0028,
+    "SPARTIATES": 0.0033,
+    "NEA_ARISTERA": 0.001
+   },
+   "rates": {
+    "p_nd_majority": 0.0055,
+    "p_bonus": 0.9234,
+    "p_nd_pasok_151": 0.6693,
+    "p_nd_elas_151": 0.8254,
+    "p_pasok_elas_151": 0.0,
+    "p_nd_pasok_elas_151": 0.9999,
+    "p_nd_30": 0.3611
+   }
+  },
+  "coef": {
+   "shares": {
+    "ND": [
+     24.92,
+     28.42,
+     32.26
+    ],
+    "ELAS": [
+     13.12,
+     15.58,
+     18.4
+    ],
+    "PASOK": [
+     10.01,
+     12.14,
+     14.56
+    ],
+    "EL": [
+     5.97,
+     7.55,
+     9.5
+    ],
+    "KKE": [
+     5.19,
+     6.6,
+     8.3
+    ],
+    "PE": [
+     3.79,
+     5.18,
+     6.9
+    ],
+    "ELPIDA": [
+     3.22,
+     4.44,
+     5.98
+    ],
+    "FL": [
+     2.82,
+     3.86,
+     5.18
+    ],
+    "SE": [
+     2.84,
+     3.82,
+     5.03
+    ],
+    "MERA25": [
+     1.9,
+     2.69,
+     3.79
+    ],
+    "SYRIZA": [
+     1.32,
+     2.13,
+     3.24
+    ],
+    "NIKI": [
+     1.17,
+     1.81,
+     2.72
+    ],
+    "DIMOKRATES": [
+     0.6,
+     1.07,
+     1.83
+    ],
+    "SPARTIATES": [
+     0.68,
+     1.25,
+     2.1
+    ],
+    "NEA_ARISTERA": [
+     0.33,
+     0.69,
+     1.31
+    ]
+   },
+   "seats": {
+    "ND": 115,
+    "ELAS": 49,
+    "PASOK": 38,
+    "EL": 24,
+    "KKE": 20,
+    "PE": 16,
+    "ELPIDA": 14,
+    "FL": 12,
+    "SE": 12
+   },
+   "p_in": {
+    "ND": 1.0,
+    "ELAS": 1.0,
+    "PASOK": 1.0,
+    "EL": 1.0,
+    "KKE": 1.0,
+    "PE": 0.9858,
+    "ELPIDA": 0.9408,
+    "FL": 0.8459,
+    "SE": 0.8487,
+    "MERA25": 0.3433,
+    "SYRIZA": 0.148,
+    "NIKI": 0.0574,
+    "DIMOKRATES": 0.0056,
+    "SPARTIATES": 0.0117,
+    "NEA_ARISTERA": 0.0014
+   },
+   "rates": {
+    "p_nd_majority": 0.0041,
+    "p_bonus": 0.8939,
+    "p_nd_pasok_151": 0.5091,
+    "p_nd_elas_151": 0.8011,
+    "p_pasok_elas_151": 0.0,
+    "p_nd_pasok_elas_151": 0.9999,
+    "p_nd_30": 0.2939
+   }
+  },
+  "weights": {
+   "shares": {
+    "ND": [
+     24.92,
+     28.39,
+     32.24
+    ],
+    "ELAS": [
+     13.13,
+     15.6,
+     18.41
+    ],
+    "PASOK": [
+     10.71,
+     12.93,
+     15.45
+    ],
+    "EL": [
+     5.46,
+     6.96,
+     8.82
+    ],
+    "KKE": [
+     5.48,
+     6.94,
+     8.68
+    ],
+    "PE": [
+     3.67,
+     4.94,
+     6.55
+    ],
+    "ELPIDA": [
+     3.23,
+     4.44,
+     5.98
+    ],
+    "FL": [
+     2.82,
+     3.86,
+     5.18
+    ],
+    "SE": [
+     2.85,
+     3.82,
+     5.03
+    ],
+    "MERA25": [
+     1.99,
+     2.81,
+     3.94
+    ],
+    "SYRIZA": [
+     1.38,
+     2.19,
+     3.3
+    ],
+    "NIKI": [
+     0.96,
+     1.51,
+     2.35
+    ],
+    "DIMOKRATES": [
+     0.6,
+     1.08,
+     1.84
+    ],
+    "SPARTIATES": [
+     0.41,
+     0.84,
+     1.55
+    ],
+    "NEA_ARISTERA": [
+     0.33,
+     0.69,
+     1.31
+    ]
+   },
+   "seats": {
+    "ND": 115,
+    "ELAS": 49,
+    "PASOK": 41,
+    "EL": 21,
+    "KKE": 21,
+    "PE": 15,
+    "ELPIDA": 14,
+    "FL": 12,
+    "SE": 12
+   },
+   "p_in": {
+    "ND": 1.0,
+    "ELAS": 1.0,
+    "PASOK": 1.0,
+    "EL": 1.0,
+    "KKE": 1.0,
+    "PE": 0.9808,
+    "ELPIDA": 0.9406,
+    "FL": 0.8474,
+    "SE": 0.8498,
+    "MERA25": 0.4054,
+    "SYRIZA": 0.1643,
+    "NIKI": 0.0218,
+    "DIMOKRATES": 0.0056,
+    "SPARTIATES": 0.0026,
+    "NEA_ARISTERA": 0.0014
+   },
+   "rates": {
+    "p_nd_majority": 0.0035,
+    "p_bonus": 0.894,
+    "p_nd_pasok_151": 0.5657,
+    "p_nd_elas_151": 0.7861,
+    "p_pasok_elas_151": 0.0,
+    "p_nd_pasok_elas_151": 0.9999,
+    "p_nd_30": 0.2914
+   }
+  }
+ },
+ "coef": {
+  "ND": {
+   "Metron Analysis|MIXED": 1.029,
+   "Opinion Poll|MIXED": 1.007,
+   "Pulse RC|MIXED": 1.006,
+   "Alco|CATI": 0.981,
+   "MRB|MIXED": 0.984,
+   "ProRata|MIXED": 1.036,
+   "GPO|MIXED": 1.006,
+   "Marc|UNKNOWN": 1.005,
+   "Real Polls|UNKNOWN": 1.009,
+   "Interview|CAWI": 0.99,
+   "Palmos Analysis|UNKNOWN": 0.989,
+   "Good Affairs|CAWI": 0.99,
+   "Kapa Research|UNKNOWN": 0.989,
+   "Data Consultants|UNKNOWN": 0.99,
+   "N. Kardoulas|UNKNOWN": 0.99
+  },
+  "ELAS": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "PASOK": {
+   "Metron Analysis|MIXED": 0.911,
+   "Opinion Poll|MIXED": 0.941,
+   "Pulse RC|MIXED": 0.947,
+   "Alco|CATI": 0.946,
+   "MRB|MIXED": 0.987,
+   "ProRata|MIXED": 0.951,
+   "GPO|MIXED": 0.947,
+   "Marc|UNKNOWN": 0.911,
+   "Real Polls|UNKNOWN": 0.914,
+   "Interview|CAWI": 0.942,
+   "Palmos Analysis|UNKNOWN": 0.854,
+   "Good Affairs|CAWI": 0.942,
+   "Kapa Research|UNKNOWN": 0.909,
+   "Data Consultants|UNKNOWN": 0.942,
+   "N. Kardoulas|UNKNOWN": 0.942
+  },
+  "EL": {
+   "Metron Analysis|MIXED": 1.065,
+   "Opinion Poll|MIXED": 1.078,
+   "Pulse RC|MIXED": 1.077,
+   "Alco|CATI": 1.151,
+   "MRB|MIXED": 1.033,
+   "ProRata|MIXED": 1.159,
+   "GPO|MIXED": 1.077,
+   "Marc|UNKNOWN": 1.111,
+   "Real Polls|UNKNOWN": 1.257,
+   "Interview|CAWI": 1.122,
+   "Palmos Analysis|UNKNOWN": 1.107,
+   "Good Affairs|CAWI": 1.122,
+   "Kapa Research|UNKNOWN": 1.094,
+   "Data Consultants|UNKNOWN": 1.122,
+   "N. Kardoulas|UNKNOWN": 1.122
+  },
+  "KKE": {
+   "Metron Analysis|MIXED": 0.93,
+   "Opinion Poll|MIXED": 0.965,
+   "Pulse RC|MIXED": 0.947,
+   "Alco|CATI": 0.922,
+   "MRB|MIXED": 0.973,
+   "ProRata|MIXED": 0.941,
+   "GPO|MIXED": 0.947,
+   "Marc|UNKNOWN": 0.915,
+   "Real Polls|UNKNOWN": 1.003,
+   "Interview|CAWI": 0.938,
+   "Palmos Analysis|UNKNOWN": 0.973,
+   "Good Affairs|CAWI": 0.938,
+   "Kapa Research|UNKNOWN": 0.893,
+   "Data Consultants|UNKNOWN": 0.938,
+   "N. Kardoulas|UNKNOWN": 0.938
+  },
+  "PE": {
+   "Metron Analysis|MIXED": 0.934,
+   "Opinion Poll|MIXED": 1.113,
+   "Pulse RC|MIXED": 1.055,
+   "Alco|CATI": 0.986,
+   "MRB|MIXED": 1.106,
+   "ProRata|MIXED": 1.055,
+   "GPO|MIXED": 1.055,
+   "Marc|UNKNOWN": 0.921,
+   "Real Polls|UNKNOWN": 1.347,
+   "Interview|CAWI": 1.056,
+   "Palmos Analysis|UNKNOWN": 1.075,
+   "Good Affairs|CAWI": 1.056,
+   "Kapa Research|UNKNOWN": 1.082,
+   "Data Consultants|UNKNOWN": 1.056,
+   "N. Kardoulas|UNKNOWN": 1.056
+  },
+  "ELPIDA": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "FL": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "SE": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "MERA25": {
+   "Metron Analysis|MIXED": 0.874,
+   "Opinion Poll|MIXED": 0.957,
+   "Pulse RC|MIXED": 0.921,
+   "Alco|CATI": 1.073,
+   "MRB|MIXED": 0.868,
+   "ProRata|MIXED": 0.929,
+   "GPO|MIXED": 0.921,
+   "Marc|UNKNOWN": 1.015,
+   "Real Polls|UNKNOWN": 0.995,
+   "Interview|CAWI": 1.002,
+   "Palmos Analysis|UNKNOWN": 0.968,
+   "Good Affairs|CAWI": 1.002,
+   "Kapa Research|UNKNOWN": 1.066,
+   "Data Consultants|UNKNOWN": 1.002,
+   "N. Kardoulas|UNKNOWN": 1.002
+  },
+  "SYRIZA": {
+   "Metron Analysis|MIXED": 1.052,
+   "Opinion Poll|MIXED": 1.015,
+   "Pulse RC|MIXED": 1.031,
+   "Alco|CATI": 1.094,
+   "MRB|MIXED": 1.013,
+   "ProRata|MIXED": 0.997,
+   "GPO|MIXED": 1.031,
+   "Marc|UNKNOWN": 1.019,
+   "Real Polls|UNKNOWN": 1.031,
+   "Interview|CAWI": 1.052,
+   "Palmos Analysis|UNKNOWN": 1.139,
+   "Good Affairs|CAWI": 1.052,
+   "Kapa Research|UNKNOWN": 1.074,
+   "Data Consultants|UNKNOWN": 1.052,
+   "N. Kardoulas|UNKNOWN": 1.052
+  },
+  "NIKI": {
+   "Metron Analysis|MIXED": 1.245,
+   "Opinion Poll|MIXED": 1.225,
+   "Pulse RC|MIXED": 1.238,
+   "Alco|CATI": 1.212,
+   "MRB|MIXED": 1.184,
+   "ProRata|MIXED": 1.238,
+   "GPO|MIXED": 1.238,
+   "Marc|UNKNOWN": 1.144,
+   "Real Polls|UNKNOWN": 1.407,
+   "Interview|CAWI": 1.244,
+   "Palmos Analysis|UNKNOWN": 1.194,
+   "Good Affairs|CAWI": 1.244,
+   "Kapa Research|UNKNOWN": 1.294,
+   "Data Consultants|UNKNOWN": 1.244,
+   "N. Kardoulas|UNKNOWN": 1.244
+  },
+  "DIMOKRATES": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "SPARTIATES": {
+   "Metron Analysis|MIXED": 1.354,
+   "Opinion Poll|MIXED": 1.518,
+   "Pulse RC|MIXED": 1.304,
+   "Alco|CATI": 1.299,
+   "MRB|MIXED": 1.217,
+   "ProRata|MIXED": 1.304,
+   "GPO|MIXED": 1.304,
+   "Marc|UNKNOWN": 1.287,
+   "Real Polls|UNKNOWN": 0.942,
+   "Interview|CAWI": 1.22,
+   "Palmos Analysis|UNKNOWN": 1.166,
+   "Good Affairs|CAWI": 1.22,
+   "Kapa Research|UNKNOWN": 1.22,
+   "Data Consultants|UNKNOWN": 1.22,
+   "N. Kardoulas|UNKNOWN": 1.22
+  },
+  "NEA_ARISTERA": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  }
+ },
+ "weight": {
+  "ND": {
+   "Metron Analysis|MIXED": 1.473,
+   "Opinion Poll|MIXED": 1.711,
+   "Pulse RC|MIXED": 1.211,
+   "Alco|CATI": 1.027,
+   "MRB|MIXED": 1.323,
+   "ProRata|MIXED": 1.128,
+   "GPO|MIXED": 1.211,
+   "Marc|UNKNOWN": 1.105,
+   "Real Polls|UNKNOWN": 0.792,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 0.556,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.423,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "ELAS": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "PASOK": {
+   "Metron Analysis|MIXED": 1.537,
+   "Opinion Poll|MIXED": 1.606,
+   "Pulse RC|MIXED": 1.069,
+   "Alco|CATI": 1.11,
+   "MRB|MIXED": 1.106,
+   "ProRata|MIXED": 1.224,
+   "GPO|MIXED": 1.069,
+   "Marc|UNKNOWN": 1.053,
+   "Real Polls|UNKNOWN": 1.494,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.158,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 0.649,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "EL": {
+   "Metron Analysis|MIXED": 0.751,
+   "Opinion Poll|MIXED": 1.663,
+   "Pulse RC|MIXED": 0.979,
+   "Alco|CATI": 1.771,
+   "MRB|MIXED": 0.727,
+   "ProRata|MIXED": 0.763,
+   "GPO|MIXED": 0.979,
+   "Marc|UNKNOWN": 1.064,
+   "Real Polls|UNKNOWN": 0.447,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.168,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.867,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "KKE": {
+   "Metron Analysis|MIXED": 1.231,
+   "Opinion Poll|MIXED": 0.676,
+   "Pulse RC|MIXED": 0.844,
+   "Alco|CATI": 1.026,
+   "MRB|MIXED": 0.861,
+   "ProRata|MIXED": 0.834,
+   "GPO|MIXED": 0.844,
+   "Marc|UNKNOWN": 1.43,
+   "Real Polls|UNKNOWN": 0.436,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 0.701,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "PE": {
+   "Metron Analysis|MIXED": 0.831,
+   "Opinion Poll|MIXED": 0.921,
+   "Pulse RC|MIXED": 0.987,
+   "Alco|CATI": 1.003,
+   "MRB|MIXED": 0.986,
+   "ProRata|MIXED": 0.987,
+   "GPO|MIXED": 0.987,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.036,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.233,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.158,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "ELPIDA": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "FL": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "SE": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "MERA25": {
+   "Metron Analysis|MIXED": 1.035,
+   "Opinion Poll|MIXED": 1.573,
+   "Pulse RC|MIXED": 1.326,
+   "Alco|CATI": 1.014,
+   "MRB|MIXED": 1.696,
+   "ProRata|MIXED": 1.434,
+   "GPO|MIXED": 1.326,
+   "Marc|UNKNOWN": 1.237,
+   "Real Polls|UNKNOWN": 1.198,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 0.896,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.033,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "SYRIZA": {
+   "Metron Analysis|MIXED": 1.11,
+   "Opinion Poll|MIXED": 0.91,
+   "Pulse RC|MIXED": 0.964,
+   "Alco|CATI": 0.917,
+   "MRB|MIXED": 1.044,
+   "ProRata|MIXED": 0.894,
+   "GPO|MIXED": 0.964,
+   "Marc|UNKNOWN": 0.948,
+   "Real Polls|UNKNOWN": 0.928,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.608,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 0.847,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "NIKI": {
+   "Metron Analysis|MIXED": 1.142,
+   "Opinion Poll|MIXED": 1.264,
+   "Pulse RC|MIXED": 0.926,
+   "Alco|CATI": 1.392,
+   "MRB|MIXED": 1.32,
+   "ProRata|MIXED": 0.926,
+   "GPO|MIXED": 0.926,
+   "Marc|UNKNOWN": 1.568,
+   "Real Polls|UNKNOWN": 0.467,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.491,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.11,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "DIMOKRATES": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "SPARTIATES": {
+   "Metron Analysis|MIXED": 0.806,
+   "Opinion Poll|MIXED": 0.61,
+   "Pulse RC|MIXED": 0.869,
+   "Alco|CATI": 0.943,
+   "MRB|MIXED": 1.078,
+   "ProRata|MIXED": 0.869,
+   "GPO|MIXED": 0.869,
+   "Marc|UNKNOWN": 0.899,
+   "Real Polls|UNKNOWN": 1.452,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.228,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  },
+  "NEA_ARISTERA": {
+   "Metron Analysis|MIXED": 1.0,
+   "Opinion Poll|MIXED": 1.0,
+   "Pulse RC|MIXED": 1.0,
+   "Alco|CATI": 1.0,
+   "MRB|MIXED": 1.0,
+   "ProRata|MIXED": 1.0,
+   "GPO|MIXED": 1.0,
+   "Marc|UNKNOWN": 1.0,
+   "Real Polls|UNKNOWN": 1.0,
+   "Interview|CAWI": 1.0,
+   "Palmos Analysis|UNKNOWN": 1.0,
+   "Good Affairs|CAWI": 1.0,
+   "Kapa Research|UNKNOWN": 1.0,
+   "Data Consultants|UNKNOWN": 1.0,
+   "N. Kardoulas|UNKNOWN": 1.0
+  }
+ }
+}
