@@ -748,7 +748,7 @@ main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-b
 .sw button:focus-visible{{outline:2px solid var(--ink);outline-offset:2px}}
 @media (pointer:coarse){{.sw .e button{{min-height:44px}}}} @media (prefers-reduced-motion:reduce){{.sw button,.sw .e::before{{transition:none}}}}
 .js .view:not(.on){{display:none}} .js .sw:not(.ready){{min-height:112px}} .view>h2:first-child{{margin-top:var(--space-xl)}}
-summary h3{{display:inline}} details{{margin:1em 0}}
+summary h3{{display:inline}}
 @media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}</style></head><body><main id="main">
 {header()}
 <h1>{title}</h1>

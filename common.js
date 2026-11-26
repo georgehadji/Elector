@@ -168,6 +168,6 @@ function sortable(tbl, col, dir) {
       st.col = i; apply();
     };
   });
-  tbl.onclick = e => { const b = e.target.closest(".rowlink"); if (!b) return; pick(layers[+b.dataset.i], true); if (matchMedia("(max-width: 599px)").matches) document.getElementById("map").scrollIntoView({behavior: MOTION ? "smooth" : "auto", block: "start"}); };  // phones: the map is above the table, show it
+  tbl.onclick = e => { const b = e.target.closest(".rowlink"); if (b) pick(layers[+b.dataset.i], true); };
   apply();
 }

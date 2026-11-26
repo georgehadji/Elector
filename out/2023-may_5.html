@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-UxI0w1jD9NxwuP961GBYCk1uAO09cvl5ImI6atUKO8c=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-8ZUt5IY4AfXaaH5JhPVIxN81VakzNJ+VWSC0Li5u2vU=' 'self'; style-src-elem 'sha256-2XG/6BN+fez/FZF/LCxyeQyfRSjDa5BPTR7LxueCnRs=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/2023-may_5.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2023-may_5.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2023-may_5.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Σταυροί προτίμησης, Καβάλας"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2023-may_5.png">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-UxI0w1jD9NxwuP961GBYCk1uAO09cvl5ImI6atUKO8c=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-+71FbuFi9/lUtOBzx0KSAhBBufxsrsgl0COkwM+0yGc=' 'self'; style-src-elem 'sha256-vPUAXvt14h5HlKUpPf8vWWFnOKaXd3UHypFVVPpteTY=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/2023-may_5.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2023-may_5.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2023-may_5.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Σταυροί προτίμησης, Καβάλας"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2023-may_5.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
@@ -192,6 +192,8 @@ select:not([multiple]):focus-visible { outline: 2px solid var(--ink); outline-of
 /* Closed <details> on every page: one button-like summary (the index's .fold/.older have their own look). Zero specificity in a low
    layer: a page's own rule overrides it without a selector fight. */
 @layer components {
+  /* room above and below the box, so the text before and after never touches it */
+  :where(details:not(.fold, .older)) { margin-block: var(--space-lg); }
   :where(details:not(.fold, .older)) > summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 14px; font-weight: 600; color: var(--ink);
     border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); list-style: none; transition: background-color 150ms ease-out; }
   :where(details:not(.fold, .older)) > summary::-webkit-details-marker { display: none; }
@@ -591,7 +593,7 @@ function sortable(tbl, col, dir) {
       st.col = i; apply();
     };
   });
-  tbl.onclick = e => { const b = e.target.closest(".rowlink"); if (!b) return; pick(layers[+b.dataset.i], true); if (matchMedia("(max-width: 599px)").matches) document.getElementById("map").scrollIntoView({behavior: MOTION ? "smooth" : "auto", block: "start"}); };  // phones: the map is above the table, show it
+  tbl.onclick = e => { const b = e.target.closest(".rowlink"); if (b) pick(layers[+b.dataset.i], true); };
   apply();
 }
 

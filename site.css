@@ -135,6 +135,8 @@ select:not([multiple]):focus-visible { outline: 2px solid var(--ink); outline-of
 /* Closed <details> on every page: one button-like summary (the index's .fold/.older have their own look). Zero specificity in a low
    layer: a page's own rule overrides it without a selector fight. */
 @layer components {
+  /* room above and below the box, so the text before and after never touches it */
+  :where(details:not(.fold, .older)) { margin-block: var(--space-lg); }
   :where(details:not(.fold, .older)) > summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 14px; font-weight: 600; color: var(--ink);
     border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); list-style: none; transition: background-color 150ms ease-out; }
   :where(details:not(.fold, .older)) > summary::-webkit-details-marker { display: none; }
