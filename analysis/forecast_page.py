@@ -1062,7 +1062,7 @@ def main():
         page = page.replace(a, b)
     light = INDEX_LIGHT | {"mute": MUTE[0]} | {f"p-{p}": c[0] for p, c in COLOURS.items()}
     dark = INDEX_DARK | {"mute": MUTE[1]} | {f"p-{p}": c[1] for p, c in COLOURS.items()}
-    page = fill(page, light, dark, current="forecast", skip="#main", compact=True,
+    page = fill(page, light, dark, current="forecast", skip="#main",
                 sources=f'<li>Δημοσκοπήσεις: <a href="{WIKI}" rel="noopener">Wikipedia</a></li>')  # not in the nav: nothing marked current
     OUT.write_text(secure(page, OUT), encoding="utf-8")
     print(f"wrote {OUT} ({thousands(n_sims)} simulations, polls to {data['as_of']})")

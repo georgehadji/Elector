@@ -53,7 +53,7 @@ main:has(#k-est:not(:checked)) :is(figure,tbody) .est,main:has(#k-sc:not(:checke
 .res b{font-size:1.75rem;font-variant-numeric:tabular-nums;line-height:1.2}
 figcaption{color:var(--ink-2);font-size:1.0625rem;margin-top:var(--space-xs);max-width:68ch}
 details{margin-top:var(--space-lg)}
-summary{cursor:pointer;color:var(--pen)}
+summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 14px;font-weight:600;color:var(--ink);border:1px solid color-mix(in srgb,var(--ink) 30%,transparent);border-radius:8px;background:color-mix(in srgb,var(--ink) 7%,var(--paper));list-style:none}summary::after{content:"+";font-size:1.375rem;line-height:1}details[open]>summary::after{content:"−"}summary::-webkit-details-marker{display:none}
 table{border-collapse:collapse;margin-top:var(--space-xs);font-size:.9375rem;font-variant-numeric:tabular-nums}
 th,td{padding:var(--space-xs) var(--space-sm) var(--space-xs) 0;border-bottom:1px solid var(--line);text-align:left}
 th:nth-child(n+4),td:nth-child(n+4){text-align:right}

@@ -736,12 +736,15 @@ main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-b
 .sw .v,.sw .e{{display:flex;flex-wrap:wrap}} .sw .v{{gap:var(--space-xs) var(--space-lg)}}
 .sw button{{font:inherit;color:var(--ink-2);background:none;border:0;cursor:pointer;transition:color 150ms ease-out}}
 .sw button:hover,.sw button[aria-pressed=true]{{color:var(--ink)}}
-.sw .v button{{min-height:44px;padding:0;font-size:var(--t-lg);font-weight:600;letter-spacing:-.01em;text-underline-offset:10px;text-decoration-thickness:3px;text-decoration-line:none}}
-.sw .v button[aria-pressed=true]{{text-decoration-line:underline}} .sw .v button:hover:not([aria-pressed=true]){{text-decoration-line:underline;text-decoration-thickness:1px}}
-.sw .e{{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:4px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,var(--paper,var(--surface)))}}
+.sw .v{{gap:var(--space-xs)}}
+.sw .v button{{min-height:48px;padding:0 var(--space-lg);font-size:var(--t-lg);font-weight:600;letter-spacing:-.01em;color:var(--ink);border:2px solid color-mix(in srgb,var(--ink) 40%,transparent);border-radius:10px;transition:background-color 150ms ease-out,color 150ms ease-out,border-color 150ms ease-out}}
+.sw .v button:hover:not([aria-pressed=true]){{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 7%,transparent)}}
+.sw .v button[aria-pressed=true]{{background:var(--ink);border-color:var(--ink);color:var(--paper,var(--surface))}}
+.sw .e{{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:4px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,var(--paper,var(--surface)));border:2px solid color-mix(in srgb,var(--ink) 40%,transparent)}}
 .sw .e[hidden]{{display:none}}
-.sw .e::before{{content:"";position:absolute;inset:4px auto 4px 4px;width:calc((100% - 8px) / var(--n));border-radius:999px;background:var(--paper,var(--surface));transform:translateX(calc(var(--i) * 100%));transition:transform 280ms cubic-bezier(.16,1,.3,1)}}
+.sw .e::before{{content:"";position:absolute;inset:4px auto 4px 4px;width:calc((100% - 8px) / var(--n));border-radius:999px;background:var(--ink);transform:translateX(calc(var(--i) * 100%));transition:transform 280ms cubic-bezier(.16,1,.3,1)}}
 .sw .e button{{position:relative;min-height:36px;padding:0 var(--space-lg);border-radius:999px;font-size:var(--t-base)}}
+.sw .e button[aria-pressed=true]{{color:var(--paper,var(--surface))}}
 .sw button:focus-visible{{outline:2px solid var(--ink);outline-offset:2px}}
 @media (pointer:coarse){{.sw .e button{{min-height:44px}}}} @media (prefers-reduced-motion:reduce){{.sw button,.sw .e::before{{transition:none}}}}
 .js .view:not(.on){{display:none}} .js .sw:not(.ready){{min-height:112px}} .view>h2:first-child{{margin-top:var(--space-xl)}}

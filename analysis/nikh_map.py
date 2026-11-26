@@ -62,7 +62,7 @@ data = {"elections": ELECTIONS, "blocs": {k: v[2] for k, v in BLOCS.items()}, "t
 template = fill((HERE / "analysis" / "nikh_map_template.html").read_text(encoding="utf-8"),
                 INDEX_LIGHT | {"panel": "#ffffffee", "on": "#1d1d1b", "on-ink": "#fff"},
                 INDEX_DARK | {"panel": "#1d2430ee", "on": "#e8edf5", "on-ink": "#171c24"},
-                skip="#map", compact=True)
+                skip="#map")
 if not party.IS_NIKH:
     template = re.sub(r'DELTAS\["d-bloc[^\]]*\] = \[.*?\];[^\n]*\n', "", template, flags=re.S)  # bloc change views
     template = re.sub(r'<p class="rel">.*?</p>\n', "", template).replace("ΝΙΚΗ ανά", f"{party.NAME} ανά").replace("<h1>ΝΙΚΗ:", f"<h1>{party.NAME}:")
