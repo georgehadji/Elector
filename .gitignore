@@ -28,3 +28,4 @@ data/parl_control/
 
 # Raw EP Open Data API answers of analysis/nikh_ep.py: cache, rebuilt by rerunning
 data/ep_control/
+data/portal.sqlite*
