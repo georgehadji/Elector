@@ -34,11 +34,11 @@ def slug(election):
 
 # Share pictures, out/og/<kind>.png (1200x630, made by og_image.py): kind -> (title, line under it).
 OG_IMAGES = {
-    "site": ("Χάρτες σταυρών", "Αποτελέσματα εκλογών ανά κοινότητα και εκλογικό τμήμα"),
+    "site": ("Χάρτες Ψήφων", "Αποτελέσματα εκλογών ανά κοινότητα και εκλογικό τμήμα"),
     "compare": ("Σύγκριση εκλογών", "Ποσοστό κάθε κόμματος ανά κοινότητα, 2019–2024"),
     "nikh": ("ΝΙΚΗ", "Χάρτες, στόχευση και δημοσκοπήσεις"),
     "coverage": ("Κάλυψη χαρτών", "Πόσες περιοχές έχουν θέση στον χάρτη"),
-} | {slug(k): ("Χάρτες σταυρών", t) for k, (_, t) in ELECTIONS.items()}  # one per election, for its map pages
+} | {slug(k): ("Χάρτες Ψήφων", t) for k, (_, t) in ELECTIONS.items()}  # one per election, for its map pages
 
 
 def og_kind(name):

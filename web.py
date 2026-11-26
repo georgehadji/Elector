@@ -59,8 +59,8 @@ def nav(current="maps"):
 def header(current="maps", ctx="", skip="#main"):
     """Site bar: wordmark, nav, theme toggle, skip link; `ctx` is the wayfinding row of map pages."""
     to = "στον χάρτη" if skip == "#map" else "στο περιεχόμενο"
-    home = (f'<a class="home" href="index.html" aria-label="Χάρτες σταυρών">{MARK}</a>' if current == "index"  # the h1 below says it
-            else f'<a class="home" href="index.html">{MARK}Χάρτες σταυρών</a>')
+    home = (f'<a class="home" href="index.html" aria-label="Χάρτες Ψήφων">{MARK}</a>' if current == "index"  # the h1 below says it
+            else f'<a class="home" href="index.html">{MARK}Χάρτες Ψήφων</a>')
     return (f'<a class="skip" href="{skip}">Μετάβαση {to}</a><header class="bar{" with-ctx" if ctx else ""}">{home}'
             f'{nav(current)}{THEME_BTN}</header>{ctx}')
 
@@ -72,7 +72,7 @@ def footer(note="", home=True, compact=False, sources=""):
     today = datetime.date.today()
     pages = "".join(f'<li><a href="{href}">{label}</a></li>' for _, href, label in NAV)
     return (f'<footer class="site{" compact" if compact else ""}">'
-            f'<p class="name">{MARK}Χάρτες σταυρών</p>'
+            f'<p class="name">{MARK}Χάρτες Ψήφων</p>'
             '<p class="what">Σταυροί και ποσοστά των κομμάτων ανά κοινότητα και εκλογικό τμήμα, από το 2019 έως το 2024.</p>'
             f'<div class="cols"><div><h3>Χάρτες</h3><ul>{pages}'
             '<li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div>'
@@ -142,7 +142,7 @@ def meta(title, description):
     without SITE_URL there is no picture, so the card is "summary"."""
     t, d = html.escape(title, quote=True), html.escape(description, quote=True)
     return (f'<meta name="description" content="{d}"><meta property="og:type" content="website">'
-            f'<meta property="og:site_name" content="Χάρτες σταυρών"><meta property="og:locale" content="el_GR">'
+            f'<meta property="og:site_name" content="Χάρτες Ψήφων"><meta property="og:locale" content="el_GR">'
             f'<meta property="og:title" content="{t}"><meta property="og:description" content="{d}">'
             f'<meta name="twitter:card" content="{"summary_large_image" if SITE_URL else "summary"}">')
 
@@ -184,7 +184,7 @@ def secure(page, path=None):
         alt = re.search(r'property="og:title" content="([^"]*)"', page)  # already escaped; the picture says the same
         tags += (f'<link rel="canonical" href="{url}"><meta property="og:url" content="{url}">'
                  f'<meta property="og:image" content="{img}"><meta property="og:image:width" content="1200">'
-                 f'<meta property="og:image:height" content="630"><meta property="og:image:alt" content="{alt[1] if alt else "Χάρτες σταυρών"}">'
+                 f'<meta property="og:image:height" content="630"><meta property="og:image:alt" content="{alt[1] if alt else "Χάρτες Ψήφων"}">'
                  f'<meta name="twitter:image" content="{img}">')
     return page.replace('<meta charset="utf-8">', '<meta charset="utf-8">' + tags, 1)
 
@@ -772,15 +772,15 @@ def _write_index(order, nikh, elected):
                if n_countries else "Πώς ψήφισαν οι Έλληνες του εξωτερικού ανά χώρα και πόλη, και όσοι ψήφισαν επιστολικά.")
     (OUT / "index.html").write_text(secure(fill(f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Χάρτες σταυρών</title>
-{meta("Χάρτες σταυρών", "Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.")}
+<title>Χάρτες Ψήφων</title>
+{meta("Χάρτες Ψήφων", "Χάρτες αποτελεσμάτων των ελληνικών εκλογών ανά κοινότητα και εκλογικό τμήμα.")}
 {FONTS}
 <script>/*THEME_JS*/</script>
 <style>{INDEX_CSS}</style></head><body><main id="main">
 <div class="container"><!--HEADER-->
 <header class="hero">
 <div>
-<h1>Χάρτες σταυρών</h1>
+<h1>Χάρτες Ψήφων</h1>
 <p class="lead">Πού ψηφίστηκε κάθε κόμμα και κάθε υποψήφιος, ανά κοινότητα και εκλογικό τμήμα.</p>
 <div id="s" hidden><label class="fl" for="f">Αναζήτηση περιφέρειας</label>
 <div class="sf"><input id="f" type="search" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" placeholder="Δήμος ή νομός, π.χ. Πάτρα, Αργολίδα" autocomplete="off" enterkeyhint="search" spellcheck="false">
