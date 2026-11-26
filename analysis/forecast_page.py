@@ -229,6 +229,11 @@ def seatbar(order, names, r):
             f'<ul class="legend">{legend}</ul>')
 
 
+def fold(title, table):
+    """The table behind a diagram: closed until the reader asks for the numbers."""
+    return f'<details><summary>{title}</summary>{table}</details>'
+
+
 def seats_range(x):
     """[10%, median, 90%] as '117 (100–134)'; one number when the range is a single value."""
     return "—" if not x else str(x[1]) if x[0] == x[2] else f"{x[1]} <small>({x[0]}–{x[2]})</small>"
@@ -243,9 +248,9 @@ def seat_table(r, order, names):
         rows.append(f'<tr><td><span class="sw" style="--c:{colour(p)}"></span>{html.escape(names[p])}</td>'
                     f'<td class="n pf">{pct(d["p_first"])}</td><td class="n">{seats_range(d["seats"])}</td>'
                     f'<td class="n">{seats_range(d["seats_bonus"])}</td><td class="n">{seats_range(d["seats_nobonus"])}</td></tr>')
-    return ('<div class="wrap"><table><thead><tr><th>κόμμα</th><th class="n pf">βγαίνει πρώτο</th><th class="n">έδρες</th>'
+    return (fold('Οι έδρες κάθε κόμματος σε πίνακα', '<div class="wrap"><table><thead><tr><th>κόμμα</th><th class="n pf">βγαίνει πρώτο</th><th class="n">έδρες</th>'
             '<th class="n">αν υπάρχει μπόνους</th><th class="n">χωρίς μπόνους</th></tr></thead><tbody>'
-            + "".join(rows) + '</tbody></table></div>'
+            + "".join(rows) + '</tbody></table></div>') +
             '<p class="note">Έδρες: η μεσαία τιμή των προσομοιώσεων και, σε παρένθεση, το εύρος όπου πέφτει στις 8 από τις 10. '
             '«Αν υπάρχει μπόνους»: μόνο οι προσομοιώσεις όπου το '
             f'πρώτο κόμμα πήρε 25% και πάνω, δηλαδή {pct(r["p_bonus"])} του συνόλου.</p>')
@@ -429,7 +434,7 @@ def bonus_html(r, key, names):
     return (f'<h2>Το όριο του 25%</h2>'
             f'<p class="note">Αν το πρώτο κόμμα μείνει κάτω από {num(b["from"], 0)}%, δεν παίρνει μπόνους και οι {SEATS} έδρες '
             f'μοιράζονται αναλογικά. Αυτό συμβαίνει {in_sims(p_no)}. {example}</p>'
-            f'<div class="wrap"><table><thead>{head}</thead><tbody>{"".join(rows)}</tbody></table></div>'
+            + fold('Ο πίνακας με τους αριθμούς', f'<div class="wrap"><table><thead>{head}</thead><tbody>{"".join(rows)}</tbody></table></div>')
             + ('<p class="note">Κάθε Βουλή: η μεσαία τιμή των εδρών κάθε κόμματος στις προσομοιώσεις αυτής της περίπτωσης, '
                f'στρογγυλεμένη ώστε να αθροίζει {SEATS}. Η γραμμή στη μέση χωρίζει τις {SEATS // 2} από τις {SEATS // 2}.</p>'
                f'<div class="two">{"".join(figs)}</div>' if figs else ""))
@@ -558,8 +563,8 @@ def record():
             'ανάμεσα στις περισσότερες εταιρείες είναι μικρότερες από τις διακυμάνσεις από εκλογή σε εκλογή: ο πίνακας δείχνει πόσο '
             'κοντά έπεσαν, όχι πόσο κοντά θα πέσουν, και δεν είναι κατάταξη.</p>'
             + record_chart(rows, bench) +
-            '<div class="wrap"><table class="rec"><thead><tr><th>εταιρεία</th><th class="n">εκλογές</th><th class="n">μέσος όρος</th>'
-            f'{head}</tr></thead><tbody>' + "".join(body_rows) + '</tbody></table></div>'
+            fold('Οι αριθμοί σε πίνακα', '<div class="wrap"><table class="rec"><thead><tr><th>εταιρεία</th><th class="n">εκλογές</th><th class="n">μέσος όρος</th>'
+            f'{head}</tr></thead><tbody>' + "".join(body_rows) + '</tbody></table></div>') +
             '<p class="note">Στο μέσο όρο που βγάζουμε, όλες οι εταιρείες μετράνε το ίδιο. Δοκιμάσαμε να '
             f'μετράνε λίγο περισσότερο οι πιο κοντινές: {tested}</p></section>')
 

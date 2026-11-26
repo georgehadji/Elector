@@ -83,7 +83,7 @@ h3.sub{margin-top:24px}
 @media (max-width:600px){.ladder li{grid-template-columns:1fr}.hero.duo{grid-template-columns:1fr}}
 figure{margin:8px 0 0}
 figure svg{display:block;width:100%;height:auto;overflow:visible}
-figcaption{color:var(--ink-2);font-size:.875rem;margin-top:2px}
+figcaption{color:var(--ink-2);font-size:1rem;margin-top:2px}
 .narrow{display:none}
 @media (max-width:600px){.wide{display:none}.narrow{display:block}
   .sh{grid-template-columns:1fr 4.8em 5.4em;grid-auto-flow:row dense;gap:0 8px}
@@ -97,11 +97,13 @@ figcaption{color:var(--ink-2);font-size:.875rem;margin-top:2px}
 .m151{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 3}
 .m151-l{fill:var(--ink);font-weight:600}
 details{margin-top:12px}
-summary{cursor:pointer;color:var(--pen);min-height:44px;display:flex;align-items:center;gap:6px}
-summary::before{content:"▸"}
-details[open] summary::before{content:"▾"}
+summary{cursor:pointer;color:var(--pen);font-weight:600;min-height:44px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:8px;background:var(--wash);list-style:none;transition:background-color 150ms ease-out}
+summary::after{content:"+";flex:none;font-size:1.375rem;line-height:1}
+details[open] summary::after{content:"−"}
+details[open] summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
+summary:hover{background:color-mix(in srgb,var(--ink) 10%,var(--paper))}
+summary:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 summary::-webkit-details-marker{display:none}
-summary{list-style:none}
 .wrap{overflow-x:auto}
 .wrap>table{width:100%}
 td small{font-size:inherit;color:var(--ink-2)}
@@ -125,7 +127,7 @@ td.z{color:var(--ink-2)}
 tr.state td{font-weight:600}
 .sw{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--c);margin-right:5px}
 .method p{max-width:66ch;margin:6px 0}
-.rel{font-size:.875rem;margin:18px 0 0;color:var(--ink-2)}
+.rel{font-size:1rem;margin:18px 0 0;color:var(--ink-2)}
 a{color:var(--pen)}
 .pick{display:flex;flex-wrap:wrap;gap:0 14px;margin:8px 0 0;padding:0;border:0;font-size:.875rem}
 .pick legend{float:left;padding:0;margin-right:4px;font-weight:600;line-height:44px}
@@ -172,6 +174,11 @@ a{color:var(--pen)}
 .pick.chips input{position:absolute;opacity:0;pointer-events:none}
 .pick.chips label{justify-content:center;min-width:48px;padding:0 14px;border-radius:999px;background:var(--wash);font-weight:600;font-variant-numeric:tabular-nums;transition:background-color 150ms ease-out,color 150ms ease-out}
 .pick.chips label:hover{background:color-mix(in srgb,var(--ink) 14%,var(--paper))}
+.pick.chips label,.chap a{transition-property:background-color,color,transform;transition-duration:100ms;transition-timing-function:ease-out}
+.pick.chips label:active,.chap a:active{transform:scale(.97)}
+.fr li:not(.ax):hover .tk{background-color:color-mix(in srgb,var(--ink) 6%,transparent)}
+@keyframes slin{from{opacity:0;transform:translateY(4px)}}
+@media (prefers-reduced-motion:no-preference){.slv{animation:slin 150ms ease-out}}
 .pick.chips label:has(input:checked){background:var(--ink);color:var(--paper)}
 .pick.chips label:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2px}
 .po{margin:12px 0 0;padding:0;list-style:none}

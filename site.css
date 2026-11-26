@@ -118,4 +118,5 @@ h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
    and controls stay in IBM Plex Sans. Plain paragraphs only: a classed or id'd one is part of a component. */
 :root { --font-text: "Literata", Georgia, serif; }
 main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--font-text); }
+main p:not([class], [id]):not(.site *) { font-size: 1.0625rem; line-height: 1.6; }
 p, li, dd { text-wrap: pretty; }
