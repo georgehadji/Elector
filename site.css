@@ -5,7 +5,7 @@
 /* Site bar: wordmark, the site's pages, theme toggle. Skip link first in tab order. */
 .skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: var(--space-xs) var(--space-sm); color: var(--ink); background: var(--paper, var(--surface)); border: 2px solid var(--ink); }
 .skip:focus { top: 8px; }
-.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-xl); margin: 0 0 var(--space-sm); min-height: 64px; }
+.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-xl); margin: 0 0 var(--space-md); min-height: 64px; }
 /* The bar is the same on every page: it spans the screen whatever holds it (the same trick as the footer) and its content sits
    in one 1100px column, so the wordmark and links never move when the page changes. The gutter keeps a scrollbar from shifting it. */
 html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -19,9 +19,10 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
 .mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
 .mark rect { stroke-width: 2.4; }
 .mark path { stroke-width: 3.2; }
-.bar nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-lg); font-size: var(--t-base); }
-.bar nav a { display: inline-flex; align-items: center; min-height: 32px; color: var(--ink); text-decoration: none; }
-.bar nav a:hover, .bar nav a[aria-current] { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 8px; }
+.bar nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-2xs); font-size: var(--t-base); }
+.bar nav a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--space-sm); border-radius: 6px; color: var(--ink); text-decoration: none;
+             transition: background-color .15s ease-out; }  /* the current page is a soft pill, no underline */
+.bar nav a:hover, .bar nav a[aria-current] { background: color-mix(in srgb, var(--ink) 8%, transparent); }
 .bar nav a[aria-current="page"] { font-weight: 600; }
 #theme, #menu { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 40px; height: 40px; padding: 0;
          color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); border: 0; border-radius: 50%; cursor: pointer; }
@@ -40,8 +41,7 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
   .bar nav { position: absolute; z-index: 1100; top: 100%; left: 0; right: 0; display: none; flex-direction: column; gap: 0;
              padding: 0 0 var(--space-xs); padding-inline: inherit; background: var(--paper, var(--surface)); border-bottom: 1px solid var(--line); }
   #menu[aria-expanded="true"] + nav { display: flex; }
-  .bar nav a { min-height: 48px; font-size: 1.125rem; }
-  .bar nav a:hover, .bar nav a[aria-current] { text-underline-offset: 6px; }
+  .bar nav a { min-height: 48px; font-size: 1.125rem; margin-inline: calc(var(--space-sm) * -1); }  /* the pill's inset cancels, so the text stays on the page edge */
   /* map pages: the map gets the height */
   .bar.with-ctx { margin-bottom: var(--space-2xs); }
   .ctx { margin-bottom: var(--space-xs); }
@@ -51,10 +51,10 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
 }
 @keyframes menu-in { from { opacity: 0; translate: 0 -4px; } }
 /* In-page jump links (abroad): the same bordered pills as the election switcher, so every page shows links to other places one way. */
-.jump { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin: 0 0 var(--space-lg); font-size: var(--t-sm); }
+.jump { display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-xs); margin: 0 0 var(--space-xl); font-size: var(--t-sm); }
 .jump a { display: inline-flex; align-items: center; min-height: 44px; }
 /* Map pages: constituency and its other elections */
-.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2xs) var(--space-md); margin: 0 0 var(--space-md); font-size: var(--t-sm); }
+.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-md); margin: 0 0 var(--space-lg); font-size: var(--t-sm); }
 .ctx nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) 14px; }
 .ctx nav a, .jump a { padding: 0 14px; transition: transform 100ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out; color: var(--ink); font-weight: 600; text-decoration: none; border: 2px solid color-mix(in srgb, var(--ink) 40%, transparent); border-radius: 999px; }
 .ctx nav a:active, .jump a:active { transform: scale(.97); }
@@ -136,7 +136,7 @@ h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
    and controls stay in IBM Plex Sans. Plain paragraphs only: a classed or id'd one is part of a component. */
 :root { --font-text: "Literata", Georgia, serif; }
 main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--font-text); }
-main p:not([class], [id]):not(.site *) { font-size: 1.125rem; line-height: 1.6; }
+main p:not([class], [id]):not(.site *) { font-size: 1.125rem; line-height: 1.7; margin-block: 0 var(--space-md); }
 /* low specificity: any component rule overrides it */
 :where(p, li, dd) { text-wrap: pretty; }
 

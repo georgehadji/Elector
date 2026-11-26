@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="el"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-qOhFsq0QMV2REqNwk5hGH5bZE9SkX6gt6yeyKdYPv+U=' 'sha256-VFbUqEuVE3r2eI+XpxNa8q+r3TuVGhj5L1nHLckeZUI=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-x7gt8wE12oDwq2YLQ2CDIE2EZ59jRZtJO1vzvgD1+yk=' 'self'; style-src-elem 'sha256-+WLw7hGQaEGed9+IH6h+Wy5gYdbHM3+LepLyOT5Eyq4=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/postal.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/postal.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/site.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Επιστολική ψήφος"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/site.png"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Επιστολική ψήφος</title>
+<meta name="description" content="Πώς ψήφισαν όσοι έκαναν αίτηση για επιστολική ψήφο στις Ευρωεκλογές 2024, ανά κόμμα και περιφέρεια."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες Ψήφων"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Επιστολική ψήφος"><meta property="og:description" content="Πώς ψήφισαν όσοι έκαναν αίτηση για επιστολική ψήφο στις Ευρωεκλογές 2024, ανά κόμμα και περιφέρεια."><meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="fonts/ibm-plex-sans-greek.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/ibm-plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/literata-greek.woff2" as="font" type="font/woff2" crossorigin>
+
+<script>document.documentElement.classList.add("js")</script><script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
+// The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
+(() => {
+  const root = document.documentElement;
+  let dark = false;
+  try { dark = localStorage.getItem("theme") === "dark"; } catch {}
+  const show = () => {
+    dark ? root.dataset.theme = "dark" : root.removeAttribute("data-theme");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#15171b" : "#fbfaf6");  // the browser bar follows the page
+  };
+  show();
+  addEventListener("DOMContentLoaded", () => {
+    // Phones: #menu shows the site's pages under the bar. Escape, a click outside or a link closes it.
+    const m = document.getElementById("menu");
+    if (m) {
+      const open = on => m.setAttribute("aria-expanded", on);
+      m.onclick = () => open(m.getAttribute("aria-expanded") !== "true");
+      addEventListener("keydown", e => { if (e.key === "Escape" && m.getAttribute("aria-expanded") === "true") { open(false); m.focus(); } });
+      addEventListener("click", e => { if (!m.parentNode.contains(e.target) || e.target.closest("nav a")) open(false); });
+    }
+    const b = document.getElementById("theme");
+    if (!b) return;
+    const sync = () => b.setAttribute("aria-pressed", dark);
+    sync();
+    b.onclick = () => {
+      dark = !dark;
+      const go = () => { show(); sync(); dispatchEvent(new Event("themechange")); };
+      if (document.startViewTransition && !document.hidden && !matchMedia("(prefers-reduced-motion: reduce)").matches) { const vt = document.startViewTransition(go); vt.ready.catch(() => {}); vt.finished.catch(() => {}); } else go();
+      try { dark ? localStorage.setItem("theme", "dark") : localStorage.removeItem("theme"); } catch {}
+    };  // themechange: map pages redraw, their colours are read from CSS variables
+  });
+})();
+</script><style>/* Shared by template.html (areas) and stations_template.html (polling venues); inlined at build time. */
+:root{color-scheme:light;--surface:light-dark(#fbfaf6,#15171b);--ink:light-dark(#1d1d1b,#ecebe7);--ink-2:light-dark(#46453f,#c2c1bc);--line:light-dark(#d9d6cc,#33363c);--chip:light-dark(#f1efe6,#1e2128);--shadow:light-dark(rgba(0,0,0,.18),rgba(0,0,0,.5));--s0:light-dark(#f3eef8,#2b2437);--s1:light-dark(#dccbea,#4a3870);--s2:light-dark(#bda0d6,#6b4f9e);--s3:light-dark(#9c78bf,#8d6dc4);--s4:light-dark(#7a4fa8,#ab8ddc);--s5:light-dark(#5a2f8a,#c8b2ee);--s6:light-dark(#3a1866,#e6dbf8);--scrim:rgba(0,0,0,.5);--on-scrim:#fff;--link:light-dark(#1f4e9c,#8fb0f0);--d-3:light-dark(#a8302e,#ff9a92);--d-2:#e0736b;--d-1:light-dark(#f6c4c0,#a45a56);--d0:light-dark(#d9d6cc,#5a5955);--d1:light-dark(#9ec5f4,#4f7dbd);--d2:light-dark(#3987e5,#6aa3ee);--d3:light-dark(#104281,#a8cdfb)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+@media print{:root,:root[data-theme]{color-scheme:light;--surface:#fff}}
+
+* { box-sizing: border-box; }
+:root { accent-color: var(--link); }
+.legend, .tip b { overflow-wrap: anywhere; }
+body { margin: 0; font: 1rem/1.6 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
+main { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-md); }
+main > .bar { margin-bottom: calc(var(--space-sm) + var(--space-lg)); }  /* header at the very top like on every page; the gap under it stays */
+h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.15 var(--font-text); letter-spacing: -.015em; margin: 0 0 var(--space-md); }
+/* Self-hosted subsets (Greek, Latin) of IBM Plex Sans (variable 100-700 file, used at 400 and 600), SIL OFL. fonts/ sits next to the pages. */
+@font-face { font-family: "IBM Plex Sans"; font-weight: 400 600; font-style: normal; font-display: swap; src: url(fonts/ibm-plex-sans-greek.woff2) format("woff2"); unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF; }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 400 600; font-style: normal; font-display: swap; src: url(fonts/ibm-plex-sans-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Literata (TypeTogether, SIL OFL) for running text: variable 400-600 with optical size, Greek and Latin, roman and italic. */
+@font-face { font-family: "Literata"; font-weight: 400 600; font-style: normal; font-display: swap; src: url(fonts/literata-greek.woff2) format("woff2"); unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF; }
+@font-face { font-family: "Literata"; font-weight: 400 600; font-style: normal; font-display: swap; src: url(fonts/literata-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Literata"; font-weight: 400 600; font-style: italic; font-display: swap; src: url(fonts/literata-italic-greek.woff2) format("woff2"); unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF; }
+@font-face { font-family: "Literata"; font-weight: 400 600; font-style: italic; font-display: swap; src: url(fonts/literata-italic-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Site header (home link, theme toggle) and footer, shared by every page; inlined at build time.
+   Uses only --ink, --ink-2 and --line, which every page's colour tokens define. */
+/* The spacing scale the chrome shares with the pages that use it (the index); each value is the length it replaces. */
+:root { --page: 1040px; --bar-w: 1100px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; }
+/* Site bar: wordmark, the site's pages, theme toggle. Skip link first in tab order. */
+.skip { position: absolute; left: 8px; top: -48px; z-index: 2000; padding: var(--space-xs) var(--space-sm); color: var(--ink); background: var(--paper, var(--surface)); border: 2px solid var(--ink); }
+.skip:focus { top: 8px; }
+.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-xl); margin: 0 0 var(--space-md); min-height: 64px; }
+/* The bar is the same on every page: it spans the screen whatever holds it (the same trick as the footer) and its content sits
+   in one 1100px column, so the wordmark and links never move when the page changes. The gutter keeps a scrollbar from shifting it. */
+html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+.bar { margin-inline: calc(50% - 50vw); padding-inline: max(var(--space-md), calc(50vw - var(--bar-w) / 2 + var(--space-md))); }
+.bar .home { display: inline-flex; align-items: center; gap: var(--space-xs); min-width: 24px; min-height: 24px; color: var(--ink); font: 600 1.25rem/1.2 var(--font-text); letter-spacing: -.01em; text-decoration: none; }
+.bar .home:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.bar .home .mark { width: 24px; height: 24px; }
+/* WCAG 2.5.8: every pointer target is at least 24 by 24 CSS px */
+.ctx nav a, .jump a, .site .copy, .site a { display: inline-flex; align-items: center; min-height: 24px; }
+.mark { width: 20px; height: 20px; flex: none; }
+.mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
+.mark rect { stroke-width: 2.4; }
+.mark path { stroke-width: 3.2; }
+.bar nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-2xs); font-size: var(--t-base); }
+.bar nav a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--space-sm); border-radius: 6px; color: var(--ink); text-decoration: none;
+             transition: background-color .15s ease-out; }  /* the current page is a soft pill, no underline */
+.bar nav a:hover, .bar nav a[aria-current] { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.bar nav a[aria-current="page"] { font-weight: 600; }
+#theme, #menu { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 40px; height: 40px; padding: 0;
+         color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); border: 0; border-radius: 50%; cursor: pointer; }
+#theme:hover, #theme[aria-pressed="true"], #menu:hover, #menu[aria-expanded="true"] { background: color-mix(in srgb, var(--ink) 14%, var(--paper, var(--surface))); }
+#theme svg { width: 18px; height: 18px; fill: currentColor; }
+#menu svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+#menu { display: none; }
+#menu[aria-expanded="false"] .close, #menu[aria-expanded="true"] .open { display: none; }
+/* Phones: the four pages go into a panel under the bar, opened by #menu (theme.js). It covers the page instead of pushing it,
+   so a map keeps its size; z-index 1100 is above Leaflet's controls (1000). Without JS it stays shut; the footer lists the same pages. */
+@media (max-width: 639px) {
+  .bar { position: relative; gap: 0 var(--space-xs); min-height: 56px; }
+  .bar .home { font-size: 1.125rem; }
+  #menu { display: inline-flex; }
+  #menu ~ #theme { margin-left: 0; }
+  .bar nav { position: absolute; z-index: 1100; top: 100%; left: 0; right: 0; display: none; flex-direction: column; gap: 0;
+             padding: 0 0 var(--space-xs); padding-inline: inherit; background: var(--paper, var(--surface)); border-bottom: 1px solid var(--line); }
+  #menu[aria-expanded="true"] + nav { display: flex; }
+  .bar nav a { min-height: 48px; font-size: 1.125rem; margin-inline: calc(var(--space-sm) * -1); }  /* the pill's inset cancels, so the text stays on the page edge */
+  /* map pages: the map gets the height */
+  .bar.with-ctx { margin-bottom: var(--space-2xs); }
+  .ctx { margin-bottom: var(--space-xs); }
+}
+@media (max-width: 639px) and (prefers-reduced-motion: no-preference) {
+  #menu[aria-expanded="true"] + nav { animation: menu-in .16s ease-out; }
+}
+@keyframes menu-in { from { opacity: 0; translate: 0 -4px; } }
+/* In-page jump links (abroad): the same bordered pills as the election switcher, so every page shows links to other places one way. */
+.jump { display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-xs); margin: 0 0 var(--space-xl); font-size: var(--t-sm); }
+.jump a { display: inline-flex; align-items: center; min-height: 44px; }
+/* Map pages: constituency and its other elections */
+.ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-md); margin: 0 0 var(--space-lg); font-size: var(--t-sm); }
+.ctx nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) 14px; }
+.ctx nav a, .jump a { padding: 0 14px; transition: transform 100ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out; color: var(--ink); font-weight: 600; text-decoration: none; border: 2px solid color-mix(in srgb, var(--ink) 40%, transparent); border-radius: 999px; }
+.ctx nav a:active, .jump a:active { transform: scale(.97); }
+.ctx nav a:hover, .jump a:hover { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.ctx nav a[aria-current], .jump a[aria-current] { color: var(--paper, var(--surface)); background: var(--ink); border-color: var(--ink); }
+/* Colophon: a dark field to the screen's edges (negative margins, html clips the scrollbar's width), the name again at full size,
+   then the pages, sources and notes. Its own colours: every page's tokens differ. */
+.site { --foot: light-dark(#1b2230, #0c0e12); --foot-ink: #f3f1ea; --foot-ink-2: color-mix(in srgb, #f3f1ea 72%, var(--foot));
+        margin: var(--space-3xl) calc(50% - 50vw) 0; padding: var(--space-2xl) calc(50vw - 50%) var(--space-xl);
+        color: var(--foot-ink); background: var(--foot); font-size: var(--t-base); line-height: 1.55; }
+/* the field runs to the page's foot: whatever holds the footer last keeps no bottom padding under it */
+:has(> .site:not(.compact):last-child) { padding-bottom: 0; margin-bottom: 0; }
+.site .name { display: flex; align-items: center; gap: .25em; margin: 0; font-family: var(--font-text); font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.05; }
+.site .name .mark { width: .7em; height: .7em; }
+.site .name { color: var(--foot-ink); }  /* a page's own `p { color }` must not reach the footer name */
+.site .name .mark rect { stroke-width: 2; }
+.site .name .mark path { stroke-width: 2.6; }
+.site .what { max-width: 46ch; margin: var(--space-md) 0 0; color: var(--foot-ink-2); font-size: 1.125rem; }
+.site .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-xl); margin-top: var(--space-2xl); }
+.site h2 { margin: 0 0 var(--space-xs); font-size: var(--t-base); line-height: inherit; letter-spacing: normal; font-weight: 600; color: var(--foot-ink); }
+.site p { margin: 0 0 var(--space-2xs); }
+.site .cols p, .site li { color: var(--foot-ink-2); }
+.site ul { display: grid; gap: var(--space-2xs); margin: 0; padding: 0; list-style: none; }
+.site a, .site .copy { color: var(--foot-ink); text-underline-offset: 4px; }
+.site a:hover, .site .copy:hover { text-decoration-thickness: 2px; }
+.site :focus-visible { outline: 2px solid var(--foot-ink); outline-offset: 2px; }
+.site .built { margin: var(--space-2xl) 0 0; color: var(--foot-ink-2); font-size: var(--t-sm); }
+/* Compact (pages where the map needs the height): one line on the same field */
+.site.compact {
+  margin: 0; padding: var(--space-xs) var(--space-md); font-size: var(--t-sm);
+  .name, .what, h2, .built { display: none; }
+  .cols { display: flex; flex-wrap: wrap; gap: 0 var(--space-lg); margin: 0; }
+  ul { display: flex; flex-wrap: wrap; gap: 0 var(--space-sm); }
+  .cols > div:first-child li:not(:has(.copy)) { display: none; }  /* the nav above has these */
+}
+@media (max-width: 639px) {
+  .site { margin-top: var(--space-2xl); padding-block: var(--space-xl) var(--space-lg); }
+  .site .cols { grid-template-columns: 1fr; gap: var(--space-lg); margin-top: var(--space-xl); }
+  .site.compact { padding: var(--space-2xs) var(--space-md); }
+  .site.compact .cols { display: flex; gap: 0 var(--space-sm); margin: 0; }
+}
+html, body { overflow-x: clip; }
+/* One heading scale for every page: h1 the page, h2 a section, h3 a block inside it. Space above a heading is at least twice
+   the space below, so it belongs to the text that follows. Pages with their own display sizes (the index) set their own. */
+:root { --h1: clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem); --h2: clamp(1.375rem, 1.1rem + 1vw, 1.75rem); --h3: 1.25rem; }
+h1, h2, h3 { font-family: "IBM Plex Sans", system-ui, sans-serif; font-weight: 600; text-wrap: balance; hyphens: none; overflow-wrap: break-word; }
+/* The page title is the one serif heading (Literata, the running-text face); h2 and h3 stay in Plex like the interface. */
+h1 { font-family: var(--font-text); font-size: var(--h1); line-height: 1.15; letter-spacing: -.015em; }
+h2 { font-size: var(--h2); line-height: 1.2; letter-spacing: -.02em; }
+h3 { font-size: var(--h3); line-height: 1.3; letter-spacing: -.01em; }
+#theme, #menu, .site .copy { transition: transform 100ms ease-out; }
+#theme:active, #menu:active { transform: scale(.97); }
+.site .copy { padding: 0; font: inherit; background: none; border: 0; text-decoration: underline; cursor: pointer; }
+.site .copy:active { transform: scale(.97); }
+.copyfield { display: block; width: 100%; margin-top: 6px; font: inherit; }
+@media (prefers-reduced-motion: no-preference) { #theme svg { transition: transform .45s cubic-bezier(.16,1,.3,1); } #theme[aria-pressed="true"] svg { transform: rotate(180deg); } }  /* the half-moon turns over */
+@media (prefers-reduced-motion: reduce) { #theme, #menu, .site .copy, .ctx nav a, .jump a { transition: none; } #theme:active, #menu:active, .site .copy:active, .ctx nav a:active, .jump a:active { transform: none; } }
+/* theme switch: short cross-fade instead of a brightness jump (View Transitions, where supported) */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none; } }
+/* higher contrast on request: darker lines and secondary ink, solid borders on swatches */
+@media (prefers-contrast: more) {
+  :root { --line: color-mix(in srgb, var(--ink) 60%, var(--paper, var(--surface))); --ink-2: color-mix(in srgb, var(--ink) 88%, var(--paper, var(--surface))); }
+  .legend i { border: 1px solid var(--ink); }
+}
+@media (pointer: coarse) {
+  .site .copy { min-height: 44px; }
+  #theme, #menu { width: 44px; height: 44px; }
+  .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+  select, input[type=search] { min-height: 44px; }
+  .bar .home, .bar nav a, .site a, .ctx nav a, .jump a { display: inline-flex; align-items: center; min-height: 44px; }
+  .site ul { gap: 0; }
+}
+@media print { .bar, .site, .skip, .ctx { display: none !important; } }
+
+/* Every number is set in tabular figures, so columns of crosses and percentages line up. */
+:root { font-variant-numeric: tabular-nums; font-synthesis: none; --t-xs: .8125rem; --t-sm: .875rem; --t-base: 1rem; --t-lg: 1.25rem; --t-xl: 1.75rem; }
+/* Running text in Literata (its x-height matches Plex Sans, so the two share a line); headings, labels, figures, tables
+   and controls stay in IBM Plex Sans. Plain paragraphs only: a classed or id'd one is part of a component. */
+:root { --font-text: "Literata", Georgia, serif; }
+main :is(.lead, .note, p:not([class], [id])):not(.site *) { font-family: var(--font-text); }
+main p:not([class], [id]):not(.site *) { font-size: 1.125rem; line-height: 1.7; margin-block: 0 var(--space-md); }
+/* low specificity: any component rule overrides it */
+:where(p, li, dd) { text-wrap: pretty; }
+
+/* Dropdowns: a firm border and bold text so a closed select reads as a control, not as a line of text */
+select:not([multiple]) { border: 1.5px solid color-mix(in srgb, var(--ink) 55%, transparent); font-weight: 600; cursor: pointer; transition: border-color 150ms ease-out, box-shadow 150ms ease-out; }
+select:not([multiple]):hover { border-color: var(--ink); }
+select:not([multiple]):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { select:not([multiple]) { transition: none; } }
+
+/* Closed <details> on every page: one button-like summary (the index's .fold/.older have their own look). Zero specificity in a low
+   layer: a page's own rule overrides it without a selector fight. */
+@layer components {
+  /* room above and below the box, so the text before and after never touches it */
+  :where(details:not(.fold, .older)) { margin-block: var(--space-lg); }
+  :where(details:not(.fold, .older)) > summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 14px; font-weight: 600; color: var(--ink);
+    border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); list-style: none; transition: background-color 150ms ease-out; }
+  :where(details:not(.fold, .older)) > summary::-webkit-details-marker { display: none; }
+  :where(details:not(.fold, .older)) > summary::after { content: "+"; flex: none; font-size: 1.375rem; line-height: 1; }
+  :where(details:not(.fold, .older)[open]) > summary::after { content: "−"; }
+  :where(details:not(.fold, .older)[open]) > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  :where(details:not(.fold, .older)) > summary:hover { background: color-mix(in srgb, var(--ink) 12%, var(--paper, var(--surface))); }
+  :where(details:not(.fold, .older)) > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { :where(details) > summary { transition: none; } }
+
+/* the full name is in the title for a mouse; no dotted underline, it reads as a broken link */
+abbr[title] { text-decoration: none; }
+
+h2 { font-size: var(--t-base); margin: 0 0 var(--space-md); }
+a { color: var(--link); }
+.sub { color: var(--ink-2); margin: 0 0 var(--space-lg); max-width: 65ch; }  /* 45-90 characters a line */
+.views { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; font-size: var(--t-sm); }
+.views a { display: inline-flex; align-items: center; min-height: 24px; }
+.views:empty { display: none; }
+.controls { display: flex; flex-wrap: wrap; gap: var(--space-xs); align-items: center; margin-bottom: var(--space-md); }
+.controls label { color: var(--ink-2); font-size: var(--t-sm); }
+select, button, input { font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--line); border-radius: 8px; padding: var(--space-xs) var(--space-sm); }
+select { min-width: 0; max-width: 100%; }
+input[type="search"] { width: 14em; max-width: 100%; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.pdf { margin-left: auto; }
+.share { display: none; }  /* phones only: the footer has the same button, far down */
+.filters > summary > span:last-child { flex: 1; min-width: 0; margin-inline: var(--space-sm); color: var(--ink-2); font-weight: 400; text-align: end; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.filters > .controls { margin-top: var(--space-xs); }
+@media (min-width: 600px) { .filters > summary { display: none; } .filters > .controls { margin-top: 0; } }
+/* The four figures are a caption under the map, one flowing line of "value label" pairs. */
+.stats { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-lg); margin: var(--space-lg) 0 var(--space-xs); font-size: var(--t-sm); color: var(--ink-2); }
+.stats b { font-weight: 600; color: var(--ink); }
+.stats b::after { content: "\00a0"; }  /* the number stays with its label */
+.who { font: 600 clamp(1.5rem, 1.2rem + 1.2vw, 2rem)/1.15 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.02em; margin: 0 0 var(--space-xs); }
+.who::before { content: ""; display: inline-block; width: .6em; height: .6em; margin-right: .35em; background: var(--link);
+  clip-path: polygon(14% 0, 50% 36%, 86% 0, 100% 14%, 64% 50%, 100% 86%, 86% 100%, 50% 64%, 14% 100%, 0 86%, 36% 50%, 0 14%); }  /* the ✕ marks the candidate on show */
+.who:empty { display: none; }
+/* Controls are secondary: smaller type, no filled fields. */
+.controls { font-size: var(--t-sm); }
+.controls select, .controls input { background: transparent; }
+.mapwrap { position: relative; }
+.leaflet-container.muted .leaflet-tile-pane { filter: grayscale(1) contrast(.85) brightness(1.06); }
+:root[data-theme=dark] .leaflet-container.muted .leaflet-tile-pane { filter: grayscale(1) invert(1) contrast(.8) brightness(.7); }  /* dark base tiles, not a light slab under dark data */
+:root[data-theme=dark] .leaflet-bar a, :root[data-theme=dark] .leaflet-bar a:hover { background-color: var(--surface); color: var(--ink); border-color: var(--line); }
+:root[data-theme=dark] .leaflet-bar a.leaflet-disabled { color: var(--ink-2); }
+:root[data-theme=dark] .leaflet-container .leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 80%, transparent); color: var(--ink-2); }
+:root[data-theme=dark] .leaflet-control-attribution a { color: var(--link); }
+#map { height: 66vh; height: 66svh; min-height: 360px; border-radius: 12px; background: var(--chip); }
+.hint { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; z-index: 1000;
+        background: var(--scrim); color: var(--on-scrim); font-weight: 600; border-radius: 8px; pointer-events: none;
+        opacity: 0; transition: opacity .2s; }
+.hint.on { opacity: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-xs); align-items: center; margin: var(--space-lg) 0; font-size: var(--t-sm); color: var(--ink-2); }
+.legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink-2) 75%, var(--surface)); }  /* border >= 3:1 on the paper, so the palest step still shows */
+.legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
+.legend .k { display: inline-flex; align-items: center; white-space: nowrap; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: var(--space-xs) var(--space-sm); border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; font-size: var(--t-sm); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+th button { padding: 0; font: inherit; color: inherit; background: none; border: 0; border-radius: 0; text-align: inherit; cursor: pointer; display: inline-block; min-height: 24px; }
+th button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+th[aria-sort="ascending"] button::after { content: " ▲"; font-size: var(--t-xs); }
+th[aria-sort="descending"] button::after { content: " ▼"; font-size: var(--t-xs); }
+td.n, th.n { text-align: right; }
+tbody tr:hover { background: var(--chip); }
+tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
+.rowlink { padding: 0; font: inherit; color: inherit; background: none; border: 0; border-radius: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
+.rowlink:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.m { color: var(--ink-2); }
+.tablewrap { max-height: 520px; overflow: auto; }
+.note { color: var(--ink-2); font-size: var(--t-xs); line-height: 1.6; margin-top: var(--space-lg); max-width: 65ch; }
+/* Tooltip (mouse hover) and details panel (tap, click, table row) */
+.leaflet-container .leaflet-tooltip { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: 0 2px 8px var(--shadow); }
+.leaflet-tooltip-left::before { border-left-color: var(--surface); }
+.leaflet-tooltip-right::before { border-right-color: var(--surface); }
+.tip { font-variant-numeric: tabular-nums; }
+.tip b { display: block; }
+.tip table { width: auto; }
+.tip table td { padding: 1px 6px 1px 0; border: 0; }
+#panel {
+  container-type: inline-size;
+  position: fixed; z-index: 2000; left: 0; right: 0; bottom: 0; max-height: 55vh; max-height: 55svh; overflow: auto;
+  background: var(--surface); color: var(--ink); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px var(--shadow);
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 12px 12px 0 0;
+  &[hidden] { display: none; }
+  .close { float: right; margin: -6px -8px 4px 8px; min-width: 44px; min-height: 44px; font-size: 1.375rem; line-height: 1; }
+  .tip table td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--line); }
+}
+@container (width < 360px) { .tip table td { padding-right: 6px; } }
+@media (min-width: 720px) {
+  #panel { left: auto; right: 16px; bottom: 16px; width: 420px; max-height: 70vh; max-height: 70svh; border: 1px solid var(--line); border-radius: 10px; }
+}
+/* Phones: full-width controls so the map starts higher; the table drops its least useful column. */
+@media (max-width: 599px) {
+  /* The whole map fits the first screen: stats go below it, labels are for screen readers only. */
+  main { padding: 0 12px 12px; display: flex; flex-direction: column; }
+  main > .stats { order: 1; margin-top: 4px; }
+  main > h2:not(.who), main > .tablewrap, main > .note, main > #detail { order: 2; }
+  main > .site { order: 3; }
+  .sub { font-size: var(--t-xs); margin-bottom: 4px; }
+  .views { margin-bottom: 4px; }
+  .controls > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .controls > select, .controls > input { flex: 1 1 100%; width: auto; }
+  .controls > #q { flex: 1 1 38%; min-width: 0; }  /* else its 14em width forces a wrap */
+  .controls > #cand { flex: 1 1 58%; }
+  .legend { margin: 8px 0 12px; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
+  .seg button { padding: 6px 4px; font-size: var(--t-sm); line-height: 1.2; }
+  .pdf { display: none; }  /* print-to-PDF is a desktop task */
+  .share { display: block; width: 100%; margin: 0 0 var(--space-md); }
+  .mapwrap #map { height: 55svh; min-height: 300px; }  /* beats the station page's own #map height */
+  #tbl th:nth-child(2), #tbl td:nth-child(2) { display: none; }  /* Δημ. ενότητα */
+  #tbl th:first-child, #tbl td:first-child { position: sticky; left: 0; background: var(--surface); }
+  #tbl th:first-child { z-index: 2; }
+  #tbl tbody tr:hover td:first-child, #tbl tr.sel td:first-child { background: var(--chip); }
+  th, td { padding: 6px; }
+}
+/* Narrow phones: the name field and the candidate list get a full row each, so nothing is clipped. */
+@media (max-width: 420px) {
+  .controls > #q, .controls > #cand { flex: 1 1 100%; }
+}
+/* Touch: 44px targets */
+@media (pointer: coarse) {
+  select, button, input { min-height: 44px; }
+  select, input { font-size: var(--t-base); }  /* iOS zooms into fields under 16px */
+  .views a { display: inline-block; padding: 8px 0; }
+  th button { display: flex; align-items: center; min-height: 44px; width: 100%; }
+  th.n button { justify-content: flex-end; }
+  .rowlink { display: inline-flex; align-items: center; min-height: 44px; }
+}
+button, .rowlink { transition: transform 100ms ease-out; }
+button:active:not(:disabled), .rowlink:active { transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } button, .rowlink { transition: none; } button:active:not(:disabled), .rowlink:active { transform: none; } }
+/* PDF export = the browser's print dialog ("Save as PDF"), A4 portrait. */
+@page { size: A4; margin: 12mm; }
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  main { max-width: none; padding: 0; }
+  .seg, .pdf, .views, .leaflet-control-zoom, #panel, .hint, input, .controls label { display: none !important; }
+  select { border: 0; padding: 0; appearance: none; background: none; font-weight: 600; font-size: var(--t-base); min-height: 0; }
+  #map { break-inside: avoid; }
+  .tablewrap { max-height: none; overflow: visible; }
+  th { position: static; }
+  tr { break-inside: avoid; }
+  tr.sel { box-shadow: none; background: none; }
+  .rowlink { text-decoration: none; }
+  th[aria-sort] button::after { content: none; }
+}
+
+
+.ch{margin:1.2em 0 1.8em;max-width:760px} .ch figcaption{margin-bottom:.6em;color:var(--ink-2)} .ch figcaption b{color:var(--ink)}
+.cr{display:grid;grid-template-columns:minmax(7em,11em) 1fr minmax(4.5em,auto);gap:.7em;align-items:center;min-height:30px}
+.cl{font-size:16px;overflow-wrap:anywhere} .cv{font-size:15px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cb{height:14px} .cb i{display:block;height:100%;min-width:2px;background:var(--s5);border-radius:0 4px 4px 0}
+.cd{position:relative;height:1px;background:var(--line)} .cd i{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;
+  transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--surface)} .cd i.ln{height:3px;border-radius:0;transform:translateY(-50%);
+  box-shadow:none;background:var(--s2)}
+.ch i.a{background:var(--s2)} .ch i.b{background:var(--s6)}
+.ck{display:flex;gap:1.2em;font-size:15px;margin:.2em 0 .5em} .ck i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.cs .cd0{display:flex;justify-content:space-between;font-size:15px;color:var(--ink-2)}
+.cst{display:flex;height:16px} .cst i{display:block;height:100%;border-right:2px solid var(--surface)}
+.cst i:first-child{border-radius:4px 0 0 4px} .cst i:last-child{border-right:0;border-radius:0 4px 4px 0}
+.ch i.o{background:color-mix(in srgb,var(--ink-2) 30%,transparent)} .ck{flex-wrap:wrap;gap:.3em 1.2em}
+.sc{width:100%;max-width:520px;height:auto} .sc.st{max-width:600px} .sc text{fill:var(--ink-2);font-size:13px} .sc text.n{fill:var(--ink)}
+.sc .g{stroke:var(--line);stroke-width:1} .sc .d{stroke:var(--ink-2);stroke-dasharray:4 3}
+.sc circle{fill:var(--s4);stroke:var(--surface);stroke-width:1.5} .sc circle.m{fill:var(--s6)}
+.mctl{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0} .mctl select{margin-left:.4em}
+.mnum span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:12px;font-weight:600;line-height:1;
+  color:var(--ink);paint-order:stroke;-webkit-text-stroke:3px var(--surface)}
+#m-legend{display:flex;flex-wrap:wrap;gap:.3em 1em;margin:.5em 0 1em;font-size:14px}
+#m-legend .k i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+main{max-width:1100px} p{color:var(--ink-2)} .wrap{overflow-x:auto;margin-bottom:1.5em} h2{font-size:var(--h2);margin:var(--space-2xl) 0 var(--space-sm)} h3{font-size:var(--h3);margin:var(--space-lg) 0 var(--space-xs)}
+.sw[hidden]{display:none} .sw{display:grid;justify-items:start;gap:var(--space-md);margin:var(--space-lg) 0 0}
+.sw .v,.sw .e{display:flex;flex-wrap:wrap} .sw .v{gap:var(--space-xs) var(--space-lg)}
+.sw button{font:inherit;color:var(--ink-2);background:none;border:0;cursor:pointer;transition:color 150ms ease-out}
+.sw button:hover,.sw button[aria-pressed=true]{color:var(--ink)}
+.sw .v{gap:var(--space-xs)}
+.sw .v button{min-height:48px;padding:0 var(--space-lg);font-size:var(--t-lg);font-weight:600;letter-spacing:-.01em;color:var(--ink);border:2px solid color-mix(in srgb,var(--ink) 40%,transparent);border-radius:10px;transition:background-color 150ms ease-out,color 150ms ease-out,border-color 150ms ease-out}
+.sw .v button:hover:not([aria-pressed=true]){border-color:var(--ink);background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.sw .v button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--paper,var(--surface))}
+.sw .e{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:4px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,var(--paper,var(--surface)));border:2px solid color-mix(in srgb,var(--ink) 40%,transparent)}
+.sw .e[hidden]{display:none}
+.sw .e::before{content:"";position:absolute;inset:4px auto 4px 4px;width:calc((100% - 8px) / var(--n));border-radius:999px;background:var(--ink);transform:translateX(calc(var(--i) * 100%));transition:transform 280ms cubic-bezier(.16,1,.3,1)}
+.sw .e button{position:relative;min-height:36px;padding:0 var(--space-lg);border-radius:999px;font-size:var(--t-base)}
+.sw .e button[aria-pressed=true]{color:var(--paper,var(--surface))}
+.sw button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@media (pointer:coarse){.sw .e button{min-height:44px}} @media (prefers-reduced-motion:reduce){.sw button,.sw .e::before{transition:none}}
+.js .view:not(.on){display:none} .js .sw:not(.ready){min-height:112px} .view>h2:first-child{margin-top:var(--space-xl)}
+summary h3{display:inline}
+@media (max-width:599px){th,td{padding:8px 4px} th{font-size:13px} td{font-size:14px}}</style></head><body><main id="main">
+<a class="skip" href="#main">Μετάβαση στο περιεχόμενο</a><header class="bar"><a class="home" href="index.html"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</a><button id="menu" type="button" aria-expanded="false" aria-controls="nav" aria-label="Μενού"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="open" d="M2 4h12M2 8h12M2 12h12"/><path class="close" d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button><nav id="nav" aria-label="Κύριο μενού"><a href="index.html">Περιφέρειες</a><a href="postal.html" aria-current="page">Επιστολική</a><a href="abroad.html">Εξωτερικό</a><a href="compare.html">Σύγκριση εκλογών</a><a href="forecast.html">Πρόβλεψη</a></nav><button id="theme" type="button" aria-pressed="false" aria-label="Σκούρο θέμα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1.5v11a5.5 5.5 0 0 1 0-11z"/></svg></button></header>
+<h1>Επιστολική ψήφος</h1>
+<p>Οι Ευρωεκλογές 2024 ήταν οι πρώτες με επιστολική ψήφο. Από τα ανεπίσημα αποτελέσματα του ΥΠΕΣ. «Εγγεγραμμένοι» είναι όσοι έκαναν αίτηση, άρα τα έγκυρα ως ποσοστό τους είναι κοντά στη συμμετοχή. Οι ψήφοι των Ελλήνων του εξωτερικού είναι στη <a href="abroad.html">σελίδα του εξωτερικού</a>.</p>
+
+<div><div class="sw" id="sw" hidden></div>
+<section class="view" data-v="postal" data-vl="Επιστολική ψήφος"><h2 id="postal">Επιστολική ψήφος · Ευρωεκλογές 2024</h2><p>Εγγεγραμμένοι στην επιστολική ψήφο 202.517, έγκυρα 149.785 (74,0% των εγγεγραμμένων), δηλαδή 3,77% των εγκύρων όλης της χώρας. Από αυτά 113.799 στην Ελλάδα και 35.986 στο εξωτερικό, όπου όλη η ψήφος ήταν επιστολική. Το ΥΠΕΣ δίνει τις επιστολικές μόνο ως σύνολο ανά περιφέρεια.</p><h3>Κόμματα: επιστολική και κάλπη</h3><figure class="ch" role="img" aria-label="Κόμματα, κάλπη και επιστολική στην Ελλάδα: ΝΔ: 27,8% και 41,8%; ΣΥΡΙΖΑ: 14,9% και 15,4%; ΠΑΣΟΚ-ΚΙΝΑΛ: 12,9% και 10,4%; Ελληνική Λύση: 9,5% και 3,4%; ΚΚΕ: 9,3% και 7,0%; ΝΙΚΗ: 4,4% και 2,5%; Πλεύση Ελευθερίας: 3,4% και 2,9%; Φωνή Λογικής: 3,1% και 2,2%; ΜέΡΑ25: 2,4% και 3,7%; Νέα Αριστερά: 2,4% και 3,4%"><figcaption><b>Επιστολική έναντι κάλπης: ΝΔ +14,0, Ελληνική Λύση −6,2 μονάδες</b><br>Ευρωεκλογές 2024, μόνο στην Ελλάδα. Ποσοστό κάθε κόμματος επί των εγκύρων.</figcaption><p class="ck"><span><i class="a"></i>Κάλπη</span><span><i class="b"></i>Επιστολική στην Ελλάδα</span></p><div class="cr"><span class="cl">ΝΔ</span><span class="cd"><i class="ln" style="left:63.2%;width:31.9%"></i><i class="a" style="left:63.2%"></i><i class="b" style="left:95.0%"></i></span><span class="cv">27,8 · 41,8%</span></div><div class="cr"><span class="cl">ΣΥΡΙΖΑ</span><span class="cd"><i class="ln" style="left:34.0%;width:1.1%"></i><i class="a" style="left:34.0%"></i><i class="b" style="left:35.1%"></i></span><span class="cv">14,9 · 15,4%</span></div><div class="cr"><span class="cl">ΠΑΣΟΚ-ΚΙΝΑΛ</span><span class="cd"><i class="ln" style="left:23.7%;width:5.7%"></i><i class="a" style="left:29.3%"></i><i class="b" style="left:23.7%"></i></span><span class="cv">12,9 · 10,4%</span></div><div class="cr"><span class="cl">Ελληνική Λύση</span><span class="cd"><i class="ln" style="left:7.6%;width:14.0%"></i><i class="a" style="left:21.7%"></i><i class="b" style="left:7.6%"></i></span><span class="cv">9,5 · 3,4%</span></div><div class="cr"><span class="cl">ΚΚΕ</span><span class="cd"><i class="ln" style="left:15.8%;width:5.3%"></i><i class="a" style="left:21.2%"></i><i class="b" style="left:15.8%"></i></span><span class="cv">9,3 · 7,0%</span></div><div class="cr"><span class="cl">ΝΙΚΗ</span><span class="cd"><i class="ln" style="left:5.7%;width:4.4%"></i><i class="a" style="left:10.1%"></i><i class="b" style="left:5.7%"></i></span><span class="cv">4,4 · 2,5%</span></div><div class="cr"><span class="cl">Πλεύση Ελευθερίας</span><span class="cd"><i class="ln" style="left:6.7%;width:1.1%"></i><i class="a" style="left:7.8%"></i><i class="b" style="left:6.7%"></i></span><span class="cv">3,4 · 2,9%</span></div><div class="cr"><span class="cl">Φωνή Λογικής</span><span class="cd"><i class="ln" style="left:4.9%;width:2.1%"></i><i class="a" style="left:7.0%"></i><i class="b" style="left:4.9%"></i></span><span class="cv">3,1 · 2,2%</span></div><div class="cr"><span class="cl">ΜέΡΑ25</span><span class="cd"><i class="ln" style="left:5.6%;width:2.8%"></i><i class="a" style="left:5.6%"></i><i class="b" style="left:8.4%"></i></span><span class="cv">2,4 · 3,7%</span></div><div class="cr"><span class="cl">Νέα Αριστερά</span><span class="cd"><i class="ln" style="left:5.5%;width:2.2%"></i><i class="a" style="left:5.5%"></i><i class="b" style="left:7.7%"></i></span><span class="cv">2,4 · 3,4%</span></div><div class="cr cs"><span></span><span class="cd0"><span>0%</span><span>44%</span></span><span></span></div></figure><details><summary>Ο πίνακας με τους αριθμούς</summary><p>«Επιστολική στην Ελλάδα»: χωρίς το εξωτερικό. Διαφορά: της επιστολικής στην Ελλάδα από την κάλπη, σε μονάδες.</p><div class="wrap"><table><thead><tr><th scope="col">Κόμμα</th><th scope="col" class=n>Επιστολική %</th><th scope="col" class=n>Επιστολική στην Ελλάδα %</th><th scope="col" class=n>Κάλπη %</th><th scope="col" class=n>Διαφορά</th></tr></thead><tbody><tr><td>ΝΔ</td><td class=n>41,4</td><td class=n>41,8</td><td class=n>27,8</td><td class=n>+14,0</td></tr><tr><td>ΣΥΡΙΖΑ</td><td class=n>14,4</td><td class=n>15,4</td><td class=n>14,9</td><td class=n>+0,5</td></tr><tr><td>ΠΑΣΟΚ-ΚΙΝΑΛ</td><td class=n>10,0</td><td class=n>10,4</td><td class=n>12,9</td><td class=n>−2,5</td></tr><tr><td>Ελληνική Λύση</td><td class=n>3,1</td><td class=n>3,4</td><td class=n>9,5</td><td class=n>−6,2</td></tr><tr><td>ΚΚΕ</td><td class=n>7,4</td><td class=n>7,0</td><td class=n>9,3</td><td class=n>−2,4</td></tr><tr><td>ΝΙΚΗ</td><td class=n>2,4</td><td class=n>2,5</td><td class=n>4,4</td><td class=n>−1,9</td></tr><tr><td>Πλεύση Ελευθερίας</td><td class=n>2,7</td><td class=n>2,9</td><td class=n>3,4</td><td class=n>−0,5</td></tr><tr><td>Φωνή Λογικής</td><td class=n>2,0</td><td class=n>2,2</td><td class=n>3,1</td><td class=n>−0,9</td></tr><tr><td>ΜέΡΑ25</td><td class=n>5,0</td><td class=n>3,7</td><td class=n>2,4</td><td class=n>+1,2</td></tr><tr><td>Νέα Αριστερά</td><td class=n>3,7</td><td class=n>3,4</td><td class=n>2,4</td><td class=n>+1,0</td></tr></tbody></table></div></details><h3>Εξωτερικό: επιστολική 2024 και κάλπη 2023</h3><figure class="ch" role="img" aria-label="Εξωτερικό, Ιούνιος 2023 και Ευρωεκλογές 2024: ΝΔ: 43,2% και 40,2%; ΣΥΡΙΖΑ: 16,6% και 11,1%; ΠΑΣΟΚ-ΚΙΝΑΛ: 6,9% και 8,7%; Ελληνική Λύση: 0,9% και 2,4%; ΚΚΕ: 11,9% και 8,7%; ΝΙΚΗ: 2,2% και 2,3%; Πλεύση Ελευθερίας: 2,9% και 2,1%; ΜέΡΑ25: 12,0% και 9,2%"><figcaption><b>Το εξωτερικό σε δύο αναμετρήσεις</b><br>Ποσοστό επί των εγκύρων· κόμματα που κατέβηκαν και στις δύο.</figcaption><p class="ck"><span><i class="a"></i>Ιούνιος 2023 (κάλπη)</span><span><i class="b"></i>Ευρωεκλογές 2024 (επιστολική)</span></p><div class="cr"><span class="cl">ΝΔ</span><span class="cd"><i class="ln" style="left:87.3%;width:6.6%"></i><i class="a" style="left:94.0%"></i><i class="b" style="left:87.3%"></i></span><span class="cv">43,2 · 40,2%</span></div><div class="cr"><span class="cl">ΣΥΡΙΖΑ</span><span class="cd"><i class="ln" style="left:24.2%;width:11.9%"></i><i class="a" style="left:36.1%"></i><i class="b" style="left:24.2%"></i></span><span class="cv">16,6 · 11,1%</span></div><div class="cr"><span class="cl">ΠΑΣΟΚ-ΚΙΝΑΛ</span><span class="cd"><i class="ln" style="left:15.0%;width:3.9%"></i><i class="a" style="left:15.0%"></i><i class="b" style="left:19.0%"></i></span><span class="cv">6,9 · 8,7%</span></div><div class="cr"><span class="cl">Ελληνική Λύση</span><span class="cd"><i class="ln" style="left:2.1%;width:3.1%"></i><i class="a" style="left:2.1%"></i><i class="b" style="left:5.1%"></i></span><span class="cv">0,9 · 2,4%</span></div><div class="cr"><span class="cl">ΚΚΕ</span><span class="cd"><i class="ln" style="left:19.0%;width:6.9%"></i><i class="a" style="left:25.9%"></i><i class="b" style="left:19.0%"></i></span><span class="cv">11,9 · 8,7%</span></div><div class="cr"><span class="cl">ΝΙΚΗ</span><span class="cd"><i class="ln" style="left:4.7%;width:0.2%"></i><i class="a" style="left:4.7%"></i><i class="b" style="left:4.9%"></i></span><span class="cv">2,2 · 2,3%</span></div><div class="cr"><span class="cl">Πλεύση Ελευθερίας</span><span class="cd"><i class="ln" style="left:4.6%;width:1.6%"></i><i class="a" style="left:6.2%"></i><i class="b" style="left:4.6%"></i></span><span class="cv">2,9 · 2,1%</span></div><div class="cr"><span class="cl">ΜέΡΑ25</span><span class="cd"><i class="ln" style="left:20.0%;width:6.1%"></i><i class="a" style="left:26.1%"></i><i class="b" style="left:20.0%"></i></span><span class="cv">12,0 · 9,2%</span></div><div class="cr cs"><span></span><span class="cd0"><span>0%</span><span>46%</span></span><span></span></div></figure><details><summary>Ο πίνακας με τους αριθμούς</summary><p>Δύο διαφορετικές αναμετρήσεις, με 35.986 και 17.258 έγκυρα. Για το 2024 το ΥΠΕΣ δεν δίνει κατανομή ανά χώρα.</p><div class="wrap"><table><thead><tr><th scope="col">Κόμμα</th><th scope="col" class=n>Εξωτερικό 2024 %</th><th scope="col" class=n>Εξωτερικό Ιούνιος 2023 %</th></tr></thead><tbody><tr><td>ΝΔ</td><td class=n>40,2</td><td class=n>43,2</td></tr><tr><td>ΣΥΡΙΖΑ</td><td class=n>11,1</td><td class=n>16,6</td></tr><tr><td>ΠΑΣΟΚ-ΚΙΝΑΛ</td><td class=n>8,7</td><td class=n>6,9</td></tr><tr><td>Ελληνική Λύση</td><td class=n>2,4</td><td class=n>0,9</td></tr><tr><td>ΚΚΕ</td><td class=n>8,7</td><td class=n>11,9</td></tr><tr><td>ΝΙΚΗ</td><td class=n>2,3</td><td class=n>2,2</td></tr><tr><td>Πλεύση Ελευθερίας</td><td class=n>2,1</td><td class=n>2,9</td></tr><tr><td>Φωνή Λογικής</td><td class=n>1,5</td><td class=n>-</td></tr><tr><td>ΜέΡΑ25</td><td class=n>9,2</td><td class=n>12,0</td></tr><tr><td>Νέα Αριστερά</td><td class=n>4,8</td><td class=n>-</td></tr></tbody></table></div></details><h3>Ανά περιφέρεια</h3><figure class="ch" role="img" aria-label="Μερίδιο επιστολικών στα έγκυρα ανά περιφέρεια: Ευρυτανίας 7,9%; Κεφαλληνίας 6,1%; Αρτας 4,6%; Χίου 4,6%; Λευκάδας 4,5%; Αρκαδίας 4,5%; Φωκίδας 4,3%; Γρεβενών 4,3%; Αιτωλοακαρνανίας 4,2%; Καρδίτσας 4,1%; Κυκλάδων 4,1%; Μεσσηνίας 4,0%; Σάμου 4,0%; Λακωνίας 3,9%; Ιωαννίνων 3,8%"><figcaption><b>Πού ψήφισαν περισσότερο επιστολικά: Ευρυτανίας, 7,9% των εγκύρων</b><br>Οι 15 περιφέρειες με το μεγαλύτερο μερίδιο επιστολικών στα έγκυρα· το μικρότερο: Β&#x27; Δυτικής Αττικής, 1,6%.</figcaption><div class="cr"><span class="cl">Ευρυτανίας</span><span class="cb"><i style="width:100.0%"></i></span><span class="cv">7,9%</span></div><div class="cr"><span class="cl">Κεφαλληνίας</span><span class="cb"><i style="width:77.1%"></i></span><span class="cv">6,1%</span></div><div class="cr"><span class="cl">Αρτας</span><span class="cb"><i style="width:58.3%"></i></span><span class="cv">4,6%</span></div><div class="cr"><span class="cl">Χίου</span><span class="cb"><i style="width:57.5%"></i></span><span class="cv">4,6%</span></div><div class="cr"><span class="cl">Λευκάδας</span><span class="cb"><i style="width:57.2%"></i></span><span class="cv">4,5%</span></div><div class="cr"><span class="cl">Αρκαδίας</span><span class="cb"><i style="width:56.3%"></i></span><span class="cv">4,5%</span></div><div class="cr"><span class="cl">Φωκίδας</span><span class="cb"><i style="width:53.8%"></i></span><span class="cv">4,3%</span></div><div class="cr"><span class="cl">Γρεβενών</span><span class="cb"><i style="width:53.8%"></i></span><span class="cv">4,3%</span></div><div class="cr"><span class="cl">Αιτωλοακαρνανίας</span><span class="cb"><i style="width:52.3%"></i></span><span class="cv">4,2%</span></div><div class="cr"><span class="cl">Καρδίτσας</span><span class="cb"><i style="width:51.6%"></i></span><span class="cv">4,1%</span></div><div class="cr"><span class="cl">Κυκλάδων</span><span class="cb"><i style="width:51.2%"></i></span><span class="cv">4,1%</span></div><div class="cr"><span class="cl">Μεσσηνίας</span><span class="cb"><i style="width:50.9%"></i></span><span class="cv">4,0%</span></div><div class="cr"><span class="cl">Σάμου</span><span class="cb"><i style="width:50.9%"></i></span><span class="cv">4,0%</span></div><div class="cr"><span class="cl">Λακωνίας</span><span class="cb"><i style="width:48.7%"></i></span><span class="cv">3,9%</span></div><div class="cr"><span class="cl">Ιωαννίνων</span><span class="cb"><i style="width:48.4%"></i></span><span class="cv">3,8%</span></div></figure><details><summary>Ο πίνακας με τους αριθμούς</summary><p>Για κάθε κόμμα: ποσοστό στην επιστολική και, σε παρένθεση, η διαφορά από την κάλπη της ίδιας περιφέρειας, σε μονάδες.</p><div class="wrap"><table><thead><tr><th scope="col">Περιφέρεια</th><th scope="col" class=n>Εγγεγραμμένοι</th><th scope="col" class=n>Έγκυρα</th><th scope="col" class=n>% των εγκύρων</th><th scope="col" class=n>ΝΔ %</th><th scope="col" class=n>ΣΥΡΙΖΑ %</th><th scope="col" class=n>ΠΑΣΟΚ-ΚΙΝΑΛ %</th><th scope="col" class=n>Ελληνική Λύση %</th><th scope="col" class=n>ΚΚΕ %</th><th scope="col" class=n>ΝΙΚΗ %</th><th scope="col" class=n>Πλεύση Ελευθερίας %</th><th scope="col" class=n>Φωνή Λογικής %</th><th scope="col" class=n>ΜέΡΑ25 %</th><th scope="col" class=n>Νέα Αριστερά %</th></tr></thead><tbody><tr><td>Β1&#x27; Βόρειου Τομέα Αθηνών</td><td class=n>10.581</td><td class=n>7.904</td><td class=n>3,0%</td><td class=n>56,5 (+22,5)</td><td class=n>11,8 (−3,2)</td><td class=n>7,0 (−2,2)</td><td class=n>1,9 (−3,4)</td><td class=n>4,6 (−5,3)</td><td class=n>2,1 (−1,4)</td><td class=n>2,1 (−1,3)</td><td class=n>1,2 (−1,3)</td><td class=n>2,5 (−1,2)</td><td class=n>2,8 (−0,9)</td></tr><tr><td>Β3&#x27; Νότιου Τομέα Αθηνών</td><td class=n>10.309</td><td class=n>7.624</td><td class=n>2,7%</td><td class=n>49,5 (+20,2)</td><td class=n>14,0 (−3,1)</td><td class=n>8,2 (−1,2)</td><td class=n>2,2 (−4,0)</td><td class=n>7,1 (−4,5)</td><td class=n>1,8 (−1,6)</td><td class=n>2,2 (−1,6)</td><td class=n>2,0 (−0,9)</td><td class=n>3,1 (−0,6)</td><td class=n>3,3 (−0,1)</td></tr><tr><td>Α&#x27; Αθηνών</td><td class=n>9.156</td><td class=n>6.932</td><td class=n>3,8%</td><td class=n>53,2 (+22,8)</td><td class=n>13,6 (−3,4)</td><td class=n>7,2 (−1,7)</td><td class=n>2,1 (−3,7)</td><td class=n>5,3 (−4,8)</td><td class=n>1,5 (−1,8)</td><td class=n>1,9 (−1,3)</td><td class=n>1,8 (−1,2)</td><td class=n>2,9 (−1,5)</td><td class=n>3,4 (−1,1)</td></tr><tr><td>Α&#x27; Θεσσαλονίκης</td><td class=n>9.077</td><td class=n>6.924</td><td class=n>3,1%</td><td class=n>39,7 (+15,9)</td><td class=n>14,4 (±0,0)</td><td class=n>9,0 (−0,4)</td><td class=n>4,6 (−9,4)</td><td class=n>6,6 (−2,3)</td><td class=n>2,9 (−2,2)</td><td class=n>3,3 (−0,9)</td><td class=n>1,9 (−1,5)</td><td class=n>4,1 (+0,8)</td><td class=n>4,4 (+1,4)</td></tr><tr><td>Α&#x27; Ανατολικής Αττικής</td><td class=n>5.503</td><td class=n>3.897</td><td class=n>2,3%</td><td class=n>53,8 (+21,4)</td><td class=n>11,5 (−3,2)</td><td class=n>7,6 (−1,4)</td><td class=n>2,6 (−6,3)</td><td class=n>5,9 (−2,5)</td><td class=n>2,0 (−2,0)</td><td class=n>2,5 (−1,4)</td><td class=n>1,8 (−1,5)</td><td class=n>2,5 (±0,0)</td><td class=n>2,1 (−0,5)</td></tr><tr><td>Αιτωλοακαρνανίας</td><td class=n>4.664</td><td class=n>3.413</td><td class=n>4,2%</td><td class=n>35,4 (+9,7)</td><td class=n>17,8 (+1,1)</td><td class=n>11,8 (−5,1)</td><td class=n>2,8 (−5,0)</td><td class=n>9,6 (−0,5)</td><td class=n>2,9 (−2,4)</td><td class=n>3,3 (+0,8)</td><td class=n>2,6 (−0,4)</td><td class=n>3,0 (+1,6)</td><td class=n>3,6 (+1,8)</td></tr><tr><td>Β2&#x27; Δυτικού Τομέα Αθηνών</td><td class=n>4.100</td><td class=n>2.984</td><td class=n>1,9%</td><td class=n>39,8 (+17,3)</td><td class=n>17,7 (−1,2)</td><td class=n>9,9 (−0,2)</td><td class=n>3,2 (−5,3)</td><td class=n>9,6 (−5,0)</td><td class=n>1,7 (−1,4)</td><td class=n>2,9 (−1,3)</td><td class=n>1,9 (−1,2)</td><td class=n>3,0 (±0,0)</td><td class=n>2,7 (+0,1)</td></tr><tr><td>Β&#x27; Θεσσαλονίκης</td><td class=n>3.843</td><td class=n>2.843</td><td class=n>2,1%</td><td class=n>41,9 (+15,1)</td><td class=n>13,2 (+1,9)</td><td class=n>9,0 (−1,8)</td><td class=n>4,8 (−11,2)</td><td class=n>7,0 (−0,8)</td><td class=n>3,3 (−3,4)</td><td class=n>3,2 (−0,5)</td><td class=n>2,6 (−1,0)</td><td class=n>3,7 (+1,7)</td><td class=n>3,5 (+1,6)</td></tr><tr><td>Αχαΐας</td><td class=n>3.920</td><td class=n>2.820</td><td class=n>2,4%</td><td class=n>38,7 (+15,9)</td><td class=n>17,2 (−1,2)</td><td class=n>11,2 (−3,3)</td><td class=n>3,2 (−5,0)</td><td class=n>7,3 (−2,6)</td><td class=n>3,1 (−3,6)</td><td class=n>2,6 (−1,3)</td><td class=n>2,3 (−0,3)</td><td class=n>3,6 (+1,1)</td><td class=n>3,5 (+0,9)</td></tr><tr><td>Λάρισας</td><td class=n>3.681</td><td class=n>2.811</td><td class=n>2,6%</td><td class=n>34,0 (+6,5)</td><td class=n>15,9 (+2,2)</td><td class=n>11,7 (−1,8)</td><td class=n>3,3 (−4,8)</td><td class=n>7,9 (−4,0)</td><td class=n>3,1 (−1,6)</td><td class=n>4,0 (−0,2)</td><td class=n>3,2 (+0,1)</td><td class=n>4,4 (+2,6)</td><td class=n>4,0 (+2,2)</td></tr><tr><td>Μεσσηνίας</td><td class=n>3.485</td><td class=n>2.656</td><td class=n>4,0%</td><td class=n>41,3 (+11,8)</td><td class=n>14,7 (+1,1)</td><td class=n>9,8 (−3,0)</td><td class=n>2,8 (−5,9)</td><td class=n>7,0 (−1,8)</td><td class=n>2,9 (−0,5)</td><td class=n>3,5 (+0,6)</td><td class=n>2,5 (−0,6)</td><td class=n>3,4 (+1,1)</td><td class=n>3,7 (−0,9)</td></tr><tr><td>Ιωαννίνων</td><td class=n>3.437</td><td class=n>2.613</td><td class=n>3,8%</td><td class=n>38,0 (+10,5)</td><td class=n>14,8 (−3,0)</td><td class=n>11,7 (−2,6)</td><td class=n>3,3 (−3,6)</td><td class=n>8,8 (−1,8)</td><td class=n>2,5 (−1,5)</td><td class=n>2,3 (−0,2)</td><td class=n>2,2 (−0,3)</td><td class=n>4,2 (+2,1)</td><td class=n>3,9 (+0,9)</td></tr><tr><td>Ηρακλείου</td><td class=n>3.584</td><td class=n>2.607</td><td class=n>2,2%</td><td class=n>33,9 (+9,6)</td><td class=n>18,8 (+2,7)</td><td class=n>17,1 (−9,5)</td><td class=n>1,7 (−4,2)</td><td class=n>6,0 (−1,0)</td><td class=n>1,3 (−1,4)</td><td class=n>3,4 (+0,4)</td><td class=n>1,7 (−1,3)</td><td class=n>5,1 (+2,7)</td><td class=n>4,0 (+2,1)</td></tr><tr><td>Α&#x27; Πειραιώς</td><td class=n>3.090</td><td class=n>2.287</td><td class=n>3,3%</td><td class=n>48,8 (+17,3)</td><td class=n>14,7 (−0,9)</td><td class=n>7,0 (−0,8)</td><td class=n>3,9 (−3,8)</td><td class=n>6,4 (−3,3)</td><td class=n>2,4 (−1,8)</td><td class=n>2,8 (−1,4)</td><td class=n>2,0 (−1,2)</td><td class=n>3,0 (+0,2)</td><td class=n>2,9 (±0,0)</td></tr><tr><td>Φθιώτιδας</td><td class=n>2.792</td><td class=n>2.108</td><td class=n>3,3%</td><td class=n>41,9 (+13,7)</td><td class=n>16,2 (+0,7)</td><td class=n>10,6 (−2,7)</td><td class=n>3,5 (−7,4)</td><td class=n>6,7 (−3,7)</td><td class=n>2,3 (−1,7)</td><td class=n>3,3 (+0,5)</td><td class=n>2,6 (−0,9)</td><td class=n>4,1 (+2,5)</td><td class=n>2,5 (+1,0)</td></tr><tr><td>Μαγνησίας</td><td class=n>2.781</td><td class=n>2.096</td><td class=n>3,0%</td><td class=n>38,5 (+9,3)</td><td class=n>16,3 (+1,2)</td><td class=n>11,5 (+0,2)</td><td class=n>3,2 (−5,6)</td><td class=n>6,0 (−3,5)</td><td class=n>2,6 (−2,4)</td><td class=n>4,0 (−0,2)</td><td class=n>2,5 (−0,5)</td><td class=n>4,5 (+1,9)</td><td class=n>3,9 (+1,5)</td></tr><tr><td>Σερρών</td><td class=n>2.798</td><td class=n>2.091</td><td class=n>2,8%</td><td class=n>40,4 (+9,7)</td><td class=n>14,0 (+2,9)</td><td class=n>9,2 (−3,2)</td><td class=n>5,7 (−10,2)</td><td class=n>6,6 (+0,9)</td><td class=n>3,3 (−2,4)</td><td class=n>3,6 (+0,5)</td><td class=n>3,2 (−0,5)</td><td class=n>3,4 (+2,0)</td><td class=n>2,3 (+1,1)</td></tr><tr><td>Καρδίτσας</td><td class=n>2.611</td><td class=n>2.002</td><td class=n>4,1%</td><td class=n>38,2 (+6,2)</td><td class=n>15,9 (+1,4)</td><td class=n>14,3 (−1,9)</td><td class=n>3,8 (−4,3)</td><td class=n>7,8 (−2,9)</td><td class=n>2,3 (−1,2)</td><td class=n>2,3 (−0,1)</td><td class=n>2,6 (+0,3)</td><td class=n>2,3 (+1,1)</td><td class=n>3,3 (+1,9)</td></tr><tr><td>Κυκλάδων</td><td class=n>2.572</td><td class=n>1.987</td><td class=n>4,1%</td><td class=n>40,1 (+8,3)</td><td class=n>14,6 (+1,3)</td><td class=n>10,8 (−2,4)</td><td class=n>3,5 (−4,7)</td><td class=n>7,6 (+0,3)</td><td class=n>2,0 (−2,3)</td><td class=n>3,4 (−0,9)</td><td class=n>2,6 (−0,5)</td><td class=n>4,3 (+1,9)</td><td class=n>3,8 (+1,9)</td></tr><tr><td>Τρικάλων</td><td class=n>2.608</td><td class=n>1.975</td><td class=n>3,5%</td><td class=n>35,6 (+5,9)</td><td class=n>18,9 (+3,5)</td><td class=n>12,1 (−3,6)</td><td class=n>4,0 (−3,7)</td><td class=n>7,9 (−2,3)</td><td class=n>2,9 (−2,2)</td><td class=n>2,9 (+0,3)</td><td class=n>2,7 (+0,6)</td><td class=n>3,5 (+2,1)</td><td class=n>2,7 (+1,4)</td></tr><tr><td>Ηλείας</td><td class=n>2.640</td><td class=n>1.914</td><td class=n>3,3%</td><td class=n>34,5 (+8,7)</td><td class=n>17,7 (+1,7)</td><td class=n>16,9 (−5,9)</td><td class=n>3,9 (−5,3)</td><td class=n>6,4 (−1,0)</td><td class=n>2,4 (−0,6)</td><td class=n>3,2 (+0,1)</td><td class=n>2,1 (−0,1)</td><td class=n>2,7 (+1,5)</td><td class=n>3,0 (+1,3)</td></tr><tr><td>Κοζάνης</td><td class=n>2.464</td><td class=n>1.879</td><td class=n>2,9%</td><td class=n>34,3 (+8,2)</td><td class=n>18,0 (+5,0)</td><td class=n>13,8 (−4,1)</td><td class=n>3,7 (−7,9)</td><td class=n>7,7 (−0,8)</td><td class=n>2,8 (−3,4)</td><td class=n>2,1 (−0,6)</td><td class=n>1,9 (−0,7)</td><td class=n>5,6 (+4,0)</td><td class=n>3,9 (+2,4)</td></tr><tr><td>Β&#x27; Πειραιώς</td><td class=n>2.688</td><td class=n>1.820</td><td class=n>1,8%</td><td class=n>38,6 (+14,9)</td><td class=n>17,2 (−1,2)</td><td class=n>7,1 (−1,3)</td><td class=n>4,5 (−5,0)</td><td class=n>11,2 (−3,0)</td><td class=n>1,4 (−2,4)</td><td class=n>4,4 (−0,2)</td><td class=n>1,9 (−1,3)</td><td class=n>3,5 (+0,9)</td><td class=n>3,1 (+1,0)</td></tr><tr><td>Ευβοιας</td><td class=n>2.450</td><td class=n>1.818</td><td class=n>2,3%</td><td class=n>42,5 (+16,4)</td><td class=n>17,5 (+0,9)</td><td class=n>10,9 (−2,5)</td><td class=n>3,2 (−7,8)</td><td class=n>6,1 (−4,0)</td><td class=n>2,1 (−1,4)</td><td class=n>2,3 (−2,0)</td><td class=n>2,2 (−0,7)</td><td class=n>3,2 (+1,3)</td><td class=n>2,4 (+0,7)</td></tr><tr><td>Δωδεκανήσου</td><td class=n>2.441</td><td class=n>1.790</td><td class=n>2,9%</td><td class=n>39,9 (+9,6)</td><td class=n>14,7 (+2,0)</td><td class=n>11,8 (−4,6)</td><td class=n>3,7 (−6,4)</td><td class=n>5,8 (±0,0)</td><td class=n>2,5 (−1,7)</td><td class=n>3,9 (−0,2)</td><td class=n>2,9 (−0,5)</td><td class=n>4,0 (+2,5)</td><td class=n>4,4 (+2,7)</td></tr><tr><td>Αρκαδίας</td><td class=n>2.308</td><td class=n>1.769</td><td class=n>4,5%</td><td class=n>41,6 (+10,9)</td><td class=n>16,4 (+2,0)</td><td class=n>12,3 (−4,6)</td><td class=n>4,1 (−4,2)</td><td class=n>5,7 (−2,5)</td><td class=n>2,3 (−1,0)</td><td class=n>2,6 (−0,8)</td><td class=n>1,5 (−1,3)</td><td class=n>2,8 (+1,2)</td><td class=n>4,1 (+2,0)</td></tr><tr><td>Έβρου</td><td class=n>2.270</td><td class=n>1.699</td><td class=n>2,9%</td><td class=n>38,0 (+8,8)</td><td class=n>14,4 (+4,6)</td><td class=n>12,7 (−3,7)</td><td class=n>5,2 (−9,0)</td><td class=n>4,3 (+0,1)</td><td class=n>4,4 (−0,3)</td><td class=n>3,0 (+0,8)</td><td class=n>3,4 (−3,0)</td><td class=n>4,8 (+3,5)</td><td class=n>2,1 (+1,2)</td></tr><tr><td>Χανίων</td><td class=n>2.199</td><td class=n>1.631</td><td class=n>2,8%</td><td class=n>36,3 (+9,2)</td><td class=n>17,8 (+0,8)</td><td class=n>11,1 (−3,6)</td><td class=n>2,8 (−3,9)</td><td class=n>6,7 (−2,5)</td><td class=n>2,1 (−1,2)</td><td class=n>3,4 (−0,6)</td><td class=n>1,5 (−2,1)</td><td class=n>6,6 (+3,5)</td><td class=n>6,2 (+3,1)</td></tr><tr><td>Λέσβου</td><td class=n>1.963</td><td class=n>1.521</td><td class=n>3,8%</td><td class=n>36,2 (+8,4)</td><td class=n>15,9 (+2,7)</td><td class=n>11,2 (−3,5)</td><td class=n>3,7 (−3,8)</td><td class=n>9,4 (−6,1)</td><td class=n>2,2 (−1,6)</td><td class=n>3,6 (+0,8)</td><td class=n>2,6 (−0,4)</td><td class=n>3,6 (+1,9)</td><td class=n>3,7 (+2,0)</td></tr><tr><td>Αρτας</td><td class=n>1.865</td><td class=n>1.423</td><td class=n>4,6%</td><td class=n>33,7 (+5,4)</td><td class=n>22,1 (−0,7)</td><td class=n>11,7 (−2,5)</td><td class=n>3,6 (−4,2)</td><td class=n>8,4 (−1,4)</td><td class=n>2,2 (−0,5)</td><td class=n>3,0 (+0,8)</td><td class=n>2,0 (−0,2)</td><td class=n>3,9 (+1,7)</td><td class=n>3,1 (+1,5)</td></tr><tr><td>Καβάλας</td><td class=n>1.802</td><td class=n>1.354</td><td class=n>2,6%</td><td class=n>34,2 (+7,1)</td><td class=n>17,2 (+5,4)</td><td class=n>10,6 (−3,6)</td><td class=n>4,5 (−9,3)</td><td class=n>6,8 (−0,2)</td><td class=n>3,6 (−2,1)</td><td class=n>3,2 (−0,1)</td><td class=n>2,4 (−0,8)</td><td class=n>5,1 (+3,3)</td><td class=n>2,7 (+1,3)</td></tr><tr><td>Λακωνίας</td><td class=n>1.781</td><td class=n>1.337</td><td class=n>3,9%</td><td class=n>47,0 (+11,9)</td><td class=n>14,1 (+2,9)</td><td class=n>9,4 (−3,9)</td><td class=n>3,9 (−6,8)</td><td class=n>5,5 (−1,4)</td><td class=n>1,4 (−1,9)</td><td class=n>3,1 (+0,3)</td><td class=n>1,9 (−2,4)</td><td class=n>2,8 (+1,4)</td><td class=n>3,7 (+2,3)</td></tr><tr><td>Κορινθίας</td><td class=n>1.750</td><td class=n>1.290</td><td class=n>2,3%</td><td class=n>41,9 (+13,3)</td><td class=n>15,3 (−0,6)</td><td class=n>9,9 (−3,9)</td><td class=n>2,9 (−7,2)</td><td class=n>5,7 (+0,2)</td><td class=n>2,9 (−2,3)</td><td class=n>3,5 (+0,1)</td><td class=n>2,7 (−0,4)</td><td class=n>3,6 (+1,5)</td><td class=n>3,3 (+1,0)</td></tr><tr><td>Ημαθίας</td><td class=n>1.616</td><td class=n>1.228</td><td class=n>2,2%</td><td class=n>32,6 (+7,3)</td><td class=n>18,0 (+6,0)</td><td class=n>9,1 (−3,4)</td><td class=n>5,7 (−13,0)</td><td class=n>7,6 (+0,1)</td><td class=n>4,0 (−2,1)</td><td class=n>3,3 (+0,1)</td><td class=n>2,6 (−0,6)</td><td class=n>4,5 (+2,8)</td><td class=n>3,7 (+2,1)</td></tr><tr><td>Πέλλας</td><td class=n>1.593</td><td class=n>1.190</td><td class=n>2,0%</td><td class=n>36,5 (+9,0)</td><td class=n>13,4 (+1,6)</td><td class=n>10,8 (−1,7)</td><td class=n>6,1 (−11,4)</td><td class=n>6,6 (+1,9)</td><td class=n>4,7 (−3,6)</td><td class=n>4,9 (+2,2)</td><td class=n>2,1 (−0,8)</td><td class=n>3,9 (+2,6)</td><td class=n>4,4 (+1,2)</td></tr><tr><td>Δράμας</td><td class=n>1.514</td><td class=n>1.149</td><td class=n>3,0%</td><td class=n>32,6 (+6,5)</td><td class=n>18,1 (+6,3)</td><td class=n>12,5 (−2,6)</td><td class=n>4,2 (−11,7)</td><td class=n>7,5 (+2,6)</td><td class=n>3,5 (−2,2)</td><td class=n>3,0 (−0,2)</td><td class=n>3,3 (+0,1)</td><td class=n>4,6 (+3,0)</td><td class=n>3,2 (+1,7)</td></tr><tr><td>Βοιωτίας</td><td class=n>1.466</td><td class=n>1.089</td><td class=n>2,5%</td><td class=n>35,9 (+11,2)</td><td class=n>17,0 (+0,2)</td><td class=n>14,0 (−0,3)</td><td class=n>2,8 (−7,0)</td><td class=n>9,6 (−1,9)</td><td class=n>2,0 (−2,0)</td><td class=n>2,8 (−0,8)</td><td class=n>1,8 (−1,1)</td><td class=n>3,8 (+1,9)</td><td class=n>3,3 (+1,6)</td></tr><tr><td>Πιερίας</td><td class=n>1.425</td><td class=n>1.082</td><td class=n>2,0%</td><td class=n>38,2 (+12,5)</td><td class=n>15,5 (+5,1)</td><td class=n>10,0 (−5,9)</td><td class=n>5,4 (−9,0)</td><td class=n>6,3 (−0,1)</td><td class=n>5,1 (−5,5)</td><td class=n>2,9 (−0,3)</td><td class=n>3,5 (±0,0)</td><td class=n>3,8 (+2,3)</td><td class=n>3,2 (+2,1)</td></tr><tr><td>Κέρκυρας</td><td class=n>1.430</td><td class=n>1.046</td><td class=n>3,0%</td><td class=n>34,2 (+10,0)</td><td class=n>19,3 (±0,0)</td><td class=n>9,5 (−1,7)</td><td class=n>2,9 (−4,9)</td><td class=n>8,6 (−2,8)</td><td class=n>3,3 (−1,9)</td><td class=n>4,8 (+0,4)</td><td class=n>1,3 (−1,2)</td><td class=n>5,9 (+3,4)</td><td class=n>3,4 (+0,7)</td></tr><tr><td>Χίου</td><td class=n>1.246</td><td class=n>970</td><td class=n>4,6%</td><td class=n>42,1 (+8,7)</td><td class=n>13,9 (+2,3)</td><td class=n>10,9 (−7,2)</td><td class=n>2,7 (−4,0)</td><td class=n>8,1 (−0,1)</td><td class=n>2,5 (−1,2)</td><td class=n>3,0 (−0,6)</td><td class=n>2,1 (−1,3)</td><td class=n>4,2 (+2,4)</td><td class=n>3,4 (+2,0)</td></tr><tr><td>Πρέβεζας</td><td class=n>1.203</td><td class=n>945</td><td class=n>3,8%</td><td class=n>36,6 (+5,8)</td><td class=n>16,6 (−0,4)</td><td class=n>12,0 (−3,5)</td><td class=n>2,8 (−4,4)</td><td class=n>8,3 (−2,3)</td><td class=n>2,4 (−0,3)</td><td class=n>3,0 (+0,8)</td><td class=n>2,5 (+0,2)</td><td class=n>5,2 (+3,2)</td><td class=n>4,0 (+2,1)</td></tr><tr><td>Χαλκιδικής</td><td class=n>1.210</td><td class=n>942</td><td class=n>2,2%</td><td class=n>37,5 (+11,4)</td><td class=n>14,3 (+2,4)</td><td class=n>12,8 (−1,7)</td><td class=n>5,9 (−8,0)</td><td class=n>6,2 (+0,4)</td><td class=n>3,6 (−3,4)</td><td class=n>3,4 (+0,1)</td><td class=n>2,0 (−1,2)</td><td class=n>3,5 (+1,6)</td><td class=n>3,3 (+1,4)</td></tr><tr><td>Ρεθύμνης</td><td class=n>1.274</td><td class=n>940</td><td class=n>2,8%</td><td class=n>41,3 (+13,1)</td><td class=n>13,1 (+0,2)</td><td class=n>17,1 (−8,1)</td><td class=n>1,5 (−4,2)</td><td class=n>5,7 (+0,4)</td><td class=n>2,0 (−1,8)</td><td class=n>1,9 (−1,4)</td><td class=n>1,8 (−1,8)</td><td class=n>4,7 (+2,7)</td><td class=n>4,6 (+2,2)</td></tr><tr><td>Αργολίδος</td><td class=n>1.236</td><td class=n>924</td><td class=n>2,5%</td><td class=n>43,8 (+14,8)</td><td class=n>14,3 (+0,1)</td><td class=n>12,0 (−4,5)</td><td class=n>2,7 (−6,6)</td><td class=n>6,2 (−0,6)</td><td class=n>2,8 (−1,8)</td><td class=n>2,8 (−0,2)</td><td class=n>1,6 (−2,1)</td><td class=n>4,9 (+2,6)</td><td class=n>2,7 (+1,0)</td></tr><tr><td>Κεφαλληνίας</td><td class=n>1.149</td><td class=n>909</td><td class=n>6,1%</td><td class=n>34,3 (+10,0)</td><td class=n>22,2 (+1,7)</td><td class=n>8,8 (−1,4)</td><td class=n>2,0 (−4,5)</td><td class=n>13,9 (−1,2)</td><td class=n>2,6 (−2,1)</td><td class=n>2,1 (−1,1)</td><td class=n>2,4 (−0,3)</td><td class=n>3,6 (+1,8)</td><td class=n>2,9 (+0,9)</td></tr><tr><td>Κιλκίς</td><td class=n>1.140</td><td class=n>841</td><td class=n>2,3%</td><td class=n>39,4 (+11,4)</td><td class=n>14,7 (+4,0)</td><td class=n>9,6 (−3,9)</td><td class=n>6,2 (−10,6)</td><td class=n>3,9 (−4,2)</td><td class=n>4,2 (−3,5)</td><td class=n>3,9 (+1,4)</td><td class=n>3,8 (+0,7)</td><td class=n>4,6 (+3,3)</td><td class=n>2,3 (+1,2)</td></tr><tr><td>Λασιθίου</td><td class=n>1.107</td><td class=n>827</td><td class=n>2,8%</td><td class=n>35,7 (+9,4)</td><td class=n>17,9 (+4,0)</td><td class=n>17,4 (−12,3)</td><td class=n>1,3 (−4,4)</td><td class=n>5,8 (−0,6)</td><td class=n>2,1 (−0,1)</td><td class=n>3,7 (+0,8)</td><td class=n>1,1 (−0,5)</td><td class=n>6,7 (+4,4)</td><td class=n>2,4 (+0,9)</td></tr><tr><td>Ξάνθης</td><td class=n>1.049</td><td class=n>792</td><td class=n>1,9%</td><td class=n>34,0 (+13,8)</td><td class=n>17,2 (+7,4)</td><td class=n>11,5 (+2,4)</td><td class=n>4,8 (−4,5)</td><td class=n>6,2 (+2,2)</td><td class=n>3,2 (−0,3)</td><td class=n>3,7 (+1,7)</td><td class=n>1,4 (−1,2)</td><td class=n>5,3 (+3,9)</td><td class=n>4,4 (+3,0)</td></tr><tr><td>Β&#x27; Δυτικής Αττικής</td><td class=n>1.121</td><td class=n>780</td><td class=n>1,6%</td><td class=n>43,7 (+17,9)</td><td class=n>16,3 (+2,1)</td><td class=n>8,5 (−1,2)</td><td class=n>2,1 (−10,6)</td><td class=n>7,9 (−4,6)</td><td class=n>2,8 (−1,3)</td><td class=n>3,2 (−0,6)</td><td class=n>3,5 (−0,4)</td><td class=n>4,1 (+2,3)</td><td class=n>1,2 (−0,3)</td></tr><tr><td>Φωκίδας</td><td class=n>973</td><td class=n>735</td><td class=n>4,3%</td><td class=n>48,4 (+17,6)</td><td class=n>13,2 (−2,1)</td><td class=n>11,7 (−0,9)</td><td class=n>3,3 (−5,3)</td><td class=n>7,1 (−3,8)</td><td class=n>1,6 (−2,2)</td><td class=n>1,6 (−1,3)</td><td class=n>1,4 (−1,3)</td><td class=n>2,2 (+0,3)</td><td class=n>2,6 (+0,9)</td></tr><tr><td>Ευρυτανίας</td><td class=n>937</td><td class=n>719</td><td class=n>7,9%</td><td class=n>43,3 (+17,5)</td><td class=n>13,9 (−0,2)</td><td class=n>13,8 (−6,1)</td><td class=n>2,5 (−8,4)</td><td class=n>5,8 (−1,3)</td><td class=n>2,8 (−2,1)</td><td class=n>2,4 (−0,6)</td><td class=n>2,4 (−0,6)</td><td class=n>2,9 (+1,5)</td><td class=n>2,5 (+0,9)</td></tr><tr><td>Θεσπρωτίας</td><td class=n>918</td><td class=n>708</td><td class=n>3,6%</td><td class=n>32,5 (+3,0)</td><td class=n>19,6 (+2,6)</td><td class=n>17,5 (−2,1)</td><td class=n>3,2 (−3,7)</td><td class=n>8,3 (+1,1)</td><td class=n>1,6 (−1,5)</td><td class=n>2,4 (+0,3)</td><td class=n>2,7 (+0,3)</td><td class=n>2,8 (+1,3)</td><td class=n>3,4 (+1,9)</td></tr><tr><td>Σάμου</td><td class=n>912</td><td class=n>698</td><td class=n>4,0%</td><td class=n>33,8 (+7,9)</td><td class=n>16,3 (+3,1)</td><td class=n>9,7 (−0,4)</td><td class=n>3,3 (−4,6)</td><td class=n>15,0 (−6,2)</td><td class=n>0,9 (−2,0)</td><td class=n>4,3 (+0,7)</td><td class=n>1,7 (−1,5)</td><td class=n>4,3 (+2,4)</td><td class=n>4,2 (+2,3)</td></tr><tr><td>Καστοριάς</td><td class=n>896</td><td class=n>673</td><td class=n>3,0%</td><td class=n>36,1 (+5,6)</td><td class=n>18,3 (+0,3)</td><td class=n>9,4 (−2,3)</td><td class=n>4,0 (−7,8)</td><td class=n>5,3 (+0,4)</td><td class=n>3,6 (−1,2)</td><td class=n>3,4 (+1,4)</td><td class=n>4,2 (−0,1)</td><td class=n>4,6 (+2,0)</td><td class=n>2,1 (+0,4)</td></tr><tr><td>Ροδόπης</td><td class=n>857</td><td class=n>665</td><td class=n>1,7%</td><td class=n>34,6 (+15,2)</td><td class=n>15,5 (+8,5)</td><td class=n>12,0 (+3,2)</td><td class=n>6,6 (−1,6)</td><td class=n>6,2 (+2,3)</td><td class=n>4,7 (+0,6)</td><td class=n>2,4 (+1,2)</td><td class=n>2,1 (±0,0)</td><td class=n>3,9 (+2,7)</td><td class=n>3,3 (+1,7)</td></tr><tr><td>Γρεβενών</td><td class=n>867</td><td class=n>648</td><td class=n>4,3%</td><td class=n>33,6 (+4,6)</td><td class=n>15,1 (+1,6)</td><td class=n>14,7 (−3,5)</td><td class=n>3,5 (−6,0)</td><td class=n>9,4 (−0,8)</td><td class=n>2,3 (−1,6)</td><td class=n>2,9 (+0,7)</td><td class=n>2,9 (−0,2)</td><td class=n>2,5 (+1,2)</td><td class=n>4,0 (+2,9)</td></tr><tr><td>Φλώρινας</td><td class=n>821</td><td class=n>627</td><td class=n>2,8%</td><td class=n>36,0 (+11,0)</td><td class=n>15,6 (+2,2)</td><td class=n>11,5 (−3,7)</td><td class=n>5,9 (−7,7)</td><td class=n>7,0 (−0,6)</td><td class=n>3,5 (−2,3)</td><td class=n>3,5 (+0,6)</td><td class=n>1,9 (−0,8)</td><td class=n>2,9 (+0,9)</td><td class=n>4,5 (+1,5)</td></tr><tr><td>Λευκάδας</td><td class=n>583</td><td class=n>438</td><td class=n>4,5%</td><td class=n>33,1 (+6,0)</td><td class=n>22,6 (+7,2)</td><td class=n>12,1 (−5,6)</td><td class=n>1,8 (−3,4)</td><td class=n>6,8 (−7,0)</td><td class=n>1,4 (−0,7)</td><td class=n>2,3 (−0,4)</td><td class=n>1,4 (−1,8)</td><td class=n>6,4 (+3,6)</td><td class=n>2,5 (+0,9)</td></tr><tr><td>Ζακύνθου</td><td class=n>557</td><td class=n>415</td><td class=n>3,0%</td><td class=n>35,2 (+10,2)</td><td class=n>17,3 (+3,3)</td><td class=n>11,1 (−2,0)</td><td class=n>2,9 (−4,4)</td><td class=n>11,1 (−6,8)</td><td class=n>1,4 (−0,9)</td><td class=n>2,9 (−0,1)</td><td class=n>1,7 (−0,6)</td><td class=n>4,6 (+2,6)</td><td class=n>3,9 (+1,8)</td></tr></tbody></table></div></details></section></div>
+<footer class="site"><p class="name"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="3"/><path d="M11 12 C16 17 22 24 29 29"/><path d="M28 11 C23 16 17 23 12 30"/></svg>Χάρτες Ψήφων</p><p class="what">Σταυροί και ποσοστά των κομμάτων ανά κοινότητα και εκλογικό τμήμα, από το 2019 έως το 2024.</p><div class="cols"><div><h2>Χάρτες</h2><ul><li><a href="index.html">Περιφέρειες</a></li><li><a href="postal.html">Επιστολική</a></li><li><a href="abroad.html">Εξωτερικό</a></li><li><a href="compare.html">Σύγκριση εκλογών</a></li><li><a href="forecast.html">Πρόβλεψη</a></li><li><button type="button" class="copy">Αντιγραφή συνδέσμου</button></li></ul></div><div><h2>Πηγές</h2><ul><li>Αποτελέσματα: <a href="https://ekloges.ypes.gr/" rel="noopener">Υπουργείο Εσωτερικών</a></li><li>Όρια: <a href="https://www.statistics.gr/" rel="noopener">ΕΛΣΤΑΤ 2021</a></li><li>Υπόβαθρο: <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></li><li>Θέσεις πόλεων: <a href="https://nominatim.openstreetmap.org/" rel="noopener">Nominatim (OpenStreetMap)</a></li></ul></div><div><h2>Σημειώσεις</h2><p>Ανεπίσημα αποτελέσματα. Μόνο δημόσια συγκεντρωτικά αποτελέσματα, κανένα προσωπικό δεδομένο.</p></div></div><p class="built">Ενημέρωση: 26 Νοεμβρίου 2026</p></footer></main>
+<script>// Pure helpers used by more than one page; inlined into pages by web.fill(). No DOM access at load time.
+// Search: accents and case folded, Greeklish read as Greek, case endings stripped.
+const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();
+const LATIN = [["TH","Θ"],["CH","Χ"],["PS","Ψ"],["KS","Ξ"],["OU","ΟΥ"],["A","Α"],["B","Β"],["V","Β"],["G","Γ"],["D","Δ"],["E","Ε"],
+  ["Z","Ζ"],["H","Η"],["I","Ι"],["K","Κ"],["C","Κ"],["L","Λ"],["M","Μ"],["N","Ν"],["X","Ξ"],["O","Ο"],["P","Π"],["R","Ρ"],
+  ["S","Σ"],["T","Τ"],["Y","Υ"],["F","Φ"],["W","Ω"],["U","ΟΥ"]];
+const greek = s => LATIN.reduce((t, [a, b]) => t.replaceAll(a, b), s);  // Greeklish: "patra" finds Πάτρα
+// Case endings off (ministry names are genitive: Πατρέων, Ρόδου), then vowels that sound alike merged.
+const stem = w => { const m = w.match(/^(.{2,}?)(ΕΩΝ|ΙΩΝ|ΕΩΣ|ΟΥΣ|ΟΥ|ΩΝ|ΟΣ|ΗΣ|ΑΣ|ΕΣ|ΩΣ|ΑΙ|ΟΙ|ΕΙ|Α|Η|Ο|Ι|Ε|Σ|Υ|Ω)$/); return m ? m[1] : w; };
+const phon = w => w.replace(/ΕΙ|ΟΙ|Η|Υ/g, "Ι").replace(/ΑΙ/g, "Ε").replace(/Ω/g, "Ο");
+const key = w => phon(stem(w));
+// A query word hits a place word that starts with it as typed, or shares its stem. Short stems must match
+// whole, so "Ρόδος" (ΡΟΔ) finds Ρόδου but not Ροδόπης. `ws` = [[word, key(word)], ...].
+const hitsK = (ws, q, k) => ws.some(([w, wk]) => w.startsWith(q) || wk === k || (k.length >= 4 && wk.startsWith(k)));  // k = key(q), computed once per query
+const hits = (ws, q) => hitsK(ws, q, key(q));
+const queryWords = s => greek(fold(s.trim())).split(/[^\p{L}\d]+/u).filter(Boolean);
+
+// Legend wording, one for every page: lo = -Infinity is the open lower end, hi = undefined the open upper end.
+const binLabel = (lo, hi, f) => lo === -Infinity ? `κάτω από ${f(hi)}` : hi === undefined ? `${f(lo)} και πάνω` : `${f(lo)} έως ${f(hi)}`;
+
+// Motion: reduced-motion users get jumps instead of animated zooms.
+const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+const mapOptions = extra => ({zoomAnimation: MOTION, fadeAnimation: MOTION, markerZoomAnimation: MOTION, zoomSnap: 0.25, ...extra});
+
+// Footer "Αντιγραφή συνδέσμου": copies the current address (with the hash) and says so for 2 seconds.
+// Without the clipboard API the address goes into a selected read-only field to copy by hand.
+document.addEventListener("click", async e => {
+  const b = e.target.closest(".copy");
+  if (!b) return;
+  const done = () => { const t = b.textContent; b.textContent = "Αντιγράφηκε"; setTimeout(() => { b.textContent = t; }, 2000); };
+  try { await navigator.clipboard.writeText(location.href); done(); } catch {
+    let f = b.parentNode.querySelector(".copyfield");
+    if (!f) { f = Object.assign(document.createElement("input"), {readOnly: true, className: "copyfield"}); b.parentNode.append(f); }
+    f.value = location.href; f.select();
+  }
+});
+</script><script>(function () {
+  var views = [].slice.call(document.querySelectorAll('.view')), cur = {};
+  if (!views.length) return;
+  var keys = [], els = {}, labels = {}, elabels = {};
+  views.forEach(function (s) {
+    var v = s.dataset.v, e = s.dataset.e;
+    if (keys.indexOf(v) < 0) { keys.push(v); els[v] = []; labels[v] = s.dataset.vl; }
+    if (e) { els[v].push(e); elabels[e] = s.dataset.el; }
+  });
+  var last = {};
+  keys.forEach(function (v) { last[v] = els[v][els[v].length - 1] || ''; });
+  cur.v = keys[0]; cur.e = last[keys[0]];
+  var bar = document.getElementById('sw'), vrow = document.createElement('div'), erows = {}, vbtn = {}, ebtn = {};
+  vrow.className = 'v'; vrow.setAttribute('role', 'group'); vrow.setAttribute('aria-label', 'Τι να δω'); bar.appendChild(vrow);
+  function btn(text, fn) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = text; b.addEventListener('click', fn); return b;
+  }
+  keys.forEach(function (v) {
+    vbtn[v] = btn(labels[v], function () { cur.v = v; cur.e = last[v]; draw(); }); vrow.appendChild(vbtn[v]);
+    if (els[v].length < 2) return;
+    var row = document.createElement('div'); row.className = 'e'; row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Εκλογή');
+    row.style.setProperty('--n', els[v].length); erows[v] = row;
+    els[v].forEach(function (e) { ebtn[e] = btn(elabels[e], function () { cur.e = e; last[v] = e; draw(); }); row.appendChild(ebtn[e]); });
+    bar.appendChild(row);
+  });
+  function draw() {
+    keys.forEach(function (v) {
+      vbtn[v].setAttribute('aria-pressed', v === cur.v ? 'true' : 'false');
+      if (erows[v]) erows[v].hidden = v !== cur.v;
+    });
+    if (erows[cur.v]) {
+      els[cur.v].forEach(function (e) { ebtn[e].setAttribute('aria-pressed', e === cur.e ? 'true' : 'false'); });
+      erows[cur.v].style.setProperty('--i', els[cur.v].indexOf(cur.e));
+    }
+    views.forEach(function (s) { s.classList.toggle('on', s.dataset.v === cur.v && (!s.dataset.e || s.dataset.e === cur.e)); });
+    bar.classList.add('ready');
+  }
+  function reveal(id) {
+    var el = id && document.getElementById(decodeURIComponent(id)), s = el && el.closest('.view');
+    if (!s) return false;
+    cur.v = s.dataset.v; cur.e = s.dataset.e || last[cur.v]; last[cur.v] = cur.e; draw(); return true;
+  }
+  draw();
+  if (location.hash && reveal(location.hash.slice(1))) document.getElementById(decodeURIComponent(location.hash.slice(1))).scrollIntoView();
+  addEventListener('hashchange', function () { if (reveal(location.hash.slice(1))) document.getElementById(decodeURIComponent(location.hash.slice(1))).scrollIntoView(); });
+  document.addEventListener('click', function (ev) { var a = ev.target.closest && ev.target.closest('a[href^="#"]'); if (a && a.hash.length > 1) reveal(a.hash.slice(1)); });
+})();</script></body></html>

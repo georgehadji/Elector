@@ -16,11 +16,11 @@ body{margin:0;min-height:100vh;min-height:100dvh}
 body{background:var(--paper);color:var(--ink);font:1rem/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto auto 1fr auto auto}
 :root{accent-color:var(--pen)}
 main{display:contents}  /* landmark only; the grid rows stay the page's */
-.head{padding:var(--space-md) var(--space-md) var(--space-sm)}
-h1{margin:0 0 var(--space-2xs)}
-.sub{color:var(--ink-2);font-size:1.0625rem;margin:0}
-.note{color:var(--ink-2);font-size:1.125rem;line-height:1.45;margin:var(--space-2xs) 0 0;max-width:90ch}
-.ctl{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:8px}
+.head{padding:var(--space-xl) var(--space-md) var(--space-lg)}
+h1{margin:0 0 var(--space-lg)}
+.sub{color:var(--ink-2);font-size:1.0625rem;margin:var(--space-lg) 0 0}
+.note{color:var(--ink-2);font-size:1.125rem;line-height:1.45;margin:var(--space-md) 0 0;max-width:90ch}
+.ctl{display:flex;gap:var(--space-sm) var(--space-md);flex-wrap:wrap;margin-top:0}
 .ctl label{display:flex;align-items:center;gap:var(--space-xs);font-size:var(--t-sm);color:var(--ink-2)}
 select{font:inherit;font-size:var(--t-sm);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:5px 8px;max-width:100%}
 #map{min-height:360px;min-height:max(360px,55svh)}

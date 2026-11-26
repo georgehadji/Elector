@@ -1,4 +1,4 @@
-"""Voters abroad and postal votes -> out/abroad.html, and the same tables as text on stdout (analysis/abroad.txt).
+"""Voters abroad and postal votes -> out/abroad.html (voters abroad, ΝΙΚΗ) and out/postal.html (postal votes), and the same tables as text on stdout (analysis/abroad.txt).
 
 Abroad (May and June 2023): the stations of the constituency of voters abroad (ep 57), each placed by country and city
 in table abroad (fetch.py), grouped by continent, country and city and compared with the whole country.
@@ -31,6 +31,7 @@ ABROAD = 57  # constituency of voters abroad
 ABROAD_ELECTIONS = ("2023/may", "2023/june")  # the ones with stations abroad and a country for each
 EURO = "2024/euro"
 PAGE = OUT / "abroad.html"
+POSTAL = OUT / "postal.html"  # the postal vote has a page of its own; its views are built here with the others
 MIN_SHARE = 2.0  # parties shown: at least this % of the whole country's valid votes, and ΝΙΚΗ
 
 GEO = Path(__file__).resolve().parent.parent / "data" / "abroad_geo.json"  # "city|country" -> [lat, lon], from Nominatim
@@ -713,18 +714,36 @@ VIEW_JS = """(function () {
   document.addEventListener('click', function (ev) { var a = ev.target.closest && ev.target.closest('a[href^="#"]'); if (a && a.hash.length > 1) reveal(a.hash.slice(1)); });
 })();"""
 
-def page():
+def page(postal=False):
     # the sections sit in a <div>: common.css moves "main > h2" to the end on phones (a rule for the map pages)
-    title = "Ψηφοφόροι εξωτερικού και επιστολική ψήφος"
-    jump = "".join([f'<a href="#ab-{e.replace("/", "-")}">Εξωτερικό, {html.escape(ELECTION_NAMES[e])}</a>' for e in ABROAD_ELECTIONS]
-                      + ['<a href="#postal">Επιστολική ψήφος, Ευρωεκλογές 2024</a>', '<a href="#nikh">ΝΙΚΗ: αναλυτικά</a>'])
-    jump = '<a href="#map-h">Χάρτης πόλεων</a>' + jump
+    title = "Επιστολική ψήφος" if postal else "Ψηφοφόροι εξωτερικού"
+    mine = [x for x in SECTIONS if ('data-v="postal"' in x[:80]) == postal]
+    if postal:
+        jump = ""  # one section and a link to the abroad page in the text: no bar
+        about = ("Οι Ευρωεκλογές 2024 ήταν οι πρώτες με επιστολική ψήφο. Από τα ανεπίσημα αποτελέσματα του ΥΠΕΣ. "
+                 "«Εγγεγραμμένοι» είναι όσοι έκαναν αίτηση, άρα τα έγκυρα ως ποσοστό τους είναι κοντά στη συμμετοχή. "
+                 'Οι ψήφοι των Ελλήνων του εξωτερικού είναι στη <a href="abroad.html">σελίδα του εξωτερικού</a>.')
+        mapbox = ""
+    else:
+        jump = "".join(['<a href="#map-h">Χάρτης πόλεων</a>']
+                       + [f'<a href="#ab-{e.replace("/", "-")}">Εξωτερικό, {html.escape(ELECTION_NAMES[e])}</a>' for e in ABROAD_ELECTIONS]
+                       + ['<a href="#nikh">ΝΙΚΗ: αναλυτικά</a>', '<a href="postal.html">Επιστολική ψήφος</a>'])
+        about = ("Από τα ανεπίσημα αποτελέσματα του ΥΠΕΣ. Οι ψήφοι αυτές δεν έχουν θέση στους χάρτες των περιφερειών, μετρούν όμως στα σύνολα. "
+                 "«Εγγεγραμμένοι» στο εξωτερικό είναι όσοι έκαναν αίτηση, άρα τα έγκυρα ως ποσοστό τους είναι κοντά στη συμμετοχή. "
+                 'Η επιστολική ψήφος έχει <a href="postal.html">τη δική της σελίδα</a>.')
+        mapbox = ('<h2 id="map-h">Χάρτης πόλεων του εξωτερικού</h2>\n'
+                  '<div class="mctl"><label>Εκλογή<select id="m-el"></select></label><label>Χρώμα<select id="m-col"></select></label>'
+                  '<label><input type="checkbox" id="m-num" checked> Αριθμός ψήφων</label></div>\n'
+                  '<div id="map" role="region" aria-label="Χάρτης των πόλεων με εκλογικά τμήματα εξωτερικού· τα ίδια στοιχεία είναι στους πίνακες ανά πόλη"></div>\n'
+                  '<div id="m-legend"></div>\n')
+    leaflet = "" if postal else "<!--LEAFLET-->"
+    map_js = "" if postal else "<script>" + MAP_JS.replace("/*MAPDATA*/null", map_data()) + "</script>"
     return f"""<!doctype html>
 <html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-{meta(title, "Πώς ψήφισαν οι Έλληνες του εξωτερικού ανά χώρα και πόλη (2023) και όσοι ψήφισαν επιστολικά (Ευρωεκλογές 2024).")}
+{meta(title, "Πώς ψήφισαν όσοι έκαναν αίτηση για επιστολική ψήφο στις Ευρωεκλογές 2024, ανά κόμμα και περιφέρεια." if postal else "Πώς ψήφισαν οι Έλληνες του εξωτερικού ανά χώρα και πόλη (Ιούνιος 2023 και Ευρωεκλογές 2024).")}
 {FONTS}
-<!--LEAFLET-->
+{leaflet}
 <script>document.documentElement.classList.add("js")</script><script>/*THEME_JS*/</script><style>{common_css()}
 {CHART_CSS}.mctl{{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0}} .mctl select{{margin-left:.4em}}
 .mnum span{{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:12px;font-weight:600;line-height:1;
@@ -732,7 +751,7 @@ def page():
 #m-legend{{display:flex;flex-wrap:wrap;gap:.3em 1em;margin:.5em 0 1em;font-size:14px}}
 #m-legend .k i{{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}}
 main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-bottom:1.5em}} h2{{font-size:var(--h2);margin:var(--space-2xl) 0 var(--space-sm)}} h3{{font-size:var(--h3);margin:var(--space-lg) 0 var(--space-xs)}}
-.sw{{display:grid;justify-items:start;gap:var(--space-md);margin:var(--space-lg) 0 0}}
+.sw[hidden]{{display:none}} .sw{{display:grid;justify-items:start;gap:var(--space-md);margin:var(--space-lg) 0 0}}
 .sw .v,.sw .e{{display:flex;flex-wrap:wrap}} .sw .v{{gap:var(--space-xs) var(--space-lg)}}
 .sw button{{font:inherit;color:var(--ink-2);background:none;border:0;cursor:pointer;transition:color 150ms ease-out}}
 .sw button:hover,.sw button[aria-pressed=true]{{color:var(--ink)}}
@@ -750,19 +769,14 @@ main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-b
 .js .view:not(.on){{display:none}} .js .sw:not(.ready){{min-height:112px}} .view>h2:first-child{{margin-top:var(--space-xl)}}
 summary h3{{display:inline}}
 @media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}</style></head><body><main id="main">
-{header("abroad")}
+{header("postal" if postal else "abroad")}
 <h1>{title}</h1>
-<p>Από τα ανεπίσημα αποτελέσματα του ΥΠΕΣ. Οι ψήφοι αυτές δεν έχουν θέση στους χάρτες των περιφερειών, μετρούν όμως στα σύνολα.
-«Εγγεγραμμένοι» στο εξωτερικό και στην επιστολική ψήφο είναι όσοι έκαναν αίτηση, άρα τα έγκυρα ως ποσοστό τους είναι κοντά στη συμμετοχή.</p>
-<nav class="jump" aria-label="Μετάβαση στην ενότητα">{jump}</nav>
-<div><h2 id="map-h">Χάρτης πόλεων του εξωτερικού</h2>
-<div class="mctl"><label>Εκλογή<select id="m-el"></select></label><label>Χρώμα<select id="m-col"></select></label><label><input type="checkbox" id="m-num" checked> Αριθμός ψήφων</label></div>
-<div id="map" role="region" aria-label="Χάρτης των πόλεων με εκλογικά τμήματα εξωτερικού· τα ίδια στοιχεία είναι στους πίνακες ανά πόλη"></div>
-<div id="m-legend"></div>
-<div class="sw" id="sw"></div>
-{"".join(SECTIONS)}</div>
+<p>{about}</p>
+{f'<nav class="jump" aria-label="Μετάβαση στην ενότητα">{jump}</nav>' if jump else ""}
+<div>{mapbox}<div class="sw" id="sw"{" hidden" if postal else ""}></div>
+{"".join(mine)}</div>
 {footer(sources='<li>Θέσεις πόλεων: <a href="https://nominatim.openstreetmap.org/" rel="noopener">Nominatim (OpenStreetMap)</a></li>')}</main>
-<script>/*SHARED_JS*/</script><script>{VIEW_JS}</script><script>{MAP_JS.replace("/*MAPDATA*/null", map_data())}</script></body></html>"""
+<script>/*SHARED_JS*/</script><script>{VIEW_JS}</script>{map_js}</body></html>"""
 
 
 def main():
@@ -770,8 +784,9 @@ def main():
         view(abroad_section, e, v="kalpi", vl="Εξωτερικό (κάλπη)", e=e.replace("/", "-"), el=ELECTION_NAMES[e])
     view(postal_section, v="postal", vl="Επιστολική ψήφος")
     view(nikh_section, v="nikh", vl="ΝΙΚΗ")
-    PAGE.write_text(secure(fill(page(), current="abroad"), PAGE), encoding="utf-8")
-    print(f"\nwrote {PAGE}", file=sys.stderr)
+    for out, postal in ((PAGE, False), (POSTAL, True)):
+        out.write_text(secure(fill(page(postal), current="postal" if postal else "abroad"), out), encoding="utf-8")
+        print(f"\nwrote {out}", file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων</title>
+<title><!--TITLE--></title>
 <!--META-->
 <!--FONTS-->
 <script>/*THEME_JS*/</script>
@@ -215,15 +215,11 @@ a{color:var(--pen)}
 <body>
 <!--HEADER-->
 <main id="main">
-  <h1>Ποσοστά και έδρες από τις δημοσκοπήσεις</h1>
-  <fieldset class="when">
-    <legend>Εκλογές:</legend>
-    <label><input type="radio" name="h" id="h0" checked> σήμερα</label>
-    <label><input type="radio" name="h" id="h180"> σε έξι μήνες</label>
-  </fieldset>
+  <h1><!--H1--></h1>
+  <!--WHEN-->
   <!--LEAD-->
-  <p class="note">Οι αριθμοί δεν είναι δημοσκόπηση ούτε αποτέλεσμα. Είναι συχνότητες σε <!--N--> εκλογές που προσομοιώσαμε από τον μέσο όρο των δημοσκοπήσεων, με τον εκλογικό νόμο των εκλογών του Ιουνίου 2023. Δημοσκοπήσεις έως <!--ASOF-->. Ανεπίσημο.</p>
-  <p class="note h180">Σε έξι μήνες οι δημοσκοπήσεις μπορεί να έχουν κινηθεί, οπότε όλα τα εύρη ανοίγουν. Γι’ αυτό ό,τι σήμερα είναι απίθανο γίνεται λίγο πιθανότερο, και ό,τι είναι σχεδόν βέβαιο λίγο λιγότερο.</p>
+  <p class="note">Οι αριθμοί είναι συχνότητες σε <!--N--> εκλογές που προσομοιώσαμε από τον μέσο όρο των δημοσκοπήσεων, με τον εκλογικό νόμο των εκλογών του Ιουνίου 2023. Δημοσκοπήσεις έως <!--ASOF-->. Ανεπίσημο.</p>
+  <!--H180NOTE-->
   <!--CHAPNAV-->
   <!--BODY-->
   <p class="rel"><!--SOURCES--></p>
@@ -233,14 +229,15 @@ a{color:var(--pen)}
 <script>
 // The view lives in the address, so a shared link opens it again: #180 (in six months), p=<party on the map>,
 // ep=<constituency>, sam=<level of the Samaras scenario>, joined by "&" (#180&p=ELAS&ep=45).
-const h0 = document.getElementById("h0"), h180 = document.getElementById("h180");
+const h0 = document.getElementById("h0"), h180 = document.getElementById("h180");  // both exist on every page; the pair is hidden on the scenarios page
 const parties = [...document.querySelectorAll('input[name="m"]')];
 const sel = document.getElementById("ep");
 const sams = [...document.querySelectorAll('input[name="sam"]')];
 // Map: a tap or focus on a constituency shows its seats for the horizon on screen.
 let on = null;
 // The constituency is marked in both figures (Attica is in each); on a phone the answer sits right under the map.
-const epd = document.querySelector(".epd p"), hint = epd.textContent;
+const epd = document.querySelector(".epd p"), hint = epd && epd.textContent;
+const views = [...document.querySelectorAll("a[data-view]")];  // links to the other pages carry the view
 const save = () => {
   const p = parties.find((r) => r.checked);
   const sm = sams.find((r) => r.checked);
@@ -248,10 +245,12 @@ const save = () => {
     sm && !sm.defaultChecked && "sam=" + sm.id.slice(4)]
     .filter(Boolean).join("&");
   history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
+  for (const a of views) a.hash = s && s.replace(/&?(p|ep)=[^&]*/g, "").replace(/^&/, "");
 };
 const show = (el) => {
   for (const x of document.querySelectorAll(".epmap path.on")) x.classList.remove("on");
   on = el;
+  if (!epd) return;  // the page without the map
   if (!el) { epd.textContent = hint; sel.value = ""; return; }
   for (const x of document.querySelectorAll(`.epmap path[data-ep="${el.dataset.ep}"]`)) x.classList.add("on");
   epd.textContent = el.dataset[h180.checked ? "d180" : "d0"];
@@ -268,7 +267,7 @@ for (const el of document.querySelectorAll(".epmap path[data-ep]")) {
   el.addEventListener("click", () => { show(el); save(); epd.scrollIntoView({block: "nearest"}); });
   el.addEventListener("focus", () => { show(el); save(); });
 }
-sel.addEventListener("change", () => { show(sel.value ? path(sel.value) : null); save(); });
+if (sel) sel.addEventListener("change", () => { show(sel.value ? path(sel.value) : null); save(); });
 for (const r of [h0, h180]) r.addEventListener("change", () => { if (on) show(on); save(); });
 for (const r of [...parties, ...sams]) r.addEventListener("change", save);
 const chaps = [...document.querySelectorAll(".ch")], links = [...document.querySelectorAll(".chap a")];
