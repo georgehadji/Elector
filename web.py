@@ -261,7 +261,7 @@ a{color:var(--pen)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .container{width:100%;max-width:var(--container);margin-inline:auto;padding-inline:var(--gutter)}
 h1,h2,h3{margin:0;font-family:var(--font-body);font-weight:600;letter-spacing:-.02em;line-height:1.05;overflow-wrap:break-word;min-width:0;text-wrap:balance}
-h1{max-width:12ch;font-size:var(--text-display)}
+h1{font-family:var(--font-text);font-size:var(--text-display);letter-spacing:-.02em;line-height:1.1}
 h2{max-width:20ch;font-size:var(--text-section)}
 h3{font-size:var(--text-title);line-height:1.2}
 .lead{margin:0;max-width:40ch;font-size:var(--text-lead);line-height:1.45;color:var(--ink-2)}

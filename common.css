@@ -6,7 +6,7 @@
 body { margin: 0; font: 1rem/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
 main { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-md); }
 main > .bar { margin-bottom: calc(var(--space-sm) + var(--space-lg)); }  /* header at the very top like on every page; the gap under it stays */
-h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.1 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.03em; margin: 0 0 var(--space-xs); }
+h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.15 var(--font-text); letter-spacing: -.015em; margin: 0 0 var(--space-xs); }
 /*SITE_CSS*/
 h2 { font-size: var(--t-base); margin: 0 0 8px; }
 a { color: var(--link); }
