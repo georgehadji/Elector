@@ -677,7 +677,7 @@ VIEW_JS = """(function () {
   var last = {};
   keys.forEach(function (v) { last[v] = els[v][els[v].length - 1] || ''; });
   cur.v = keys[0]; cur.e = last[keys[0]];
-  var bar = document.createElement('div'); bar.className = 'sw';
+  var bar = document.getElementById('sw');
   var row1 = document.createElement('div'), row2 = document.createElement('div');
   row1.setAttribute('role', 'group'); row1.setAttribute('aria-label', 'Τι να δω');
   row2.setAttribute('role', 'group'); row2.setAttribute('aria-label', 'Εκλογή');
@@ -695,14 +695,14 @@ VIEW_JS = """(function () {
     list.forEach(function (e) {
       row2.appendChild(btn(elabels[e], e === cur.e, function () { cur.e = e; last[cur.v] = e; draw(); }));
     });
-    views.forEach(function (s) { s.hidden = !(s.dataset.v === cur.v && (!s.dataset.e || s.dataset.e === cur.e)); });
+    views.forEach(function (s) { s.classList.toggle('on', s.dataset.v === cur.v && (!s.dataset.e || s.dataset.e === cur.e)); });
+    bar.classList.add('ready');
   }
   function reveal(id) {
     var el = id && document.getElementById(decodeURIComponent(id)), s = el && el.closest('.view');
     if (!s) return false;
     cur.v = s.dataset.v; cur.e = s.dataset.e || last[cur.v]; last[cur.v] = cur.e; draw(); return true;
   }
-  views[0].parentNode.insertBefore(bar, views[0]);
   draw();
   if (location.hash && reveal(location.hash.slice(1))) document.getElementById(decodeURIComponent(location.hash.slice(1))).scrollIntoView();
   addEventListener('hashchange', function () { if (reveal(location.hash.slice(1))) document.getElementById(decodeURIComponent(location.hash.slice(1))).scrollIntoView(); });
@@ -722,7 +722,7 @@ def page():
 {FONTS}
 <link rel="stylesheet" href="vendor/leaflet-1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
 <script src="vendor/leaflet-1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
-<script>/*THEME_JS*/</script><style>{common_css()}
+<script>document.documentElement.classList.add("js")</script><script>/*THEME_JS*/</script><style>{common_css()}
 {CHART_CSS}.mctl{{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0}} .mctl select{{margin-left:.4em}}
 .mnum span{{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:12px;font-weight:600;line-height:1;
   color:var(--ink);paint-order:stroke;-webkit-text-stroke:3px var(--surface)}}
@@ -733,7 +733,7 @@ main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-b
 .sw button{{font:inherit;font-size:var(--t-base);min-height:40px;padding:0 var(--space-md);color:var(--ink);background:none;border:1px solid var(--line);border-radius:20px;cursor:pointer}}
 .sw button:hover{{border-color:var(--ink)}} .sw button[aria-pressed=true]{{color:var(--surface);background:var(--ink);border-color:var(--ink)}}
 .sw button:focus-visible{{outline:2px solid var(--ink);outline-offset:2px}} @media (pointer:coarse){{.sw button{{min-height:44px}}}}
-.view[hidden]{{display:none}} .view>h2:first-child{{margin-top:var(--space-xl)}}
+.js .view:not(.on){{display:none}} .js .sw:not(.ready){{min-height:88px}} .view>h2:first-child{{margin-top:var(--space-xl)}}
 summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
 @media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}</style></head><body><main id="main">
 {header()}
@@ -745,6 +745,7 @@ summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
 <div class="mctl"><label>Εκλογή<select id="m-el"></select></label><label>Χρώμα<select id="m-col"></select></label><label><input type="checkbox" id="m-num" checked> Αριθμός ψήφων</label></div>
 <div id="map" role="region" aria-label="Χάρτης των πόλεων με εκλογικά τμήματα εξωτερικού· τα ίδια στοιχεία είναι στους πίνακες ανά πόλη"></div>
 <div id="m-legend"></div>
+<div class="sw" id="sw"></div>
 {"".join(SECTIONS)}</div>
 {footer(sources='<li>Θέσεις πόλεων: <a href="https://nominatim.openstreetmap.org/" rel="noopener">Nominatim (OpenStreetMap)</a></li>')}</main>
 <script>/*SHARED_JS*/</script><script>{VIEW_JS}</script><script>{MAP_JS.replace("/*MAPDATA*/null", map_data())}</script></body></html>"""
