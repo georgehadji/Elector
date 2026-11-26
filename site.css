@@ -19,9 +19,10 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
 .mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
 .mark rect { stroke-width: 2.4; }
 .mark path { stroke-width: 3.2; }
-.bar nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-lg); font-size: var(--t-base); }
-.bar nav a { display: inline-flex; align-items: center; min-height: 32px; color: var(--ink); text-decoration: none; }
-.bar nav a:hover, .bar nav a[aria-current] { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 8px; }
+.bar nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-2xs); font-size: var(--t-base); }
+.bar nav a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--space-sm); border-radius: 6px; color: var(--ink); text-decoration: none;
+             transition: background-color .15s ease-out; }  /* the current page is a soft pill, no underline */
+.bar nav a:hover, .bar nav a[aria-current] { background: color-mix(in srgb, var(--ink) 8%, transparent); }
 .bar nav a[aria-current="page"] { font-weight: 600; }
 #theme, #menu { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 40px; height: 40px; padding: 0;
          color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); border: 0; border-radius: 50%; cursor: pointer; }
@@ -40,8 +41,7 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
   .bar nav { position: absolute; z-index: 1100; top: 100%; left: 0; right: 0; display: none; flex-direction: column; gap: 0;
              padding: 0 0 var(--space-xs); padding-inline: inherit; background: var(--paper, var(--surface)); border-bottom: 1px solid var(--line); }
   #menu[aria-expanded="true"] + nav { display: flex; }
-  .bar nav a { min-height: 48px; font-size: 1.125rem; }
-  .bar nav a:hover, .bar nav a[aria-current] { text-underline-offset: 6px; }
+  .bar nav a { min-height: 48px; font-size: 1.125rem; margin-inline: calc(var(--space-sm) * -1); }  /* the pill's inset cancels, so the text stays on the page edge */
   /* map pages: the map gets the height */
   .bar.with-ctx { margin-bottom: var(--space-2xs); }
   .ctx { margin-bottom: var(--space-xs); }

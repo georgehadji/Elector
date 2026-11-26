@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VFbUqEuVE3r2eI+XpxNa8q+r3TuVGhj5L1nHLckeZUI=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-FNwuDNo0yo4VevlsE1a/BubpuG+qgv1s2/DGDWr7A7Q=' 'self'; style-src-elem 'sha256-8iBI6ZEkvzBFQPFKvy1OD9xv9VW+6LtgTSUpeiIJes0=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/2023-june_22.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2023-june_22.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2023-june_22.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Ψήφοι κομμάτων, Λάρισας"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2023-june_22.png">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VFbUqEuVE3r2eI+XpxNa8q+r3TuVGhj5L1nHLckeZUI=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-FNwuDNo0yo4VevlsE1a/BubpuG+qgv1s2/DGDWr7A7Q=' 'self'; style-src-elem 'sha256-cl/2MGbifsKBtMUPAZ0MNKzcdo1iViDHC07aV2MYbw8=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; manifest-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><meta name="theme-color" content="#fbfaf6"><link rel="manifest" href="manifest.webmanifest"><link rel="canonical" href="https://elector-eight.vercel.app/out/2023-june_22.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/2023-june_22.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/2023-june_22.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Ψήφοι κομμάτων, Λάρισας"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/2023-june_22.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>// Inlined in <head> of every page, before the CSS applies: a saved choice is set before first paint (no flash).
 // The default is light whatever the system says; the toggle flips light and dark, and only "dark" is remembered.
@@ -84,9 +84,10 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
 .mark rect, .mark path { fill: none; stroke: currentColor; stroke-linecap: round; }
 .mark rect { stroke-width: 2.4; }
 .mark path { stroke-width: 3.2; }
-.bar nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-lg); font-size: var(--t-base); }
-.bar nav a { display: inline-flex; align-items: center; min-height: 32px; color: var(--ink); text-decoration: none; }
-.bar nav a:hover, .bar nav a[aria-current] { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 8px; }
+.bar nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-2xs); font-size: var(--t-base); }
+.bar nav a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--space-sm); border-radius: 6px; color: var(--ink); text-decoration: none;
+             transition: background-color .15s ease-out; }  /* the current page is a soft pill, no underline */
+.bar nav a:hover, .bar nav a[aria-current] { background: color-mix(in srgb, var(--ink) 8%, transparent); }
 .bar nav a[aria-current="page"] { font-weight: 600; }
 #theme, #menu { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; width: 40px; height: 40px; padding: 0;
          color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, var(--paper, var(--surface))); border: 0; border-radius: 50%; cursor: pointer; }
@@ -105,8 +106,7 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
   .bar nav { position: absolute; z-index: 1100; top: 100%; left: 0; right: 0; display: none; flex-direction: column; gap: 0;
              padding: 0 0 var(--space-xs); padding-inline: inherit; background: var(--paper, var(--surface)); border-bottom: 1px solid var(--line); }
   #menu[aria-expanded="true"] + nav { display: flex; }
-  .bar nav a { min-height: 48px; font-size: 1.125rem; }
-  .bar nav a:hover, .bar nav a[aria-current] { text-underline-offset: 6px; }
+  .bar nav a { min-height: 48px; font-size: 1.125rem; margin-inline: calc(var(--space-sm) * -1); }  /* the pill's inset cancels, so the text stays on the page edge */
   /* map pages: the map gets the height */
   .bar.with-ctx { margin-bottom: var(--space-2xs); }
   .ctx { margin-bottom: var(--space-xs); }
