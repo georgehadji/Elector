@@ -4,6 +4,7 @@ Adding an election: one line in ELECTIONS (plus SOURCES if the ministry serves i
 then fetch.py, build.py and the nationwide pages pick it up.
 """
 import re
+from datetime import date
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -11,6 +12,8 @@ DB = HERE / "data" / "stavroi.sqlite"
 OUT = HERE / "out"
 # Public address of the site, without a trailing slash (https://example.gr). Empty: pages carry no og:url or canonical,
 # since a relative or guessed address is worse than none. Set it, then rebuild every page.
+LEAFLET_VERSION = "1.9.4"  # the Leaflet in out/vendor/leaflet-<version>/ and cdnjs; a new version goes to a new folder
+LEAFLET_SRI = {"leaflet.min.css": "sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=", "leaflet.min.js": "sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc="}
 SITE_URL = "https://elector-eight.vercel.app"
 
 
@@ -25,6 +28,7 @@ ELECTIONS = {  # key -> (short name, page title); oldest first
     "2024/euro": ("Ευρωεκλογές 2024", "Ευρωεκλογές 2024"),
 }
 ELECTION_NAMES = {k: short for k, (short, _) in ELECTIONS.items()}
+ELECTION_DATE = {"2019": date(2019, 7, 7), "2023/may": date(2023, 5, 21), "2023/june": date(2023, 6, 25), "2024/euro": date(2024, 6, 9)}
 
 
 def slug(election):

@@ -32,6 +32,8 @@ import forecast as F
 import pollster_record as PR
 import seats_law as LAW
 
+MAJ, SEATS, THR, STATE = LAW.MAJORITY, LAW.SEATS, LAW.THRESHOLD, LAW.STATE  # the law's figures: never typed here
+
 from config import DB, FORECAST_COLOURS, HERE, slug
 from geo import boundary, frame, path
 from matching import boundaries, centroid, match_units
@@ -89,9 +91,9 @@ def expected(r):
         for p, dist in e["dist"].items():
             mean[p] = mean.get(p, 0) + mean_seats(dist)
     whole = {p: int(m) for p, m in mean.items()}
-    for p in sorted(mean, key=lambda p: whole[p] - mean[p])[:300 - sum(whole.values())]:
+    for p in sorted(mean, key=lambda p: whole[p] - mean[p])[:SEATS - sum(whole.values())]:
         whole[p] += 1
-    assert sum(whole.values()) == 300, whole
+    assert sum(whole.values()) == SEATS, whole
     return whole
 
 
@@ -123,7 +125,7 @@ def lead(r, key):
     """The answer first, at display size: how often ND alone, and ND with PASOK or with ELAS, reach 151 seats (the 151
     list's order); then one sentence on ND's share and seats."""
     nd = r["parties"]["ND"]
-    figs = "".join(f'<p><b>{pct(r[k])}</b><span class="t"><strong>{t}</strong><small>151 έδρες {in_sims(r[k]).replace(f" ({pct(r[k])})", "")}</small>'
+    figs = "".join(f'<p><b>{pct(r[k])}</b><span class="t"><strong>{t}</strong><small>{MAJ} έδρες {in_sims(r[k]).replace(f" ({pct(r[k])})", "")}</small>'
                    '</span></p>' for t, k in (("ΝΔ μόνη της", "p_nd_majority"), ("ΝΔ και ΠΑΣΟΚ", "p_nd_pasok_151"),
                                               ('ΝΔ και <abbr title="Ελληνική Αριστερή Συμπαράταξη">ΕΛΑΣ</abbr>', "p_nd_elas_151")))
     return (f'<div class="hero h{key}">{figs}</div>'
@@ -165,14 +167,14 @@ def odds(r, key):
         ps = sorted(ps, key=list(COLOURS).index)
         n = sum(seats.get(x, 0) for x in ps)
         spans = ("".join(f'<span style="--c:{colour(x)};flex:{seats.get(x, 0)}"></span>' for x in ps)
-                 + f'<span class="rest" style="flex:{300 - n}"></span>')
+                 + f'<span class="rest" style="flex:{SEATS - n}"></span>')
         items.append(f'<li{c}><span class="lb"><span>{title.replace("ΕΛΑΣ", '<abbr title="Ελληνική Αριστερή Συμπαράταξη">ΕΛΑΣ</abbr>')}</span><small>{mid} έδρες ({lo}–{hi}) · {often(p)}</small></span>'
                      f'<div class="seatbar mini" role="img" aria-label="{title}: {mid} έδρες, στις 8 από τις 10 από {lo} '
                      f'έως {hi}">{spans}<i></i></div><b>{pct(p)}</b></li>')
-    return (f'<h2>Ποιοι φτάνουν τις 151 έδρες</h2>'
+    return (f'<h2>Ποιοι φτάνουν τις {MAJ} έδρες</h2>'
             '<p class="note">Οι έδρες του κόμματος, ή των κομμάτων μαζί: η μεσαία τιμή και, σε παρένθεση, το εύρος όπου '
-            'πέφτουν στις 8 από τις 10. Δεξιά, σε τι ποσοστό των προσομοιώσεων φτάνουν τις 151. Η γραμμή στη μπάρα είναι '
-            'οι 151. Είναι αθροίσματα εδρών, όχι πρόβλεψη για το ποια κυβέρνηση θα σχηματιστεί.</p>'
+            f'πέφτουν στις 8 από τις 10. Δεξιά, σε τι ποσοστό των προσομοιώσεων φτάνουν τις {MAJ}. Η γραμμή στη μπάρα είναι '
+            f'οι {MAJ}. Είναι αθροίσματα εδρών, όχι πρόβλεψη για το ποια κυβέρνηση θα σχηματιστεί.</p>'
             f'<ul class="odds">{"".join(items)}</ul>')
 
 
@@ -187,7 +189,7 @@ def shares(r, order, names, small):
     grid = "".join(f'<span class="gl" style="left:{x(v)}"></span>' for v in range(step, scale + 1, step))  # scale on every row
     head = ('<div class="sh"><span class="hd l">κόμμα</span><span class="hd tk"></span>'
             '<span class="hd">ποσοστό</span><span class="hd">περνά το 3%</span>'
-            f'<span></span><span class="trk ax">{ticks}<span style="left:{x(3)}">3%</span></span><span></span><span></span>')
+            f'<span></span><span class="trk ax">{ticks}<span style="left:{x(THR)}">{THR:g}%</span></span><span></span><span></span>')
     rows = {}
     for p in order:
         lo, mid, hi = r["parties"][p]["share"]
@@ -196,7 +198,7 @@ def shares(r, order, names, small):
         tip = f"{names[p]}: {num(mid)}% (80%: {num(lo)}–{num(hi)}%)" + ("" if p == F.OTHER else f", πιθανότητα να περάσει το 3%: {p_in}")
         rows[p] = (f'<span class="nm">{html.escape(names[p])}</span>'
                    f'<span class="trk" title="{html.escape(tip, quote=True)}" style="--c:{colour(p)}">'
-                   f'{grid}<span class="thr" style="left:{x(3)}"></span>'
+                   f'{grid}<span class="thr" style="left:{x(THR)}"></span>'
                    f'<span class="rng" style="left:{x(lo)};width:{100 * (hi - lo) / scale:.2f}%"></span>'
                    f'<span class="dot" style="left:{x(mid)}"></span></span>'
                    f'<span class="v">{num(mid)}%<small>{num(lo, d)}–{num(hi, d)}</small></span><span class="v">{p_in}</span>')
@@ -220,10 +222,10 @@ def seatbar(order, names, r):
     spans = "".join(f'<span style="--c:{c};flex:{n}" title="{html.escape(t + x, quote=True)}"></span>' for c, t, n, x in parts)
     legend = "".join(f'<li><i style="--c:{c}"></i>{html.escape(t + x)}</li>' for c, t, _, x in parts)
     label = ", ".join(t + x for _, t, _, x in parts)
-    return (f'<div class="seatbar" role="img" aria-label="Οι 300 έδρες, από αριστερά: {html.escape(label, quote=True)}">'
+    return (f'<div class="seatbar" role="img" aria-label="Οι {SEATS} έδρες, από αριστερά: {html.escape(label, quote=True)}">'
             f'{spans}<i></i></div>'
-            '<div class="trk ax"><span style="left:0;transform:none">0</span><span style="left:50.33%">151</span>'
-            '<span style="right:0;transform:none">300</span></div>'
+            f'<div class="trk ax"><span style="left:0;transform:none">0</span><span style="left:{100 * MAJ / SEATS:.2f}%">{MAJ}</span>'
+            f'<span style="right:0;transform:none">{SEATS}</span></div>'
             f'<ul class="legend">{legend}</ul>')
 
 
@@ -274,11 +276,11 @@ def hist(h, w, hgt, fs, every):
     gap = 0.5 if bw > 3 else 0.2
     for s, c in sorted(h.items()):
         f = c / total
-        out.append(f'<rect class="bar{" win" if s >= 151 else ""}" x="{X(s) + gap / 2:.2f}" y="{Y(f):.1f}" '
+        out.append(f'<rect class="bar{" win" if s >= MAJ else ""}" x="{X(s) + gap / 2:.2f}" y="{Y(f):.1f}" '
                    f'width="{max(bw - gap, 0.4):.2f}" height="{Y(0) - Y(f):.1f}"><title>{s} έδρες: {pct(f)}</title></rect>')
     out.append(f'<line class="base" x1="{left}" x2="{w - right}" y1="{Y(0):.1f}" y2="{Y(0):.1f}"/>'
-               f'<line class="m151" x1="{X(151):.1f}" x2="{X(151):.1f}" y1="{tp - 0.6 * fs:.1f}" y2="{Y(0):.1f}"/>'
-               f'<text class="m151-l" x="{X(151) + 0.3 * fs:.1f}" y="{tp - 0.2 * fs:.1f}">151</text>')
+               f'<line class="m151" x1="{X(MAJ):.1f}" x2="{X(MAJ):.1f}" y1="{tp - 0.6 * fs:.1f}" y2="{Y(0):.1f}"/>'
+               f'<text class="m151-l" x="{X(MAJ) + 0.3 * fs:.1f}" y="{tp - 0.2 * fs:.1f}">{MAJ}</text>')
     return "\n".join(out) + "</svg>"
 
 
@@ -294,9 +296,9 @@ def histograms(r):
                           ("hist_pasok_elas", "Έδρες ΠΑΣΟΚ και ΕΛΑΣ μαζί", r["p_pasok_elas_151"])):
         out.append(f'<figure><h3>{title}</h3><div class="wide">{hist(r[key], 440, 210, 12, 20)}</div>'
                    f'<div class="narrow">{hist(r[key], 360, 210, 12, 20)}</div>'
-                   f'<figcaption>151 ή περισσότερες: {pct(p)}.</figcaption></figure>')
+                   f'<figcaption>{MAJ} ή περισσότερες: {pct(p)}.</figcaption></figure>')
     return ('<details><summary>Πώς κατανέμονται οι έδρες στις προσομοιώσεις</summary>'
-            f'<p class="note">Ποσοστό των προσομοιώσεων ανά αριθμό εδρών· η διακεκομμένη γραμμή είναι οι 151.{hump}</p>'
+            f'<p class="note">Ποσοστό των προσομοιώσεων ανά αριθμό εδρών· η διακεκομμένη γραμμή είναι οι {MAJ}.{hump}</p>'
             '<div class="two">' + "".join(out) + "</div></details>")
 
 
@@ -311,7 +313,7 @@ def partners_html(r, names):
         rows = "".join(f'<li><span class="sw" style="--c:{colour(x)}"></span>{html.escape(names[x])}<b>{pct(p)}</b></li>'
                        for x, p in d["p"].items() if p >= 0.005)
         cols.append(f'<div><h3>{title}</h3><p class="note">Συμβαίνει {in_sims(d["n_short"] / r["n"])}. Τότε, πόσο συχνά '
-                    f'φτάνει τις 151 με ένα ακόμη κόμμα:</p><ul class="pl">{rows or "<li>με κανένα</li>"}</ul></div>')
+                    f'φτάνει τις {MAJ} με ένα ακόμη κόμμα:</p><ul class="pl">{rows or "<li>με κανένα</li>"}</ul></div>')
     if not cols:
         return ""
     return (f'<h3 class="sub">Ποιο κόμμα αρκεί, όταν δεν φτάνουν</h3><div class="two">{"".join(cols)}</div>'
@@ -407,8 +409,8 @@ def bonus_html(r, key, names):
     example = (f'Με τη ΝΔ στο {num(x)}% (μεσαία τιμή), το μπόνους θα ήταν {b["base"]} + {seats - b["base"]} = {seats} έδρες: '
                f'{b["base"]} στο {num(b["from"], 0)}% και μία ακόμη για κάθε ολόκληρη μισή μονάδα πάνω από αυτό, έως {b["cap"]}.'
                if seats else f'Με τη ΝΔ στο {num(x)}% (μεσαία τιμή), κάτω από {num(b["from"], 0)}%, δεν θα υπήρχε μπόνους.')
-    head = ('<tr><th></th><th class="n">πόσο συχνά</th><th class="n">έδρες ΝΔ</th><th class="n">ΝΔ μόνη 151</th>'
-            '<th class="n">ΝΔ και ΠΑΣΟΚ 151</th><th class="n">ΝΔ και ΕΛΑΣ 151</th></tr>')
+    head = (f'<tr><th></th><th class="n">πόσο συχνά</th><th class="n">έδρες ΝΔ</th><th class="n">ΝΔ μόνη {MAJ}</th>'
+            f'<th class="n">ΝΔ και ΠΑΣΟΚ {MAJ}</th><th class="n">ΝΔ και ΕΛΑΣ {MAJ}</th></tr>')
     rows, figs = [], []
     for k, title in (("bonus", "με μπόνους"), ("nobonus", "χωρίς μπόνους")):
         s = sc[k]
@@ -425,11 +427,11 @@ def bonus_html(r, key, names):
             key_ = "".join(f'<li><i style="--c:{colour(p)}"></i>{html.escape(names[p])} <b>{v}</b></li>' for p, v in parl)
             figs.append(f'<figure><h3>Η Βουλή {title}</h3>{hemicycle(dict(parl), label)}<ul class="legend">{key_}</ul></figure>')
     return (f'<h2>Το όριο του 25%</h2>'
-            f'<p class="note">Αν το πρώτο κόμμα μείνει κάτω από {num(b["from"], 0)}%, δεν παίρνει μπόνους και οι 300 έδρες '
+            f'<p class="note">Αν το πρώτο κόμμα μείνει κάτω από {num(b["from"], 0)}%, δεν παίρνει μπόνους και οι {SEATS} έδρες '
             f'μοιράζονται αναλογικά. Αυτό συμβαίνει {in_sims(p_no)}. {example}</p>'
             f'<div class="wrap"><table><thead>{head}</thead><tbody>{"".join(rows)}</tbody></table></div>'
             + ('<p class="note">Κάθε Βουλή: η μεσαία τιμή των εδρών κάθε κόμματος στις προσομοιώσεις αυτής της περίπτωσης, '
-               'στρογγυλεμένη ώστε να αθροίζει 300. Η γραμμή στη μέση χωρίζει τις 150 από τις 150.</p>'
+               f'στρογγυλεμένη ώστε να αθροίζει {SEATS}. Η γραμμή στη μέση χωρίζει τις {SEATS // 2} από τις {SEATS // 2}.</p>'
                f'<div class="two">{"".join(figs)}</div>' if figs else ""))
 
 
@@ -468,14 +470,14 @@ def ladder_html(r, key, names):
         spans = "".join(f'<span style="--c:{c};flex:{n};opacity:{a}"></span>' for n, a in zip(t, TIER_ALPHA, strict=True) if n)
         spans += f'<span class="rest" style="flex:{LAW.LAWS[LAW.CURRENT]["seats"] - sum(t)}"></span>'
         words = " · ".join(f'{"" if i == 0 else "+"}{n} {w}' for i, (n, (_, w)) in enumerate(zip(t, TIERS, strict=True)) if n or i == 0)
-        extra = f' · 151 και πάνω: {pct(p151)}' if p151 is not None else ""
+        extra = f' · {MAJ} και πάνω: {pct(p151)}' if p151 is not None else ""
         items.append(f'<li><span class="lb"><span>{html.escape(title)}</span><small>{words}{extra}</small></span>'
                      f'<div class="seatbar mini" role="img" aria-label="{html.escape(title + ": " + words, quote=True)}">{spans}<i></i></div></li>')
     sides = "· ".join(f'{BLOC_NAMES[k].lower()}: ' + ", ".join(names[p] for p in ps if p in names) for k, ps in F.BLOCS.items())
     return (f'<h2>Ασφαλείς και αμφίρροπες έδρες</h2>'
             '<p class="note">Κάθε έδρα με τη σειρά, η 1η, η 2η και ούτω καθεξής, και σε πόσες από τις 100 προσομοιώσεις τη φτάνει '
             'το κόμμα. Ασφαλείς: 95 ή περισσότερες. Πιθανές: 75 έως 95. Με κλίση: 65 έως 75. Αμφίρροπες: 35 έως 65. '
-            'Δύσκολες: 5 έως 35. Όσο πιο αχνό το χρώμα, τόσο πιο αβέβαιη η έδρα. Η γραμμή είναι οι 151.</p>'
+            f'Δύσκολες: 5 έως 35. Όσο πιο αχνό το χρώμα, τόσο πιο αβέβαιη η έδρα. Η γραμμή είναι οι {MAJ}.</p>'
             f'<ul class="odds ladder">{"".join(items)}</ul>'
             '<p class="note">Οι πλευρές είναι αθροίσματα εδρών κατά τη θέση των κομμάτων στη Βουλή, όχι πρόβλεψη για το ποιος θα '
             f'συνεργαζόταν με ποιον ({sides}· η Ελπίδα και τα μικρότερα κόμματα σε καμία). Τα λάθη των κομμάτων κληρώνονται '
@@ -503,6 +505,28 @@ def per_ep(r, order, names):
             '<span class="swipe"> Σύρε τον πίνακα πλάγια για όλα τα κόμματα.</span></p>'
             f'<div class="wrap"><table><thead><tr><th>περιφέρεια</th><th class="n">έδρες</th>{head}</tr></thead><tbody>'
             + "".join(rows) + "</tbody></table></div></details>")
+
+
+def record_chart(rows, bench):
+    """One row per firm on a 0-4 points scale: a dot for the miss at each election (colour = election), a diamond for the firm's
+    average, a dashed tick at the average of all firms. Decoration for the table beside it, which carries the same numbers."""
+    top = 4.0
+    at = lambda v: f"{100 * v / top:.2f}%"
+    css = {"2019": "e19", "2023/may": "e23m", "2023/june": "e23j"}
+    lines = []
+    for r in sorted(rows, key=lambda r: r["avg"]):
+        vs = list(r["by"].values())
+        dots = "".join(f'<i class="d {css[e]}" style="left:{at(v)}" title="{PR.LABEL[e]}: {num(v)}"></i>' for e, v in r["by"].items())
+        span = f'<b class="rg" style="left:{at(min(vs))};width:{100 * (max(vs) - min(vs)) / top:.2f}%"></b>' if len(vs) > 1 else ""
+        lines.append(f'<li><span class="lb">{html.escape(r["firm"])}</span><span class="tk">{span}'
+                     f'<em class="bn" style="left:{at(bench)}"></em>{dots}<u class="m" style="left:{at(r["avg"])}"></u></span></li>')
+    axis = "".join(f'<span style="left:{at(g)}">{g}</span>' for g in range(int(top) + 1))
+    legend = "".join(f'<span><i class="d {css[e]}"></i>{PR.LABEL[e]}</span>' for e in PR.ELECTIONS)
+    return ('<figure class="frec"><div class="fl" aria-hidden="true">' + legend + '<span><u class="m"></u>μέσος όρος εταιρείας</span>'
+            f'<span><em class="bn"></em>μέσος όρος όλων ({num(bench)})</span></div>'
+            f'<ul class="fr" aria-hidden="true">{"".join(lines)}<li class="ax"><span class="lb"></span><span class="tk">{axis}</span></li></ul>'
+            '<figcaption>Μονάδες απόστασης από το αποτέλεσμα: κάθε κουκκίδα είναι η τελευταία δημοσκόπηση πριν από μία κάλπη. '
+            'Οι ίδιοι αριθμοί είναι στον πίνακα από κάτω.</figcaption></figure>')
 
 
 def record():
@@ -533,6 +557,7 @@ def record():
             f'<p class="note">{spread}Οι διαφορές '
             'ανάμεσα στις περισσότερες εταιρείες είναι μικρότερες από τις διακυμάνσεις από εκλογή σε εκλογή: ο πίνακας δείχνει πόσο '
             'κοντά έπεσαν, όχι πόσο κοντά θα πέσουν, και δεν είναι κατάταξη.</p>'
+            + record_chart(rows, bench) +
             '<div class="wrap"><table class="rec"><thead><tr><th>εταιρεία</th><th class="n">εκλογές</th><th class="n">μέσος όρος</th>'
             f'{head}</tr></thead><tbody>' + "".join(body_rows) + '</tbody></table></div>'
             '<p class="note">Στο μέσο όρο που βγάζουμε, όλες οι εταιρείες μετράνε το ίδιο. Δοκιμάσαμε να '
@@ -599,9 +624,9 @@ def samaras(names):
                         f'<td class="n">{"—" if p == "SAM" else seats_range(B["seats"][p])}</td><td class="n">{seats_range(s["seats"][p])}</td></tr>'
                         for p in seated if s["seats"].get(p, [0, 0, 0])[1] or B["seats"].get(p, [0, 0, 0])[1])
         panels.append(f'<div class="slv sl-{L}"><p class="lead">{lead}</p>{hero}'
-                      '<h3>Ποιοι φτάνουν τις 151 έδρες</h3>'
+                      f'<h3>Ποιοι φτάνουν τις {MAJ} έδρες</h3>'
                       f'<ul class="po">{"".join(rows)}</ul>'
-                      '<p class="note">Ποσοστό των προσομοιώσεων όπου τα κόμματα μαζί έχουν 151 έδρες ή περισσότερες. Η γραμμή στη μπάρα '
+                      f'<p class="note">Ποσοστό των προσομοιώσεων όπου τα κόμματα μαζί έχουν {MAJ} έδρες ή περισσότερες. Η γραμμή στη μπάρα '
                       'είναι το ποσοστό χωρίς κόμμα Σαμαρά. Είναι αθροίσματα εδρών, όχι πρόβλεψη για το ποια κυβέρνηση θα σχηματιστεί.</p>'
                       f'<details><summary>Οι έδρες κάθε κόμματος στο {L}%</summary><div class="wrap"><table><thead><tr><th></th>'
                       f'<th class="n">χωρίς</th><th class="n">{L}%</th></tr></thead><tbody>{srows}</tbody></table></div>'
@@ -616,7 +641,7 @@ def samaras(names):
         ss = [v[str(L)] for L in alt]
         rng = lambda f, fmt=pct: dash(fmt(min(f(s) for s in ss)), fmt(max(f(s) for s in ss)))
         alts.append(f"<b>{html.escape(k)}</b> ({from_(v['split'])}): "
-                    f"η ΝΔ {rng(lambda s: s['seats']['ND'][1], str)} έδρες, ΝΔ και ΕΛΑΣ στις 151 σε {rng(lambda s: s['nd_elas'])}, "
+                    f"η ΝΔ {rng(lambda s: s['seats']['ND'][1], str)} έδρες, ΝΔ και ΕΛΑΣ στις {MAJ} σε {rng(lambda s: s['nd_elas'])}, "
                     f"μπόνους σε {rng(lambda s: s['bonus'])}")
     geo = [g for v in d["geo"].values() for g in v.values()]
     moved = max(g["moved_sam"] for g in geo)
@@ -685,9 +710,9 @@ def trend_html(names):
     if len(pts) < 2:
         return ""
     rate = lambda k: [p["rates"][k] for p in pts]
-    main_ = [("ΝΔ μόνη 151", colour("ND"), False, rate("p_nd_majority")),
-             ("ΝΔ και ΠΑΣΟΚ 151", colour("PASOK"), False, rate("p_nd_pasok_151")),
-             ("ΝΔ και ΕΛΑΣ 151", colour("ELAS"), False, rate("p_nd_elas_151")),
+    main_ = [(f"ΝΔ μόνη {MAJ}", colour("ND"), False, rate("p_nd_majority")),
+             (f"ΝΔ και ΠΑΣΟΚ {MAJ}", colour("PASOK"), False, rate("p_nd_pasok_151")),
+             (f"ΝΔ και ΕΛΑΣ {MAJ}", colour("ELAS"), False, rate("p_nd_elas_151")),
              ("χωρίς μπόνους", "var(--ink-2)", True, [1 - v for v in rate("p_bonus")])]
     pair = sorted(last["p_second"], key=lambda p: -last["p_second"][p])[:2]
     second = [(f"{names[p]} δεύτερο", colour(p), False, [x["p_second"].get(p, 0) for x in pts]) for p in pair]
@@ -966,7 +991,7 @@ def method(n_sims, n_polls, err, sens):
         (f"<b>Από τις ψήφους στις έδρες.</b> Σε καθεμία από τις {thousands(n_sims)} προσομοιώσεις, τα ποσοστά μοιράζονται στις "
         "59 εκλογικές περιφέρειες ανάλογα με το πού ψήφισε κάθε κόμμα στις Ευρωεκλογές 2024 (ή στις εκλογές του Ιουνίου 2023), "
         "με λίγο τυχαίο θόρυβο. Μετά εφαρμόζεται ο νόμος: όριο 3%, μπόνους 20 έως 50 εδρών στο πρώτο κόμμα αν πάρει 25% και "
-        "πάνω, 285 έδρες στις περιφέρειες και 15 Επικρατείας. Κάθε προσομοίωση ελέγχεται να δίνει 300 έδρες."),
+        f"πάνω, {SEATS - STATE} έδρες στις περιφέρειες και {STATE} Επικρατείας. Κάθε προσομοίωση ελέγχεται να δίνει {SEATS} έδρες."),
         "<b>Τα όρια.</b> Τα λάθη των κομμάτων κληρώνονται ανεξάρτητα, ενώ σε πραγματικές εκλογές συχνά κινούνται μαζί· τα εύρη "
         "μπορεί να είναι στενότερα από όσο πρέπει. Τα νέα κόμματα (ΕΛΑΣ, δηλαδή Ελληνική Αριστερή Συμπαράταξη, Ελπίδα, Συμμαχία Ελλήνων) έχουν λίγες δημοσκοπήσεις "
         "και καμία κάλπη. Για όσα δεν έχουν παρελθόν, το πού παίρνουν ψήφους είναι υπόθεση: η ΕΛΑΣ σαν τον ΣΥΡΙΖΑ του Ιουνίου "
@@ -987,13 +1012,13 @@ def chapter(key, label, hue, inner, quiet=False):
 def body(data, order, tail=""):
     names = data["names"]
     today = data["horizons"]["0"]["parties"]
-    small = {p for p in order if today[p]["share"][1] < 3}
+    small = {p for p in order if today[p]["share"][1] < THR}
     HATCHED.update(p for p in order if p not in COLOURS and today[p].get("seats") and today[p]["seats"][1] > 0)
     hz = lambda f: "".join(f'<div class="h{key}">{f(r, key)}</div>' for key, r in data["horizons"].items())  # one block per horizon
     css, section = ep_map(data, order, names)
     sam_css, sam = samaras(names)
-    seats = lambda r, key: ('<h2>Έδρες</h2><p class="note">Οι 300 έδρες, με τον μέσο όρο κάθε κόμματος ώστε να '
-                            'αθροίζουν σε 300. Τους αριθμούς τους δίνει ο πίνακας. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>'
+    seats = lambda r, key: (f'<h2>Έδρες</h2><p class="note">Οι {SEATS} έδρες, με τον μέσο όρο κάθε κόμματος ώστε να '
+                            f'αθροίζουν σε {SEATS}. Τους αριθμούς τους δίνει ο πίνακας. Η γραμμή είναι οι {MAJ} της αυτοδυναμίας.</p>'
                             + seatbar(order, names, r) + seat_table(r, order, names) + histograms(r) + ladder_html(r, key, names))
     chapters = [
         chapter("151", "Αυτοδυναμία", 240, hz(lambda r, key: odds(r, key) + partners_html(r, names) + bonus_html(r, key, names))),

@@ -20,8 +20,12 @@ arithmetic, and the changes carry sampling noise (about 0.3 points for NIKH).
 import csv
 import math
 import random
+import sys
 from datetime import date
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
+import nikh_polls as NP
 
 CSV = Path(__file__).resolve().parent / "nikh_polls.csv"
 NEW = date(2026, 4, 20)
@@ -84,7 +88,7 @@ def table(title, ps, rng):
         print(f"  {c:<8}{len(res[c][0]):>6}{r:>+11.2f}{f'{b:+.3f} ± {1.96 * se:.3f}':>20}{p:>14.3f}")
 
 
-def windows(rows, a=(date(2026, 1, 1), date(2026, 4, 19)), b=(date(2026, 7, 1), date(2026, 11, 22))):
+def windows(rows, a=(date(2026, 1, 1), date(2026, 4, 19)), b=(date(2026, 7, 1), NP.TODAY)):
     """{firm: ({col: mean in window a}, {col: mean in window b})} for firms with NIKH in both windows."""
     def mean(firm, w):
         acc = {}

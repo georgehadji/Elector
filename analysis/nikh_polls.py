@@ -34,14 +34,19 @@ Unofficial results.
 """
 import csv
 import math
+import sys
 from datetime import date, timedelta
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
+from config import ELECTION_DATE as ED
+
 CSV = Path(__file__).resolve().parent / "nikh_polls.csv"
-TODAY = date(2026, 11, 22)
-EURO = (date(2024, 6, 9), 4.37)  # Euro 2024 ballot, official with postal votes
+with open(CSV, encoding="utf-8") as _f:
+    TODAY = max(date.fromisoformat(r["end"]) for r in csv.DictReader(_f))  # the day of the latest poll: a new poll is never in the future
+EURO = (ED["2024/euro"], 4.37)  # Euro 2024 ballot, official with postal votes
 D0 = date(2023, 9, 26)
-BALLOT_2023 = {"2023/may": (date(2023, 5, 21), 2.92), "2023/june": (date(2023, 6, 25), 3.70)}  # NIKH % of valid votes
+BALLOT_2023 = {"2023/may": (ED["2023/may"], 2.92), "2023/june": (ED["2023/june"], 3.70)}  # NIKH % of valid votes
 
 
 QS = (0.0005, 0.001, 0.002, 0.004, 0.008, 0.016, 0.03)  # grid of fit(): daily variance of the level
@@ -185,7 +190,7 @@ def backtest(obs, start=date(2024, 6, 1), step=30):
     return out
 
 
-def split_firms(obs, cut=date(2024, 6, 9), minn=8):
+def split_firms(obs, cut=ED["2024/euro"], minn=8):
     """Obs with each firm that has at least `minn` polls on both sides of `cut` split in two (name + '@<' / '@>'), so each side gets its own house effect."""
     cnt = {}
     for d, f, n, y in obs:
@@ -251,7 +256,7 @@ if __name__ == "__main__":
             n = len(es)
             print(f"  {m:<20}{f'{lo + 1}-{hi} ημ.':>12}{n:>6}{sum(abs(e) for e, _ in es) / n:>7.3f}{math.sqrt(sum(e * e for e, _ in es) / n):>7.3f}"
                   f"{sum(e for e, _ in es) / n:>+13.3f}{100 * sum(abs(e) < 1.96 * s for e, s in es) / n:>11.0f}%")
-    CUT = date(2024, 6, 9)
+    CUT = ED["2024/euro"]
     res = {}
     for (d, f, n, y), s in zip(obs, xs, strict=True):
         res.setdefault(f, [[], []])[d >= CUT].append(y - s)

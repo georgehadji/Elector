@@ -724,8 +724,7 @@ def page():
 <title>{title}</title>
 {meta(title, "Πώς ψήφισαν οι Έλληνες του εξωτερικού ανά χώρα και πόλη (2023) και όσοι ψήφισαν επιστολικά (Ευρωεκλογές 2024).")}
 {FONTS}
-<link rel="stylesheet" href="vendor/leaflet-1.9.4/leaflet.min.css" integrity="sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=" crossorigin="anonymous">
-<script src="vendor/leaflet-1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
+<!--LEAFLET-->
 <script>document.documentElement.classList.add("js")</script><script>/*THEME_JS*/</script><style>{common_css()}
 {CHART_CSS}.mctl{{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0}} .mctl select{{margin-left:.4em}}
 .mnum span{{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:12px;font-weight:600;line-height:1;

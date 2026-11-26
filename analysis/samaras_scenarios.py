@@ -25,7 +25,6 @@ level of LEVELS (the chooser there), the two sensitivity checks at the levels of
   python -I -X utf8 analysis/samaras_scenarios.py data/stavroi.sqlite [N] > analysis/samaras_scenarios.txt
 """
 import json
-import math
 import random
 import sys
 from itertools import combinations
@@ -33,12 +32,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
 import forecast as F
+import seats_law as LAW
 
 SAM = "SAM"
 LEVELS = tuple(range(4, 15))  # every level of the chooser on the page: full statistics at each
 ALT = (10, 11, 12)  # the levels the two sensitivity checks (source split, geography) are run at
 MESSINIA = 46  # ep_id of Μεσσηνίας, June 2023
-SEED = 2026
+SEED = F.SEED
 # share of SAM's points taken from each party [judgement]; each sums to 1
 SPLITS = {"κύρια: κυρίως ΝΔ": {"ND": .70, "EL": .12, "NIKI": .04, "FL": .04, "SE": .03, "SPARTIATES": .02, F.OTHER: .05},
           "σχεδόν όλα ΝΔ": {"ND": .85, "EL": .08, F.OTHER: .07},
@@ -84,8 +84,7 @@ def sam_geo(name):
 
 def bonus_of(nat):
     """Bonus seats of the first party for national votes {party: votes} (allocate's rule)."""
-    f = 100 * max(nat.values()) / sum(nat.values())
-    return 0 if f < 25 else 20 + min(30, math.floor((f - 25) / 0.5))
+    return LAW.bonus_seats(100 * max(nat.values()) / sum(nat.values()))
 
 
 def run(draws, level=0, split=None, geo_name=MAIN_GEO):
@@ -104,7 +103,7 @@ def run(draws, level=0, split=None, geo_name=MAIN_GEO):
         ep_v = F.spread(votes, V, g, rng)
         res, _ = S.allocate(ep_v)
         tot = {p: sum(v.values()) for p, v in res.items()}
-        assert sum(tot.values()) == 300 and not any(p.startswith(F.OTHER) for p in tot), tot
+        assert sum(tot.values()) == LAW.SEATS and not any(p.startswith(F.OTHER) for p in tot), tot
         nat = {}
         for pv in ep_v.values():
             for p, v in pv.items():
@@ -114,7 +113,7 @@ def run(draws, level=0, split=None, geo_name=MAIN_GEO):
 
 
 def p151(sims, parties):
-    return sum(sum(st.get(p, 0) for p in parties) >= 151 for _, st, _, _ in sims) / len(sims)
+    return sum(sum(st.get(p, 0) for p in parties) >= LAW.MAJORITY for _, st, _, _ in sims) / len(sims)
 
 
 def coalitions(sims, size=(2, 3)):
@@ -127,9 +126,9 @@ def coalitions(sims, size=(2, 3)):
             hit = need = 0
             for _, st, _, _ in sims:
                 s = sum(st.get(p, 0) for p in c)
-                if s >= 151:
+                if s >= LAW.MAJORITY:
                     hit += 1
-                    need += all(s - st.get(p, 0) < 151 for p in c)
+                    need += all(s - st.get(p, 0) < LAW.MAJORITY for p in c)
             if hit:
                 out[c] = (hit / len(sims), need / len(sims))
     return out
@@ -143,7 +142,7 @@ def stats(sims):
             "bonus": sum(x > 0 for x in b) / n, "bonus_q": [F.q(b, f) for f in (.1, .5, .9)],
             "seats": {p: [F.q(sorted(st.get(p, 0) for _, st, _, _ in sims), f) for f in (.1, .5, .9)] for p in [*F.PARTIES, SAM]},
             "share": {p: [F.q(sorted(sh.get(p, 0) for sh, *_ in sims), f) for f in (.1, .5, .9)] for p in [*F.PARTIES, F.OTHER, SAM]},
-            "in": {p: sum(sh.get(p, 0) >= 3 for sh, *_ in sims) / n for p in [*F.PARTIES, SAM]},
+            "in": {p: sum(sh.get(p, 0) >= LAW.THRESHOLD for sh, *_ in sims) / n for p in [*F.PARTIES, SAM]},
             "first": {p: sum(max(sh, key=sh.get) == p for sh, *_ in sims) / n for p in ("ND", "ELAS", SAM)}}
 
 
@@ -173,7 +172,7 @@ def selftest(draws):
 if __name__ == "__main__":
     if SAM in F.PARTIES:  # the party is in the polls: the forecast covers it and the page drops the scenario
         sys.exit(f"Το {F.PARTIES[SAM][1]} έχει πλέον ≥ {F.MIN_POLLS} δημοσκοπήσεις: το καλύπτει το forecast.py, το σενάριο δεν τρέχει.")
-    N = int(sys.argv[2]) if len(sys.argv) > 2 else 10000
+    N = int(sys.argv[2]) if len(sys.argv) > 2 else F.N_SIMS
     draws = F.simulate(N, 0, seed=SEED)
     selftest(draws)
     base = run(draws)

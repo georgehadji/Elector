@@ -24,7 +24,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import party
-from config import PARTY_SHORT, REGIONS
+from config import NIKH as NIKH_ID, PARTY_SHORT, REGIONS
 
 J, E = party.BASE, party.TARGET
 BN, TN = party.ABBR[J], party.ABBR[E]  # column abbreviations ("Ιούν.", "Ευρ." by default)
@@ -32,10 +32,10 @@ BASE_W = "Ιουνίου 2023)" if party.DEFAULT_PAIR else f"{party.BASE_NAME})"
 BASE_G = "Ιουνίου" if party.DEFAULT_PAIR else party.BASE_NAME
 NIKH, NAME = party.ID, party.NAME  # the studied party (the name NIKH is kept for the code below)
 _ids = [NIKH]
-for _p in (party.RIVAL, 157, 2, 3, 131, 108, 4, 106):  # for NIKH: 131, 108, 157, 2, 3, as before
+for _p in (party.RIVAL, 157, 2, 3, NIKH_ID, 108, 4, 106):  # for NIKH: 131, 108, 157, 2, 3, as before
     if _p not in _ids and len(_ids) < 5:
         _ids.append(_p)
-VARS = {p: {108: "Ελλ. Λύση", 131: "ΝΙΚΗ"}.get(p, PARTY_SHORT.get(p, str(p))) for p in _ids}
+VARS = {p: {108: "Ελλ. Λύση", NIKH_ID: "ΝΙΚΗ"}.get(p, PARTY_SHORT.get(p, str(p))) for p in _ids}
 ABBR = {108: "Ελ.Λ.", 157: "Σπαρτ."}
 SLOTS = list(zip(_ids[1:], (7, 8, 6, 6)))  # table columns after the studied party: (party, width)
 rng = np.random.default_rng(2026)

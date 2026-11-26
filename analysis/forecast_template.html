@@ -12,7 +12,7 @@
 /*SITE_CSS*/
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
-:root{--page:1040px;/* taste-skill-ignore: the hatch is a data colour (the ninth party with seats) */--hatch:repeating-linear-gradient(135deg,var(--mute) 0 3px,var(--ink-2) 3px 4.5px)}
+:root{/* taste-skill-ignore: the hatch is a data colour (the ninth party with seats) */--hatch:repeating-linear-gradient(135deg,var(--mute) 0 3px,var(--ink-2) 3px 4.5px)}
 main{max-width:var(--page);margin:0 auto;padding:var(--space-lg) var(--space-md) 0}
 h1{margin:var(--space-md) 0 var(--space-md)}
 h2{margin:var(--space-2xl) 0 var(--space-sm)}
@@ -163,7 +163,7 @@ a{color:var(--pen)}
    are the field's own, so every sticky cell, ring and fill that uses them matches. The bar of chapters sticks under the horizon bar. */
 :root{--base:var(--paper)}
 .ch{--chroma:.12;--paper:color-mix(in oklab,oklch(.66 var(--chroma) var(--hue)) 14%,var(--base));--wash:color-mix(in srgb,var(--ink) 8%,var(--paper));
-  margin:var(--space-2xl) calc(50% - 50vw) 0;padding:var(--space-2xl) max(var(--space-md),calc(50vw - 520px + var(--space-md))) var(--space-xl);
+  margin:var(--space-2xl) calc(50% - 50vw) 0;padding:var(--space-2xl) max(var(--space-md),calc(50vw - var(--page) / 2 + var(--space-md))) var(--space-xl);
   background:var(--paper);scroll-margin-top:96px}
 .ch+.ch{margin-top:0}
 .ch h2:first-child{margin-top:0}
@@ -184,6 +184,23 @@ a{color:var(--pen)}
 .pb em{position:absolute;top:-5px;bottom:-5px;border-left:2px solid var(--ink)}
 @media (max-width:600px){.po li{grid-template-columns:1fr auto;gap:6px 12px}.po .pb{grid-column:1/-1;grid-row:2}}
 @media (prefers-reduced-motion:reduce){.pick.chips label{transition:none}}
+.frec{margin:16px 0 8px}
+.fl{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.875rem;color:var(--ink-2)}
+.fl span{display:inline-flex;align-items:center;gap:6px}
+.fr{list-style:none;margin:12px 0 0;padding:0}
+.fr li{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:0 14px;align-items:center;min-height:30px;font-size:.9375rem}
+.fr .tk{position:relative;height:30px;border-right:1px solid var(--line);background:repeating-linear-gradient(to right,var(--line) 0 1px,transparent 1px 25%)}
+.fr .ax{min-height:24px}.fr .ax .tk{height:24px;background:none;border:0}
+.fr .ax span{position:absolute;top:2px;transform:translateX(-50%);font-size:.875rem;color:var(--ink-2)}
+.d{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--c);flex:none}
+.fr .d{position:absolute;top:50%;margin:-6px 0 0 -6px;box-shadow:0 0 0 2px var(--paper)}
+.e19{--c:oklch(.58 .16 255)}.e23m{--c:oklch(.66 .17 45)}.e23j{--c:oklch(.62 .13 165)}
+.fr .rg{position:absolute;top:50%;height:2px;margin-top:-1px;background:var(--mute)}
+.m{display:inline-block;width:9px;height:9px;border:2px solid var(--ink);transform:rotate(45deg)}
+.fr .m{position:absolute;top:50%;margin:-5.5px 0 0 -5.5px}
+.bn{display:inline-block;width:0;height:14px;border-left:1px dashed var(--ink-2)}
+.fr .bn{position:absolute;top:0;bottom:0;height:auto}
+@media (max-width:600px){.fr li{grid-template-columns:1fr;gap:0}.fr .ax .lb{display:none}}
 .chap{position:sticky;top:44px;z-index:3;display:flex;gap:0 22px;overflow-x:auto;margin:0;padding:0 12px;background:var(--wash);scrollbar-width:none}
 .chap a{display:inline-flex;align-items:center;gap:8px;min-height:44px;white-space:nowrap;color:var(--ink-2);font-weight:600;text-decoration:none}
 .chap a::before{content:"";width:10px;height:10px;border-radius:50%;background:oklch(.62 .14 var(--hue))}

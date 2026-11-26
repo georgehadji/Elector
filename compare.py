@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I drops the script dir
 from build import communities, parties  # noqa: E402
-from config import ELECTION_NAMES, HERE, OUT, PARTY_SHORT, slug  # noqa: E402
+from config import ELECTION_NAMES, HERE, NIKH, OUT, PARTY_SHORT, slug  # noqa: E402
 from web import INDEX_DARK, INDEX_LIGHT, fill, greece_figure, meta, secure  # noqa: E402
 
 ELECTIONS = {slug(k): name for k, name in ELECTION_NAMES.items()}  # file-name form of the keys
@@ -28,7 +28,7 @@ for pid in parties:
         v = sum(a["e"][e][1].get(pid, 0) for a in props.values() if e in a["e"])
         best[pid] = max(best.get(pid, 0), 100 * v / valid[e])
 order = sorted((pid for pid in parties if best[pid] >= MIN_SHARE), key=lambda pid: -best[pid])
-assert 2 in order and 131 in order, order
+assert 2 in order and NIKH in order, order
 
 # Compact rows: per area and election [valid, votes of order[0], votes of order[1], ...]; null = party absent.
 ran = {e: {pid for a in props.values() if e in a["e"] for pid in a["e"][e][1]} for e in ELECTIONS}
