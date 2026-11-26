@@ -49,8 +49,8 @@ body > .bar { padding-inline: calc((100% - min(100%, var(--page, 100%))) / 2 + v
         color: var(--foot-ink); background: var(--foot); font-size: var(--t-base); line-height: 1.55; }
 /* the field runs to the page's foot: whatever holds the footer last keeps no bottom padding under it */
 :has(> .site:not(.compact):last-child) { padding-bottom: 0; margin-bottom: 0; }
-.site .name { display: flex; align-items: center; gap: .25em; margin: 0; font-size: clamp(2rem, 7.5vw, 6.5rem); font-weight: 600; letter-spacing: -.035em; line-height: .95; }
-.site .name .mark { width: .8em; height: .8em; }
+.site .name { display: flex; align-items: center; gap: .25em; margin: 0; font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 600; letter-spacing: -.03em; line-height: .95; }
+.site .name .mark { width: .7em; height: .7em; }
 .site .name .mark rect { stroke-width: 2; }
 .site .name .mark path { stroke-width: 2.6; }
 .site .what { max-width: 46ch; margin: var(--space-md) 0 0; color: var(--foot-ink-2); font-size: 1.125rem; }
