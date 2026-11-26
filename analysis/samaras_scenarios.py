@@ -1,8 +1,8 @@
-"""What if a new party of Antonis Samaras (SAM) got 10, 11 or 12% of the national vote? Seats, majorities, the bonus.
+"""What if a new party of Antonis Samaras (SAM) got 4 to 14% of the national vote? Seats, majorities, the bonus.
 
 No new forecasting: the draws of election-day shares are forecast.simulate (elections today, seed 2026), the seats are
 forecast.spread + nikh_seats.allocate exactly as in forecast.seat_sims (same seeds, so the baseline here is the forecast's).
-Each draw is changed in one way only: SAM is set to exactly L% (L = 10, 11, 12; the result is conditional on that level, SAM
+Each draw is changed in one way only: SAM is set to exactly L% (L = 4 to 14; the result is conditional on that level, SAM
 has no polls and no ballot error of its own), and its L points are taken from the other parties by a source split (SPLITS).
 Two assumptions, both judgement, neither from data (SAM has never run):
 1. Source split, the share of SAM's L points that comes from each party. Main: mostly ND, some from the parties to its right.
@@ -19,8 +19,8 @@ Stands in only while the party has no polls: once its column in nikh_polls.csv h
 forecast.PARTIES (forecast.NEW), this script stops and out/forecast.html shows it as a party of the forecast.
 Unofficial; party columns of the polls come from Wikipedia (polls_wiki.py).
 
-Writes analysis/samaras.json too, for the scenario section of out/forecast.html (forecast_page.py), with a sweep of SAM
-from 2 to 12% (national seats only, main split) for the level chooser there.
+Writes analysis/samaras.json too, for the scenario section of out/forecast.html (forecast_page.py): the main split at every
+level of LEVELS (the chooser there), the two sensitivity checks at the levels of ALT.
 
   python -I -X utf8 analysis/samaras_scenarios.py data/stavroi.sqlite [N] > analysis/samaras_scenarios.txt
 """
@@ -36,7 +36,8 @@ import forecast as F
 import seats_law as LAW
 
 SAM = "SAM"
-LEVELS = (10, 11, 12)
+LEVELS = tuple(range(4, 15))  # every level of the chooser on the page: full statistics at each
+ALT = (10, 11, 12)  # the levels the two sensitivity checks (source split, geography) are run at
 MESSINIA = 46  # ep_id of Μεσσηνίας, June 2023
 SEED = 2026
 # share of SAM's points taken from each party [judgement]; each sums to 1
@@ -48,7 +49,6 @@ OUT = Path(__file__).resolve().parent / "samaras.json"  # read by forecast_page.
 SAM_GEO = ("ΝΔ Ιούνιος 2023", "ΝΔ Ιούνιος 2023, Μεσσηνία ×2", "ΕΛ Ευρωεκλογές 2024", "ομοιόμορφα")
 MAIN_GEO = SAM_GEO[0]
 NAMES = {**{p: n for p, (_, n) in F.PARTIES.items()}, F.OTHER: "Άλλοι", SAM: "Σαμαράς"}
-SWEEP = tuple(range(2, 13))  # levels of the chooser on the page (samaras.json "sweep"; not printed)
 RIGHT = ("EL", "NIKI", "FL", "SE", "SPARTIATES")  # the smaller parties to ND's right, whose 3% SAM puts at risk
 
 
@@ -111,21 +111,6 @@ def run(draws, level=0, split=None, geo_name=MAIN_GEO):
             for p, v in pv.items():
                 nat[p] = nat.get(p, 0) + v
         out.append((sh, tot, res, bonus_of(nat)))
-    return out
-
-
-def sweep(draws, split):
-    """{level: stats} for every level of SWEEP by the fast path: national seat totals come from the national shares alone
-    (seats_law.national_seats, the same totals as allocate: tests/test_forecast.py), so no constituencies are needed."""
-    out = {}
-    for L in SWEEP:
-        sims = [(s, LAW.national_seats(F.law_votes(s))) for s in (shift(sh, L, split) for sh in draws)]
-        n = len(sims)
-        reach = lambda ps: sum(sum(st.get(x, 0) for x in ps) >= LAW.majority() for _, st in sims) / n
-        out[str(L)] = {"nd": reach(["ND"]), "nd_sam": reach(["ND", SAM]), "nd_pasok": reach(["ND", "PASOK"]),
-                       "nd_elas": reach(["ND", "ELAS"]), "bonus": sum(F.METRICS["p_bonus"](sh, st) for sh, st in sims) / n,
-                       "seats": {x: F.q(sorted(st.get(x, 0) for _, st in sims), .5) for x in ("ND", SAM, "PASOK", "ELAS", *RIGHT)},
-                       "in": {x: sum(x in st for _, st in sims) / n for x in (SAM, *RIGHT)}}
     return out
 
 
@@ -197,10 +182,10 @@ if __name__ == "__main__":
     B, M = stats(base), {L: stats(s) for L, s in main.items()}
     order = sorted(F.PARTIES, key=lambda p: -B["share"][p][1])
     rows = [order[0], SAM, *order[1:]]
-    js = {"as_of": str(F.NP.TODAY), "n": N, "seed": SEED, "names": NAMES, "levels": LEVELS, "main_split": SPLITS[MAIN_SPLIT],
+    js = {"as_of": str(F.NP.TODAY), "n": N, "seed": SEED, "names": NAMES, "levels": LEVELS, "alt_levels": ALT, "main_split": SPLITS[MAIN_SPLIT],
           "base": B, "by_level": {str(L): M[L] | {"coalitions": []} for L in LEVELS}, "splits": {}, "geo": {}}
 
-    print(f"=== Κόμμα Σαμαρά στο 10, 11, 12%: έδρες με το μοντέλο του forecast.py (εκλογές σήμερα, {N:,} προσομοιώσεις, "
+    print(f"=== Κόμμα Σαμαρά στο 4–14%: έδρες με το μοντέλο του forecast.py (εκλογές σήμερα, {N:,} προσομοιώσεις, "
           f"σπόρος {SEED}, μέσος όρος δημοσκοπήσεων στις {F.NP.TODAY}) ===")
     print("Σε κάθε προσομοίωση ο Σαμαράς (ΣΑΜ) παίρνει ακριβώς L% και οι L μονάδες βγαίνουν από τα άλλα κόμματα με την κύρια "
           "κατανομή προέλευσης:")
@@ -247,7 +232,7 @@ if __name__ == "__main__":
     print(f"  {'κατανομή':<28}{'L':>4}{'ΝΔ':>5}{'ΣΑΜ':>5}{'ΕΛ':>4}{'ΦΛ':>4}{'ΣΕ':>4}{'P ΦΛ≥3':>8}{'P ΣΕ≥3':>8}"
           f"{'P ΝΔ+ΣΑΜ':>9}{'P ΝΔ+ΠΑΣΟΚ':>11}{'P ΝΔ+ΕΛΑΣ':>10}{'P μπόνους':>10}")
     for k, sp in SPLITS.items():
-        for L in LEVELS:
+        for L in ALT:
             s = M[L] if k == MAIN_SPLIT else stats(run(draws, L, sp))
             st = s["seats"]
             js["splits"].setdefault(k, {"split": sp})[str(L)] = {x: s[x] for x in ("nd", "nd_pasok", "nd_elas", "nd_sam", "bonus",
@@ -264,7 +249,7 @@ if __name__ == "__main__":
           f"{'ΣΑΜ Επικρ.':>11}")
     eps = [*F.seats_module().seats, "state"]
     for g in SAM_GEO:
-        for L in LEVELS:
+        for L in ALT:
             sims = main[L] if g == MAIN_GEO else run(draws, L, SPLITS[MAIN_SPLIT], g)
             diff = [max(abs(a[1].get(p, 0) - b[1].get(p, 0)) for p in {*a[1], *b[1]}) for a, b in zip(sims, main[L], strict=True)]
             moved = {p: sum(abs(ep_mean(sims, p, ep) - ep_mean(main[L], p, ep)) for ep in eps) / 2 for p in (SAM, "ND")}
@@ -274,5 +259,4 @@ if __name__ == "__main__":
             print(f"  {g:<30}{L:>4}{f"{sum(d > 0 for d in diff)} / {max(diff)}":>12}{moved[SAM]:>11.1f}{moved['ND']:>10.1f}"
                   f"{ep_mean(sims, SAM, MESSINIA):>10.2f}{ep_mean(sims, 'ND', MESSINIA):>9.2f}{ep_mean(sims, SAM, 'state'):>11.2f}")
     print(f"  (χωρίς ΣΑΜ: ΝΔ Μεσσηνία {ep_mean(base, 'ND', MESSINIA):.2f})")
-    js["sweep"] = sweep(draws, SPLITS[MAIN_SPLIT])
     OUT.write_text(json.dumps(js, ensure_ascii=False, indent=1), encoding="utf-8")
