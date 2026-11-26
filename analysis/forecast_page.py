@@ -1003,25 +1003,33 @@ def method(n_sims, n_polls, err, sens):
         "με μέγιστη πιθανοφάνεια.</small>")])
 
 
-def body(data, order):
+def chapter(key, label, hue, inner, quiet=False):
+    """One field of the page: its own colour (hue), an id for the bar of chapters, no heading of its own (the first h2 inside is it)."""
+    return (f'<section class="ch{" quiet" if quiet else ""}" id="ch-{key}" style="--hue:{hue}" aria-label="{label}">{inner}</section>', (key, label, hue))
+
+def body(data, order, tail=""):
     names = data["names"]
     today = data["horizons"]["0"]["parties"]
     small = {p for p in order if today[p]["share"][1] < 3}
     HATCHED.update(p for p in order if p not in COLOURS and today[p].get("seats") and today[p]["seats"][1] > 0)
-    out = []
-    for key, r in data["horizons"].items():
-        out.append(f'<div class="h{key}">'
-                   + odds(r, key) + partners_html(r, names)
-                   + '<h2>Ποσοστά</h2>' + shares(r, order, names, small)
-                   + second_html(r, key, names)
-                   + '<h2>Έδρες</h2><p class="note">Οι 300 έδρες, με τον μέσο όρο κάθε κόμματος ώστε να '
-                     'αθροίζουν σε 300. Τους αριθμούς τους δίνει ο πίνακας. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>'
-                     + seatbar(order, names, r)
-                   + seat_table(r, order, names) + histograms(r)
-                   + bonus_html(r, key, names) + ladder_html(r, key, names) + "</div>")
+    hz = lambda f: "".join(f'<div class="h{key}">{f(r, key)}</div>' for key, r in data["horizons"].items())  # one block per horizon
     css, section = ep_map(data, order, names)
     sam_css, sam = samaras(names)
-    return css + sam_css, "".join(out) + trend_html(names) + section + sam + rules(data) + backtest_html()
+    seats = lambda r, key: ('<h2>Έδρες</h2><p class="note">Οι 300 έδρες, με τον μέσο όρο κάθε κόμματος ώστε να '
+                            'αθροίζουν σε 300. Τους αριθμούς τους δίνει ο πίνακας. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>'
+                            + seatbar(order, names, r) + seat_table(r, order, names) + histograms(r) + ladder_html(r, key, names))
+    chapters = [
+        chapter("151", "Αυτοδυναμία", 240, hz(lambda r, key: odds(r, key) + partners_html(r, names) + bonus_html(r, key, names))),
+        chapter("shares", "Ποσοστά", 175,
+                hz(lambda r, key: '<h2>Ποσοστά</h2>' + shares(r, order, names, small) + second_html(r, key, names)) + trend_html(names)),
+        chapter("seats", "Έδρες", 85, hz(seats)),
+        chapter("regions", "Περιφέρειες", 145, section),
+        chapter("scenario", "Σενάριο Σαμαρά", 15, sam),
+        chapter("method", "Δημοσκοπήσεις και μέθοδος", 260, rules(data) + backtest_html() + tail, quiet=True),
+    ]
+    nav = ('<nav class="chap" aria-label="Ενότητες">'
+           + "".join(f'<a href="#ch-{k}" style="--hue:{h}">{html.escape(lab)}</a>' for _, (k, lab, h) in chapters) + "</nav>")
+    return css + sam_css, nav, "".join(c for c, _ in chapters)
 
 
 def main():
@@ -1035,13 +1043,14 @@ def main():
                '(η ΝΙΚΗ ελεγμένη με τις εταιρείες), αποτελέσματα από το Υπουργείο Εσωτερικών. '
                '<a href="nikh_polls.html">Η ΝΙΚΗ στις δημοσκοπήσεις</a> · <a href="index.html">Όλοι οι χάρτες</a>')
     page = (HERE / "analysis" / "forecast_template.html").read_text(encoding="utf-8")
-    map_css, body_html = body(data, order)
     n_sims = today["n"]
+    tail = (record() + '<section class="method" aria-labelledby="mh"><h2 id="mh">Πώς βγαίνουν οι αριθμοί</h2>'
+            + method(n_sims, n_polls, F.error_fit(), data["sensitivity"]) + "</section>")
+    map_css, chapnav, body_html = body(data, order, tail)
     for a, b in (("<!--META-->", meta("Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων",
                                       "Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων.")),
                  ("<!--LEAD-->", leads), ("<!--N-->", thousands(n_sims)), ("<!--ASOF-->", day(data["as_of"])),
-                 ("<!--BODY-->", body_html), ("/*MAP_CSS*/", map_css), ("<!--RECORD-->", record()),
-                 ("<!--METHOD-->", method(n_sims, n_polls, F.error_fit(), data["sensitivity"])), ("<!--SOURCES-->", sources)):
+                 ("<!--CHAPNAV-->", chapnav), ("<!--BODY-->", body_html), ("/*MAP_CSS*/", map_css), ("<!--SOURCES-->", sources)):
         assert a in page, a
         page = page.replace(a, b)
     light = INDEX_LIGHT | {"mute": MUTE[0]} | {f"p-{p}": c[0] for p, c in COLOURS.items()}

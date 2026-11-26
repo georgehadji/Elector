@@ -159,6 +159,21 @@ a{color:var(--pen)}
 .bt span{white-space:nowrap}
 .epd p{margin:8px 0 0}
 .epd p:first-child{min-height:3em}
+/* Chapters: each question has its own field of colour, a tone step of one hue over the page ground. Inside a field --paper and --wash
+   are the field's own, so every sticky cell, ring and fill that uses them matches. The bar of chapters sticks under the horizon bar. */
+:root{--base:var(--paper)}
+.ch{--chroma:.12;--paper:color-mix(in oklab,oklch(.66 var(--chroma) var(--hue)) 14%,var(--base));--wash:color-mix(in srgb,var(--ink) 8%,var(--paper));
+  margin:var(--space-2xl) calc(50% - 50vw) 0;padding:var(--space-2xl) max(var(--space-md),calc(50vw - 520px + var(--space-md))) var(--space-xl);
+  background:var(--paper);scroll-margin-top:96px}
+.ch+.ch{margin-top:0}
+.ch h2:first-child{margin-top:0}
+.ch.quiet{--chroma:.02}
+.chap{position:sticky;top:44px;z-index:3;display:flex;gap:0 22px;overflow-x:auto;margin:0;padding:0 12px;background:var(--wash);scrollbar-width:none}
+.chap a{display:inline-flex;align-items:center;gap:8px;min-height:44px;white-space:nowrap;color:var(--ink-2);font-weight:600;text-decoration:none}
+.chap a::before{content:"";width:10px;height:10px;border-radius:50%;background:oklch(.62 .14 var(--hue))}
+.chap a:hover{color:var(--ink)}
+.chap a[aria-current]{color:var(--ink);text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:8px}
+.chap a:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 </style>
 </head>
 <body>
@@ -173,12 +188,8 @@ a{color:var(--pen)}
   <!--LEAD-->
   <p class="note">Οι αριθμοί δεν είναι δημοσκόπηση ούτε αποτέλεσμα. Είναι συχνότητες σε <!--N--> εκλογές που προσομοιώσαμε από τον μέσο όρο των δημοσκοπήσεων, με τον εκλογικό νόμο των εκλογών του Ιουνίου 2023. Δημοσκοπήσεις έως <!--ASOF-->. Ανεπίσημο.</p>
   <p class="note h180">Σε έξι μήνες οι δημοσκοπήσεις μπορεί να έχουν κινηθεί, οπότε όλα τα εύρη ανοίγουν. Γι’ αυτό ό,τι σήμερα είναι απίθανο γίνεται λίγο πιθανότερο, και ό,τι είναι σχεδόν βέβαιο λίγο λιγότερο.</p>
+  <!--CHAPNAV-->
   <!--BODY-->
-  <!--RECORD-->
-  <section class="method" aria-labelledby="mh">
-    <h2 id="mh">Πώς βγαίνουν οι αριθμοί</h2>
-    <!--METHOD-->
-  </section>
   <p class="rel"><!--SOURCES--></p>
 </main>
 <!--FOOTER-->
@@ -224,6 +235,19 @@ for (const el of document.querySelectorAll(".epmap path[data-ep]")) {
 sel.addEventListener("change", () => { show(sel.value ? path(sel.value) : null); save(); });
 for (const r of [h0, h180]) r.addEventListener("change", () => { if (on) show(on); save(); });
 for (const r of [...parties, ...sams]) r.addEventListener("change", save);
+const chaps = [...document.querySelectorAll(".ch")], links = [...document.querySelectorAll(".chap a")];
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver((es) => {
+    for (const e of es) if (e.isIntersecting) for (const a of links) {
+      if (a.hash === "#" + e.target.id) {
+        a.setAttribute("aria-current", "true");
+        const bar = a.parentNode;  // keep the current chapter in view on a narrow screen
+        bar.scrollLeft = a.offsetLeft - (bar.clientWidth - a.offsetWidth) / 2;
+      } else a.removeAttribute("aria-current");
+    }
+  }, {rootMargin: "-45% 0px -50% 0px"});
+  for (const c of chaps) io.observe(c);
+}
 </script>
 </body>
 </html>
