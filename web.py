@@ -23,6 +23,8 @@ from config import (
     ELECTIONS,
     FORECAST_COLOURS,
     HERE,
+    LEAFLET_SRI,
+    LEAFLET_VERSION,
     NIKH,
     OUT,
     PARTY_COLOR,
@@ -33,6 +35,7 @@ from config import (
     slug,
     source,
 )
+from analysis import seats_law as LAW  # the electoral law's figures: seats, majority, threshold
 from geo import exteriors, frame, path
 from matching import ep_label
 
@@ -125,13 +128,20 @@ INDEX_LIGHT = {"paper": "#fbfaf6", "ink": "#1d1d1b", "ink-2": "#46453f", "line":
 INDEX_DARK = {"paper": "#15171b", "ink": "#ecebe7", "ink-2": "#c2c1bc", "line": "#33363c", "pen": "#8fb0f0", "wash": "#1e2128"}
 
 
+def leaflet_tags():
+    """The self-hosted Leaflet stylesheet and script with their SRI hashes: the one place the version is written."""
+    v = f"vendor/leaflet-{LEAFLET_VERSION}/"
+    return (f'<link rel="stylesheet" href="{v}leaflet.min.css" integrity="{LEAFLET_SRI["leaflet.min.css"]}" crossorigin="anonymous">\n'
+            f'<script src="{v}leaflet.min.js" integrity="{LEAFLET_SRI["leaflet.min.js"]}" crossorigin="anonymous"></script>')
+
+
 def fill(page, light=MAP_LIGHT, dark=MAP_DARK, print_=None, current="maps", ctx="", skip="#main", compact=False, sources=""):
     """Shared parts of every page: colour tokens, site CSS and theme script, fonts, header, footer."""
     for placeholder, text in (("/*THEME_TOKENS*/", theme_css(light, dark, print_)),
                               ("/*SITE_CSS*/", (HERE / "fonts.css").read_text(encoding="utf-8") + (HERE / "site.css").read_text(encoding="utf-8")),
                               ("/*THEME_JS*/", (HERE / "theme.js").read_text(encoding="utf-8")),
                               ("/*SHARED_JS*/", (HERE / "shared.js").read_text(encoding="utf-8")),
-                              ("<!--FONTS-->", FONTS), ("<!--HEADER-->", header(current, ctx, skip)), ("<!--FOOTER-->", footer(compact=compact, sources=sources))):
+                              ("<!--LEAFLET-->", leaflet_tags()), ("<!--FONTS-->", FONTS), ("<!--HEADER-->", header(current, ctx, skip)), ("<!--FOOTER-->", footer(compact=compact, sources=sources))):
         page = page.replace(placeholder, text)
     return page
 
@@ -149,7 +159,7 @@ FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox
            "stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E"
            "%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E")  # the site mark; img-src allows data:
 
-LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/"  # for pages written outside out/: no vendor/ folder beside them
+LEAFLET = f"https://cdnjs.cloudflare.com/ajax/libs/leaflet/{LEAFLET_VERSION}/"  # for pages written outside out/: no vendor/ folder beside them
 
 
 def secure(page, path=None):
@@ -160,7 +170,7 @@ def secure(page, path=None):
     anywhere else (a client's map, `path` None) has no vendor/ folder beside it: its Leaflet link and CSP point to cdnjs instead."""
     home = path is not None and Path(path).resolve().parent == OUT.resolve()
     if not home:
-        page = page.replace("vendor/leaflet-1.9.4/", LEAFLET)
+        page = page.replace(f"vendor/leaflet-{LEAFLET_VERSION}/", LEAFLET)
     js, css = ("'self'",) * 2 if home else (LEAFLET + "leaflet.min.js", LEAFLET + "leaflet.min.css")
     def hashes(tag):
         return [f"'sha256-{base64.b64encode(hashlib.sha256(m.encode()).digest()).decode()}'"
@@ -313,7 +323,7 @@ h3{font-size:var(--text-title);line-height:1.2}
 .seats span{background:var(--c);min-width:2px}
 .seats span+span{box-shadow:inset 2px 0 0 var(--deep)}
 .seats .rest{background:var(--deep-2)}
-.seats .maj{position:absolute;left:calc(100% * 151 / 300);top:calc(-1 * var(--space-lg));bottom:calc(-1 * var(--space-2xs));padding-left:var(--space-2xs);border-left:2px solid var(--on-deep);background:none;box-shadow:none;font-size:var(--t-base);line-height:1;color:var(--on-deep);white-space:nowrap}
+.seats .maj{position:absolute;left:calc(100% * var(--maj));top:calc(-1 * var(--space-lg));bottom:calc(-1 * var(--space-2xs));padding-left:var(--space-2xs);border-left:2px solid var(--on-deep);background:none;box-shadow:none;font-size:var(--t-base);line-height:1;color:var(--on-deep);white-space:nowrap}
 .sk{display:flex;flex-wrap:wrap;gap:var(--space-2xs) var(--space-md);list-style:none;margin:0;padding:0;font-size:var(--t-base);color:var(--on-deep)}
 .sk li{display:inline-flex;align-items:center;gap:var(--space-xs);font-variant-numeric:tabular-nums}
 .sk i{width:12px;height:12px;background:var(--c)}
@@ -756,11 +766,11 @@ def _write_index(order, nikh, elected):
         fc_fig = f'<p class="fig">{_pct(p_maj, 1 if p_maj < 0.1 else 0)}</p>'
         fc_text = f"πιθανότητα αυτοδυναμίας της ΝΔ σε εκλογές σήμερα, από τον μέσο όρο των δημοσκοπήσεων στις {d.day}/{d.month}/{d.year}."
         total = sum(s for _, s in seats)
-        fc_bar = ('<div class="seats" role="img" aria-label="Αυτοδυναμία με 151 έδρες. Διάμεσες έδρες: '
+        fc_bar = (f'<div class="seats" style="--maj:{LAW.MAJORITY / LAW.SEATS:.4f}" role="img" aria-label="Αυτοδυναμία με {LAW.MAJORITY} έδρες. Διάμεσες έδρες: '
                   + ", ".join(f"{names.get(p, p)} {s}" for p, s in seats) + '">'
                   + "".join(f'<span style="--c:{col[p]};flex:{s}"></span>' for p, s in seats)
-                  + (f'<span class="rest" style="flex:{300 - total}"></span>' if total < 300 else "")
-                  + '<span class="maj">151 αυτοδυναμία</span>'
+                  + (f'<span class="rest" style="flex:{LAW.SEATS - total}"></span>' if total < LAW.SEATS else "")
+                  + f'<span class="maj">{LAW.MAJORITY} αυτοδυναμία</span>'
                   + '</div><ul class="sk" aria-hidden="true">'
                   + "".join(f'<li><i style="--c:{col[p]}"></i>{html.escape(names.get(p, p))} {s}</li>' for p, s in seats)
                   + "</ul>")

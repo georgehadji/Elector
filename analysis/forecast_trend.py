@@ -26,7 +26,7 @@ import seats_law as L
 
 OUT = HERE / "forecast_trend.json"
 TREND_STEP = 14  # days between points, counted back from today
-N = 10000
+N = F.N_SIMS
 ANCHOR = "ELAS"
 
 

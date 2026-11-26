@@ -10,12 +10,16 @@ import sys
 import numpy as np
 from scipy.optimize import lsq_linear
 
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
+from config import NIKH
+
 DB, ELECTION = sys.argv[1], sys.argv[2]  # e.g. 2023/may
 c = sqlite3.connect(DB)
 
 GROUPS19 = {"ΝΔ": [2], "ΣΥΡΙΖΑ": [4], "ΚΙΝΑΛ": [106], "ΚΚΕ": [3], "Ελλ. Λύση": [108],
             "Χρυσή Αυγή": [41], "ΜέΡΑ25": [122], "Ένωση Κεντρ.": [15], "Πλεύση": [123]}
-TARGETS = {"ΝΙΚΗ": 131, "Ελλ. Λύση": 108, "ΝΔ": 2}
+TARGETS = {"ΝΙΚΗ": NIKH, "Ελλ. Λύση": 108, "ΝΔ": 2}
 names23 = dict(c.execute("SELECT party_id,name FROM party WHERE election=?", (ELECTION,)))
 names19 = dict(c.execute("SELECT party_id,name FROM party WHERE election='2019'"))
 for g, ids in GROUPS19.items():

@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I dro
 from config import NIKH
 
 SPART = 157
-PARTIES = {131: "ΝΙΚΗ", 108: "Ελλ. Λύση", 158: "Φωνή Λογικής", 163: "Πατριώτες", 2: "ΝΔ", 123: "Πλεύση", 3: "ΚΚΕ"}
+PARTIES = {NIKH: "ΝΙΚΗ", 108: "Ελλ. Λύση", 158: "Φωνή Λογικής", 163: "Πατριώτες", 2: "ΝΔ", 123: "Πλεύση", 3: "ΚΚΕ"}
 c = sqlite3.connect(sys.argv[1])
 
 

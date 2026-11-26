@@ -31,6 +31,13 @@ def majority(law=CURRENT):
     return LAWS[law]["seats"] // 2 + 1
 
 
+# The current law's figures, for code and pages that show them: import these, never type 300, 151 or 3 again.
+SEATS = LAWS[CURRENT]["seats"]
+MAJORITY = majority()
+THRESHOLD = LAWS[CURRENT]["threshold"]
+STATE = LAWS[CURRENT]["state"]  # of the SEATS, the State (Επικράτειας) list
+
+
 def hare(votes, n):
     """Largest-remainder split of n seats in proportion to votes (integers or floats)."""
     tot = sum(votes.values())

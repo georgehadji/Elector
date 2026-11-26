@@ -25,7 +25,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
-from config import REGIONS
+from config import NIKH, REGIONS
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import party
 
@@ -37,7 +37,7 @@ AB = party.ABBR[J]
 PB, PE = ("Ιουνίου", "Ευρωεκλογών") if D else (f"({BN})", f"({TN})")
 ELS = [J, E] + ([M] if D or M not in (J, E) else [])  # M: peak votes per unit; shortcut: May also joins 2019 -> June
 PARTY, NAME = party.ID, party.NAME
-PARTIES = {PARTY: NAME, 131: "ΝΙΚΗ", 2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΠΑΣΟΚ", 108: "Ελλ. Λύση", 157: "Σπαρτιάτες"}
+PARTIES = {PARTY: NAME, NIKH: "ΝΙΚΗ", 2: "ΝΔ", 4: "ΣΥΡΙΖΑ", 106: "ΠΑΣΟΚ", 108: "Ελλ. Λύση", 157: "Σπαρτιάτες"}
 PARTIES.setdefault(party.RIVAL, party.RIVAL_NAME)  # the studied party first, then the comparison parties
 PYEI_ABST = {"Αττική": 3, "Θεσσαλία": 10, "Δυτική Ελλάδα": 7, "Κρήτη": 8, "Πελοπόννησος": 12, "Δυτική Μακεδονία": 13,
              "Ήπειρος": 8, "Κεντρική Μακεδονία": 25, "Στερεά Ελλάδα": 11, "Βόρειο Αιγαίο": 8, "Νότιο Αιγαίο": 13,

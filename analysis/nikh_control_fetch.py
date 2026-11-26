@@ -29,12 +29,15 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # python -I drops the script dir
+from config import ELECTION_DATE as ED
+
 ROOT = Path(__file__).resolve().parent.parent
 CACHE = ROOT / "data" / "parl_control"
 BASE = "https://www.hellenicparliament.gr/Koinovouleftikos-Elenchos/Mesa-Koinovouleutikou-Elegxou"
 VW = "https://vouliwatch.gr/api/api/v1/parliamentary-control"
 UA = "Mozilla/5.0 (compatible; research-script)"
-START = "2023-06-25"  # election day; the parliament first met on 3 July 2023
+START = ED["2023/june"].isoformat()  # election day; the parliament first met on 3 July 2023
 HEADER = re.compile(r"Βρέθηκαν (\d+) αποτελέσματα, σελ\. \d+ από (\d+)")
 
 # Parliament site id, short name, full name as the Parliament writes signers (surname, father's name, name;

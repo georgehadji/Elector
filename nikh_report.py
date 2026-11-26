@@ -167,7 +167,7 @@ def to_html(lines, path):
 /*THEME_TOKENS*/
 /*SITE_CSS*/
 body{{margin:0;font:1rem/1.6 "IBM Plex Sans",system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
-main{{--page:1040px;max-width:var(--page);margin:0 auto;padding:var(--space-lg) var(--space-md) 0}}
+main{{max-width:var(--page);margin:0 auto;padding:var(--space-lg) var(--space-md) 0}}
 h1{{margin:var(--space-md) 0 var(--space-md)}}
 h2{{margin:var(--space-2xl) 0 var(--space-sm)}}
 p{{color:var(--ink-2);max-width:68ch}} a{{color:var(--link)}}

@@ -48,9 +48,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))  # python -I drops the script dir
+sys.path.insert(0, str(HERE.parent))
 import nikh_pollerror as NE
 import nikh_polls as NP
 import seats_law as L
+from config import NIKH
 
 # party code: (column of nikh_polls.csv, Greek name)
 PARTIES = {"ND": ("ND", "ΝΔ"), "ELAS": ("ELAS", "ΕΛΑΣ"), "PASOK": ("PASOK", "ΠΑΣΟΚ"), "EL": ("EL", "Ελληνική Λύση"),
@@ -65,7 +67,7 @@ B_GRID = tuple(i / 1000 for i in range(51))  # b of the ballot error, 0-0.05
 OUT = HERE / "forecast.json"
 EURO, JUNE = "2024/euro", "2023/june"
 # geography of each party: (election, party id) of past results; parties not listed are flat
-GEO = {"ND": (EURO, 2), "SYRIZA": (EURO, 4), "PASOK": (EURO, 106), "EL": (EURO, 108), "KKE": (EURO, 3), "NIKI": (EURO, 131),
+GEO = {"ND": (EURO, 2), "SYRIZA": (EURO, 4), "PASOK": (EURO, 106), "EL": (EURO, 108), "KKE": (EURO, 3), "NIKI": (EURO, NIKH),
        "PE": (EURO, 123), "FL": (EURO, 158), "MERA25": (EURO, 122), "NEA_ARISTERA": (EURO, 166),
        "SPARTIATES": (JUNE, 157), "ELAS": (JUNE, 4)}
 # Parties expected in the polls but not there yet: code -> (column of nikh_polls.csv, Greek name, geography until it has
@@ -74,6 +76,9 @@ GEO = {"ND": (EURO, 2), "SYRIZA": (EURO, 4), "PASOK": (EURO, 106), "EL": (EURO, 
 # forecast.py reports a new column, write that header here. Until then analysis/samaras_scenarios.py stands in for it.
 NEW = {"SAM": ("SAM", "κόμμα Σαμαρά", (JUNE, 2))}  # [judgement] ND June 2023, as in samaras_scenarios.py
 MIN_POLLS = 10
+SEED = 2026  # every simulation of the forecast and its scenarios
+N_SIMS = 10000  # draws of the seat simulation (seat_sims), the number the pages quote
+N_DRAWS = 20000  # draws of the shares-only simulation (simulate)
 
 
 def poll_counts():
@@ -244,7 +249,7 @@ def draw(rng, lv, a, b):
     return {p: 100 * v / s for p, v in out.items()}
 
 
-def simulate(n=20000, horizon_days=0, national=True, seed=2026, as_of=None):
+def simulate(n=N_DRAWS, horizon_days=0, national=True, seed=SEED, as_of=None):
     """n draws of election-day shares (list of dicts); as_of: with the polls known that day (levels)."""
     rng, lv = random.Random(seed), levels(horizon_days, as_of=as_of)
     a, b, _ = error_fit(national)
@@ -295,14 +300,14 @@ def law_votes(sh):
     return {p: s for p, s in sh.items() if p != OTHER} | {f"{OTHER}{i}": sh[OTHER] / 10 for i in range(10)}
 
 
-def seat_sims(n=10000, horizon_days=0, seed=2026, variant=MAIN):
+def seat_sims(n=N_SIMS, horizon_days=0, seed=SEED, variant=MAIN):
     """[(shares, {party: seats}, {party: {ep or 'state': seats}})] for n draws; parties under 3% have no entry."""
     S, (V, geo), rng = seats_module(), geography(variant), random.Random(seed + 1)
     out = []
     for sh in simulate(n, horizon_days, seed=seed):
         res, _ = S.allocate(spread(law_votes(sh), V, geo, rng))
         tot = {p: sum(v.values()) for p, v in res.items()}
-        assert sum(tot.values()) == 300 and not any(p.startswith(OTHER) for p in tot), tot
+        assert sum(tot.values()) == L.SEATS and not any(p.startswith(OTHER) for p in tot), tot
         out.append((sh, tot, res))
     return out
 
@@ -321,7 +326,7 @@ def summary(sims):
     rank = [sorted(sh, key=sh.get, reverse=True) for sh, *_ in sims]
     for p in [*PARTIES, OTHER]:
         xs = sorted(sh[p] for sh, *_ in sims)
-        d = {"share": [round(q(xs, f), 2) for f in (.1, .5, .9)], "p_in": sum(x >= 3 for x in xs) / n,
+        d = {"share": [round(q(xs, f), 2) for f in (.1, .5, .9)], "p_in": sum(x >= L.THRESHOLD for x in xs) / n,
              "p_first": sum(r[0] == p for r in rank) / n, "p_second": sum(r[1] == p for r in rank) / n}
         if p != OTHER:
             for label, keep in (("seats", lambda b: True), ("seats_bonus", lambda b: b), ("seats_nobonus", lambda b: not b)):
@@ -450,28 +455,28 @@ if __name__ == "__main__":
               f"τυπικό λάθος σε μονάδες: {sds}")
 
     a, b, _ = error_fit(True)
-    sims = {H: simulate(20000, H) for H in (0, 180)}
+    sims = {H: simulate(N_DRAWS, H) for H in (0, 180)}
     print("\n=== Μερίδια την ημέρα των εκλογών: 20.000 προσομοιώσεις, σπόρος 2026, εθνικό λάθος, άθροισμα 100 ===")
     print(f"{'κόμμα':<20}{'διάμεσος':>9}{'80% σήμερα':>14}{'P≥3% σήμερα':>13}{'σε 180 ημ.':>11}")
     for p in [*order, OTHER]:
         xs = sorted(s[p] for s in sims[0])
-        p3 = {H: sum(s[p] >= 3 for s in sims[H]) / len(sims[H]) for H in sims}
+        p3 = {H: sum(s[p] >= L.THRESHOLD for s in sims[H]) / len(sims[H]) for H in sims}
         line = f"{names[p]:<20}{q(xs, .5):>9.1f}{f'{q(xs, .1):.1f}–{q(xs, .9):.1f}':>14}{100 * p3[0]:>12.1f}%{100 * p3[180]:>10.1f}%"
         print(line)
 
     print("\n=== Έλεγχος ΝΙΚΗΣ με το NIKH.md §18 ===")
-    ni = {H: sum(s["NIKI"] >= 3 for s in sims[H]) / len(sims[H]) for H in sims}
-    alt = simulate(20000, 0, national=False)
-    print(f"P(ΝΙΚΗ ≥ 3%): σήμερα {100 * ni[0]:.1f}% (με ευρωεκλογές στο λάθος {100 * sum(s['NIKI'] >= 3 for s in alt) / len(alt):.1f}%), "
+    ni = {H: sum(s["NIKI"] >= L.THRESHOLD for s in sims[H]) / len(sims[H]) for H in sims}
+    alt = simulate(N_DRAWS, 0, national=False)
+    print(f"P(ΝΙΚΗ ≥ {L.THRESHOLD:g}%): σήμερα {100 * ni[0]:.1f}% (με ευρωεκλογές στο λάθος {100 * sum(s['NIKI'] >= L.THRESHOLD for s in alt) / len(alt):.1f}%), "
           f"σε 180 ημέρες {100 * ni[180]:.1f}%")
     print("  §18 (λόγοι 23 μικρών κομμάτων, nikh_montecarlo.py): 0,3-0,6% σήμερα, 3,8-5,2% σε 180 ημέρες.")
     x, _ = estimate("NIKI")
-    print(f"  Για 3% από {x:.2f}% χρειάζεται λόγος {3 / x:.2f}: εδώ σ(log) = {math.sqrt(a / x + b):.2f} → "
-          f"{math.log(3 / x) / math.sqrt(a / x + b):.1f} σ μόνο από το λάθος της κάλπης.")
+    print(f"  Για {L.THRESHOLD:g}% από {x:.2f}% χρειάζεται λόγος {L.THRESHOLD / x:.2f}: εδώ σ(log) = {math.sqrt(a / x + b):.2f} → "
+          f"{math.log(L.THRESHOLD / x) / math.sqrt(a / x + b):.1f} σ μόνο από το λάθος της κάλπης.")
 
     if len(sys.argv) < 2:
         sys.exit()
-    N = int(sys.argv[2]) if len(sys.argv) > 2 else 10000
+    N = int(sys.argv[2]) if len(sys.argv) > 2 else N_SIMS
     june = check_june()
     S = seats_module()
     print("\n=== Βήμα 3: έδρες (nikh_seats.allocate, νόμος Ιουνίου 2023, γεωγραφία ανά κόμμα: GEO) ===")
