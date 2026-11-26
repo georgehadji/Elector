@@ -148,3 +148,6 @@ select:not([multiple]):focus-visible { outline: 2px solid var(--ink); outline-of
   :where(details:not(.fold, .older)) > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 @media (prefers-reduced-motion: reduce) { :where(details) > summary { transition: none; } }
+
+/* the full name is in the title for a mouse; no dotted underline, it reads as a broken link */
+abbr[title] { text-decoration: none; }
