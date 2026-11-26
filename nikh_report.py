@@ -180,7 +180,7 @@ th{{color:var(--ink-2);font-size:.875rem;font-weight:600;border-bottom-color:var
 <!--HEADER-->
 {chr(10).join(body)}
 <!--FOOTER-->
-</main></body></html>"""), path)
+</main></body></html>""", current="none"), path)
 
 
 if __name__ == "__main__":
