@@ -578,7 +578,7 @@ METHOD_EL = {"CATI": "τηλέφωνο", "MIXED": "τηλέφωνο και δι�
 def _vframe(ps, names, w, hgt, fs, lo, hi, ticks, fmt, left=3.2, right=0.6, top=0.8, bottom=8.5):
     """Frame of the two dot charts: parties along the bottom (names turned 45 degrees), values up the side.
     Returns (svg head, X(i) centre of party i, Y(value), column width)."""
-    L, R, T, B = left * fs, right * fs, top * fs, (bottom if w > 400 else bottom + 2.5) * fs  # upright names on a phone are taller
+    L, R, T, B = left * fs, right * fs, (top if w > 400 else top + 2.5) * fs, (bottom if w > 400 else bottom + 2.5) * fs  # upright names on a phone are taller
     X = lambda i: L + (i + 0.5) * (w - L - R) / len(ps)
     Y = lambda v: T + (hgt - T - B) * (1 - (v - lo) / (hi - lo))
     out = [f'<svg viewBox="0 0 {w} {hgt}" style="font-size:{fs}px" aria-hidden="true">']
@@ -593,10 +593,10 @@ def _vframe(ps, names, w, hgt, fs, lo, hi, ticks, fmt, left=3.2, right=0.6, top=
 
 
 def models_shares_svg(M, names, order, w, fs=12):
-    """One column per party: the forecast's 8-in-10 range as a pale band, the forecast as a ring, A (correction) as a dot, B (weights) as a square."""
+    """One column per party: the forecast's 8-in-10 range as a pale band, the forecast as a ring with its value written above, A (correction) as a dot, B (weights) as a square."""
     ps = [p for p in order if p in M["base"]["shares"]]
     top = 5 * (int(max(M[k]["shares"][p][2] for k in ("base", "coef", "weights") for p in ps) / 5) + 1)
-    hgt = (22 if w > 400 else 24.5) * fs
+    hgt = (22 if w > 400 else 27) * fs
     out, X, Y, cw = _vframe(ps, names, w, hgt, fs, 0, top, range(0, top + 1, 5), lambda t: f"{t}%")
     bw = min(1.1 * fs, cw * 0.7)
     for i, p in enumerate(ps):
@@ -608,7 +608,10 @@ def models_shares_svg(M, names, order, w, fs=12):
                    f'<rect x="{x - bw / 2:.1f}" y="{Y(hi):.1f}" width="{bw:.1f}" height="{Y(lo) - Y(hi):.1f}" rx="{bw / 2:.1f}" style="fill:{c};opacity:.22"/>'
                    f'<circle cx="{x:.1f}" cy="{Y(mid):.1f}" r="{0.38 * fs:.1f}" style="fill:var(--paper);stroke:var(--ink);stroke-width:1.6"/>'
                    f'<circle cx="{x:.1f}" cy="{Y(a):.1f}" r="{0.3 * fs:.1f}" style="fill:{c}"/>'
-                   f'<rect x="{x - 0.3 * fs:.1f}" y="{Y(b) - 0.3 * fs:.1f}" width="{0.6 * fs:.1f}" height="{0.6 * fs:.1f}" style="fill:{c};stroke:var(--paper);stroke-width:1"/></g>')
+                   f'<rect x="{x - 0.3 * fs:.1f}" y="{Y(b) - 0.3 * fs:.1f}" width="{0.6 * fs:.1f}" height="{0.6 * fs:.1f}" style="fill:{c};stroke:var(--paper);stroke-width:1"/>'
+                   + (f'<text class="ax-l" style="fill:var(--ink)" x="{x:.1f}" y="{Y(hi) - 0.5 * fs:.1f}" text-anchor="middle">{num(mid)}%</text>' if w > 400 else
+                      f'<text class="ax-l" style="fill:var(--ink)" transform="rotate(-90 {x + 0.35 * fs:.1f} {Y(hi) - 0.5 * fs:.1f})" x="{x + 0.35 * fs:.1f}" y="{Y(hi) - 0.5 * fs:.1f}">{num(mid)}%</text>')
+                   + '</g>')
     return "".join(out) + "</svg>"
 
 
@@ -619,7 +622,7 @@ def models_coef_svg(d, shown, names, w, fs=12):
     lo, hi = min(min(vals), 0.9), max(max(vals), 1.1)
     lo, hi = int(lo * 10) / 10, -int(-hi * 10) / 10
     ticks = [round(lo + 0.1 * k, 1) for k in range(int(round((hi - lo) / 0.1)) + 1)]
-    out, X, Y, cw = _vframe(shown, names, w, (20 if w > 400 else 22.5) * fs, fs, lo, hi, ticks, num)
+    out, X, Y, cw = _vframe(shown, names, w, (20 if w > 400 else 25) * fs, fs, lo, hi, ticks, num)
     out.append(f'<line class="m151" x1="{X(0) - cw / 2:.1f}" x2="{X(len(shown) - 1) + cw / 2:.1f}" y1="{Y(1):.1f}" y2="{Y(1):.1f}"/>')
     for i, p in enumerate(shown):
         for k, f in enumerate(firms):
