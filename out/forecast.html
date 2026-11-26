@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="el">
 <head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-NqiWZoo0/tIlgMld+uS4aWuhMZ6VClcMEfBWd6BtdQg=' 'self'; style-src-elem 'sha256-D3RUj0g485LajWwYtJUHl6GK2d2tv6oNw8oBT0+pLvI=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/forecast.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/forecast.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/site.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/site.png">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mJNrY3wOYteA0+PvzAkV7E3SSApmgdCc8YJ1fC20KEk=' 'sha256-K6fwoop+xzVbFLTz5kc9BvsQQ/GZj04s431sfpMVx9A=' 'sha256-NqiWZoo0/tIlgMld+uS4aWuhMZ6VClcMEfBWd6BtdQg=' 'self'; style-src-elem 'sha256-4A7VyAj5q82hFpGbIJV/oqeER7Nt4zK+L+9kmvfZjbY=' 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex, nofollow, noarchive"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%231f4e9c' stroke-width='3' stroke-linecap='round'%3E%3Crect x='3' y='3' width='34' height='34' rx='3'/%3E%3Cpath d='M11 12C16 17 22 24 29 29M28 11C23 16 17 23 12 30'/%3E%3C/svg%3E"><link rel="canonical" href="https://elector-eight.vercel.app/out/forecast.html"><meta property="og:url" content="https://elector-eight.vercel.app/out/forecast.html"><meta property="og:image" content="https://elector-eight.vercel.app/out/og/site.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων"><meta name="twitter:image" content="https://elector-eight.vercel.app/out/og/site.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων</title>
 <meta name="description" content="Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων."><meta property="og:type" content="website"><meta property="og:site_name" content="Χάρτες Ψήφων"><meta property="og:locale" content="el_GR"><meta property="og:title" content="Εκλογές σήμερα: ποσοστά και έδρες από τον μέσο όρο των δημοσκοπήσεων"><meta property="og:description" content="Πιθανότητες αυτοδυναμίας, ποσοστά και έδρες κάθε κόμματος, από τον μέσο όρο των δημοσκοπήσεων."><meta name="twitter:card" content="summary_large_image">
@@ -83,8 +83,9 @@ html { scrollbar-gutter: stable; -webkit-font-smoothing: antialiased; -moz-osx-f
 /* Map pages: constituency and its other elections */
 .ctx { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2xs) var(--space-md); margin: 0 0 var(--space-md); font-size: var(--t-sm); }
 .ctx nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) 14px; }
-.ctx nav a { color: var(--ink-2); text-underline-offset: 4px; }
-.ctx nav a[aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
+.ctx nav a { padding: 0 14px; color: var(--ink); font-weight: 600; text-decoration: none; border: 2px solid color-mix(in srgb, var(--ink) 40%, transparent); border-radius: 999px; transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+.ctx nav a:hover { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.ctx nav a[aria-current] { color: var(--paper, var(--surface)); background: var(--ink); border-color: var(--ink); }
 /* Colophon: a dark field to the screen's edges (negative margins, html clips the scrollbar's width), the name again at full size,
    then the pages, sources and notes. Its own colours: every page's tokens differ. */
 .site { --foot: light-dark(#1b2230, #0c0e12); --foot-ink: #f3f1ea; --foot-ink-2: color-mix(in srgb, #f3f1ea 72%, var(--foot));
@@ -189,8 +190,12 @@ h3{margin:var(--space-lg) 0 var(--space-xs)}
 .when{display:flex;flex-wrap:wrap;align-items:center;gap:0 18px;margin:16px 0 0;padding:0 12px;border:0;
   position:sticky;top:0;z-index:3;background:var(--wash)}
 .when legend{float:left;padding:0;margin-right:6px;font-weight:600}
-.when label{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer}
-.when input{margin:0;accent-color:var(--pen);width:16px;height:16px}
+.when{position:sticky;gap:0 8px}
+.when label{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;margin:2px 0;font-weight:600;cursor:pointer;border:2px solid color-mix(in srgb,var(--ink) 40%,transparent);border-radius:999px;transition:background-color 150ms ease-out,border-color 150ms ease-out}
+.when label:hover{border-color:var(--ink)}
+.when input{position:absolute;opacity:0;pointer-events:none}
+.when label:has(input:checked){background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.when label:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2px}
 main:has(#h180:checked) .h0,main:has(#h0:checked) .h180{display:none}
 .odds{margin:12px 0 0;padding:0;list-style:none}
 .odds li{display:grid;grid-template-columns:minmax(14em,19em) 1fr 4.5em;gap:0 14px;align-items:center;padding:10px 0}
@@ -310,7 +315,7 @@ main:has(#h0:checked):has(#m-ND:checked) .h0-ND-1{fill:color-mix(in oklab,var(--
 .legend.bins i{border-radius:2px;outline:1px solid var(--line);outline-offset:-1px}
 .epsel{margin:8px 0 0;font-size:.875rem}
 .epsel label{font-weight:600}
-.epsel select{min-height:44px;max-width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:0 8px}
+.epsel select{min-height:44px;max-width:100%;font:inherit;color:var(--ink);background:var(--paper);border-radius:6px;padding:0 8px}
 .legend.bins i.z{background:var(--wash)}
 .epd{max-width:68ch}
 .toss5{margin:4px 0 0;padding-left:1.4em;max-width:68ch}
@@ -371,7 +376,7 @@ main:has(#h0:checked):has(#m-ND:checked) .h0-ND-1{fill:color-mix(in oklab,var(--
 .chap a{display:inline-flex;align-items:center;gap:8px;min-height:44px;white-space:nowrap;color:var(--ink-2);font-weight:600;text-decoration:none}
 .chap a::before{content:"";width:10px;height:10px;border-radius:50%;background:oklch(.62 .14 var(--hue))}
 .chap a:hover{color:var(--ink)}
-.chap a[aria-current]{color:var(--ink);text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:8px}
+.chap a[aria-current]{color:var(--paper);background:var(--ink);text-decoration:none;border-radius:999px;padding:0 12px;margin:4px 0;min-height:36px}
 .chap a:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 </style>
 </head>
