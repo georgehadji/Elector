@@ -168,8 +168,8 @@ def to_html(lines, path):
 /*SITE_CSS*/
 body{{margin:0;font:1rem/1.6 "IBM Plex Sans",system-ui,sans-serif;background:var(--surface);color:var(--ink)}}
 main{{--page:1040px;max-width:var(--page);margin:0 auto;padding:var(--space-lg) var(--space-md) 0}}
-h1{{font-size:clamp(1.75rem,1.1rem + 2.4vw,2.75rem);line-height:1.1;letter-spacing:-.03em;margin:var(--space-md) 0 var(--space-md)}}
-h2{{font-size:1.5rem;line-height:1.2;letter-spacing:-.02em;margin:var(--space-2xl) 0 var(--space-xs)}}
+h1{{margin:var(--space-md) 0 var(--space-md)}}
+h2{{margin:var(--space-2xl) 0 var(--space-sm)}}
 p{{color:var(--ink-2);max-width:68ch}} a{{color:var(--link)}}
 .tw{{overflow-x:auto}} table{{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;margin:var(--space-xs) 0 var(--space-md);font-size:.9375rem}}
 th,td{{text-align:left;padding:var(--space-xs) var(--space-sm);border-bottom:1px solid color-mix(in srgb,var(--ink) 10%,var(--surface));vertical-align:top}}

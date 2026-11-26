@@ -169,7 +169,7 @@ def odds(r, key):
         items.append(f'<li{c}><span class="lb"><span>{title.replace("ΕΛΑΣ", '<abbr title="Ελληνική Αριστερή Συμπαράταξη">ΕΛΑΣ</abbr>')}</span><small>{mid} έδρες ({lo}–{hi}) · {often(p)}</small></span>'
                      f'<div class="seatbar mini" role="img" aria-label="{title}: {mid} έδρες, στις 8 από τις 10 από {lo} '
                      f'έως {hi}">{spans}<i></i></div><b>{pct(p)}</b></li>')
-    return (f'<h2>Ποιοι φτάνουν τις 151 έδρες, εκλογές {WHEN[key]}</h2>'
+    return (f'<h2>Ποιοι φτάνουν τις 151 έδρες</h2>'
             '<p class="note">Οι έδρες του κόμματος, ή των κομμάτων μαζί: η μεσαία τιμή και, σε παρένθεση, το εύρος όπου '
             'πέφτουν στις 8 από τις 10. Δεξιά, σε τι ποσοστό των προσομοιώσεων φτάνουν τις 151. Η γραμμή στη μπάρα είναι '
             'οι 151. Είναι αθροίσματα εδρών, όχι πρόβλεψη για το ποια κυβέρνηση θα σχηματιστεί.</p>'
@@ -362,7 +362,7 @@ def second_html(r, key, names):
     g = r["second"]
     na, nb = html.escape(names[a]), html.escape(names[b])
     cap = f'Ποσοστό {na} μείον ποσοστό {nb}, σε μονάδες, στις προσομοιώσεις. Δεξιά από το 0 μπροστά είναι {na}, αριστερά {nb}.'
-    return (f'<h2>Ποιος έρχεται δεύτερος, εκλογές {WHEN[key]}</h2>'
+    return (f'<h2>Ποιος έρχεται δεύτερος</h2>'
             f'<div class="hero duo">{figs}</div>'
             f'<p class="note">Πόσο συχνά βγαίνει δεύτερο το κάθε κόμμα στις προσομοιώσεις.{other}</p>'
             f'<figure><div class="wide">{gap_svg(g["gap"], g["step"], a, b, 640, 180, 12)}</div>'
@@ -424,7 +424,7 @@ def bonus_html(r, key, names):
             label = f'Βουλή {title}, μεσαίες έδρες: ' + ", ".join(f'{names[p]} {v}' for p, v in parl)
             key_ = "".join(f'<li><i style="--c:{colour(p)}"></i>{html.escape(names[p])} <b>{v}</b></li>' for p, v in parl)
             figs.append(f'<figure><h3>Η Βουλή {title}</h3>{hemicycle(dict(parl), label)}<ul class="legend">{key_}</ul></figure>')
-    return (f'<h2>Το όριο του 25%, εκλογές {WHEN[key]}</h2>'
+    return (f'<h2>Το όριο του 25%</h2>'
             f'<p class="note">Αν το πρώτο κόμμα μείνει κάτω από {num(b["from"], 0)}%, δεν παίρνει μπόνους και οι 300 έδρες '
             f'μοιράζονται αναλογικά. Αυτό συμβαίνει {in_sims(p_no)}. {example}</p>'
             f'<div class="wrap"><table><thead>{head}</thead><tbody>{"".join(rows)}</tbody></table></div>'
@@ -472,7 +472,7 @@ def ladder_html(r, key, names):
         items.append(f'<li><span class="lb"><span>{html.escape(title)}</span><small>{words}{extra}</small></span>'
                      f'<div class="seatbar mini" role="img" aria-label="{html.escape(title + ": " + words, quote=True)}">{spans}<i></i></div></li>')
     sides = "· ".join(f'{BLOC_NAMES[k].lower()}: ' + ", ".join(names[p] for p in ps if p in names) for k, ps in F.BLOCS.items())
-    return (f'<h2>Ασφαλείς και αμφίρροπες έδρες, εκλογές {WHEN[key]}</h2>'
+    return (f'<h2>Ασφαλείς και αμφίρροπες έδρες</h2>'
             '<p class="note">Κάθε έδρα με τη σειρά, η 1η, η 2η και ούτω καθεξής, και σε πόσες από τις 100 προσομοιώσεις τη φτάνει '
             'το κόμμα. Ασφαλείς: 95 ή περισσότερες. Πιθανές: 75 έως 95. Με κλίση: 65 έως 75. Αμφίρροπες: 35 έως 65. '
             'Δύσκολες: 5 έως 35. Όσο πιο αχνό το χρώμα, τόσο πιο αβέβαιη η έδρα. Η γραμμή είναι οι 151.</p>'
@@ -525,7 +525,7 @@ def record():
         cells = "".join(f'<td class="n">{num(r["by"][e]) if e in r["by"] else "·"}</td>' for e in PR.ELECTIONS)
         body_rows.append(f'<tr><td>{html.escape(r["firm"])}</td><td class="n">{len(r["by"])}</td>'
                          f'<td class="n">{num(r["avg"])}</td>{cells}</tr>')
-    return ('<section class="rec" aria-labelledby="rh"><h2 id="rh">Δημοσκοπήσεις και αποτέλεσμα: η διαφορά ανά εταιρεία</h2>'
+    return ('<section class="rec" aria-labelledby="rh"><h2 id="rh">Δημοσκοπήσεις και αποτέλεσμα ανά εταιρεία</h2>'
             '<p class="note">Για κάθε εταιρεία που δημοσκοπεί σήμερα: πόσο απείχε η τελευταία της δημοσκόπηση πριν την κάλπη '
             '(έως 21 ημέρες πριν) από το αποτέλεσμα, στις εκλογές του 2019, του Μαΐου 2023 και του Ιουνίου 2023. Η τιμή είναι η '
             'μέση διαφορά ανά κόμμα με 3% και πάνω, σε ποσοστιαίες μονάδες. Μικρότερη σημαίνει πιο κοντά. «·»: η εταιρεία '
@@ -630,7 +630,7 @@ def samaras(names):
     for L in levels:
         by[L]["level"] = L
     css, chooser = sam_sweep(d, nm)
-    return css, ('<section aria-labelledby="sh"><h2 id="sh">Σενάριο: κόμμα Σαμαρά στο 10, 11 ή 12%, εκλογές σήμερα</h2>'
+    return css, ('<section aria-labelledby="sh"><h2 id="sh">Σενάριο σήμερα: κόμμα Σαμαρά στο 10, 11 ή 12%</h2>'
             '<p class="note">Τι θα γινόταν αν ένα νέο κόμμα του Αντώνη Σαμαρά έπαιρνε ακριβώς 10, 11 ή 12% των έγκυρων ψήφων. '
             'Δεν λέμε ότι θα τα πάρει: το κόμμα δεν έχει δημοσκοπήσεις ούτε εκλογές πίσω του. Είναι οι ίδιες '
             f'{thousands(d["n"])} προσομοιώσεις με παραπάνω, όπου οι ψήφοι του αφαιρούνται από τα άλλα κόμματα.</p>'
@@ -886,7 +886,7 @@ def ep_map(data, order, names):
     options = "".join(f'<option value="{ep}">{html.escape(eps[ep]["name"])}</option>'
                       for ep in sorted(eps, key=lambda ep: fold(eps[ep]["name"])))
     tables = "".join(f'<div class="h{key}">{most_toss(toss[key], eps, names)}{per_ep(r, order, names)}</div>' for key, r in hz.items())
-    return css, (f'<h2>Έδρες ανά περιφέρεια, εκλογές <span class="h0">{WHEN["0"]}</span><span class="h180">{WHEN["180"]}</span></h2>'
+    return css, (f'<h2>Έδρες ανά περιφέρεια</h2>'
                  '<p class="note">Πόσες έδρες παίρνει κατά μέσο όρο σε κάθε περιφέρεια το κόμμα που διαλέγεις. Οι μεγάλες '
                  'περιφέρειες έχουν περισσότερες έδρες, γι’ αυτό βγαίνουν συνήθως πιο σκούρες. Οι 15 έδρες Επικρατείας δεν '
                  'φαίνονται στον χάρτη. «Αμφίρροπες έδρες»: πόσες έδρες κάθε περιφέρειας δεν τις κερδίζει κανένα κόμμα σε 65 '
@@ -1012,9 +1012,9 @@ def body(data, order):
     for key, r in data["horizons"].items():
         out.append(f'<div class="h{key}">'
                    + odds(r, key) + partners_html(r, names)
-                   + f'<h2>Ποσοστά, εκλογές {WHEN[key]}</h2>' + shares(r, order, names, small)
+                   + '<h2>Ποσοστά</h2>' + shares(r, order, names, small)
                    + second_html(r, key, names)
-                   + f'<h2>Έδρες, εκλογές {WHEN[key]}</h2><p class="note">Οι 300 έδρες, με τον μέσο όρο κάθε κόμματος ώστε να '
+                   + '<h2>Έδρες</h2><p class="note">Οι 300 έδρες, με τον μέσο όρο κάθε κόμματος ώστε να '
                      'αθροίζουν σε 300. Τους αριθμούς τους δίνει ο πίνακας. Η γραμμή είναι οι 151 της αυτοδυναμίας.</p>'
                      + seatbar(order, names, r)
                    + seat_table(r, order, names) + histograms(r)

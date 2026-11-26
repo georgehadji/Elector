@@ -166,14 +166,16 @@ def text_table(head, rows):
 SECTIONS = []  # html of the page, in order; the text goes to stdout as it is made
 
 
-def emit(title, intro, head, rows, fold=False, chart=""):
+def emit(title, intro, head, rows, fold=True, chart=""):  # fold: kept for the callers; every table opens on demand
     """One table: printed, and added to the page under its heading. A chart of the same numbers goes between the heading
     and the table, outside the fold, so every table has a picture that is always visible and clearly its own."""
     print(f"\n{title}\n" + text_table(head, rows))
-    h = f"<h3>{html.escape(title)}</h3>"
+    # the section's h2 already names the election: the h3 drops that tail, and the two long titles get short ones
+    short = {"Εξωτερικό: Ευρωεκλογές 2024 (επιστολική) και Ιούνιος 2023 (κάλπη)": "Εξωτερικό: επιστολική 2024 και κάλπη 2023",
+             "ΝΙΚΗ στην επιστολική ψήφο ανά περιφέρεια, Ευρωεκλογές 2024": "ΝΙΚΗ ανά περιφέρεια, επιστολική 2024"}
+    h = f"<h3>{html.escape(short.get(title) or re.sub(r', (?:Μάιος|Ιούνιος) 2023$|, Ευρωεκλογές 2024$', '', title))}</h3>"
     intro = f"<p>{intro}</p>" if intro else ""
-    SECTIONS.append(f"{h}{chart}<details><summary>Ο πίνακας με τους αριθμούς</summary>{intro}{table(head, rows)}</details>" if fold
-                    else f"{h}{intro}{chart}{table(head, rows)}")
+    SECTIONS.append(f"{h}{chart}<details><summary>Ο πίνακας με τους αριθμούς</summary>{intro}{table(head, rows)}</details>")
 
 
 def area_rows(e, gs, parties):
@@ -440,14 +442,15 @@ def nikh_section():
         "Η ΝΙΚΗ πάει χειρότερα στο εξωτερικό απ' ό,τι σε όλη τη χώρα", "Ποσοστό επί των εγκύρων. Στις Ευρωεκλογές 2024 όλη η ψήφος του εξωτερικού ήταν επιστολική.", rows,
         "Όλη η χώρα", "Εξωτερικό", sep=" · ", label="Ποσοστό ΝΙΚΗΣ, όλη η χώρα και εξωτερικό: "
         + "; ".join(f"{n}: {num(x)}% και {num(y)}%" for n, x, y in rows)))
+    country_charts = []  # the pictures of the «ΝΙΚΗ ανά χώρα» table: they sit under its heading
     jv = sorted(((g, d) for g, d in cn[june].items() if d["votes"].get(NIKH)), key=lambda x: -x[1]["votes"][NIKH])[:12]
-    SECTIONS.append(chart_bars(
+    country_charts.append(chart_bars(
         "Ψήφοι της ΝΙΚΗΣ ανά χώρα, Ιούνιος 2023", "Οι 12 χώρες με τις περισσότερες ψήφους της· δίπλα το ποσοστό της εκεί.",
         [(g, d["votes"][NIKH], f"{d['votes'][NIKH]} · {num(share(d, NIKH))}%") for g, d in jv],
         "Ψήφοι ΝΙΚΗΣ ανά χώρα, Ιούνιος 2023: " + "; ".join(f"{g} {d['votes'][NIKH]}" for g, d in jv)))
     big = sorted((g for g, d in cn[june].items() if d["valid"] >= 500 and g in cn[may]), key=lambda g: -share(cn[june][g], NIKH))
     rows = [(g, share(cn[may][g], NIKH), share(cn[june][g], NIKH)) for g in big]
-    SECTIONS.append(chart_dumbbell(
+    country_charts.append(chart_dumbbell(
         "Από τον Μάιο στον Ιούνιο: η ΝΙΚΗ ανέβηκε σχεδόν παντού", "Χώρες με 500 έγκυρα και πάνω τον Ιούνιο.", rows,
         "Μάιος 2023", "Ιούνιος 2023", "Ποσοστό ΝΙΚΗΣ ανά χώρα, Μάιος και Ιούνιος 2023: "
         + "; ".join(f"{g}: {num(x)}% και {num(y)}%" for g, x, y in rows)))
@@ -469,7 +472,7 @@ def nikh_section():
     over = max(rows, key=lambda r: r[2] - r[1])  # in points: a ratio would pick a country with a handful of votes
     print("Μερίδιο στα έγκυρα του εξωτερικού → μερίδιο στις ψήφους της ΝΙΚΗΣ εκεί, Ιούνιος 2023: "
           + "; ".join(f"{g} {num(x)} → {num(y)}%" for g, x, y in rows))
-    SECTIONS.append(chart_dumbbell(
+    country_charts.append(chart_dumbbell(
         f"{over[0]}: {num(over[1])}% των εγκύρων του εξωτερικού, {num(over[2])}% των ψήφων της ΝΙΚΗΣ",
         "Ιούνιος 2023, οι 10 χώρες με τις περισσότερες ψήφους της. Όπου το μερίδιο στις ψήφους της ΝΙΚΗΣ είναι μεγαλύτερο, η χώρα "
         "της δίνει περισσότερα απ' όσο της αναλογεί σε έγκυρα.", rows, "Μερίδιο στα έγκυρα του εξωτερικού", "Μερίδιο στις ψήφους της ΝΙΚΗΣ",
@@ -481,7 +484,7 @@ def nikh_section():
     ahead = sum(y > x for _, x, y in pts)
     print(f"ΝΙΚΗ και {rv} ανά χώρα (300 έγκυρα και πάνω), Ιούνιος 2023: ΝΙΚΗ πάνω σε {ahead} από τις {len(pts)}; "
           + "; ".join(f"{g} {num(y)} / {num(x)}%" for g, x, y in sorted(pts, key=lambda q: -q[2])))
-    SECTIONS.append(chart_scatter(
+    country_charts.append(chart_scatter(
         f"ΝΙΚΗ και {rv} στο εξωτερικό: η ΝΙΚΗ πάνω σε {ahead} από τις {len(pts)} χώρες",
         f"Ιούνιος 2023, χώρες με 300 έγκυρα και πάνω· κάθε κουκκίδα μια χώρα. Πάνω από τη διαγώνιο: η ΝΙΚΗ πήρε περισσότερο από την {rv}.",
         pts, f"{rv} (%)", "ΝΙΚΗ (%)", f"Ποσοστό ΝΙΚΗΣ και {rv} ανά χώρα, Ιούνιος 2023: "
@@ -500,7 +503,7 @@ def nikh_section():
              [(label, False), ("Μάιος ψήφοι", True), ("Μάιος %", True), ("Μάιος θέση", True), ("Μάιος έγκυρα", True),
               ("Ιούνιος ψήφοι", True), ("Ιούνιος %", True), ("Ιούνιος θέση", True), ("Ιούνιος έγκυρα", True), ("Μεταβολή", True)],
              rows, fold=fold, chart=chart)
-    area(cn, "Χώρα", "ΝΙΚΗ ανά χώρα, Μάιος και Ιούνιος 2023", False)
+    area(cn, "Χώρα", "ΝΙΚΗ ανά χώρα, Μάιος και Ιούνιος 2023", False, "".join(country_charts))
     jt = sorted(((g, d) for g, d in ct[june].items() if d["votes"].get(NIKH)), key=lambda x: -x[1]["votes"][NIKH])[:12]
     area(ct, "Πόλη (χώρα)", "ΝΙΚΗ ανά πόλη, Μάιος και Ιούνιος 2023", True, chart_bars(
         "Ψήφοι της ΝΙΚΗΣ ανά πόλη, Ιούνιος 2023", "Οι 12 πόλεις με τις περισσότερες ψήφους της· δίπλα το ποσοστό της εκεί.",
@@ -673,7 +676,7 @@ def page():
   color:var(--ink);paint-order:stroke;-webkit-text-stroke:3px var(--surface)}}
 #m-legend{{display:flex;flex-wrap:wrap;gap:.3em 1em;margin:.5em 0 1em;font-size:14px}}
 #m-legend .k i{{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}}
-main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-bottom:1.5em}} h2{{margin-top:1.8em;font-size:1.5em}}
+main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-bottom:1.5em}} h2{{font-size:var(--h2);margin:var(--space-2xl) 0 var(--space-sm)}} h3{{font-size:var(--h3);margin:var(--space-lg) 0 var(--space-xs)}}
 summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
 @media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}</style></head><body><main id="main">
 {header()}
