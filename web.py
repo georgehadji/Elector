@@ -53,7 +53,7 @@ MONTHS = ("Ιανουαρίου", "Φεβρουαρίου", "Μαρτίου", "�
 
 
 def nav(current="maps"):
-    """The site's pages; `current` is one of NAV's keys (that page) or "maps", a page under Περιφέρειες (aria-current="true")."""
+    """The site's pages; `current` is one of NAV's keys (that page) or "maps", a page under Περιφέρειες (aria-current="true"); any other value ("none") marks no page."""
     cur = ("index", "true") if current == "maps" else (current, "page")
     links = "".join(f'<a href="{href}"' + (f' aria-current="{cur[1]}"' if cur[0] == key else "") + f">{label}</a>"
                     for key, href, label in NAV)
