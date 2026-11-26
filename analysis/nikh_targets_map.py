@@ -157,7 +157,7 @@ if not party.IS_NIKH:  # the template is written for NIKH: swap the names, drop 
 template = fill(text,
                 INDEX_LIGHT | {"panel": "#ffffffee", "on": "#1d1d1b", "on-ink": "#fff"},
                 INDEX_DARK | {"panel": "#1d2430ee", "on": "#e8edf5", "on-ink": "#171c24"},
-                skip="#map", compact=True)
+                skip="#map")
 out.write_text(secure(template.replace("<!--META-->", meta(f"{party.NAME}: χάρτης στόχευσης ανά κοινότητα", f"Πού το κόμμα {party.NAME} έχει περιθώριο να κερδίσει ψήφους: ποσοστό και στόχοι ανά κοινότητα.")).replace("/*DATA*/null", json.dumps(data, ensure_ascii=False, separators=(",", ":"))), out),
                encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB, {len(features)} areas)")
