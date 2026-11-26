@@ -593,24 +593,22 @@ def _vframe(ps, names, w, hgt, fs, lo, hi, ticks, fmt, left=3.2, right=0.6, top=
 
 
 def models_shares_svg(M, names, order, w, fs=12):
-    """One column per party: the forecast's 8-in-10 range as a pale band, the forecast as a ring with its value written above, A (correction) as a dot, B (weights) as a square."""
+    """One stacked column per party: up to the low end of the 8-in-10 range, up to the forecast, up to the high end; the forecast is written above."""
     ps = [p for p in order if p in M["base"]["shares"]]
     top = 5 * (int(max(M[k]["shares"][p][2] for k in ("base", "coef", "weights") for p in ps) / 5) + 1)
     hgt = (22 if w > 400 else 27) * fs
     out, X, Y, cw = _vframe(ps, names, w, hgt, fs, 0, top, range(0, top + 1, 5), lambda t: f"{t}%")
-    bw = min(1.1 * fs, cw * 0.7)
+    bw = min(1.6 * fs, cw * 0.75)
     for i, p in enumerate(ps):
         x, c = X(i), colour(p)
         lo, mid, hi = M["base"]["shares"][p]
         a, b = M["coef"]["shares"][p][1], M["weights"]["shares"][p][1]
-        tip = f'{names[p]}: πρόβλεψη {num(mid)}%, Α {num(a)}%, Β {num(b)}%'
-        out.append(f'<g><title>{html.escape(tip)}</title>'
-                   f'<rect x="{x - bw / 2:.1f}" y="{Y(hi):.1f}" width="{bw:.1f}" height="{Y(lo) - Y(hi):.1f}" rx="{bw / 2:.1f}" style="fill:{c};opacity:.22"/>'
-                   f'<circle cx="{x:.1f}" cy="{Y(mid):.1f}" r="{0.38 * fs:.1f}" style="fill:var(--paper);stroke:var(--ink);stroke-width:1.6"/>'
-                   f'<circle cx="{x:.1f}" cy="{Y(a):.1f}" r="{0.3 * fs:.1f}" style="fill:{c}"/>'
-                   f'<rect x="{x - 0.3 * fs:.1f}" y="{Y(b) - 0.3 * fs:.1f}" width="{0.6 * fs:.1f}" height="{0.6 * fs:.1f}" style="fill:{c};stroke:var(--paper);stroke-width:1"/>'
-                   + (f'<text class="ax-l" style="fill:var(--ink)" x="{x:.1f}" y="{Y(hi) - 0.5 * fs:.1f}" text-anchor="middle">{num(mid)}%</text>' if w > 400 else
-                      f'<text class="ax-l" style="fill:var(--ink)" transform="rotate(-90 {x + 0.35 * fs:.1f} {Y(hi) - 0.5 * fs:.1f})" x="{x + 0.35 * fs:.1f}" y="{Y(hi) - 0.5 * fs:.1f}">{num(mid)}%</text>')
+        tip = f'{names[p]}: πρόβλεψη {num(mid)}% ({num(lo)}–{num(hi)}%), Α {num(a)}%, Β {num(b)}%'
+        seg = lambda v0, v1, op: (f'<rect x="{x - bw / 2:.1f}" y="{Y(v1):.1f}" width="{bw:.1f}" height="{max(Y(v0) - Y(v1), 0):.1f}" style="fill:{c};opacity:{op}"/>')
+        lab = {"x": x, "y": Y(hi) - 0.5 * fs}
+        out.append(f'<g><title>{html.escape(tip)}</title>' + seg(0, lo, 0.95) + seg(lo, mid, 0.55) + seg(mid, hi, 0.25)
+                   + (f'<text class="ax-l" style="fill:var(--ink)" x="{lab["x"]:.1f}" y="{lab["y"]:.1f}" text-anchor="middle">{num(mid)}%</text>' if w > 400 else
+                      f'<text class="ax-l" style="fill:var(--ink)" transform="rotate(-90 {x + 0.35 * fs:.1f} {lab["y"]:.1f})" x="{x + 0.35 * fs:.1f}" y="{lab["y"]:.1f}">{num(mid)}%</text>')
                    + '</g>')
     return "".join(out) + "</svg>"
 
@@ -658,8 +656,8 @@ def two_sizes(fn, cap, *a):
     return f'<figure><div class="wide">{fn(*a, 640)}</div><div class="narrow">{fn(*a, 360)}</div><figcaption>{cap}</figcaption></figure>'
 
 
-MODEL_KEY = ('<ul class="legend"><li><i style="--c:transparent;border:2px solid var(--ink);border-radius:50%;width:10px;height:10px"></i>πρόβλεψη</li>'
-             '<li><i style="--c:var(--ink-2);border-radius:50%"></i>Α. διόρθωση</li><li><i style="--c:var(--ink-2)"></i>Β. βάρη</li></ul>')
+MODEL_KEY = ('<ul class="legend"><li><i style="--c:var(--ink);opacity:.95"></i>ως το κάτω όριο</li><li><i style="--c:var(--ink);opacity:.55"></i>ως την πρόβλεψη</li>'
+             '<li><i style="--c:var(--ink);opacity:.25"></i>ως το πάνω όριο</li></ul>')
 PROB_KEY = ('<ul class="legend"><li><i style="--c:var(--mute)"></i>πρόβλεψη</li><li><i style="--c:var(--ink-2)"></i>Α. διόρθωση</li>'
             '<li><i style="--c:var(--ink)"></i>Β. βάρη</li></ul>')
 
@@ -708,7 +706,7 @@ def models(names, order):
             'σημαίνει ότι η δημοσκόπηση μετράει διπλά, βάρος 0,5 μισή.</p>'
             '<h3>Ποσοστά</h3><p class="note">Το πιθανότερο ποσοστό και, σε παρένθεση, το εύρος όπου πέφτει 8 φορές στις 10, '
             'για εκλογές σήμερα.</p>'
-            + two_sizes(models_shares_svg, 'Κάθε στήλη είναι ένα κόμμα. Η απαλή ταινία είναι το εύρος της πρόβλεψης, ο κύκλος το πιθανότερο ποσοστό της, η τελεία το ποσοστό με τη διόρθωση και το τετράγωνο το ποσοστό με τα βάρη.', M, names, [p for p in order if p in M["base"]["shares"]])
+            + two_sizes(models_shares_svg, 'Κάθε στήλη είναι ένα κόμμα και έχει τρία κομμάτια: ως το κάτω όριο του εύρους, ως την πρόβλεψη και ως το πάνω όριο. Πάνω από τη στήλη είναι το πιθανότερο ποσοστό. Τα ποσοστά με τη διόρθωση και με τα βάρη είναι στους πίνακες.', M, names, [p for p in order if p in M["base"]["shares"]])
             + MODEL_KEY
             + f'<div class="wrap"><table>{head}<tbody>{rows}</tbody></table></div>'
             '<h3>Έδρες και πιθανότητες</h3>' + two_sizes(models_prob_svg, 'Η πιθανότητα κάθε ενδεχομένου, για εκλογές σήμερα.', M, probs) + PROB_KEY
