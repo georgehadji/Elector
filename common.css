@@ -4,18 +4,18 @@
 :root { accent-color: var(--link); }
 .legend, .tip b { overflow-wrap: anywhere; }
 body { margin: 0; font: 1rem/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
-main { max-width: 1200px; margin: 0 auto; padding: 16px; }
-h1 { font: 600 clamp(1.375rem, 1.2rem + .8vw, 1.625rem)/1.2 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.01em; margin: 0 0 4px; }
+main { max-width: 1200px; margin: 0 auto; padding: var(--space-lg) var(--space-md) 0; }
+h1 { font: 600 clamp(1.75rem, 1.1rem + 2.4vw, 2.75rem)/1.1 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.03em; margin: 0 0 var(--space-xs); }
 /*SITE_CSS*/
 h2 { font-size: var(--t-base); margin: 0 0 8px; }
 a { color: var(--link); }
-.sub { color: var(--ink-2); margin: 0 0 8px; max-width: 65ch; }  /* 45-90 characters a line */
+.sub { color: var(--ink-2); margin: 0 0 var(--space-md); max-width: 65ch; }  /* 45-90 characters a line */
 .views { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; font-size: var(--t-sm); }
 .views a { display: inline-flex; align-items: center; min-height: 24px; }
 .views:empty { display: none; }
-.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-.controls label { color: var(--ink-2); font-size: var(--t-xs); }
-select, button, input { font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.controls { display: flex; flex-wrap: wrap; gap: var(--space-xs); align-items: center; margin-bottom: var(--space-md); }
+.controls label { color: var(--ink-2); font-size: var(--t-sm); }
+select, button, input { font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--line); border-radius: 8px; padding: var(--space-xs) var(--space-sm); }
 select { min-width: 0; max-width: 100%; }
 input[type="search"] { width: 14em; max-width: 100%; }
 button { cursor: pointer; }
@@ -24,10 +24,10 @@ button { cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 .pdf { margin-left: auto; }
 /* The four figures are a caption under the map, one flowing line of "value label" pairs. */
-.stats { display: flex; flex-wrap: wrap; gap: 2px 20px; margin: 8px 0 4px; font-size: var(--t-xs); color: var(--ink-2); }
+.stats { display: flex; flex-wrap: wrap; gap: 2px 20px; margin: var(--space-sm) 0 var(--space-2xs); font-size: var(--t-sm); color: var(--ink-2); }
 .stats b { font-weight: 600; color: var(--ink); }
 .stats b::after { content: "\00a0"; }  /* the number stays with its label */
-.who { font: 600 clamp(1.25rem, 1.1rem + .9vw, 1.625rem)/1.2 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.01em; margin: 0 0 6px; }
+.who { font: 600 clamp(1.5rem, 1.2rem + 1.2vw, 2rem)/1.15 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.02em; margin: 0 0 var(--space-xs); }
 .who::before { content: ""; display: inline-block; width: .6em; height: .6em; margin-right: .35em; background: var(--link);
   clip-path: polygon(14% 0, 50% 36%, 86% 0, 100% 14%, 64% 50%, 100% 86%, 86% 100%, 50% 64%, 14% 100%, 0 86%, 36% 50%, 0 14%); }  /* the ✕ marks the candidate on show */
 .who:empty { display: none; }
@@ -41,18 +41,18 @@ button { cursor: pointer; }
 :root[data-theme=dark] .leaflet-bar a.leaflet-disabled { color: var(--ink-2); }
 :root[data-theme=dark] .leaflet-container .leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 80%, transparent); color: var(--ink-2); }
 :root[data-theme=dark] .leaflet-control-attribution a { color: var(--link); }
-#map { height: 62vh; height: 62svh; min-height: 360px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); }
+#map { height: 66vh; height: 66svh; min-height: 360px; border-radius: 12px; background: var(--chip); }
 .hint { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; z-index: 1000;
         background: var(--scrim); color: var(--on-scrim); font-weight: 600; border-radius: 8px; pointer-events: none;
         opacity: 0; transition: opacity .2s; }
 .hint.on { opacity: 1; }
-.legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 8px 0 20px; font-size: var(--t-xs); color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: var(--space-sm) 0 var(--space-lg); font-size: var(--t-sm); color: var(--ink-2); }
 .legend i { display: inline-block; width: 30px; height: 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink-2) 75%, var(--surface)); }  /* border >= 3:1 on the paper, so the palest step still shows */
 .legend .lbl { margin: 0 8px 0 4px; font-variant-numeric: tabular-nums; }
 .legend .k { display: inline-flex; align-items: center; white-space: nowrap; }
 table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { color: var(--ink-2); font-weight: 600; font-size: var(--t-xs); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+th, td { text-align: left; padding: var(--space-xs) var(--space-sm); border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; font-size: var(--t-sm); position: sticky; top: 0; background: var(--surface); z-index: 1; }
 th button { all: unset; cursor: pointer; display: inline-block; min-height: 24px; }
 th button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 th[aria-sort="ascending"] button::after { content: " ▲"; font-size: var(--t-xs); }
@@ -118,7 +118,7 @@ tr.sel { background: var(--chip); box-shadow: inset 3px 0 0 var(--link); }
 @media (pointer: coarse) {
   select, button, input { min-height: 44px; }
   select, input { font-size: var(--t-base); }  /* iOS zooms into fields under 16px */
-  .views a { display: inline-block; padding: 12px 0; }
+  .views a { display: inline-block; padding: 8px 0; }
   th button { display: flex; align-items: center; min-height: 44px; width: 100%; }
   th.n button { justify-content: flex-end; }
   .rowlink { display: inline-flex; align-items: center; min-height: 44px; }

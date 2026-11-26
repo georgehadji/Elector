@@ -64,6 +64,38 @@ th:nth-child(n+4),td:nth-child(n+4){text-align:right}
 .rec th:first-child,.rec td:first-child{text-align:left}
 @media (max-width:600px){.rec th:nth-child(3),.rec td:nth-child(3){display:table-cell}}
 .rec .note{max-width:68ch}
+.mk{margin-top:var(--space-md)}
+.mk li{display:inline-flex;align-items:center;gap:var(--space-xs)}
+.m{position:absolute;z-index:1;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--c);border:2px solid var(--paper)}
+.mk .m{position:static;margin:0;flex:none}
+.m0{--c:var(--ink);border-radius:50%}
+.m1{--c:var(--pen);border-radius:2px}
+.m2{--c:var(--dot);transform:rotate(45deg);width:12px;height:12px;margin:-6px 0 0 -6px}
+.mk .m2{margin:0 1px}
+.miss{margin:var(--space-sm) 0 var(--space-md);padding:0;list-style:none;max-width:760px;font-variant-numeric:tabular-nums}
+.miss li{display:grid;grid-template-columns:minmax(6.5em,9em) 1fr 3.5em;gap:0 var(--space-sm);align-items:center}
+.miss li:not(.hd){min-height:44px}
+.miss .trk{position:relative;height:100%;min-height:44px;margin-inline:14px}
+.miss li:not(.hd) .trk::before{content:"";position:absolute;left:50%;top:6px;bottom:6px;border-left:2px solid var(--ink)}
+.miss li:not(.hd) .trk::after{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px solid var(--line)}
+.miss .trk.ax{min-height:24px;height:24px;font-size:.875rem;color:var(--ink-2)}
+.miss .trk.ax span{position:absolute;transform:translateX(-50%)}
+.miss .cap{display:flex;justify-content:space-between;font-size:.875rem;color:var(--ink-2)}
+.miss .nm{font-size:.9375rem}
+.miss b{text-align:right;font-size:1.125rem;font-weight:600}
+.miss .hd:first-child span:last-child{font-size:.8125rem;color:var(--ink-2);text-align:right;line-height:1.2}
+@media (max-width:600px){
+  .miss li{grid-template-columns:1fr 3.5em;gap:0}
+  .miss li:not(.hd) .nm{grid-column:1;grid-row:1;align-self:end}
+  .miss li:not(.hd) b{grid-column:2;grid-row:1;align-self:end}
+  .miss li:not(.hd) .trk{grid-column:1/-1;grid-row:2;min-height:32px}
+  .miss li:not(.hd){min-height:0;padding-top:var(--space-xs)}
+  .miss .hd{grid-template-columns:1fr}
+  .miss .hd>:first-child,.miss .hd>:last-child{display:none}
+  .miss .trk.ax .h{display:none}
+  .miss li:not(.hd) .trk::before{top:4px;bottom:4px}
+}
+.rec details{margin-top:var(--space-sm)}
 .rel{font-size:.9375rem;margin:var(--space-xl) 0 0}
 a{color:var(--pen)}
 </style>

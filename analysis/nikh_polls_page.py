@@ -134,6 +134,30 @@ def signed(x, dec=2):
     return ("+" if x >= 0 else "−") + num(abs(x), dec)
 
 
+def miss_chart(miss, order, mae):
+    """Dot plot of the table below: one row per firm, one marker per election at (last poll - result) on a scale centred on 0."""
+    top = max(abs(p - b) for by in miss.values() for p, b, _ in by.values())
+    r = max(1, math.ceil(top))
+    step = .5 if r <= 2 else 1
+    pos = lambda d: f"{(d + r) / (2 * r) * 100:.2f}%"  # noqa: E731
+    ticks = "".join(f'<span{"" if t * step % 1 == 0 else ' class="h"'} style="left:{pos(t * step)}">{signed(t * step, 1) if t else "0"}</span>'
+                    for t in range(-int(r / step), int(r / step) + 1))
+    rows = []
+    for f in order:
+        dots = "".join(
+            f'<span class="m m{i}" style="left:{pos(miss[f][e][0] - miss[f][e][1])}" title="{html.escape(PR.NIKI_LABEL[e])}: '
+            f'δημοσκόπηση {num(miss[f][e][0])}%, αποτέλεσμα {num(miss[f][e][1], 2)}% ({signed(miss[f][e][0] - miss[f][e][1])})"></span>'
+            for i, e in enumerate(PR.NIKI_ELECTIONS) if e in miss[f])
+        rows.append(f'<li><span class="nm">{html.escape(f)}</span><span class="trk">{dots}</span><b>{num(mae[f])}</b></li>')
+    key = "".join(f'<li><span class="m m{i}"></span>{PR.NIKI_LABEL[e]}</li>' for i, e in enumerate(PR.NIKI_ELECTIONS))
+    return (f'<ul class="key mk">{key}</ul>'
+            '<p class="note">Ο μεγάλος αριθμός δεξιά κάθε εταιρείας είναι η μέση διαφορά της, σε ποσοστιαίες μονάδες, χωρίς πρόσημο.</p>'
+            f'<ul class="miss" aria-label="Διαφορά της τελευταίας δημοσκόπησης από το αποτέλεσμα, ανά εταιρεία">'
+            f'<li class="hd"><span></span><span class="trk ax">{ticks}</span><span>μέση<br>διαφορά</span></li>'
+            f'<li class="hd"><span></span><span class="cap"><span>χαμηλότερα από το αποτέλεσμα</span>'
+            f'<span>ψηλότερα</span></span><span></span></li>{"".join(rows)}</ul>')
+
+
 def record():
     """How close each firm's last NIKH poll before an election fell (pollster_record.niki_misses): poll and poll − result."""
     miss = PR.niki_misses()
@@ -151,8 +175,10 @@ def record():
             'εκλογές (έως 21 ημέρες πριν) και, σε παρένθεση, πόσο απείχε από το αποτέλεσμα, σε ποσοστιαίες μονάδες. Το αρνητικό '
             'σημαίνει ότι η δημοσκόπηση έδωσε λιγότερο από το αποτέλεσμα. «·»: δεν υπάρχει τέτοια δημοσκόπηση. '
             'Πρώτες οι εταιρείες που έπεσαν πιο κοντά κατά μέσο όρο.</p>'
+            + miss_chart(miss, sorted(miss, key=mae.get), mae) +
+            '<details><summary>Ο πίνακας με τους αριθμούς</summary>'
             f'<table><thead><tr><th scope="col">εταιρεία</th>{head}<th scope="col">μέση διαφορά</th></tr></thead><tbody>'
-            + "".join(rows) + "</tbody></table>"
+            + "".join(rows) + "</tbody></table></details>"
             f'<p class="note">Σε {under} από τις {len(diffs)} μετρήσεις η δημοσκόπηση έδωσε στη ΝΙΚΗ λιγότερα από το αποτέλεσμα '
             f'(κατά μέσο όρο {signed(sum(diffs) / len(diffs), 1)} μονάδες). Είναι λίγες μετρήσεις και η ΝΙΚΗ κινείται κοντά στο 3%, '
             'όπου μισή μονάδα μετράει πολύ· ο πίνακας δείχνει πόσο κοντά έπεσαν, όχι πόσο κοντά θα πέσουν. Το αποτέλεσμα των '

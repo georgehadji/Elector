@@ -400,11 +400,11 @@ CHART_CSS = """
   box-shadow:none;background:var(--s2)}
 .ch i.a{background:var(--s2)} .ch i.b{background:var(--s6)}
 .ck{display:flex;gap:1.2em;font-size:13px;margin:.2em 0 .5em} .ck i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
-.cs .cd0{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)}
+.cs .cd0{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2)}
 .cst{display:flex;height:16px} .cst i{display:block;height:100%;border-right:2px solid var(--surface)}
 .cst i:first-child{border-radius:4px 0 0 4px} .cst i:last-child{border-right:0;border-radius:0 4px 4px 0}
 .ch i.o{background:color-mix(in srgb,var(--ink-2) 30%,transparent)} .ck{flex-wrap:wrap;gap:.3em 1.2em}
-.sc{width:100%;max-width:520px;height:auto} .sc.st{max-width:600px} .sc text{fill:var(--ink-2);font-size:11px} .sc text.n{fill:var(--ink)}
+.sc{width:100%;max-width:520px;height:auto} .sc.st{max-width:600px} .sc text{fill:var(--ink-2);font-size:12px} .sc text.n{fill:var(--ink)}
 .sc .g{stroke:var(--line);stroke-width:1} .sc .d{stroke:var(--ink-2);stroke-dasharray:4 3}
 .sc circle{fill:var(--s4);stroke:var(--surface);stroke-width:1.5} .sc circle.m{fill:var(--s6)}
 """
@@ -668,13 +668,13 @@ def page():
 <script src="vendor/leaflet-1.9.4/leaflet.min.js" integrity="sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=" crossorigin="anonymous"></script>
 <script>/*THEME_JS*/</script><style>{common_css()}
 {CHART_CSS}.mctl{{display:flex;flex-wrap:wrap;gap:.5em 1.2em;margin:.6em 0}} .mctl select{{margin-left:.4em}}
-.mnum span{{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:11px;font-weight:600;line-height:1;
-  color:var(--ink);text-shadow:0 0 2px var(--surface),0 0 2px var(--surface),0 0 3px var(--surface)}}
+.mnum span{{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:12px;font-weight:600;line-height:1;
+  color:var(--ink);paint-order:stroke;-webkit-text-stroke:3px var(--surface)}}
 #m-legend{{display:flex;flex-wrap:wrap;gap:.3em 1em;margin:.5em 0 1em;font-size:14px}}
 #m-legend .k i{{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}}
 main{{max-width:1100px}} p{{color:var(--ink-2)}} .wrap{{overflow-x:auto;margin-bottom:1.5em}} h2{{margin-top:1.8em;font-size:1.5em}}
 summary{{cursor:pointer}} summary h3{{display:inline}} details{{margin:1em 0}}
-@media (max-width:599px){{th,td{{padding:6px 4px}} th{{font-size:11px}} td{{font-size:13px}}}}</style></head><body><main id="main">
+@media (max-width:599px){{th,td{{padding:8px 4px}} th{{font-size:13px}} td{{font-size:14px}}}}</style></head><body><main id="main">
 {header()}
 <h1>{title}</h1>
 <p>Από τα ανεπίσημα αποτελέσματα του ΥΠΕΣ. Οι ψήφοι αυτές δεν έχουν θέση στους χάρτες των περιφερειών, μετρούν όμως στα σύνολα.
