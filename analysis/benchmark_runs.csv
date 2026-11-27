@@ -1,2 +1,3 @@
 as_of,run_id,sha256,method,n_polls,single_party_majority,no_bonus,nd_pasok_151
 2026-11-22,gr-2027-parliament_2026-11-22_1,4517d470d8be722729c63dc455dcd2f4828b176c1d7b5284ddfb390a7bc5d9b0,"K3 poll trend, a = 0.9, new-entrant allowance U(0,4)",341,0.029,0.216,0.56
+2026-11-26,gr-2027-parliament_2026-11-26_1,0a011a6b9deeb310e85fb598bbf6107500a8debea283b1f4ca6c57162de07562,"K3 poll trend, a = 0.9, new-entrant allowance U(0,4)",341,0.029,0.2,0.602
